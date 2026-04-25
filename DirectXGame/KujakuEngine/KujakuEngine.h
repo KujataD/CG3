@@ -14,6 +14,7 @@
 #include "base/WinApp.h"
 #include "base/Logger.h"
 #include "base/StringUtil.h"
+#include "base/TextureManager.h"
 
 #include "2d/ImGuiManager.h"
 #include "2d/Sprite.h"

@@ -1,12 +1,13 @@
 #include "Sprite.h"
 #include "../3d/GraphicsPipeline.h"
 #include "../base/DirectXCommon.h"
+#include "../base/TextureManager.h"
 #include "../base/WinApp.h"
 #include <cassert>
 
 namespace KujakuEngine {
 
-Sprite* Sprite::Create(const std::string& textureFilePath, const Vector2& position, float width, float height, const Vector4& color) {
+Sprite* Sprite::Create(uint32_t index, const Vector2& position, float width, float height, const Vector4& color) {
 	Sprite* sprite = new Sprite();
 	sprite->position_ = position;
 	sprite->size_ = {1.0f, 1.0f};
@@ -15,7 +16,7 @@ Sprite* Sprite::Create(const std::string& textureFilePath, const Vector2& positi
 	sprite->CreateIndexBuffer();
 	sprite->CreateTransformationMatrixBuffer();
 	sprite->CreateMaterialBuffer();
-	sprite->LoadTexture(textureFilePath);
+	sprite->textureIndex_ = index;
 
 	// 色を反映
 	sprite->materialMap_->color = color;
@@ -39,7 +40,7 @@ void Sprite::PreDraw() {
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	commandList->RSSetViewports(1, &viewport);
-	
+
 	// シザー矩形
 	D3D12_RECT scissorRect{};
 	// 基本的にビューポートと同じ矩形が構成されるようにする
@@ -69,7 +70,8 @@ void Sprite::Draw() {
 
 	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_->GetGPUVirtualAddress());
 
-	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
+	commandList->SetGraphicsRootDescriptorTable(2, handle);
 
 	// 描画（インデックス使用）
 	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
@@ -216,71 +218,6 @@ void Sprite::CreateMaterialBuffer() {
 	materialMap_->color = {1.0f, 1.0f, 1.0f, 1.0f};
 	materialMap_->enableLighting = 0; // スプライトはライティングなし
 	materialMap_->uvTransform = Matrix4x4::MakeIdentity();
-}
-
-void Sprite::LoadTexture(const std::string& filePath) {
-	// Model::LoadTexture と同じ処理
-	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
-
-	DirectX::ScratchImage image{};
-	std::wstring filePathW(filePath.begin(), filePath.end());
-	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
-	assert(SUCCEEDED(hr));
-
-	DirectX::ScratchImage mipImages{};
-	// 1x1など最小サイズの場合はミップ生成をスキップ
-	if (image.GetMetadata().width > 1 && image.GetMetadata().height > 1) {
-		hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
-		assert(SUCCEEDED(hr));
-	} else {
-		// そのままコピー
-		hr = mipImages.InitializeFromImage(*image.GetImages());
-		assert(SUCCEEDED(hr));
-	}
-
-	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
-
-	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Width = UINT(metadata.width);
-	resourceDesc.Height = UINT(metadata.height);
-	resourceDesc.MipLevels = UINT16(metadata.mipLevels);
-	resourceDesc.DepthOrArraySize = UINT16(metadata.arraySize);
-	resourceDesc.Format = metadata.format;
-	resourceDesc.SampleDesc.Count = 1;
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION(metadata.dimension);
-
-	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
-	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-
-	hr = device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&textureResource_));
-	assert(SUCCEEDED(hr));
-
-	for (size_t mipLevel = 0; mipLevel < metadata.mipLevels; ++mipLevel) {
-		const DirectX::Image* img = mipImages.GetImage(mipLevel, 0, 0);
-		hr = textureResource_->WriteToSubresource(UINT(mipLevel), nullptr, img->pixels, UINT(img->rowPitch), UINT(img->slicePitch));
-		assert(SUCCEEDED(hr));
-	}
-
-	// SRV生成
-	ID3D12DescriptorHeap* srvHeap = DirectXCommon::GetInstance()->GetSrvDescriptorHeap();
-	const UINT descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	// テクスチャの数に応じて、場所を変える
-	UINT srvIndex = DirectXCommon::GetInstance()->AllocateSrvIndex();
-
-	textureSrvHandleCPU_ = srvHeap->GetCPUDescriptorHandleForHeapStart();
-	textureSrvHandleCPU_.ptr += descriptorSizeSRV * srvIndex;
-	textureSrvHandleGPU_ = srvHeap->GetGPUDescriptorHandleForHeapStart();
-	textureSrvHandleGPU_.ptr += descriptorSizeSRV * srvIndex;
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = metadata.format;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
-	device->CreateShaderResourceView(textureResource_.Get(), &srvDesc, textureSrvHandleCPU_);
 }
 
 } // namespace KujakuEngine

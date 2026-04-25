@@ -144,8 +144,8 @@
     <ClCompile Include="KujakuEngine\shapes\ShapeUtil.cpp">
       <Filter>KujakuEngine\shapes</Filter>
     </ClCompile>
-    <ClCompile Include="TextureManager.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="KujakuEngine\base\TextureManager.cpp">
+      <Filter>KujakuEngine\base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -245,8 +245,8 @@
     <ClInclude Include="KujakuEngine\shapes\ShapeUtil.h">
       <Filter>KujakuEngine\shapes</Filter>
     </ClInclude>
-    <ClInclude Include="TextureManager.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="KujakuEngine\base\TextureManager.h">
+      <Filter>KujakuEngine\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

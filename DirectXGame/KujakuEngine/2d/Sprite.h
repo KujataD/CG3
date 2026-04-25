@@ -27,7 +27,8 @@ public:
 	/// <param name="position">左上の座標（スクリーン座標）</param>
 	/// <param name="size">表示サイズ（デフォルトはテクスチャサイズ相当）</param>
 	/// <param name="color">色（デフォルトは白・不透明）</param>
-	static Sprite* Create(const std::string& textureFilePath, const Vector2& position = {0.0f, 0.0f}, float width = 360.0f, float height = 360.0f, const Vector4& color = {1.0f, 1.0f, 1.0f, 1.0f});
+	static Sprite* Create(uint32_t index, const Vector2& position = {0.0f, 0.0f}, float width = 360.0f, float height = 360.0f, const Vector4& color = {1.0f, 1.0f, 1.0f, 1.0f});
+
 
 	/// <summary>
 	/// 描画前処理
@@ -81,7 +82,7 @@ private:
 	void CreateIndexBuffer();
 	void CreateTransformationMatrixBuffer();
 	void CreateMaterialBuffer();
-	void LoadTexture(const std::string& filePath);
+	void SetTexture(uint32_t index) { textureIndex_ = index; }
 
 private:
 	// 頂点バッファ
@@ -101,11 +102,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
 	MaterialData* materialMap_ = nullptr;
 
-	// テクスチャ
-	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource_;
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_{};
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_{};
-
 	// トランスフォーム
 	Vector2 position_ = {0.0f, 0.0f};
 	Vector2 size_ = {640.0f, 360.0f};
@@ -118,6 +114,8 @@ private:
 
 	float width_ = 360.0f;
 	float height_ = 360.0f;
+
+	uint32_t textureIndex_;
 };
 
 } // namespace KujakuEngine

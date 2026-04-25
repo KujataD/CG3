@@ -28,11 +28,13 @@ struct MaterialData {
 	float pad[3] = {};
 	Matrix4x4 uvTransform;
 	std::string textureFilePath;
+	uint32_t textureIndex;
 };
 
 struct ModelRawData {
 	std::vector<VertexData> vertices;
 	MaterialData material;
+	
 };
 
 /// <summary>
@@ -44,15 +46,10 @@ public:
 	~Model() = default;
 	
 	/// <summary>
-	/// OBJファイルからモデルを生成する
-	/// </summary>
-	Model* CreateFromOBJ(const std::string& directoryPath, const std::string& filename, bool enableLighting);
-
-	/// <summary>
 	/// OBJファイルからモデルを生成する(省略版)
 	/// </summary>
 	static Model* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
-
+	 
 	static Model* Create(const std::string& textureFilePath, bool enableLighting = false);
 
 
@@ -90,12 +87,13 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_{};
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_{};
 
+	uint32_t textureIndex_;
+
 	Model(const Model&) = delete;
 	Model& operator=(const Model&) = delete;
 
 	static ModelRawData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
-	void LoadTexture(const std::string& filePath);
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
 	void CreateMaterialBuffer(const MaterialData& material);
 };
