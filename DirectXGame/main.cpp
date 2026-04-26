@@ -16,14 +16,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGuiManager* imguiManager = ImGuiManager::GetInstance();
 	TextureManager::GetInstance()->Initialize();
 
-	Model* model = Model::CreateFromOBJ("player");
+
+	// カメラ
+	// ------------------------------------------
 	Camera camera;
 	camera.Initialize();
 	camera.translation_ = {0.0f, 0.0f, -20.0f};
 	camera.UpdateMatrix();
-	WorldTransform worldTransform;
-	worldTransform.Initialize();
 
+	// モデル
+	// ------------------------------------------
+	Model* model = Model::CreateFromOBJ("player");
+	WorldTransform modelWorldTransform;
+	modelWorldTransform.Initialize();
+
+	// スプライト
+	// ------------------------------------------
 	uint32_t texture1 = TextureManager::GetInstance()->LoadTexture("resources/uvchecker.png");
 	uint32_t texture2 = TextureManager::GetInstance()->LoadTexture("resources/white1x1.png");
 	Sprite* sprite = Sprite::Create(texture1);
@@ -41,8 +49,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓↓↓ 更新処理ここから ↓↓↓
 		///
 
-		worldTransform.rotation_.y += 0.02f;
-		worldTransform.UpdateMatrix(camera);
+		modelWorldTransform.rotation_.y += 0.02f;
+		modelWorldTransform.UpdateMatrix(camera);
 
 		if (isUvChecker) {
 			sprite->SetTexture(texture1);
@@ -67,7 +75,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		Model::PreDraw();
-		model->Draw(worldTransform, camera);
+		model->Draw(modelWorldTransform, camera);
 		Model::PostDraw();
 
 		Sprite::PreDraw();
