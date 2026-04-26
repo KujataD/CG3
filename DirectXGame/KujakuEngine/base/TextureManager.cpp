@@ -1,6 +1,7 @@
 #include "TextureManager.h"
 #include "../3d/GraphicsPipeline.h"
 #include "DirectXCommon.h"
+
 #include "WinApp.h"
 
 namespace KujakuEngine {
@@ -20,10 +21,10 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::Lo
 	std::wstring filePathW(filePath.begin(), filePath.end());
 	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
 	if (FAILED(hr)) {
-    std::string msg = "Failed to load texture: " + filePath + "\n";
-    OutputDebugStringA(msg.c_str());
-    assert(false);
-}
+		std::string msg = "Failed to load texture: " + filePath + "\n";
+		OutputDebugStringA(msg.c_str());
+		assert(false);
+	}
 
 	DirectX::ScratchImage mipImages{};
 	// 1x1など最小サイズの場合はミップ生成をスキップ
@@ -37,31 +38,17 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::Lo
 	}
 
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
-
-	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Width = UINT(metadata.width);
-	resourceDesc.Height = UINT(metadata.height);
-	resourceDesc.MipLevels = UINT16(metadata.mipLevels);
-	resourceDesc.DepthOrArraySize = UINT16(metadata.arraySize);
-	resourceDesc.Format = metadata.format;
-	resourceDesc.SampleDesc.Count = 1;
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION(metadata.dimension);
-
-	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
-	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-
 	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource;
-
-	hr = device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&textureResource));
-	assert(SUCCEEDED(hr));
+	textureResource.Attach(CreateTextureResource(device, metadata));
 
 	// データ転送
-	for (size_t mipLevel = 0; mipLevel < metadata.mipLevels; ++mipLevel) {
-		const DirectX::Image* img = mipImages.GetImage(mipLevel, 0, 0);
-		hr = textureResource->WriteToSubresource(UINT(mipLevel), nullptr, img->pixels, UINT(img->rowPitch), UINT(img->slicePitch));
-		assert(SUCCEEDED(hr));
+	auto intermediate = UploadTextureData(textureResource.Get(), mipImages, DirectXCommon::GetInstance()->GetCommandList());
+
+	DirectXCommon::GetInstance()->ExecuteCommandAndWait();
+
+	if (intermediate) {
+		intermediate->Release();
+		intermediate = nullptr;
 	}
 
 	// SRV生成
@@ -84,7 +71,7 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::Lo
 
 	device->CreateShaderResourceView(textureResource.Get(), &srvDesc, cpuHandle);
 
-	// ===== 登録 =====
+	// 登録
 	TextureData data{};
 	data.resource = textureResource;
 	data.cpuHandle = cpuHandle;
@@ -97,12 +84,71 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::Lo
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandle(uint32_t index) {
-	ID3D12DescriptorHeap* heap = DirectXCommon::GetInstance()->GetSrvDescriptorHeap();
-	UINT size = DirectXCommon::GetInstance()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+
+	ID3D12DescriptorHeap* heap = dxCommon->GetSrvDescriptorHeap();
+	UINT size = dxCommon->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = heap->GetGPUDescriptorHandleForHeapStart();
 	handle.ptr += size * index;
 	return handle;
+}
+
+ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata) {
+	// 1.metadataを基にResourceの設定
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Width = UINT(metadata.width);                             // Textureの幅
+	resourceDesc.Height = UINT(metadata.height);                           // Textureの高さ
+	resourceDesc.MipLevels = UINT16(metadata.mipLevels);                   // mipmapの数
+	resourceDesc.DepthOrArraySize = UINT16(metadata.arraySize);            // 奥行き or 配列Textureの配列数
+	resourceDesc.Format = metadata.format;                                 // Texture@Format
+	resourceDesc.SampleDesc.Count = 1;                                     // サンプリングカウント。1固定。
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION(metadata.dimension); // Textureの次元数。普段使っているのは2次元
+
+	// 2.利用するHeapの設定。非常に特殊な運用。02_04exで一般的なケース版がある
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT; // 細かい設定を行う
+
+	// 3.Resourceを生成する
+	ID3D12Resource* resource = nullptr;
+	HRESULT hr = device->CreateCommittedResource(
+	    &heapProperties,                // Heapの設定
+	    D3D12_HEAP_FLAG_NONE,           // Heapの特殊な設定。特になし。
+	    &resourceDesc,                  // Resourceの設定
+	    D3D12_RESOURCE_STATE_COPY_DEST, // データ転送される設定
+	    nullptr,                        // Clear最適値。使わないのでnullptr
+	    IID_PPV_ARGS(&resource));       // 作成するResourceポインタへのポインタ
+	assert(SUCCEEDED(hr));
+	return resource;
+}
+
+ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages, ID3D12GraphicsCommandList* commandList) {
+
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+
+	// PrepareUploadを利用して、読み込んだデータからDirectX12用のSubresourceの配列を作成する
+	// Subresourceは、MipMapの1枚1枚ぐらいのイメージ
+	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+	// Subresourceの数を基に、コピー元となるIntermediateResourceに必要なサイズを計算する
+	DirectX::PrepareUpload(dxCommon->GetDevice(), mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
+	// 計算したサイズでIntermediateResourceを作る
+	uint64_t intermediateSize = GetRequiredIntermediateSize(texture, 0, UINT(subresources.size()));
+	// CPUとGPUを取り持つためのResourceなので、IntermediateResource(中間リソース)と呼ぶ
+	ID3D12Resource* intermediateResource = dxCommon->CreateBufferResource(intermediateSize);
+
+	// ResourceStateを変更し、IntermediateResourceを返す
+	// UpdateSubresourcesを利用して、IntermediateResourceにSubresourceのデータを書き込み、textureに転送するコマンドを積む
+	UpdateSubresources(commandList, texture, intermediateResource, 0, 0, UINT(subresources.size()), subresources.data());
+	// Textureへの転送後は利用できるよう、D3D12_RESOURCE_STATE_COPY_DESTからD3D12_RESOURCE_STATE_GENERIC_READへResourceStateを変更する
+	D3D12_RESOURCE_BARRIER barrier{};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = texture;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
+	commandList->ResourceBarrier(1, &barrier);
+	return intermediateResource;
 }
 
 } // namespace KujakuEngine

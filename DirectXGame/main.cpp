@@ -24,8 +24,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	WorldTransform worldTransform;
 	worldTransform.Initialize();
 
-	uint32_t texture = TextureManager::GetInstance()->LoadTexture("resources/uvchecker.png");
-	Sprite* sprite = Sprite::Create(texture);
+	uint32_t texture1 = TextureManager::GetInstance()->LoadTexture("resources/uvchecker.png");
+	uint32_t texture2 = TextureManager::GetInstance()->LoadTexture("resources/white1x1.png");
+	Sprite* sprite = Sprite::Create(texture1);
+	sprite->SetTexture(texture2);
+
+	bool isUvChecker = true;
 
 	// ゲームループ
 	while (KujakuEngine::Update()) {
@@ -39,6 +43,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		worldTransform.rotation_.y += 0.02f;
 		worldTransform.UpdateMatrix(camera);
+
+		if (isUvChecker) {
+			sprite->SetTexture(texture1);
+		} else {
+			sprite->SetTexture(texture2);
+		}
+
+#ifdef USE_IMGUI
+		ImGui::Begin("texture");
+		ImGui::Checkbox("isUvChecker", &isUvChecker);
+		ImGui::End();
+#endif // USE_IMGUI
 
 		///
 		/// ↑↑↑ 更新処理ここまで ↑↑↑

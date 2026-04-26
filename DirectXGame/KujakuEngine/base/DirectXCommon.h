@@ -51,6 +51,18 @@ public:
 	/// 深度バッファのクリア
 	/// </summary>
 	void ClearDepthBuffer();
+	
+	/// <summary>
+	/// リソース作成
+	/// </summary>
+	/// <param name="sizeInBytes"></param>
+	/// <returns></returns>
+	ID3D12Resource* CreateBufferResource(size_t sizeInBytes);
+
+	/// <summary>
+	/// CommandListにintermediateResourceをTextureResourceに転送するコマンドを積み実行完了まで待つ
+	/// </summary>
+	void ExecuteCommandAndWait();
 
 	/// <summary>
 	/// 初期化済みかどうか
@@ -70,7 +82,6 @@ public:
 	uint32_t GetDescriptorSizeDSV() const { return descriptorSizeDSV_; }
 	int32_t GetBackBufferWidth() const { return backBufferWidth_; }
 	int32_t GetBackBufferHeight() const { return backBufferHeight_; }
-
 private:
 	DirectXCommon() = default;
 	~DirectXCommon() = default;
@@ -114,6 +125,7 @@ private:
 	///
 	/// </summary>
 	void CreateFinalRenderTargets();
+
 
 	void CreateDepthBuffer();
 	void CreateFence();

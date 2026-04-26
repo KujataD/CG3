@@ -61,6 +61,8 @@ public:
 	const Vector2& GetSize() const { return size_; }
 	float GetRotation() const { return rotation_; }
 
+	// --- set ---
+	void SetTexture(uint32_t index) { textureIndex_ = index; }
 private:
 	Sprite() = default;
 
@@ -82,7 +84,6 @@ private:
 	void CreateIndexBuffer();
 	void CreateTransformationMatrixBuffer();
 	void CreateMaterialBuffer();
-	void SetTexture(uint32_t index) { textureIndex_ = index; }
 
 private:
 	// 頂点バッファ
