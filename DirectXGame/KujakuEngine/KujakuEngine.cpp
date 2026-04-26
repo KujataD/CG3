@@ -43,9 +43,6 @@ bool Update() {
 void PreDraw() {
 	// バックバッファクリア＆バリア設定
 	DirectXCommon::GetInstance()->PreDraw();
-
-	// RootSignature・PSO・Viewport・ScissorRect をコマンドリストに積む
-	GraphicsPipeline::GetInstance()->SetCommandList();
 }
 
 void PostDraw() {

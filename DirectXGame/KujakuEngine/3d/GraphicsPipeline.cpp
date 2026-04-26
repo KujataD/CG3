@@ -1,8 +1,8 @@
 #include "GraphicsPipeline.h"
 #include "../base/DirectXCommon.h"
-#include "../base/WinApp.h"
 #include "../base/Logger.h"
 #include "../base/StringUtil.h"
+#include "../base/WinApp.h"
 #include <cassert>
 #include <format>
 
@@ -73,7 +73,6 @@ IDxcBlob* GraphicsPipeline::CompileShader(const std::wstring& filePath, const wc
 
 	// コンパイルエラーではなくdxcが起動できないなど致命的な状況
 	assert(SUCCEEDED(hr));
-
 
 	// 3. 警告·エラーがでていないか確認する
 
@@ -231,20 +230,60 @@ void GraphicsPipeline::CreatePipelineStateObject() {
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
-	HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineState_));
-	assert(SUCCEEDED(hr));
+	for (int32_t i = 0; i < static_cast<int32_t>(BlendMode::kCountOfBlendMode); i++) {
+		D3D12_BLEND_DESC blendDesc{};
+
+		switch (static_cast<BlendMode>(i)) {
+		case BlendMode::kNone:
+			blendDesc.RenderTarget[0].BlendEnable = FALSE;
+			break;
+
+		case BlendMode::kNormal:
+			blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+			blendDesc.RenderTarget[0].BlendEnable = TRUE;
+			blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+			blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+			blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+			blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+			break;
+
+		case BlendMode::kAdd:
+			break;
+
+		case BlendMode::kMultiply:
+			break;
+
+		case BlendMode::kExclusion:
+			break;
+
+		case BlendMode::kScreen:
+			break;
+
+		case BlendMode::kSubtract:
+			break;
+
+		default:
+			break;
+		}
+
+		graphicsPipelineStateDesc.BlendState = blendDesc;
+		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[i]));
+		assert(SUCCEEDED(hr));
+	}
 
 	vertexShaderBlob->Release();
 	pixelShaderBlob->Release();
 }
 
-void GraphicsPipeline::SetCommandList() {
+void GraphicsPipeline::SetCommandList(BlendMode blendMode) {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
 
 	// RootSignatureとPSOを設定
 	commandList->SetGraphicsRootSignature(rootSignature_.Get());
-	commandList->SetPipelineState(pipelineState_.Get());
+	commandList->SetPipelineState(pipelineStates_[static_cast<int32_t>(blendMode)].Get());
 }
 
 void GraphicsPipeline::Finalize() {

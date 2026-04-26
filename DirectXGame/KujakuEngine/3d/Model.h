@@ -7,6 +7,7 @@
 
 #include "../3d/Camera.h"
 #include "../3d/WorldTransform.h"
+#include "../3d/GraphicsPipeline.h"
 #include "../math/Matrix4x4.h"
 #include "../math/Vector2.h"
 #include "../math/Vector3.h"
@@ -73,6 +74,7 @@ public:
 
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
+	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
 
 private:
 
@@ -96,6 +98,8 @@ private:
 	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
 	void CreateMaterialBuffer(const MaterialData& material);
+
+	BlendMode blendMode_ = BlendMode::kNormal;
 };
 
 } // namespace KujakuEngine

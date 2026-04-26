@@ -26,9 +26,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// モデル
 	// ------------------------------------------
-	Model* model = Model::CreateFromOBJ("player");
+	Model* model = Model::CreateFromOBJ("player" , true);
 	WorldTransform modelWorldTransform;
 	modelWorldTransform.Initialize();
+	Vector4 modelColor = Vector4(1.0f, 1.0f, 1.0f, 0.5f);
+	model->SetColor(modelColor);
 
 	// スプライト
 	// ------------------------------------------
@@ -59,8 +61,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 #ifdef USE_IMGUI
-		ImGui::Begin("texture");
+		ImGui::Begin("ObjectManager");
 		ImGui::Checkbox("isUvChecker", &isUvChecker);
+		ImGui::ColorEdit4("ModelColor", &modelColor.x);
+		model->SetColor(modelColor);
+		ImGui::End();
+
+		ImGui::Begin("LightManager");
+		auto& light = DirectionalLight::GetInstance()->GetData();
+		ImGui::ColorEdit3("Light Color", &light.color.x);
+		ImGui::SliderFloat3("Direction", &light.direction.x, -1.0f, 1.0f);
+		ImGui::DragFloat("Intensity", &light.intensity, 0.01f);
 		ImGui::End();
 #endif // USE_IMGUI
 

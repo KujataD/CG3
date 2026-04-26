@@ -42,7 +42,8 @@ struct ConicalPendulum {
 };
 
 
-struct Segment {
+class Segment {
+public:
 	Vector3 origin; // 始点
 	Vector3 diff;   // 終点の差分ベクトル
 };

@@ -1,5 +1,4 @@
 #include "Sprite.h"
-#include "../3d/GraphicsPipeline.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
@@ -50,7 +49,6 @@ void Sprite::PreDraw() {
 	scissorRect.bottom = WinApp::kWindowHeight;
 	commandList->RSSetScissorRects(1, &scissorRect);
 
-	GraphicsPipeline::GetInstance()->SetCommandList();
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -62,6 +60,8 @@ void Sprite::Draw() {
 	UpdateMatrix();
 
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
+
+	GraphicsPipeline::GetInstance()->SetCommandList(blendMode_);
 
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
 	commandList->IASetIndexBuffer(&indexBufferView_);

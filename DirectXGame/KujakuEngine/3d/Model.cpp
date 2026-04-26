@@ -116,8 +116,6 @@ void Model::PreDraw() {
 	scissorRect.bottom = WinApp::kWindowHeight;
 	commandList->RSSetScissorRects(1, &scissorRect);
 
-	// RootSignature と PSO をセット
-	GraphicsPipeline::GetInstance()->SetCommandList();
 
 	// プリミティブトポロジの設定（main.cpp で毎フレームセットしているものに対応）
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -129,6 +127,9 @@ void Model::PostDraw() {
 
 void Model::Draw(const WorldTransform& worldTransform, const Camera& camera) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
+	
+	// RootSignature と PSO をセット
+	GraphicsPipeline::GetInstance()->SetCommandList(blendMode_);
 
 	// VBVを設定
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
@@ -140,9 +141,9 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera) {
 	commandList->SetGraphicsRootConstantBufferView(1, worldTransform.GetConstBuffer()->GetGPUVirtualAddress());
 
 	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
-	commandList->SetGraphicsRootDescriptorTable(2, handle);
-
 	// テクスチャSRV（RootParameter[2]: DescriptorTable）
+	commandList->SetGraphicsRootDescriptorTable(2, handle);
+	// ライト
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 	// 描画
 	commandList->DrawInstanced(vertexCount_, 1, 0, 0);

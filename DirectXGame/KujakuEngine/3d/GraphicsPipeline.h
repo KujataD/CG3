@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <d3d12.h>
 #include <dxcapi.h>
 #include <string>
@@ -9,11 +10,24 @@
 
 namespace KujakuEngine {
 
+enum class BlendMode {
+	kNone,      //!< ブレンドなし
+	kNormal,    //!< 通常αブレンド。デフォルト。 Src * SrcA + Dest * (1 - SrcA)
+	kAdd,       //!< 加算。Src * SrcA + Dest * 1
+	kSubtract,  //!< 減算。Dest * 1 - Src * SrcA
+	kMultiply,  //!< 乗算。Src * 0 + Dest * Src
+	kScreen,    //!< スクリーン。Src * (1 - Dest) + Dest * 1
+	kExclusion, //!< 除外。(1 - Dest) * Src + (1 - Src) * Dest
+
+	kCountOfBlendMode, //!< ブレンドモード数。指定はしない
+};
+
 /// <summary>
 /// グラフィックスパイプライン管理クラス
 /// RootSignature・シェーダーコンパイル・PSOの生成を担当する
 /// </summary>
 class GraphicsPipeline {
+public:
 public:
 	friend class Model;
 	/// <summary>
@@ -31,7 +45,7 @@ public:
 	/// 描画前コマンドのセット
 	/// RootSignature・PSO・DescriptorHeap・Viewport・ScissorRect をコマンドリストに積む
 	/// </summary>
-	void SetCommandList();
+	void SetCommandList(BlendMode blendMode);
 
 	/// <summary>
 	/// 終了処理
@@ -73,6 +87,8 @@ private:
 	// パイプライン
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
+
+	std::array<Microsoft::WRL::ComPtr<ID3D12PipelineState>, static_cast<int32_t>(BlendMode::kCountOfBlendMode)> pipelineStates_;
 };
 
 } // namespace KujakuEngine

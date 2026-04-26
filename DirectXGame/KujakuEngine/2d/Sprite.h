@@ -6,6 +6,7 @@
 #include <wrl.h>
 
 #include "../3d/Model.h" // VertexData, MaterialData を共有
+#include "../3d/GraphicsPipeline.h"
 
 #include "../../externals/DirectXTex/DirectXTex.h"
 #include "../math/Matrix4x4.h"
@@ -19,6 +20,7 @@ namespace KujakuEngine {
 /// スプライト
 /// </summary>
 class Sprite {
+
 public:
 	/// <summary>
 	/// スプライトを生成する
@@ -28,7 +30,6 @@ public:
 	/// <param name="size">表示サイズ（デフォルトはテクスチャサイズ相当）</param>
 	/// <param name="color">色（デフォルトは白・不透明）</param>
 	static Sprite* Create(uint32_t index, const Vector2& position = {0.0f, 0.0f}, float width = 360.0f, float height = 360.0f, const Vector4& color = {1.0f, 1.0f, 1.0f, 1.0f});
-
 
 	/// <summary>
 	/// 描画前処理
@@ -55,14 +56,14 @@ public:
 	void SetUVRotation(float rotation) { uvRotation_ = rotation; }
 	void SetVertexMap(float width, float height);
 
-
+	void SetTexture(uint32_t index) { textureIndex_ = index; }
+	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
+	
 	// --- get ---
 	const Vector2& GetPosition() const { return position_; }
 	const Vector2& GetSize() const { return size_; }
 	float GetRotation() const { return rotation_; }
 
-	// --- set ---
-	void SetTexture(uint32_t index) { textureIndex_ = index; }
 private:
 	Sprite() = default;
 
@@ -77,7 +78,6 @@ private:
 	/// main.cpp の uvTransformMatrix 計算に対応
 	/// </summary>
 	void UpdateUVTransform();
-
 
 	// --- GPU リソース生成 ---
 	void CreateVertexBuffer(float width, float height);
@@ -116,7 +116,11 @@ private:
 	float width_ = 360.0f;
 	float height_ = 360.0f;
 
+	// srvの場所を示すIndex
 	uint32_t textureIndex_;
+
+	// ブレンドモード
+	BlendMode blendMode_ = BlendMode::kNormal;
 };
 
 } // namespace KujakuEngine
