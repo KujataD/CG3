@@ -16,7 +16,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGuiManager* imguiManager = ImGuiManager::GetInstance();
 	TextureManager::GetInstance()->Initialize();
 
-
 	// カメラ
 	// ------------------------------------------
 	Camera camera;
@@ -26,11 +25,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// モデル
 	// ------------------------------------------
-	Model* model = Model::CreateFromOBJ("player" , true);
-	WorldTransform modelWorldTransform;
-	modelWorldTransform.Initialize();
+	Model* model = Model::CreateFromOBJ("player", true);
 	Vector4 modelColor = Vector4(1.0f, 1.0f, 1.0f, 0.5f);
 	model->SetColor(modelColor);
+	WorldTransform modelWorldTransform;
+	modelWorldTransform.Initialize();
+
+	Model* model2 = Model::CreateFromOBJ("enemy", true);
+	WorldTransform modelWorldTransform2;
+	modelWorldTransform2.Initialize();
+	modelWorldTransform2.UpdateMatrix(camera);
+
 
 	// スプライト
 	// ------------------------------------------
@@ -38,6 +43,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	uint32_t texture2 = TextureManager::GetInstance()->LoadTexture("resources/white1x1.png");
 	Sprite* sprite = Sprite::Create(texture1);
 	sprite->SetTexture(texture2);
+	sprite->SetColor(modelColor);
 
 	bool isUvChecker = true;
 
@@ -54,6 +60,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		modelWorldTransform.rotation_.y += 0.02f;
 		modelWorldTransform.UpdateMatrix(camera);
 
+		modelWorldTransform2.rotation_.y -= 0.02f;
+		modelWorldTransform2.UpdateMatrix(camera);
+
 		if (isUvChecker) {
 			sprite->SetTexture(texture1);
 		} else {
@@ -63,6 +72,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #ifdef USE_IMGUI
 		ImGui::Begin("ObjectManager");
 		ImGui::Checkbox("isUvChecker", &isUvChecker);
+		ImGui::DragFloat3("Model.translation", &modelWorldTransform.translation_.x, 0.01f);
 		ImGui::ColorEdit4("ModelColor", &modelColor.x);
 		model->SetColor(modelColor);
 		ImGui::End();
@@ -86,6 +96,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		Model::PreDraw();
+		model2->Draw(modelWorldTransform2, camera);
 		model->Draw(modelWorldTransform, camera);
 		Model::PostDraw();
 

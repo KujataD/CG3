@@ -232,36 +232,59 @@ void GraphicsPipeline::CreatePipelineStateObject() {
 
 	for (int32_t i = 0; i < static_cast<int32_t>(BlendMode::kCountOfBlendMode); i++) {
 		D3D12_BLEND_DESC blendDesc{};
+		auto& renderTarget = blendDesc.RenderTarget[0];
+
+		// 共通初期化部
+		renderTarget.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		renderTarget.BlendEnable = TRUE;
+
+		renderTarget.SrcBlend = D3D12_BLEND_ONE;
+		renderTarget.DestBlend = D3D12_BLEND_ZERO;
+		renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
+
+		renderTarget.SrcBlendAlpha = D3D12_BLEND_ONE;
+		renderTarget.DestBlendAlpha = D3D12_BLEND_ZERO;
+		renderTarget.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 
 		switch (static_cast<BlendMode>(i)) {
 		case BlendMode::kNone:
-			blendDesc.RenderTarget[0].BlendEnable = FALSE;
+			renderTarget.BlendEnable = FALSE;
 			break;
 
 		case BlendMode::kNormal:
-			blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-			blendDesc.RenderTarget[0].BlendEnable = TRUE;
-			blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-			blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-			blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+			renderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
+			renderTarget.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 			break;
 
 		case BlendMode::kAdd:
+			renderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
+			renderTarget.DestBlend = D3D12_BLEND_ONE;
 			break;
 
 		case BlendMode::kMultiply:
+			renderTarget.SrcBlend = D3D12_BLEND_ZERO;
+			renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
+			renderTarget.DestBlend = D3D12_BLEND_SRC_COLOR;
 			break;
 
 		case BlendMode::kExclusion:
+			renderTarget.SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
+			renderTarget.DestBlend = D3D12_BLEND_INV_SRC_COLOR;
+			renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
 			break;
 
 		case BlendMode::kScreen:
+			renderTarget.SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
+			renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
+			renderTarget.DestBlend = D3D12_BLEND_ONE;
 			break;
 
 		case BlendMode::kSubtract:
+			renderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			renderTarget.BlendOp = D3D12_BLEND_OP_REV_SUBTRACT;
+			renderTarget.DestBlend = D3D12_BLEND_ONE;
 			break;
 
 		default:

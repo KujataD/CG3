@@ -11,13 +11,13 @@
 namespace KujakuEngine {
 
 enum class BlendMode {
-	kNone,      //!< ブレンドなし
-	kNormal,    //!< 通常αブレンド。デフォルト。 Src * SrcA + Dest * (1 - SrcA)
-	kAdd,       //!< 加算。Src * SrcA + Dest * 1
-	kSubtract,  //!< 減算。Dest * 1 - Src * SrcA
-	kMultiply,  //!< 乗算。Src * 0 + Dest * Src
-	kScreen,    //!< スクリーン。Src * (1 - Dest) + Dest * 1
-	kExclusion, //!< 除外。(1 - Dest) * Src + (1 - Src) * Dest
+	kNone,      // ブレンドなし
+	kNormal,    // αブレンド	: Src * SrcA + Dest * (1 - SrcA)
+	kAdd,       // 加算		: Src * SrcA + Dest * 1
+	kSubtract,  // 減算		: Dest * 1 - Src * SrcA
+	kMultiply,  // 乗算		: Src * 0 + Dest * Src
+	kScreen,    // スクリーン	: Src * (1 - Dest) + Dest * 1
+	kExclusion, // 除外		: (1 - Dest) * Src + (1 - Src) * Dest
 
 	kCountOfBlendMode, //!< ブレンドモード数。指定はしない
 };
