@@ -89,6 +89,11 @@ private:
 
 	static inline const uint32_t kMaxInstance = 1000;
 
+	D3D12_CPU_DESCRIPTOR_HANDLE instancingSrvHandleCPU_{};
+	D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU_{};
+	uint32_t instancingSrvIndex_ = 0;
+	static inline uint32_t sInstancingSrvIndexCounter_ = 64;
+
 	Particle(const Particle&) = delete;
 	Particle& operator=(const Particle&) = delete;
 

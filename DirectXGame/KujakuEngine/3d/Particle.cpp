@@ -14,9 +14,30 @@ void Particle::Initialize() {
 
 	// Instancing用のTransformationMatrixリソースを作る
 	instancingResource_ = dxCommon->CreateBufferResource(sizeof(TransformationMatrix) * kMaxInstance);
-	
+
 	// 書き込むためのアドレスを取得
 	instancingResource_->Map(0, nullptr, (void**)&instancingData_);
+
+	// Instancing用SRVを作成
+	ID3D12DescriptorHeap* srvHeap = dxCommon->GetSrvDescriptorHeap();
+	const UINT descriptorSizeSRV = dxCommon->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	instancingSrvIndex_ = sInstancingSrvIndexCounter_++;
+	instancingSrvHandleCPU_ = srvHeap->GetCPUDescriptorHandleForHeapStart();
+	instancingSrvHandleCPU_.ptr += descriptorSizeSRV * instancingSrvIndex_;
+	instancingSrvHandleGPU_ = srvHeap->GetGPUDescriptorHandleForHeapStart();
+	instancingSrvHandleGPU_.ptr += descriptorSizeSRV * instancingSrvIndex_;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC instancingSrvDesc{};
+	instancingSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	instancingSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	instancingSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	instancingSrvDesc.Buffer.FirstElement = 0;
+	instancingSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	instancingSrvDesc.Buffer.NumElements = kMaxInstance;
+	instancingSrvDesc.Buffer.StructureByteStride = sizeof(TransformationMatrix);
+
+	dxCommon->GetDevice()->CreateShaderResourceView(instancingResource_.Get(), &instancingSrvDesc, instancingSrvHandleCPU_);
 
 	// 単位行列を書き込んでおく
 	for (uint32_t i = 0; i < kMaxInstance; ++i) {
@@ -198,12 +219,13 @@ void Particle::Draw(const WorldTransform& worldTransform, const Camera& camera) 
 	// マテリアルCBuffer（RootParameter[0]: PixelShader, b0）
 	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 
-	// WVP・WorldCBuffer（RootParameter[1]: VertexShader, b0）
-	commandList->SetGraphicsRootConstantBufferView(1, worldTransform.GetConstBuffer()->GetGPUVirtualAddress());
-
-	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
+	// Instancing SRV（RootParameter[1]: VS t0 StructuredBuffer）
+	commandList->SetGraphicsRootDescriptorTable(1, instancingSrvHandleGPU_);
+	
 	// テクスチャSRV（RootParameter[2]: DescriptorTable）
+	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
 	commandList->SetGraphicsRootDescriptorTable(2, handle);
+	
 	// ライト
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 	// 描画
