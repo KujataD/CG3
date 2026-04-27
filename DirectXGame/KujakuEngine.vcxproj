@@ -57,7 +57,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)externals\DirectXTex</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)externals\DirectXTex;$(ProjectDir)KujakuEngine</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -84,6 +84,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir)KujakuEngine</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -109,8 +110,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\3d\DebugCamera.cpp" />
     <ClCompile Include="KujakuEngine\3d\DirectionalLight.cpp" />
     <ClCompile Include="KujakuEngine\3d\GraphicsPipeline.cpp" />
+    <ClCompile Include="KujakuEngine\3d\ParticleModel.cpp" />
     <ClCompile Include="KujakuEngine\3d\Model.cpp" />
-    <ClCompile Include="KujakuEngine\3d\Particle.cpp" />
     <ClCompile Include="KujakuEngine\3d\WorldTransform.cpp" />
     <ClCompile Include="KujakuEngine\base\DirectXCommon.cpp" />
     <ClCompile Include="KujakuEngine\base\Logger.cpp" />
@@ -145,8 +146,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\3d\DebugCamera.h" />
     <ClInclude Include="KujakuEngine\3d\DirectionalLight.h" />
     <ClInclude Include="KujakuEngine\3d\GraphicsPipeline.h" />
+    <ClInclude Include="KujakuEngine\3d\ParticleModel.h" />
     <ClInclude Include="KujakuEngine\3d\Model.h" />
-    <ClInclude Include="KujakuEngine\3d\Particle.h" />
     <ClInclude Include="KujakuEngine\3d\WorldTransform.h" />
     <ClInclude Include="KujakuEngine\base\DirectXCommon.h" />
     <ClInclude Include="KujakuEngine\base\Logger.h" />

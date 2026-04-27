@@ -1,4 +1,4 @@
-#include "Particle.h"
+#include "ParticleModel.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
@@ -8,12 +8,14 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+
 namespace KujakuEngine {
-void Particle::Initialize() {
+
+void ParticleModel::Initialize() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
 	// Instancing用のTransformationMatrixリソースを作る
-	instancingResource_ = dxCommon->CreateBufferResource(sizeof(TransformationMatrix) * kMaxInstance);
+	instancingResource_ = dxCommon->CreateBufferResource(sizeof(PartitcleForGPU) * kMaxInstance);
 
 	// 書き込むためのアドレスを取得
 	instancingResource_->Map(0, nullptr, (void**)&instancingData_);
@@ -35,7 +37,7 @@ void Particle::Initialize() {
 	instancingSrvDesc.Buffer.FirstElement = 0;
 	instancingSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 	instancingSrvDesc.Buffer.NumElements = kMaxInstance;
-	instancingSrvDesc.Buffer.StructureByteStride = sizeof(TransformationMatrix);
+	instancingSrvDesc.Buffer.StructureByteStride = sizeof(PartitcleForGPU);
 
 	dxCommon->GetDevice()->CreateShaderResourceView(instancingResource_.Get(), &instancingSrvDesc, instancingSrvHandleCPU_);
 
@@ -45,8 +47,9 @@ void Particle::Initialize() {
 		instancingData_[i].World = Matrix4x4::MakeIdentity();
 	}
 }
-Particle* Particle::CreateFromOBJ(const std::string& objname, bool enableLighting) {
-	Particle* particle = new Particle();
+
+ParticleModel* ParticleModel::CreateFromOBJ(const std::string& objname, bool enableLighting) {
+	ParticleModel* particle = new ParticleModel();
 	std::string directoryPathFinal = "resources/" + objname;
 	std::string filename = objname + ".obj";
 
@@ -62,8 +65,8 @@ Particle* Particle::CreateFromOBJ(const std::string& objname, bool enableLightin
 	return particle;
 }
 
-Particle* Particle::CreateCube(const std::string& textureFilePath, bool enableLighting) {
-	Particle* particle = new Particle();
+ParticleModel* ParticleModel::CreateCube(const std::string& textureFilePath, bool enableLighting) {
+	ParticleModel* particle = new ParticleModel();
 
 	std::vector<VertexData> vertices = {
 	    // 前面 (Z+)
@@ -126,8 +129,8 @@ Particle* Particle::CreateCube(const std::string& textureFilePath, bool enableLi
 	return particle;
 }
 
-Particle* Particle::CreatePlane(const std::string& textureFilePath, bool enableLighting) {
-	Particle* particle = new Particle();
+ParticleModel* ParticleModel::CreatePlane(const std::string& textureFilePath, bool enableLighting) {
+	ParticleModel* particle = new ParticleModel();
 
 	std::vector<VertexData> vertices;
 
@@ -173,7 +176,7 @@ Particle* Particle::CreatePlane(const std::string& textureFilePath, bool enableL
 	return particle;
 }
 
-void Particle::PreDraw() {
+void ParticleModel::PreDraw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
 
@@ -203,11 +206,11 @@ void Particle::PreDraw() {
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Particle::PostDraw() {
+void ParticleModel::PostDraw() {
 	// 将来的にここで描画状態のリセットなどを行う
 }
 
-void Particle::Draw(const Camera& camera) {
+void ParticleModel::Draw(const Camera& camera) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット
@@ -229,13 +232,13 @@ void Particle::Draw(const Camera& camera) {
 	// ライト
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 	// 描画
-	commandList->DrawInstanced(vertexCount_, static_cast<uint32_t>(instanceTransforms_.size()), 0, 0);
-	instanceTransforms_.clear();
+	commandList->DrawInstanced(vertexCount_, static_cast<uint32_t>(instanceParticles_.size()), 0, 0);
+	instanceParticles_.clear();
 }
 
-void Particle::UpdateBuffer() { memcpy(instancingData_, instanceTransforms_.data(), sizeof(TransformationMatrix) * instanceTransforms_.size()); }
+void ParticleModel::UpdateBuffer() { memcpy(instancingData_, instanceParticles_.data(), sizeof(PartitcleForGPU) * instanceParticles_.size()); }
 
-MaterialData Particle::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
+MaterialData ParticleModel::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
 	MaterialData materialData;
 	std::string line;
 	std::ifstream file(directoryPath + "/" + filename);
@@ -257,7 +260,7 @@ MaterialData Particle::LoadMaterialTemplateFile(const std::string& directoryPath
 	return materialData;
 }
 
-ModelData Particle::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
+ModelData ParticleModel::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
 	ModelData ModelData;
 	std::vector<Vector4> positions;
 	std::vector<Vector3> normals;
@@ -319,7 +322,7 @@ ModelData Particle::LoadObjFile(const std::string& directoryPath, const std::str
 	return ModelData;
 }
 
-void Particle::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
+void ParticleModel::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
 	vertexCount_ = static_cast<uint32_t>(vertices.size());
 
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -348,7 +351,7 @@ void Particle::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
 	vertexResource_->Unmap(0, nullptr);
 }
 
-void Particle::CreateMaterialBuffer(const MaterialData& material) {
+void ParticleModel::CreateMaterialBuffer(const MaterialData& material) {
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
 	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
 

@@ -7,7 +7,7 @@ namespace KujakuEngine {
 
 class Random {
 public:
-	static void Init() {
+	static void Initialize() {
 		// 乱数生成エンジン
 		std::random_device seedGenerator;
 		// メルセンヌ·ツイスターエンジンの初期化

@@ -31,6 +31,8 @@ void Initialize(const std::wstring& title, bool enableDebugLayer) {
 	TextureManager::GetInstance()->Initialize();
 
 	Input::Initialize();
+
+	Random::Initialize();
 }
 
 void Finalize() { WinApp::GetInstance()->TerminateGameWindow(); }

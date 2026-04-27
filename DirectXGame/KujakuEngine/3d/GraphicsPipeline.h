@@ -62,7 +62,7 @@ class GraphicsPipeline {
 public:
 public:
 	friend class Model;
-	friend class Particle;
+	friend class ParticleModel;
 	/// <summary>
 	/// シングルトンインスタンスの取得
 	/// </summary>

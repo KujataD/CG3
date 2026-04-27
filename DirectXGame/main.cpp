@@ -1,9 +1,19 @@
-#include "KujakuEngine/KujakuEngine.h"
+#include <KujakuEngine.h>
 #include <cassert>
 #include <fstream>
 #include <memory>
 
+#define DT 1.0f / 60.0f;
+
 using namespace KujakuEngine;
+
+struct Particle {
+	WorldTransform transform;
+	Vector3 velocity;
+	Vector4 color;
+};
+
+Particle* MakeNewParticle();
 
 // Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -18,43 +28,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ------------------------------------------
 	Camera camera;
 	camera.Initialize();
-	camera.translation_ = {0.0f, 0.0f, -15.0f};
+	camera.translation_ = {0.0f, 0.0f, -20.0f};
 	camera.UpdateMatrix();
-
-	// モデル
-	// ------------------------------------------
-	Model* model = Model::CreatePlane("resources/uvchecker.png", true);
-	Vector4 modelColor = Vector4(1.0f, 1.0f, 1.0f, 0.5f);
-	model->SetColor(modelColor);
-	WorldTransform modelWorldTransform;
-	modelWorldTransform.Initialize();
-	modelWorldTransform.rotation_.y = std::numbers::pi_v<float>;
-	modelWorldTransform.UpdateMatrix(camera);
 
 	// パーティクル
 	// ------------------------------------------
-	Particle* particle = Particle::CreatePlane("resources/uvchecker.png", true);
-	particle->Initialize();
-	particle->SetBlendMode(BlendMode::kAdd);
+	ParticleModel* particleModel = ParticleModel::CreatePlane("resources/uvchecker.png", true);
+	particleModel->Initialize();
 
+	std::vector<Particle*> particles;
 	const uint32_t kNumParticle = 10u;
-	WorldTransform transforms[kNumParticle];
 
 	for (uint32_t i = 0; i < kNumParticle; i++) {
-		transforms[i].Initialize();
-		transforms[i].translation_ = {i * 0.1f, i * 0.1f, i * -0.1f};
-		transforms[i].rotation_.y = std::numbers::pi_v<float>;
-		transforms[i].UpdateMatrix(camera);
+		particles.push_back(MakeNewParticle());
 	}
-
-	// スプライト
-	// ------------------------------------------
-	uint32_t texture1 = TextureManager::GetInstance()->LoadTexture("resources/uvchecker.png");
-	uint32_t texture2 = TextureManager::GetInstance()->LoadTexture("resources/white1x1.png");
-	Sprite* sprite = Sprite::Create(texture1);
-	sprite->SetTexture(texture2);
-
-	bool isUvChecker = true;
 
 	// ゲームループ
 	while (KujakuEngine::Update()) {
@@ -66,25 +53,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓↓↓ 更新処理ここから ↓↓↓
 		///
 
-		if (isUvChecker) {
-			sprite->SetTexture(texture1);
-		} else {
-			sprite->SetTexture(texture2);
-		}
-
 		for (uint32_t i = 0; i < kNumParticle; i++) {
-			particle->AddInstanceTransform(transforms[i], camera);
+			particles[i]->transform.translation_ += particles[i]->velocity * DT;
+			particles[i]->transform.UpdateMatrix(camera);
+			// InstancingModelに追加
+			particleModel->AddInstanceParticle(particles[i]->transform, camera, particles[i]->color);
 		}
-		particle->UpdateBuffer();
+		particleModel->UpdateBuffer();
 
 #ifdef USE_IMGUI
-		ImGui::Begin("ObjectManager");
-		ImGui::Checkbox("isUvChecker", &isUvChecker);
-		ImGui::DragFloat3("Model.translation", &modelWorldTransform.translation_.x, 0.01f);
-		ImGui::ColorEdit4("ModelColor", &modelColor.x);
-	particle->SetColor(modelColor);
-		ImGui::End();
-
 		ImGui::Begin("LightManager");
 		auto& light = DirectionalLight::GetInstance()->GetData();
 		ImGui::ColorEdit3("Light Color", &light.color.x);
@@ -103,12 +80,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓↓↓ 描画処理ここから ↓↓↓
 		///
 
-		Particle::PreDraw();
-		particle->Draw(camera);
-		Particle::PostDraw();
+		ParticleModel::PreDraw();
+		particleModel->Draw(camera);
+		ParticleModel::PostDraw();
 
 		Sprite::PreDraw();
-		sprite->Draw();
 		Sprite::PostDraw();
 
 		///
@@ -121,4 +97,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	KujakuEngine::Finalize();
 
 	return 0;
+}
+
+Particle* MakeNewParticle() {
+	Particle* particle = new Particle;
+	particle->transform.Initialize();
+	particle->transform.translation_ = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
+	particle->transform.rotation_.y = std::numbers::pi_v<float>;
+	particle->velocity = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
+	particle->color = {Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f)};
+	return particle;
 }

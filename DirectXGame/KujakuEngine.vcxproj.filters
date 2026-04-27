@@ -43,9 +43,6 @@
     <Filter Include="ソース ファイル\GameObject">
       <UniqueIdentifier>{ebbac2a2-863a-40d1-bc25-cfbf51048c52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\GameObject\CameraController">
-      <UniqueIdentifier>{d31ee70b-3122-4106-8d2f-07e251f1b191}</UniqueIdentifier>
-    </Filter>
     <Filter Include="KujakuEngine\shapes">
       <UniqueIdentifier>{4ce3014d-950b-41ee-9a0a-c94ca6731cb0}</UniqueIdentifier>
     </Filter>
@@ -147,7 +144,7 @@
     <ClCompile Include="KujakuEngine\base\TextureManager.cpp">
       <Filter>KujakuEngine\base</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\3d\Particle.cpp">
+    <ClCompile Include="KujakuEngine\3d\ParticleModel.cpp">
       <Filter>KujakuEngine\3d</Filter>
     </ClCompile>
   </ItemGroup>
@@ -251,7 +248,7 @@
     <ClInclude Include="KujakuEngine\base\TextureManager.h">
       <Filter>KujakuEngine\base</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\3d\Particle.h">
+    <ClInclude Include="KujakuEngine\3d\ParticleModel.h">
       <Filter>KujakuEngine\3d</Filter>
     </ClInclude>
   </ItemGroup>

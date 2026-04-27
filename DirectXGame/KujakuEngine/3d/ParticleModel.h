@@ -15,29 +15,30 @@
 #include "../../externals/DirectXTex/DirectXTex.h"
 
 namespace KujakuEngine {
-
-struct InstancingData {
-	
+struct PartitcleForGPU {
+	Matrix4x4 WVP;
+	Matrix4x4 World;
+	Vector4 color;
 };
 
 /// <summary>
 /// 3Dモデル
 /// </summary>
-class Particle {
+class ParticleModel {
 public:
-	Particle() = default;
-	~Particle() = default;
+	ParticleModel() = default;
+	~ParticleModel() = default;
 
 	void Initialize();
 
 	/// <summary>
 	/// OBJファイルからモデルを生成する(省略版)
 	/// </summary>
-	static Particle* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
+	static ParticleModel* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
 
-	static Particle* CreateCube(const std::string& textureFilePath, bool enableLighting = false);
+	static ParticleModel* CreateCube(const std::string& textureFilePath, bool enableLighting = false);
 
-	static Particle* CreatePlane(const std::string& textureFilePath, bool enableLighting);
+	static ParticleModel* CreatePlane(const std::string& textureFilePath, bool enableLighting);
 
 	/// <summary>
 	/// 描画前処理（全モデル共通・フレームに1回）
@@ -61,7 +62,11 @@ public:
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
-	void AddInstanceTransform(const WorldTransform& transform, const Camera& camera) { instanceTransforms_.push_back(transform.GetMatrixData(camera)); }
+	void AddInstanceParticle(const WorldTransform& transform, const Camera& camera, const Vector4& color) {
+		TransformationMatrix transformationMat = transform.GetMatrixData(camera);
+		PartitcleForGPU particleForGPU = {transformationMat.WVP, transformationMat.World, color};
+		instanceParticles_.push_back(particleForGPU);
+	}
 
 	// --- get ---
 	uint32_t GetMaxInstance() const { return kMaxInstance; }
@@ -80,8 +85,8 @@ private:
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_{};
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> instancingResource_;
-	TransformationMatrix* instancingData_;
-	std::vector<TransformationMatrix> instanceTransforms_;
+	PartitcleForGPU* instancingData_;
+	std::vector<PartitcleForGPU> instanceParticles_;
 
 	BlendMode blendMode_ = BlendMode::kNormal;
 
@@ -94,8 +99,8 @@ private:
 	uint32_t instancingSrvIndex_ = 0;
 	static inline uint32_t sInstancingSrvIndexCounter_ = 64;
 
-	Particle(const Particle&) = delete;
-	Particle& operator=(const Particle&) = delete;
+	ParticleModel(const ParticleModel&) = delete;
+	ParticleModel& operator=(const ParticleModel&) = delete;
 
 	static ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
