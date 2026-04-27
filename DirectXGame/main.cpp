@@ -42,7 +42,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	for (uint32_t i = 0; i < kNumParticle; i++) {
 		transforms[i].Initialize();
-		transforms[i].translation_ = {i * 0.1f, i * 0.1f, i * 0.1f};
+		transforms[i].translation_ = {i * 0.1f, i * 0.1f, i * -0.1f};
 		transforms[i].rotation_.y = std::numbers::pi_v<float>;
 		transforms[i].UpdateMatrix(camera);
 	}
