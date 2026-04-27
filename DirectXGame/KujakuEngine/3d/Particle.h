@@ -54,7 +54,7 @@ public:
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）
 	/// </summary>
-	void Draw(const WorldTransform& worldTransform, const Camera& camera);
+	void Draw(const Camera& camera);
 
 	void UpdateBuffer();
 

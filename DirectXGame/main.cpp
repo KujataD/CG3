@@ -31,8 +31,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	modelWorldTransform.rotation_.y = std::numbers::pi_v<float>;
 	modelWorldTransform.UpdateMatrix(camera);
 
-	Particle* particleModel = Particle::CreatePlane()
+	// パーティクル
+	// ------------------------------------------
+	Particle* particle = Particle::CreatePlane("resources/uvchecker.png", true);
+	particle->Initialize();
+	particle->SetBlendMode(BlendMode::kAdd);
 
+	const uint32_t kNumParticle = 10u;
+	WorldTransform transforms[kNumParticle];
+
+	for (uint32_t i = 0; i < kNumParticle; i++) {
+		transforms[i].Initialize();
+		transforms[i].translation_ = {i * 0.1f, i * 0.1f, i * 0.1f};
+		transforms[i].rotation_.y = std::numbers::pi_v<float>;
+		transforms[i].UpdateMatrix(camera);
+	}
 
 	// スプライト
 	// ------------------------------------------
@@ -40,7 +53,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	uint32_t texture2 = TextureManager::GetInstance()->LoadTexture("resources/white1x1.png");
 	Sprite* sprite = Sprite::Create(texture1);
 	sprite->SetTexture(texture2);
-	sprite->SetColor(modelColor);
 
 	bool isUvChecker = true;
 
@@ -53,19 +65,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓↓↓ 更新処理ここから ↓↓↓
 		///
-		
+
 		if (isUvChecker) {
 			sprite->SetTexture(texture1);
 		} else {
 			sprite->SetTexture(texture2);
 		}
 
+		for (uint32_t i = 0; i < kNumParticle; i++) {
+			particle->AddInstanceTransform(transforms[i], camera);
+		}
+		particle->UpdateBuffer();
+
 #ifdef USE_IMGUI
 		ImGui::Begin("ObjectManager");
 		ImGui::Checkbox("isUvChecker", &isUvChecker);
 		ImGui::DragFloat3("Model.translation", &modelWorldTransform.translation_.x, 0.01f);
 		ImGui::ColorEdit4("ModelColor", &modelColor.x);
-		model->SetColor(modelColor);
+	particle->SetColor(modelColor);
 		ImGui::End();
 
 		ImGui::Begin("LightManager");
@@ -86,10 +103,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓↓↓ 描画処理ここから ↓↓↓
 		///
 
-		Model::PreDraw();
-		model->Draw(modelWorldTransform, camera, 10U);
-		//model->Draw(modelWorldTransform, camera, 10U);
-		Model::PostDraw();
+		Particle::PreDraw();
+		particle->Draw(camera);
+		Particle::PostDraw();
 
 		Sprite::PreDraw();
 		sprite->Draw();

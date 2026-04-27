@@ -207,7 +207,7 @@ void Particle::PostDraw() {
 	// 将来的にここで描画状態のリセットなどを行う
 }
 
-void Particle::Draw(const WorldTransform& worldTransform, const Camera& camera) {
+void Particle::Draw(const Camera& camera) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット
