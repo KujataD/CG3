@@ -16,7 +16,9 @@ GraphicsPipeline* GraphicsPipeline::GetInstance() {
 void GraphicsPipeline::Initialize() {
 	InitializeDXC();
 	CreateObject3dRootSignature();
+	CreateParticleRootSignature();
 	CreateObject3dPipelineStateObject();
+	CreateParticlePipelineStateObject();
 }
 
 void GraphicsPipeline::InitializeDXC() {
@@ -159,7 +161,7 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	}
 
 	// バイナリを元に生成
-	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
+	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kObject3d)]));
 	assert(SUCCEEDED(hr));
 
 	signatureBlob->Release();
@@ -228,7 +230,7 @@ void GraphicsPipeline::CreateParticleRootSignature() {
 	}
 
 	// バイナリを元に生成
-	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
+	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kParticle)]));
 	assert(SUCCEEDED(hr));
 
 	signatureBlob->Release();
@@ -285,7 +287,7 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 
 	// PSOの生成
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
-	graphicsPipelineStateDesc.pRootSignature = rootSignature_.Get();
+	graphicsPipelineStateDesc.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kObject3d)].Get();
 	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
 	graphicsPipelineStateDesc.BlendState = blendDesc;
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
@@ -361,7 +363,7 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 		}
 
 		graphicsPipelineStateDesc.BlendState = blendDesc;
-		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[i]));
+		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3d)][i]));
 		assert(SUCCEEDED(hr));
 	}
 
@@ -374,11 +376,9 @@ void GraphicsPipeline::CreateParticlePipelineStateObject() {
 
 	// シェーダーをコンパイルする
 	IDxcBlob* vertexShaderBlob = CompileShader(L"KujakuEngine/shader/Particle.VS.hlsl", L"vs_6_0");
-	// IDxcBlob* vertexShaderBlob = CompileShader(L"KujakuEngine/shader/Object3D.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
 	IDxcBlob* pixelShaderBlob = CompileShader(L"KujakuEngine/shader/Particle.PS.hlsl", L"ps_6_0");
-	// IDxcBlob* pixelShaderBlob = CompileShader(L"KujakuEngine/shader/Object3D.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	// 2. InputLayoutの設定
@@ -419,7 +419,7 @@ void GraphicsPipeline::CreateParticlePipelineStateObject() {
 
 	// PSOの生成
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
-	graphicsPipelineStateDesc.pRootSignature = rootSignature_.Get();
+	graphicsPipelineStateDesc.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kParticle)].Get();
 	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
 	graphicsPipelineStateDesc.BlendState = blendDesc;
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
@@ -495,7 +495,7 @@ void GraphicsPipeline::CreateParticlePipelineStateObject() {
 		}
 
 		graphicsPipelineStateDesc.BlendState = blendDesc;
-		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[i]));
+		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kParticle)][i]));
 		assert(SUCCEEDED(hr));
 	}
 
@@ -503,13 +503,13 @@ void GraphicsPipeline::CreateParticlePipelineStateObject() {
 	pixelShaderBlob->Release();
 }
 
-void GraphicsPipeline::SetCommandList(BlendMode blendMode) {
+void GraphicsPipeline::SetCommandList(PipelineType pipelineType, BlendMode blendMode) {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
 
 	// RootSignatureとPSOを設定
-	commandList->SetGraphicsRootSignature(rootSignature_.Get());
-	commandList->SetPipelineState(pipelineStates_[static_cast<int32_t>(blendMode)].Get());
+	commandList->SetGraphicsRootSignature(rootSignature_[static_cast<int32_t>(pipelineType)].Get());
+	commandList->SetPipelineState(pipelineStates_[static_cast<int32_t>(pipelineType)][static_cast<int32_t>(blendMode)].Get());
 }
 
 void GraphicsPipeline::Finalize() {

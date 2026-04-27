@@ -31,6 +31,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	modelWorldTransform.rotation_.y = std::numbers::pi_v<float>;
 	modelWorldTransform.UpdateMatrix(camera);
 
+	Particle* particleModel = Particle::CreatePlane()
+
+
 	// スプライト
 	// ------------------------------------------
 	uint32_t texture1 = TextureManager::GetInstance()->LoadTexture("resources/uvchecker.png");

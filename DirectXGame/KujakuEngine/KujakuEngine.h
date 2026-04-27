@@ -25,6 +25,7 @@
 #include "3d/DIrectionalLight.h"
 #include "3d/Camera.h"
 #include "3d/DebugCamera.h"
+#include "3d/Particle.h"
 
 #include "math/Vector2.h"
 #include "math/Vector3.h"

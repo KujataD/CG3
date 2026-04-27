@@ -48,6 +48,12 @@ enum class BlendMode {
 	kCountOfBlendMode, //!< ブレンドモード数。指定はしない
 };
 
+enum class PipelineType {
+	kObject3d,
+	kParticle,
+	kCountOfPipeLineType,
+};
+
 /// <summary>
 /// グラフィックスパイプライン管理クラス
 /// RootSignature・シェーダーコンパイル・PSOの生成を担当する
@@ -72,8 +78,8 @@ public:
 	/// 描画前コマンドのセット
 	/// RootSignature・PSO・DescriptorHeap・Viewport・ScissorRect をコマンドリストに積む
 	/// </summary>
-	void SetCommandList(BlendMode blendMode);
-
+	void SetCommandList(PipelineType pipelineType, BlendMode blendMode);
+	
 	/// <summary>
 	/// 終了処理
 	/// </summary>
@@ -115,6 +121,7 @@ private:
 	/// </summary>
 	void CreateParticlePipelineStateObject();
 
+
 private:
 	// DXCコンパイラ関連
 	IDxcUtils* dxcUtils_ = nullptr;
@@ -122,10 +129,10 @@ private:
 	IDxcIncludeHandler* includeHandler_ = nullptr;
 
 	// パイプライン
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_[static_cast<int32_t>(PipelineType::kCountOfPipeLineType)];
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 
-	std::array<Microsoft::WRL::ComPtr<ID3D12PipelineState>, static_cast<int32_t>(BlendMode::kCountOfBlendMode)> pipelineStates_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineStates_[static_cast<int32_t>(PipelineType::kCountOfPipeLineType)][static_cast<int32_t>(BlendMode::kCountOfBlendMode)];
 };
 
 } // namespace KujakuEngine

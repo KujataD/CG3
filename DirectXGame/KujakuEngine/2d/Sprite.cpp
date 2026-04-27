@@ -61,7 +61,7 @@ void Sprite::Draw() {
 
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
-	GraphicsPipeline::GetInstance()->SetCommandList(blendMode_);
+	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d,blendMode_);
 
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
 	commandList->IASetIndexBuffer(&indexBufferView_);

@@ -211,7 +211,7 @@ void Particle::Draw(const WorldTransform& worldTransform, const Camera& camera) 
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット
-	GraphicsPipeline::GetInstance()->SetCommandList(blendMode_);
+	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kParticle,blendMode_);
 
 	// VBVを設定
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
@@ -233,7 +233,7 @@ void Particle::Draw(const WorldTransform& worldTransform, const Camera& camera) 
 	instanceTransforms_.clear();
 }
 
-void Particle::UpdateBuffer() { memcpy(instancingData_, instanceTransforms_.data(), sizeof(ConstBufferDataCamera) * instanceTransforms_.size()); }
+void Particle::UpdateBuffer() { memcpy(instancingData_, instanceTransforms_.data(), sizeof(TransformationMatrix) * instanceTransforms_.size()); }
 
 MaterialData Particle::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
 	MaterialData materialData;

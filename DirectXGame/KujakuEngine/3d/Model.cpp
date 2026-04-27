@@ -176,7 +176,7 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, uin
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット
-	GraphicsPipeline::GetInstance()->SetCommandList(blendMode_);
+	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d, blendMode_);
 
 	// VBVを設定
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
