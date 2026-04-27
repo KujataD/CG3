@@ -11,6 +11,8 @@ struct Particle {
 	WorldTransform transform;
 	Vector3 velocity;
 	Vector4 color;
+	float lifeTime;
+	float currentTime;
 };
 
 Particle* MakeNewParticle();
@@ -33,8 +35,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// パーティクル
 	// ------------------------------------------
-	ParticleModel* particleModel = ParticleModel::CreatePlane("resources/uvchecker.png", true);
+	ParticleModel* particleModel = ParticleModel::CreatePlane("resources/circle.png", true);
 	particleModel->Initialize();
+	particleModel->SetBlendMode(BlendMode::kAdd);
 
 	std::vector<Particle*> particles;
 	const uint32_t kNumParticle = 10u;
@@ -54,6 +57,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		for (uint32_t i = 0; i < kNumParticle; i++) {
+			particles[i]->currentTime += DT;
+			if (particles[i]->lifeTime <= particles[i]->currentTime) {
+				continue;
+			}
+			float alpha = 1.0f - (particles[i]->currentTime / particles[i]->lifeTime);
+			particles[i]->color.w = alpha;
 			particles[i]->transform.translation_ += particles[i]->velocity * DT;
 			particles[i]->transform.UpdateMatrix(camera);
 			// InstancingModelに追加
@@ -105,6 +114,8 @@ Particle* MakeNewParticle() {
 	particle->transform.translation_ = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
 	particle->transform.rotation_.y = std::numbers::pi_v<float>;
 	particle->velocity = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
-	particle->color = {Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f)};
+	particle->color = {Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f), 1.0f};
+	particle->lifeTime = Random::GetRandom(1.0f, 3.0f);
+	particle->currentTime = 0.0f;
 	return particle;
 }
