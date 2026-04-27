@@ -1,4 +1,4 @@
-#include "Model.h"
+#include "Particle.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
@@ -9,9 +9,23 @@
 #include <fstream>
 #include <sstream>
 namespace KujakuEngine {
+void Particle::Initialize() {
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
-Model* Model::CreateFromOBJ(const std::string& objname, bool enableLighting) {
-	Model* model = new Model();
+	// Instancing用のTransformationMatrixリソースを作る
+	instancingResource_ = dxCommon->CreateBufferResource(sizeof(TransformationMatrix) * kMaxInstance);
+	
+	// 書き込むためのアドレスを取得
+	instancingResource_->Map(0, nullptr, (void**)&instancingData_);
+
+	// 単位行列を書き込んでおく
+	for (uint32_t i = 0; i < kMaxInstance; ++i) {
+		instancingData_[i].WVP = Matrix4x4::MakeIdentity();
+		instancingData_[i].World = Matrix4x4::MakeIdentity();
+	}
+}
+Particle* Particle::CreateFromOBJ(const std::string& objname, bool enableLighting) {
+	Particle* particle = new Particle();
 	std::string directoryPathFinal = "resources/" + objname;
 	std::string filename = objname + ".obj";
 
@@ -22,13 +36,13 @@ Model* Model::CreateFromOBJ(const std::string& objname, bool enableLighting) {
 	} else {
 		rawData.material.textureIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
 	}
-	model->CreateVertexBuffer(rawData.vertices);
-	model->CreateMaterialBuffer(rawData.material);
-	return model;
+	particle->CreateVertexBuffer(rawData.vertices);
+	particle->CreateMaterialBuffer(rawData.material);
+	return particle;
 }
 
-Model* Model::CreateCube(const std::string& textureFilePath, bool enableLighting) {
-	Model* model = new Model();
+Particle* Particle::CreateCube(const std::string& textureFilePath, bool enableLighting) {
+	Particle* particle = new Particle();
 
 	std::vector<VertexData> vertices = {
 	    // 前面 (Z+)
@@ -85,14 +99,14 @@ Model* Model::CreateCube(const std::string& textureFilePath, bool enableLighting
 	defaultMaterial.enableLighting = enableLighting;
 	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	particle->CreateVertexBuffer(vertices);
+	particle->CreateMaterialBuffer(defaultMaterial);
 
-	return model;
+	return particle;
 }
 
-Model* Model::CreatePlane(const std::string& textureFilePath, bool enableLighting) {
-	Model* model = new Model();
+Particle* Particle::CreatePlane(const std::string& textureFilePath, bool enableLighting) {
+	Particle* particle = new Particle();
 
 	std::vector<VertexData> vertices;
 
@@ -132,13 +146,13 @@ Model* Model::CreatePlane(const std::string& textureFilePath, bool enableLightin
 	defaultMaterial.enableLighting = enableLighting;
 	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	particle->CreateVertexBuffer(vertices);
+	particle->CreateMaterialBuffer(defaultMaterial);
 
-	return model;
+	return particle;
 }
 
-void Model::PreDraw() {
+void Particle::PreDraw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
 
@@ -168,11 +182,11 @@ void Model::PreDraw() {
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Model::PostDraw() {
+void Particle::PostDraw() {
 	// 将来的にここで描画状態のリセットなどを行う
 }
 
-void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, uint32_t instanceCount) {
+void Particle::Draw(const WorldTransform& worldTransform, const Camera& camera) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット
@@ -193,10 +207,13 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, uin
 	// ライト
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 	// 描画
-	commandList->DrawInstanced(vertexCount_, instanceCount, 0, 0);
+	commandList->DrawInstanced(vertexCount_, static_cast<uint32_t>(instanceTransforms_.size()), 0, 0);
+	instanceTransforms_.clear();
 }
 
-MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
+void Particle::UpdateBuffer() { memcpy(instancingData_, instanceTransforms_.data(), sizeof(ConstBufferDataCamera) * instanceTransforms_.size()); }
+
+MaterialData Particle::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
 	MaterialData materialData;
 	std::string line;
 	std::ifstream file(directoryPath + "/" + filename);
@@ -218,8 +235,8 @@ MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, c
 	return materialData;
 }
 
-ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
-	ModelData modelData;
+ModelData Particle::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
+	ModelData ModelData;
 	std::vector<Vector4> positions;
 	std::vector<Vector3> normals;
 	std::vector<Vector2> texcoords;
@@ -267,20 +284,20 @@ ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string
 
 			// 三角形に分割
 			for (size_t i = 1; i + 1 < faceVertices.size(); ++i) {
-				modelData.vertices.push_back(faceVertices[0]);
-				modelData.vertices.push_back(faceVertices[i + 1]);
-				modelData.vertices.push_back(faceVertices[i]);
+				ModelData.vertices.push_back(faceVertices[0]);
+				ModelData.vertices.push_back(faceVertices[i + 1]);
+				ModelData.vertices.push_back(faceVertices[i]);
 			}
 		} else if (identifier == "mtllib") {
 			std::string materialFilename;
 			s >> materialFilename;
-			modelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
+			ModelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
 		}
 	}
-	return modelData;
+	return ModelData;
 }
 
-void Model::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
+void Particle::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
 	vertexCount_ = static_cast<uint32_t>(vertices.size());
 
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -309,7 +326,7 @@ void Model::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
 	vertexResource_->Unmap(0, nullptr);
 }
 
-void Model::CreateMaterialBuffer(const MaterialData& material) {
+void Particle::CreateMaterialBuffer(const MaterialData& material) {
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
 	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
 

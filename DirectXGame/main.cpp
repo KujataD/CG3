@@ -10,32 +10,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// エンジン初期化
 	KujakuEngine::Initialize(L"LC2B_04_オオツカ_ダイチ_AL3", true);
-	// タイトルシーンの初期化
 
 	// ImGuiManagerインスタンスの取得
 	ImGuiManager* imguiManager = ImGuiManager::GetInstance();
-	TextureManager::GetInstance()->Initialize();
 
 	// カメラ
 	// ------------------------------------------
 	Camera camera;
 	camera.Initialize();
-	camera.translation_ = {0.0f, 0.0f, -20.0f};
+	camera.translation_ = {0.0f, 0.0f, -15.0f};
 	camera.UpdateMatrix();
 
 	// モデル
 	// ------------------------------------------
-	Model* model = Model::CreateFromOBJ("player", true);
+	Model* model = Model::CreatePlane("resources/uvchecker.png", true);
 	Vector4 modelColor = Vector4(1.0f, 1.0f, 1.0f, 0.5f);
 	model->SetColor(modelColor);
 	WorldTransform modelWorldTransform;
 	modelWorldTransform.Initialize();
-
-	Model* model2 = Model::CreateFromOBJ("enemy", true);
-	WorldTransform modelWorldTransform2;
-	modelWorldTransform2.Initialize();
-	modelWorldTransform2.UpdateMatrix(camera);
-
+	modelWorldTransform.rotation_.y = std::numbers::pi_v<float>;
+	modelWorldTransform.UpdateMatrix(camera);
 
 	// スプライト
 	// ------------------------------------------
@@ -56,13 +50,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓↓↓ 更新処理ここから ↓↓↓
 		///
-
-		modelWorldTransform.rotation_.y += 0.02f;
-		modelWorldTransform.UpdateMatrix(camera);
-
-		modelWorldTransform2.rotation_.y -= 0.02f;
-		modelWorldTransform2.UpdateMatrix(camera);
-
+		
 		if (isUvChecker) {
 			sprite->SetTexture(texture1);
 		} else {
@@ -96,8 +84,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		Model::PreDraw();
-		model2->Draw(modelWorldTransform2, camera);
-		model->Draw(modelWorldTransform, camera);
+		model->Draw(modelWorldTransform, camera, 10U);
+		//model->Draw(modelWorldTransform, camera, 10U);
 		Model::PostDraw();
 
 		Sprite::PreDraw();

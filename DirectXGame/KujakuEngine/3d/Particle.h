@@ -1,39 +1,43 @@
 #pragma once
 
+#include "../3d/Camera.h"
+#include "../3d/GraphicsPipeline.h"
+#include "../3d/WorldTransform.h"
+#include "../math/Matrix4x4.h"
+#include "../math/Vector2.h"
+#include "../math/Vector3.h"
+#include "../math/Vector4.h"
 #include <d3d12.h>
 #include <string>
 #include <vector>
 #include <wrl.h>
 
-#include "../3d/Camera.h"
-#include "../3d/WorldTransform.h"
-#include "../3d/GraphicsPipeline.h"
-#include "../math/Matrix4x4.h"
-#include "../math/Vector2.h"
-#include "../math/Vector3.h"
-#include "../math/Vector4.h"
-
 #include "../../externals/DirectXTex/DirectXTex.h"
 
 namespace KujakuEngine {
 
+struct InstancingData {
+	
+};
 
 /// <summary>
 /// 3Dモデル
 /// </summary>
-class Model {
+class Particle {
 public:
-	Model() = default;
-	~Model() = default;
-	
+	Particle() = default;
+	~Particle() = default;
+
+	void Initialize();
+
 	/// <summary>
 	/// OBJファイルからモデルを生成する(省略版)
 	/// </summary>
-	static Model* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
-	 
-	static Model* CreateCube(const std::string& textureFilePath, bool enableLighting = false);
+	static Particle* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
 
-	static Model* CreatePlane(const std::string& textureFilePath, bool enableLighting);
+	static Particle* CreateCube(const std::string& textureFilePath, bool enableLighting = false);
+
+	static Particle* CreatePlane(const std::string& textureFilePath, bool enableLighting);
 
 	/// <summary>
 	/// 描画前処理（全モデル共通・フレームに1回）
@@ -47,19 +51,23 @@ public:
 	/// </summary>
 	static void PostDraw();
 
-
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）
 	/// </summary>
-	void Draw(const WorldTransform& worldTransform, const Camera& camera, uint32_t instanceCount = 1);
-	
+	void Draw(const WorldTransform& worldTransform, const Camera& camera);
+
+	void UpdateBuffer();
 
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
+	void AddInstanceTransform(const WorldTransform& transform, const Camera& camera) { instanceTransforms_.push_back(transform.GetMatrixData(camera)); }
+
+	// --- get ---
+	uint32_t GetMaxInstance() const { return kMaxInstance; }
+	ID3D12Resource* GetInstancingResource() { return instancingResource_.Get(); }
 
 private:
-
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
 	uint32_t vertexCount_ = 0;
@@ -71,17 +79,23 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_{};
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_{};
 
+	Microsoft::WRL::ComPtr<ID3D12Resource> instancingResource_;
+	TransformationMatrix* instancingData_;
+	std::vector<TransformationMatrix> instanceTransforms_;
+
+	BlendMode blendMode_ = BlendMode::kNormal;
+
 	uint32_t textureIndex_;
 
-	Model(const Model&) = delete;
-	Model& operator=(const Model&) = delete;
+	static inline const uint32_t kMaxInstance = 1000;
+
+	Particle(const Particle&) = delete;
+	Particle& operator=(const Particle&) = delete;
 
 	static ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
 	void CreateMaterialBuffer(const MaterialData& material);
-
-	BlendMode blendMode_ = BlendMode::kNormal;
 };
 
 } // namespace KujakuEngine

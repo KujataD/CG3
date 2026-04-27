@@ -11,7 +11,7 @@ namespace KujakuEngine {
 /// <summary>
 /// 定数バッファ用データ構造体（ワールド変換）
 /// </summary>
-struct ConstBufferDataWorldTransform {
+struct TransformationMatrix {
 	Matrix4x4 WVP;   // ワールド・ビュー・プロジェクション合成行列
 	Matrix4x4 World; // ワールド行列（法線変換などに使用）
 };
@@ -48,6 +48,8 @@ public:
 
 	void TransferMatrix(const class Camera& camera);
 
+	TransformationMatrix GetMatrixData(const Camera& camera) const;
+
 	/// <summary>
 	/// 定数バッファの取得
 	/// </summary>
@@ -57,7 +59,7 @@ private:
 	// 定数バッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource> constBuffer_;
 	// マッピング済みアドレス
-	ConstBufferDataWorldTransform* constMap_ = nullptr;
+	TransformationMatrix* constMap_ = nullptr;
 
 	// コピー禁止
 	WorldTransform(const WorldTransform&) = delete;

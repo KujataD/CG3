@@ -147,6 +147,9 @@
     <ClCompile Include="KujakuEngine\base\TextureManager.cpp">
       <Filter>KujakuEngine\base</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\3d\Particle.cpp">
+      <Filter>KujakuEngine\3d</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imconfig.h">
@@ -248,6 +251,9 @@
     <ClInclude Include="KujakuEngine\base\TextureManager.h">
       <Filter>KujakuEngine\base</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\3d\Particle.h">
+      <Filter>KujakuEngine\3d</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt">
@@ -258,12 +264,21 @@
     <None Include="KujakuEngine\shader\Object3d.hlsli">
       <Filter>KujakuEngine\shader</Filter>
     </None>
+    <None Include="KujakuEngine\shader\Particle.hlsli">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="KujakuEngine\shader\Object3d.PS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </FxCompile>
     <FxCompile Include="KujakuEngine\shader\Object3d.VS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="KujakuEngine\shader\Particle.PS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="KujakuEngine\shader\Particle.VS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </FxCompile>
   </ItemGroup>

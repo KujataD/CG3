@@ -5,8 +5,8 @@
 #include <string>
 #include <wrl.h>
 
-#include "../3d/Model.h" // VertexData, MaterialData を共有
 #include "../3d/GraphicsPipeline.h"
+#include "../3d/Model.h"
 
 #include "../../externals/DirectXTex/DirectXTex.h"
 #include "../math/Matrix4x4.h"

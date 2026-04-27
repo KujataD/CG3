@@ -11,7 +11,7 @@ TextureManager* TextureManager::GetInstance() {
 	return &instance;
 }
 
-uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::LoadTexture と同じ処理
+uint32_t TextureManager::LoadTexture(const std::string& filePath, bool isInstancing) { // Model::LoadTexture と同じ処理
 	if (textures_.contains(filePath)) {
 		return textures_[filePath].index;
 	}
@@ -64,12 +64,15 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::Lo
 	gpuHandle.ptr += descriptorSizeSRV * srvIndex;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = metadata.format;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
+	if (isInstancing) {
+	} else {
+		srvDesc.Format = metadata.format;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
 
-	device->CreateShaderResourceView(textureResource.Get(), &srvDesc, cpuHandle);
+		device->CreateShaderResourceView(textureResource.Get(), &srvDesc, cpuHandle);
+	}
 
 	// 登録
 	TextureData data{};
@@ -92,6 +95,8 @@ D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandle(uint32_t index) {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = heap->GetGPUDescriptorHandleForHeapStart();
 	handle.ptr += size * index;
 	return handle;
+
+
 }
 
 ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata) {

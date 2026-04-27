@@ -34,7 +34,7 @@ public:
 	/// テクスチャを読み込む
 	/// </summary>
 	/// <param name="filePath"></param>
-	uint32_t LoadTexture(const std::string& filePath);
+	uint32_t LoadTexture(const std::string& filePath, bool isInstancing = false);
 
 	/// <summary>
 	/// シェーダーリソースビューハンドル取得

@@ -12,7 +12,7 @@ void WorldTransform::Initialize() {
 
 	D3D12_RESOURCE_DESC bufferResourceDesc{};
 	bufferResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferResourceDesc.Width = sizeof(ConstBufferDataWorldTransform);
+	bufferResourceDesc.Width = sizeof(TransformationMatrix);
 	bufferResourceDesc.Height = 1;
 	bufferResourceDesc.DepthOrArraySize = 1;
 	bufferResourceDesc.MipLevels = 1;
@@ -44,12 +44,24 @@ void WorldTransform::UpdateMatrix(const Camera& camera) {
 	TransferMatrix(camera);
 }
 
-void WorldTransform::TransferMatrix(const Camera& camera) {	// WVP行列の生成
+void WorldTransform::TransferMatrix(const Camera& camera) { // WVP行列の生成
 	Matrix4x4 matWVP = matWorld_ * camera.matView * camera.matProjection;
 
 	// 定数バッファへ転送
 	constMap_->WVP = matWVP;
 	constMap_->World = matWorld_;
+}
+
+TransformationMatrix WorldTransform::GetMatrixData(const Camera& camera) const {
+	TransformationMatrix data;
+
+	Matrix4x4 matWVP = matWorld_ * camera.matView * camera.matProjection;
+
+	data.WVP = matWVP;
+	data.World = matWorld_;
+
+	return data;
+
 }
 
 } // namespace KujakuEngine

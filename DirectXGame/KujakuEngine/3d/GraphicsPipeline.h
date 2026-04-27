@@ -5,10 +5,36 @@
 #include <dxcapi.h>
 #include <string>
 #include <wrl.h>
+#include <vector>
 
 #pragma comment(lib, "dxcompiler.lib")
 
+#include "../math/Matrix4x4.h"
+#include "../math/Vector2.h"
+#include "../math/Vector3.h"
+#include "../math/Vector4.h"
+
 namespace KujakuEngine {
+	
+struct VertexData {
+	Vector4 position;
+	Vector2 texcoord;
+	Vector3 normal;
+};
+
+struct MaterialData {
+	Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f};
+	int32_t enableLighting = 0;
+	float pad[3] = {};
+	Matrix4x4 uvTransform;
+	std::string textureFilePath;
+	uint32_t textureIndex;
+};
+
+struct ModelData {
+	std::vector<VertexData> vertices;
+	MaterialData material;
+};
 
 enum class BlendMode {
 	kNone,      // ブレンドなし
@@ -30,6 +56,7 @@ class GraphicsPipeline {
 public:
 public:
 	friend class Model;
+	friend class Particle;
 	/// <summary>
 	/// シングルトンインスタンスの取得
 	/// </summary>
@@ -69,14 +96,24 @@ private:
 	IDxcBlob* CompileShader(const std::wstring& filePath, const wchar_t* profile);
 
 	/// <summary>
-	/// RootSignatureを生成する
+	/// Object3d用RootSignatureを生成する
 	/// </summary>
-	void CreateRootSignature();
+	void CreateObject3dRootSignature();
 
 	/// <summary>
-	/// PSOを生成する
+	/// Particle用RootSignatureを生成する
 	/// </summary>
-	void CreatePipelineStateObject();
+	void CreateParticleRootSignature();
+
+	/// <summary>
+	/// Object3d用PSOを生成する
+	/// </summary>
+	void CreateObject3dPipelineStateObject();
+
+	/// <summary>
+	/// Sprite用PSOを生成する
+	/// </summary>
+	void CreateParticlePipelineStateObject();
 
 private:
 	// DXCコンパイラ関連

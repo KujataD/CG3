@@ -110,6 +110,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\3d\DirectionalLight.cpp" />
     <ClCompile Include="KujakuEngine\3d\GraphicsPipeline.cpp" />
     <ClCompile Include="KujakuEngine\3d\Model.cpp" />
+    <ClCompile Include="KujakuEngine\3d\Particle.cpp" />
     <ClCompile Include="KujakuEngine\3d\WorldTransform.cpp" />
     <ClCompile Include="KujakuEngine\base\DirectXCommon.cpp" />
     <ClCompile Include="KujakuEngine\base\Logger.cpp" />
@@ -145,6 +146,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\3d\DirectionalLight.h" />
     <ClInclude Include="KujakuEngine\3d\GraphicsPipeline.h" />
     <ClInclude Include="KujakuEngine\3d\Model.h" />
+    <ClInclude Include="KujakuEngine\3d\Particle.h" />
     <ClInclude Include="KujakuEngine\3d\WorldTransform.h" />
     <ClInclude Include="KujakuEngine\base\DirectXCommon.h" />
     <ClInclude Include="KujakuEngine\base\Logger.h" />
@@ -172,6 +174,10 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="KujakuEngine\shader\Particle.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="KujakuEngine\shader\Object3d.PS.hlsl">
@@ -179,6 +185,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="KujakuEngine\shader\Object3d.VS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="KujakuEngine\shader\Particle.PS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="KujakuEngine\shader\Particle.VS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
