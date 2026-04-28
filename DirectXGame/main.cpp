@@ -78,8 +78,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat("Intensity", &light.intensity, 0.01f);
 		ImGui::DragFloat3("EmitterTranslate", &emitter.translation_.x, 0.01f, -100.0f, 100.0f);
 		ImGui::Checkbox("useField", &useField);
-		if (ImGui::Button("Particle Make")) {
-		}
+
 		ImGui::End();
 #endif // USE_IMGUI
 

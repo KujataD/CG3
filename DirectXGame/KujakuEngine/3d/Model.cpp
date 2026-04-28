@@ -26,6 +26,119 @@ Model* Model::CreateFromOBJ(const std::string& objname, bool enableLighting) {
 	model->CreateMaterialBuffer(rawData.material);
 	return model;
 }
+Model* Model::CreateSphere(const std::string& textureFilePath, bool enableLighting, uint32_t subdivision) {
+	Model* model = new Model();
+	const float kLonEvery = static_cast<float>(2.0f * std::numbers::pi_v<float> / subdivision);
+	const float kLatEvery = static_cast<float>(std::numbers::pi_v<float> / subdivision);
+
+	std::vector<VertexData> vertices;
+	vertices.resize(6 * subdivision * subdivision);
+
+	for (uint32_t latIndex = 0; latIndex < subdivision; ++latIndex) {
+		float lat = static_cast<float>(-std::numbers::pi_v<float> / 2.0f + kLatEvery * latIndex);
+
+		for (uint32_t lonIndex = 0; lonIndex < subdivision; ++lonIndex) {
+			float lon = lonIndex * kLonEvery;
+
+			float u0 = float(lonIndex) / float(subdivision);
+			float u1 = float(lonIndex + 1) / float(subdivision);
+
+			float v0 = 1.0f - float(latIndex) / float(subdivision);
+			float v1 = 1.0f - float(latIndex + 1) / float(subdivision);
+
+			uint32_t startIndex = (latIndex * subdivision + lonIndex) * 6;
+
+			vertices[startIndex].position = {
+			    cosf(lat) * cosf(lon),
+			    sinf(lat),
+			    cosf(lat) * sinf(lon),
+			    1.0f
+			};
+			vertices[startIndex].texcoord = {u0, v0};
+			vertices[startIndex].normal = {
+			    vertices[startIndex].position.x,
+			    vertices[startIndex].position.y,
+			    vertices[startIndex].position.z
+			};
+
+			vertices[startIndex + 1].position = {
+			    cosf(lat + kLatEvery) * cosf(lon),
+			    sinf(lat + kLatEvery),
+			    cosf(lat + kLatEvery) * sinf(lon),
+			    1.0f
+			};
+			vertices[startIndex + 1].texcoord = {u0, v1};
+			vertices[startIndex + 1].normal = {
+			    vertices[startIndex + 1].position.x,
+			    vertices[startIndex + 1].position.y,
+			    vertices[startIndex + 1].position.z
+			};
+
+			vertices[startIndex + 2].position = {
+			    cosf(lat) * cosf(lon + kLonEvery),
+			    sinf(lat),
+			    cosf(lat) * sinf(lon + kLonEvery),
+			    1.0f
+			};
+			vertices[startIndex + 2].texcoord = {u1, v0};
+			vertices[startIndex + 2].normal = {
+			    vertices[startIndex + 2].position.x,
+			    vertices[startIndex + 2].position.y,
+			    vertices[startIndex + 2].position.z
+			};
+
+			vertices[startIndex + 3].position = {
+			    cosf(lat) * cosf(lon + kLonEvery),
+			    sinf(lat),
+			    cosf(lat) * sinf(lon + kLonEvery),
+			    1.0f
+			};
+			vertices[startIndex + 3].texcoord = {u1, v0};
+			vertices[startIndex + 3].normal = {
+			    vertices[startIndex + 3].position.x,
+			    vertices[startIndex + 3].position.y,
+			    vertices[startIndex + 3].position.z
+			};
+
+			vertices[startIndex + 4].position = {
+			    cosf(lat + kLatEvery) * cosf(lon),
+			    sinf(lat + kLatEvery),
+			    cosf(lat + kLatEvery) * sinf(lon),
+			    1.0f
+			};
+			vertices[startIndex + 4].texcoord = {u0, v1};
+			vertices[startIndex + 4].normal = {
+			    vertices[startIndex + 4].position.x,
+			    vertices[startIndex + 4].position.y,
+			    vertices[startIndex + 4].position.z
+			};
+
+			vertices[startIndex + 5].position = {
+			    cosf(lat + kLatEvery) * cosf(lon + kLonEvery),
+			    sinf(lat + kLatEvery),
+			    cosf(lat + kLatEvery) * sinf(lon + kLonEvery),
+			    1.0f
+			};
+			vertices[startIndex + 5].texcoord = {u1, v1};
+			vertices[startIndex + 5].normal = {
+			    vertices[startIndex + 5].position.x,
+			    vertices[startIndex + 5].position.y,
+			    vertices[startIndex + 5].position.z
+			};
+		}
+	}
+
+	// MaterialData
+	MaterialData defaultMaterial{};
+	defaultMaterial.enableLighting = enableLighting;
+	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
+
+	model->CreateVertexBuffer(vertices);
+	model->CreateMaterialBuffer(defaultMaterial);
+
+	return model;
+}
+
 
 Model* Model::CreateCube(const std::string& textureFilePath, bool enableLighting) {
 	Model* model = new Model();
