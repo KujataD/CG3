@@ -53,7 +53,7 @@ public:
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）
 	/// </summary>
-	void Draw(const WorldTransform& worldTransform, const Camera& camera, uint32_t instanceCount = 1);
+	void Draw(const WorldTransform& worldTransform, const Camera& camera);
 	
 
 	// --- set ---

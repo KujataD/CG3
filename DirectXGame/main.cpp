@@ -24,27 +24,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	DebugCamera debugCamera;
 	debugCamera.Initialize(camera.rotation_, camera.translation_);
 
-	// パーティクル
+	// モンスターボール
 	// ------------------------------------------
-	ParticleModel* particleModel = ParticleModel::CreatePlane("resources/circle.png", true);
-	particleModel->Initialize();
-	particleModel->SetBlendMode(BlendMode::kAdd);
-
-	// パーティクルフィールド
-	// ------------------------------------------
-	AccelerationField acField;
-	acField.acceleration = {15.0f, 0.0f, 0.0f};
-	acField.area.min = {-1.0f, -1.0f, -1.0f};
-	acField.area.max = {1.0f, 1.0f, 1.0f};
-
-	bool useField = true;
-
-	// エミッター
-	// ------------------------------------------
-	ParticleEmitter emitter;
-	emitter.Initialize(particleModel);
-	emitter.AddField(acField);
-	emitter.Emit();
+	Model* modelBall = Model::CreateSphere("resources/monsterBall.png", true);
+	WorldTransform ballTransform;
+	ballTransform.Initialize();
 
 	// ゲームループ
 	while (KujakuEngine::Update()) {
@@ -63,10 +47,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		camera.rotation_ = debugCamera.rotation_;
 		camera.UpdateMatrix();
 
-		// パーティクル
+		// ボール
 		// --------------------------------------
-		emitter.Update(kDT, camera);
-		emitter.SetIsActiveField(useField);
+		ballTransform.rotation_.y += 0.01f;
+		ballTransform.UpdateMatrix(camera);
 
 		// Imgui
 		// --------------------------------------
@@ -76,8 +60,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::ColorEdit3("Light Color", &light.color.x);
 		ImGui::SliderFloat3("Direction", &light.direction.x, -1.0f, 1.0f);
 		ImGui::DragFloat("Intensity", &light.intensity, 0.01f);
-		ImGui::DragFloat3("EmitterTranslate", &emitter.translation_.x, 0.01f, -100.0f, 100.0f);
-		ImGui::Checkbox("useField", &useField);
 
 		ImGui::End();
 #endif // USE_IMGUI
@@ -93,8 +75,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		ParticleModel::PreDraw();
-		emitter.Draw(camera);
 		ParticleModel::PostDraw();
+
+		Model::PreDraw();
+		modelBall->Draw(ballTransform, camera);
+		Model::PostDraw();
 
 		Sprite::PreDraw();
 		Sprite::PostDraw();
@@ -104,9 +89,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		PostDraw();
 	}
-
-	delete particleModel;
-	particleModel = nullptr;
 
 	// エンジンの終了処理
 	KujakuEngine::Finalize();

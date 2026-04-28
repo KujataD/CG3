@@ -48,83 +48,29 @@ Model* Model::CreateSphere(const std::string& textureFilePath, bool enableLighti
 
 			uint32_t startIndex = (latIndex * subdivision + lonIndex) * 6;
 
-			vertices[startIndex].position = {
-			    cosf(lat) * cosf(lon),
-			    sinf(lat),
-			    cosf(lat) * sinf(lon),
-			    1.0f
-			};
+			vertices[startIndex].position = {cosf(lat) * cosf(lon), sinf(lat), cosf(lat) * sinf(lon), 1.0f};
 			vertices[startIndex].texcoord = {u0, v0};
-			vertices[startIndex].normal = {
-			    vertices[startIndex].position.x,
-			    vertices[startIndex].position.y,
-			    vertices[startIndex].position.z
-			};
+			vertices[startIndex].normal = {vertices[startIndex].position.x, vertices[startIndex].position.y, vertices[startIndex].position.z};
 
-			vertices[startIndex + 1].position = {
-			    cosf(lat + kLatEvery) * cosf(lon),
-			    sinf(lat + kLatEvery),
-			    cosf(lat + kLatEvery) * sinf(lon),
-			    1.0f
-			};
+			vertices[startIndex + 1].position = {cosf(lat + kLatEvery) * cosf(lon), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon), 1.0f};
 			vertices[startIndex + 1].texcoord = {u0, v1};
-			vertices[startIndex + 1].normal = {
-			    vertices[startIndex + 1].position.x,
-			    vertices[startIndex + 1].position.y,
-			    vertices[startIndex + 1].position.z
-			};
+			vertices[startIndex + 1].normal = {vertices[startIndex + 1].position.x, vertices[startIndex + 1].position.y, vertices[startIndex + 1].position.z};
 
-			vertices[startIndex + 2].position = {
-			    cosf(lat) * cosf(lon + kLonEvery),
-			    sinf(lat),
-			    cosf(lat) * sinf(lon + kLonEvery),
-			    1.0f
-			};
+			vertices[startIndex + 2].position = {cosf(lat) * cosf(lon + kLonEvery), sinf(lat), cosf(lat) * sinf(lon + kLonEvery), 1.0f};
 			vertices[startIndex + 2].texcoord = {u1, v0};
-			vertices[startIndex + 2].normal = {
-			    vertices[startIndex + 2].position.x,
-			    vertices[startIndex + 2].position.y,
-			    vertices[startIndex + 2].position.z
-			};
+			vertices[startIndex + 2].normal = {vertices[startIndex + 2].position.x, vertices[startIndex + 2].position.y, vertices[startIndex + 2].position.z};
 
-			vertices[startIndex + 3].position = {
-			    cosf(lat) * cosf(lon + kLonEvery),
-			    sinf(lat),
-			    cosf(lat) * sinf(lon + kLonEvery),
-			    1.0f
-			};
+			vertices[startIndex + 3].position = {cosf(lat) * cosf(lon + kLonEvery), sinf(lat), cosf(lat) * sinf(lon + kLonEvery), 1.0f};
 			vertices[startIndex + 3].texcoord = {u1, v0};
-			vertices[startIndex + 3].normal = {
-			    vertices[startIndex + 3].position.x,
-			    vertices[startIndex + 3].position.y,
-			    vertices[startIndex + 3].position.z
-			};
+			vertices[startIndex + 3].normal = {vertices[startIndex + 3].position.x, vertices[startIndex + 3].position.y, vertices[startIndex + 3].position.z};
 
-			vertices[startIndex + 4].position = {
-			    cosf(lat + kLatEvery) * cosf(lon),
-			    sinf(lat + kLatEvery),
-			    cosf(lat + kLatEvery) * sinf(lon),
-			    1.0f
-			};
+			vertices[startIndex + 4].position = {cosf(lat + kLatEvery) * cosf(lon), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon), 1.0f};
 			vertices[startIndex + 4].texcoord = {u0, v1};
-			vertices[startIndex + 4].normal = {
-			    vertices[startIndex + 4].position.x,
-			    vertices[startIndex + 4].position.y,
-			    vertices[startIndex + 4].position.z
-			};
+			vertices[startIndex + 4].normal = {vertices[startIndex + 4].position.x, vertices[startIndex + 4].position.y, vertices[startIndex + 4].position.z};
 
-			vertices[startIndex + 5].position = {
-			    cosf(lat + kLatEvery) * cosf(lon + kLonEvery),
-			    sinf(lat + kLatEvery),
-			    cosf(lat + kLatEvery) * sinf(lon + kLonEvery),
-			    1.0f
-			};
+			vertices[startIndex + 5].position = {cosf(lat + kLatEvery) * cosf(lon + kLonEvery), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon + kLonEvery), 1.0f};
 			vertices[startIndex + 5].texcoord = {u1, v1};
-			vertices[startIndex + 5].normal = {
-			    vertices[startIndex + 5].position.x,
-			    vertices[startIndex + 5].position.y,
-			    vertices[startIndex + 5].position.z
-			};
+			vertices[startIndex + 5].normal = {vertices[startIndex + 5].position.x, vertices[startIndex + 5].position.y, vertices[startIndex + 5].position.z};
 		}
 	}
 
@@ -138,7 +84,6 @@ Model* Model::CreateSphere(const std::string& textureFilePath, bool enableLighti
 
 	return model;
 }
-
 
 Model* Model::CreateCube(const std::string& textureFilePath, bool enableLighting) {
 	Model* model = new Model();
@@ -285,7 +230,7 @@ void Model::PostDraw() {
 	// 将来的にここで描画状態のリセットなどを行う
 }
 
-void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, uint32_t instanceCount) {
+void Model::Draw(const WorldTransform& worldTransform, const Camera& camera) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット
@@ -306,7 +251,7 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, uin
 	// ライト
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 	// 描画
-	commandList->DrawInstanced(vertexCount_, instanceCount, 0, 0);
+	commandList->DrawInstanced(vertexCount_, 1, 0, 0);
 }
 
 MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
