@@ -27,7 +27,7 @@ struct PartitcleForGPU {
 class ParticleModel {
 public:
 	ParticleModel() = default;
-	~ParticleModel() = default;
+	~ParticleModel();
 
 	void Initialize();
 
@@ -62,10 +62,15 @@ public:
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
-	void AddInstanceParticle(const TransformationMatrix& transformationMatrix, const Vector4& color) {
+	bool AddInstanceParticle(const TransformationMatrix& transformationMatrix, const Vector4& color) {
+		// 最大値を超えたらプッシュしない
+		if (static_cast<uint32_t>(instanceParticles_.size()) >= kMaxInstance) {
+			return false;
+		}
 		TransformationMatrix transformationMat = transformationMatrix;
 		PartitcleForGPU particleForGPU = {transformationMat.WVP, transformationMat.World, color};
 		instanceParticles_.push_back(particleForGPU);
+		return true;
 	}
 
 	// --- get ---

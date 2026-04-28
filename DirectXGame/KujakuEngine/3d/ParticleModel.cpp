@@ -11,6 +11,8 @@
 
 namespace KujakuEngine {
 
+ParticleModel::~ParticleModel() { instanceParticles_.clear(); }
+
 void ParticleModel::Initialize() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
@@ -214,7 +216,7 @@ void ParticleModel::Draw(const Camera& camera) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット
-	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kParticle,blendMode_);
+	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kParticle, blendMode_);
 
 	// VBVを設定
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
@@ -224,11 +226,11 @@ void ParticleModel::Draw(const Camera& camera) {
 
 	// Instancing SRV（RootParameter[1]: VS t0 StructuredBuffer）
 	commandList->SetGraphicsRootDescriptorTable(1, instancingSrvHandleGPU_);
-	
+
 	// テクスチャSRV（RootParameter[2]: DescriptorTable）
 	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
 	commandList->SetGraphicsRootDescriptorTable(2, handle);
-	
+
 	// ライト
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 	// 描画

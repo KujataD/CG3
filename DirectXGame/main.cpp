@@ -40,9 +40,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ------------------------------------------
 	ParticleModel* particleModel = ParticleModel::CreatePlane("resources/circle.png", true);
 	particleModel->Initialize();
-	//particleModel->SetBlendMode(BlendMode::kAdd);
+	// particleModel->SetBlendMode(BlendMode::kAdd);
 
-	std::vector<Particle*> particles;
+	std::list<Particle*> particles;
 	const uint32_t kNumParticle = 10u;
 
 	for (uint32_t i = 0; i < kNumParticle; i++) {
@@ -66,17 +66,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		camera.UpdateMatrix();
 
 		// パーティクル処理
-		for (Particle* particle : particles) {
-			particle->currentTime += DT;
-			if (particle->lifeTime <= particle->currentTime) {
+		for (std::list<Particle*>::iterator particleIterator = particles.begin(); particleIterator != particles.end();) {
+			(*particleIterator)->currentTime += DT;
+			if ((*particleIterator)->lifeTime <= (*particleIterator)->currentTime) {
+				delete *particleIterator;
+				particleIterator = particles.erase(particleIterator);
 				continue;
 			}
-			float alpha = 1.0f - (particle->currentTime / particle->lifeTime);
-			particle->color.w = alpha;
-			particle->transform.translation_ += particle->velocity * DT;
-			particle->transform.UpdateBillboardMatrix(camera);
+			float alpha = 1.0f - ((*particleIterator)->currentTime / (*particleIterator)->lifeTime);
+			(*particleIterator)->color.w = alpha;
+			(*particleIterator)->transform.translation_ += (*particleIterator)->velocity * DT;
+			(*particleIterator)->transform.UpdateBillboardMatrix(camera);
 			// InstancingModelに追加
-			particleModel->AddInstanceParticle(particle->transform.GetMatrixData(camera), particle->color);
+			particleModel->AddInstanceParticle((*particleIterator)->transform.GetMatrixData(camera), (*particleIterator)->color);
+			++particleIterator;
 		}
 		particleModel->UpdateBuffer();
 
@@ -86,6 +89,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::ColorEdit3("Light Color", &light.color.x);
 		ImGui::SliderFloat3("Direction", &light.direction.x, -1.0f, 1.0f);
 		ImGui::DragFloat("Intensity", &light.intensity, 0.01f);
+		ImGui::Text("particle.size %d", (int)particles.size());
 		if (ImGui::Button("Particle Make")) {
 			for (uint32_t i = 0; i < kNumParticle; i++) {
 				particles.push_back(MakeNewParticle());
@@ -116,6 +120,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		PostDraw();
 	}
+
+	delete particleModel;
+	particleModel = nullptr;
+
+	for (Particle* particle : particles) {
+		delete particle;
+	}
+	particles.clear();
 
 	// エンジンの終了処理
 	KujakuEngine::Finalize();
