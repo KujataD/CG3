@@ -37,7 +37,7 @@ public:
 	
 private:
 
-	static inline const float kMoveSpeed = 0.05f;
+	static inline const float kMoveSpeed = 0.1f;
 	static inline const float kRotateSpeed = 0.002f;
 
 private:

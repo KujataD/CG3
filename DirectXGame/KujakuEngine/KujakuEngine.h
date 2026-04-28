@@ -11,40 +11,42 @@
 
 // エンジン内部モジュール
 #include "base/DirectXCommon.h"
-#include "base/WinApp.h"
 #include "base/Logger.h"
 #include "base/StringUtil.h"
 #include "base/TextureManager.h"
+#include "base/WinApp.h"
 
 #include "2d/ImGuiManager.h"
 #include "2d/Sprite.h"
 
+#include "3d/Camera.h"
+#include "3d/DIrectionalLight.h"
+#include "3d/DebugCamera.h"
 #include "3d/GraphicsPipeline.h"
 #include "3d/Model.h"
 #include "3d/WorldTransform.h"
-#include "3d/DIrectionalLight.h"
-#include "3d/Camera.h"
-#include "3d/DebugCamera.h"
 
+#include "math/Easing.h"
+#include "math/Matrix3x3.h"
+#include "math/Matrix4x4.h"
+#include "math/Random.h"
 #include "math/Vector2.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"
-#include "math/Matrix3x3.h"
-#include "math/Matrix4x4.h"
-#include "math/Easing.h"
-#include "math/Random.h"
 
-#include "shapes/Rect.h"
 #include "shapes/AABB.h"
+#include "shapes/Rect.h"
 #include "shapes/ShapeUtil.h"
 
 #include "input/Input.h"
 
-#include "vfx/ParticleModel.h"
-#include "vfx/ParticleEmitter.h"
 #include "vfx/Particle.h"
+#include "vfx/ParticleEmitter.h"
+#include "vfx/ParticleModel.h"
 
 namespace KujakuEngine {
+
+static inline float kDT = 1.0f / 60.0f;
 
 /// <summary>
 /// エンジンの初期化
