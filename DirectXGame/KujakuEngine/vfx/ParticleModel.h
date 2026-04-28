@@ -53,10 +53,11 @@ public:
 	/// </summary>
 	static void PostDraw();
 
+
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）
 	/// </summary>
-	void Draw(const Camera& camera);
+	void Draw();
 
 	void UpdateBuffer();
 

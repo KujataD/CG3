@@ -24,6 +24,10 @@ void Camera::Initialize() {
 	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&constBuffer_));
 	assert(SUCCEEDED(hr));
 
+	cameraForGPUResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(CameraForGPU));
+	hr = cameraForGPUResource_->Map(0, nullptr, reinterpret_cast<void**>(&cameraForGPUData_));
+	assert(SUCCEEDED(hr));
+
 	// マッピング
 	hr = constBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&constMap_));
 	assert(SUCCEEDED(hr));
@@ -50,6 +54,7 @@ void Camera::TransferConstBuffer() {
 	constMap_->projection = matProjection;
 	constMap_->cameraPos = translation_;
 	constMap_->pad = 0.0f;
+	cameraForGPUData_->worldPosition = translation_;
 }
 
 Rect Camera::GetVisibleRect(float posZ) {

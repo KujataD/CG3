@@ -4,8 +4,8 @@
 #include <d3d12.h>
 #include <dxcapi.h>
 #include <string>
-#include <wrl.h>
 #include <vector>
+#include <wrl.h>
 
 #pragma comment(lib, "dxcompiler.lib")
 
@@ -15,7 +15,7 @@
 #include "../math/Vector4.h"
 
 namespace KujakuEngine {
-	
+
 struct VertexData {
 	Vector4 position;
 	Vector2 texcoord;
@@ -27,6 +27,7 @@ struct MaterialData {
 	int32_t enableLighting = 0;
 	float pad[3] = {};
 	Matrix4x4 uvTransform;
+	float shininess = 40.0f;
 	std::string textureFilePath;
 	uint32_t textureIndex;
 };
@@ -54,6 +55,13 @@ enum class PipelineType {
 	kCountOfPipeLineType,
 };
 
+enum class ShaderModel {
+	kNone,            // シェーダーなし
+	kLambert,         // ランバート
+	kHalfLambert,     // ハーフランバート
+	kPhongReflection, // フォンリフレクション
+};
+
 /// <summary>
 /// グラフィックスパイプライン管理クラス
 /// RootSignature・シェーダーコンパイル・PSOの生成を担当する
@@ -79,7 +87,7 @@ public:
 	/// RootSignature・PSO・DescriptorHeap・Viewport・ScissorRect をコマンドリストに積む
 	/// </summary>
 	void SetCommandList(PipelineType pipelineType, BlendMode blendMode);
-	
+
 	/// <summary>
 	/// 終了処理
 	/// </summary>
@@ -120,7 +128,6 @@ private:
 	/// Sprite用PSOを生成する
 	/// </summary>
 	void CreateParticlePipelineStateObject();
-
 
 private:
 	// DXCコンパイラ関連

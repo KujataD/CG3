@@ -26,7 +26,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// モンスターボール
 	// ------------------------------------------
-	Model* modelBall = Model::CreateSphere("resources/monsterBall.png", true);
+	Model* modelBall = Model::CreateSphere("resources/monsterBall.png", ShaderModel::kPhongReflection);
 	WorldTransform ballTransform;
 	ballTransform.Initialize();
 

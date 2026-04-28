@@ -21,6 +21,10 @@ struct ConstBufferDataCamera {
 	float pad;            // パディング
 };
 
+struct CameraForGPU {
+	Vector3 worldPosition;
+};
+
 /// <summary>
 /// カメラ
 /// </summary>
@@ -59,6 +63,12 @@ public:
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return constBuffer_; }
 
 	/// <summary>
+	/// 
+	/// </summary>
+	/// <returns></returns>
+	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetCameraForGPUResource() const { return cameraForGPUResource_; }
+
+	/// <summary>
 	/// 射影行列を更新する
 	/// </summary>
 	void UpdateProjectionMatrix();
@@ -75,6 +85,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> constBuffer_;
 	// マッピング済みアドレス
 	ConstBufferDataCamera* constMap_ = nullptr;
+
+	// GPU用バッファ
+	Microsoft::WRL::ComPtr<ID3D12Resource> cameraForGPUResource_;
+	CameraForGPU* cameraForGPUData_ = nullptr;
 
 	// コピー禁止
 	Camera(const Camera&) = delete;

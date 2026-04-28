@@ -47,12 +47,12 @@ void ParticleEmitter::Update(float deltaTime, const Camera& camera) {
 	model_->UpdateBuffer();
 }
 
-void ParticleEmitter::Draw(const Camera& camera) {
+void ParticleEmitter::Draw() {
 	if (!model_) {
 		return;
 	}
 
-	model_->Draw(camera);
+	model_->Draw();
 }
 
 void ParticleEmitter::Emit() {

@@ -10,13 +10,13 @@
 #include <sstream>
 namespace KujakuEngine {
 
-Model* Model::CreateFromOBJ(const std::string& objname, bool enableLighting) {
+Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel) {
 	Model* model = new Model();
 	std::string directoryPathFinal = "resources/" + objname;
 	std::string filename = objname + ".obj";
 
 	ModelData rawData = LoadObjFile(directoryPathFinal, filename);
-	rawData.material.enableLighting = enableLighting;
+	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
 	if (!rawData.material.textureFilePath.empty()) {
 		rawData.material.textureIndex = TextureManager::GetInstance()->LoadTexture(rawData.material.textureFilePath);
 	} else {
@@ -26,7 +26,7 @@ Model* Model::CreateFromOBJ(const std::string& objname, bool enableLighting) {
 	model->CreateMaterialBuffer(rawData.material);
 	return model;
 }
-Model* Model::CreateSphere(const std::string& textureFilePath, bool enableLighting, uint32_t subdivision) {
+Model* Model::CreateSphere(const std::string& textureFilePath, ShaderModel shaderModel, uint32_t subdivision) {
 	Model* model = new Model();
 	const float kLonEvery = static_cast<float>(2.0f * std::numbers::pi_v<float> / subdivision);
 	const float kLatEvery = static_cast<float>(std::numbers::pi_v<float> / subdivision);
@@ -76,7 +76,7 @@ Model* Model::CreateSphere(const std::string& textureFilePath, bool enableLighti
 
 	// MaterialData
 	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = enableLighting;
+	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
 	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
 
 	model->CreateVertexBuffer(vertices);
@@ -85,7 +85,7 @@ Model* Model::CreateSphere(const std::string& textureFilePath, bool enableLighti
 	return model;
 }
 
-Model* Model::CreateCube(const std::string& textureFilePath, bool enableLighting) {
+Model* Model::CreateCube(const std::string& textureFilePath, ShaderModel shaderModel) {
 	Model* model = new Model();
 
 	std::vector<VertexData> vertices = {
@@ -140,7 +140,7 @@ Model* Model::CreateCube(const std::string& textureFilePath, bool enableLighting
 
 	// MaterialData
 	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = enableLighting;
+	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
 	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
 
 	model->CreateVertexBuffer(vertices);
@@ -149,7 +149,7 @@ Model* Model::CreateCube(const std::string& textureFilePath, bool enableLighting
 	return model;
 }
 
-Model* Model::CreatePlane(const std::string& textureFilePath, bool enableLighting) {
+Model* Model::CreatePlane(const std::string& textureFilePath, ShaderModel shaderModel) {
 	Model* model = new Model();
 
 	std::vector<VertexData> vertices;
@@ -187,7 +187,7 @@ Model* Model::CreatePlane(const std::string& textureFilePath, bool enableLightin
 
 	// MaterialData
 	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = enableLighting;
+	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
 	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
 
 	model->CreateVertexBuffer(vertices);
@@ -245,11 +245,16 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera) {
 	// WVP・WorldCBuffer（RootParameter[1]: VertexShader, b0）
 	commandList->SetGraphicsRootConstantBufferView(1, worldTransform.GetConstBuffer()->GetGPUVirtualAddress());
 
-	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
 	// テクスチャSRV（RootParameter[2]: DescriptorTable）
+	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
 	commandList->SetGraphicsRootDescriptorTable(2, handle);
+	
 	// ライト
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
+
+	// カメラ（RootParameter[4]: VertexShader, b2）
+	commandList->SetGraphicsRootConstantBufferView(4, camera.GetCameraForGPUResource()->GetGPUVirtualAddress());
+
 	// 描画
 	commandList->DrawInstanced(vertexCount_, 1, 0, 0);
 }
@@ -388,6 +393,7 @@ void Model::CreateMaterialBuffer(const MaterialData& material) {
 	materialMap_->color = material.color;
 	materialMap_->enableLighting = material.enableLighting;
 	materialMap_->uvTransform = Matrix4x4::MakeIdentity();
+	materialMap_->shininess = material.shininess;
 	textureIndex_ = material.textureIndex;
 }
 } // namespace KujakuEngine

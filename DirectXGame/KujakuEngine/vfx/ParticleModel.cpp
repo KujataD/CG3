@@ -215,7 +215,7 @@ void ParticleModel::PostDraw() {
 	// 将来的にここで描画状態のリセットなどを行う
 }
 
-void ParticleModel::Draw(const Camera& camera) {
+void ParticleModel::Draw() {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
 	// RootSignature と PSO をセット

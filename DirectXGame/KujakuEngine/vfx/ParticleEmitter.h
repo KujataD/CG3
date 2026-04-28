@@ -16,7 +16,7 @@ public:
 	void Initialize(ParticleModel* model);
 
 	void Update(float deltaTime, const Camera& camera);
-	void Draw(const Camera& camera);
+	void Draw();
 
 	void Emit();
 
