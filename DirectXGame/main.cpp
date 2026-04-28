@@ -3,7 +3,6 @@
 #include <fstream>
 #include <memory>
 
-
 using namespace KujakuEngine;
 
 // Windowsアプリでのエントリーポイント
@@ -31,10 +30,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	particleModel->Initialize();
 	particleModel->SetBlendMode(BlendMode::kAdd);
 
+	// パーティクルフィールド
+	// ------------------------------------------
+	AccelerationField acField;
+	acField.acceleration = {15.0f, 0.0f, 0.0f};
+	acField.area.min = {-1.0f, -1.0f, -1.0f};
+	acField.area.max = {1.0f, 1.0f, 1.0f};
+
+	bool useField = true;
+
 	// エミッター
 	// ------------------------------------------
 	ParticleEmitter emitter;
 	emitter.Initialize(particleModel);
+	emitter.AddField(acField);
 	emitter.Emit();
 
 	// ゲームループ
@@ -57,7 +66,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// パーティクル
 		// --------------------------------------
 		emitter.Update(kDT, camera);
-
+		emitter.SetIsActiveField(useField);
 
 		// Imgui
 		// --------------------------------------
@@ -67,9 +76,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::ColorEdit3("Light Color", &light.color.x);
 		ImGui::SliderFloat3("Direction", &light.direction.x, -1.0f, 1.0f);
 		ImGui::DragFloat("Intensity", &light.intensity, 0.01f);
-		ImGui::DragFloat3("EmitterTranslate", &emitter.translation_.x , 0.01f, -100.0f, 100.0f);
+		ImGui::DragFloat3("EmitterTranslate", &emitter.translation_.x, 0.01f, -100.0f, 100.0f);
+		ImGui::Checkbox("useField", &useField);
 		if (ImGui::Button("Particle Make")) {
-
 		}
 		ImGui::End();
 #endif // USE_IMGUI

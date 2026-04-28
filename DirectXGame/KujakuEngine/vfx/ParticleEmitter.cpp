@@ -1,10 +1,11 @@
 #include "ParticleEmitter.h"
+#include "../shapes/ShapeUtil.h"
 
 namespace KujakuEngine {
 
-void ParticleEmitter::Initialize(ParticleModel* model) {
-	model_ = model;
-}
+using namespace ShapeUtil;
+
+void ParticleEmitter::Initialize(ParticleModel* model) { model_ = model; }
 
 void ParticleEmitter::Update(float deltaTime, const Camera& camera) {
 	frequencyTime_ += deltaTime;        // 時刻を進める
@@ -14,11 +15,25 @@ void ParticleEmitter::Update(float deltaTime, const Camera& camera) {
 	}
 
 	for (std::list<Particle>::iterator particleIterator = particles_.begin(); particleIterator != particles_.end();) {
+		// ライフタイムを進める
 		(*particleIterator).currentTime += deltaTime;
-		if ((*particleIterator).lifeTime <= (*particleIterator).currentTime) {
+
+		// すでに死んでいたら、リストから削除
+		if ((*particleIterator).IsDead()) {
 			particleIterator = particles_.erase(particleIterator);
 			continue;
 		}
+
+		// Field計算処理
+		if (isActiveField_) {
+			for (auto& field : accelerationFields_) {
+				if (IsCollision(field.area, (*particleIterator).translation)) {
+					(*particleIterator).velocity += field.acceleration * deltaTime;
+				}
+			}
+		}
+
+		// 透明度計算
 		float alpha = 1.0f - ((*particleIterator).currentTime / (*particleIterator).lifeTime);
 		(*particleIterator).color.w = alpha;
 		(*particleIterator).translation += (*particleIterator).velocity * deltaTime;
@@ -48,7 +63,7 @@ void ParticleEmitter::Emit() {
 
 Particle ParticleEmitter::MakeParticle() {
 	Particle particle;
-	Vector3 randomTranslation = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
+	Vector3 randomTranslation = {Random::GetRandom(-1.0f * scale_.x, 1.0f * scale_.x), Random::GetRandom(-1.0f * scale_.y, 1.0f * scale_.y), Random::GetRandom(-1.0f * scale_.z, 1.0f * scale_.z)};
 
 	particle.translation = translation_ + randomTranslation;
 	particle.velocity = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};

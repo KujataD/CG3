@@ -128,6 +128,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\shapes\AABB.cpp" />
     <ClCompile Include="KujakuEngine\shapes\Rect.cpp" />
     <ClCompile Include="KujakuEngine\shapes\ShapeUtil.cpp" />
+    <ClCompile Include="KujakuEngine\vfx\ParticleField.cpp" />
     <ClCompile Include="KujakuEngine\vfx\ParticleEmitter.cpp" />
     <ClCompile Include="KujakuEngine\vfx\ParticleModel.cpp" />
     <ClCompile Include="main.cpp" />
@@ -168,6 +169,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\shapes\ShapeUtil.h" />
     <ClInclude Include="KujakuEngine\vfx\Particle.h" />
     <ClInclude Include="KujakuEngine\vfx\ParticleEmitter.h" />
+    <ClInclude Include="KujakuEngine\vfx\ParticleField.h" />
     <ClInclude Include="KujakuEngine\vfx\ParticleModel.h" />
   </ItemGroup>
   <ItemGroup>

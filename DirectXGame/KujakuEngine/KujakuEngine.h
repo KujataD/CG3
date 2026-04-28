@@ -20,8 +20,8 @@
 #include "2d/Sprite.h"
 
 #include "3d/Camera.h"
-#include "3d/DIrectionalLight.h"
 #include "3d/DebugCamera.h"
+#include "3d/DIrectionalLight.h"
 #include "3d/GraphicsPipeline.h"
 #include "3d/Model.h"
 #include "3d/WorldTransform.h"
@@ -42,6 +42,7 @@
 
 #include "vfx/Particle.h"
 #include "vfx/ParticleEmitter.h"
+#include "vfx/ParticleField.h"
 #include "vfx/ParticleModel.h"
 
 namespace KujakuEngine {
