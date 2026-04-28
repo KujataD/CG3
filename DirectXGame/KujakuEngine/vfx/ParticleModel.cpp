@@ -42,6 +42,9 @@ void ParticleModel::Initialize() {
 	instancingSrvDesc.Buffer.StructureByteStride = sizeof(ParticleForGPU);
 
 	dxCommon->GetDevice()->CreateShaderResourceView(instancingResource_.Get(), &instancingSrvDesc, instancingSrvHandleCPU_);
+		
+	// 毎フレーム push_back するため、先に最大数まで予約して再確保スパイクを防ぐ
+	instanceParticles_.reserve(kMaxInstance);
 
 	// 単位行列を書き込んでおく
 	for (uint32_t i = 0; i < kMaxInstance; ++i) {
