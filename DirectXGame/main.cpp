@@ -26,7 +26,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// モンスターボール
 	// ------------------------------------------
-	Model* modelBall = Model::CreateSphere("resources/monsterBall.png", ShaderModel::kPhongReflection);
+	Model* modelBall = Model::CreateSphere("resources/monsterBall.png", ShaderModel::kBlingPhongReflection);
 	WorldTransform ballTransform;
 	ballTransform.Initialize();
 
@@ -51,7 +51,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// --------------------------------------
 		ballTransform.rotation_.y += 0.01f;
 		ballTransform.UpdateMatrix(camera);
-
+		
 		// Imgui
 		// --------------------------------------
 #ifdef USE_IMGUI
@@ -60,7 +60,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::ColorEdit3("Light Color", &light.color.x);
 		ImGui::SliderFloat3("Direction", &light.direction.x, -1.0f, 1.0f);
 		ImGui::DragFloat("Intensity", &light.intensity, 0.01f);
-
+		ImGui::DragFloat3("monstarBall", &ballTransform.scale_.x, 0.01f);
 		ImGui::End();
 #endif // USE_IMGUI
 

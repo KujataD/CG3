@@ -56,10 +56,11 @@ enum class PipelineType {
 };
 
 enum class ShaderModel {
-	kNone,            // シェーダーなし
-	kLambert,         // ランバート
-	kHalfLambert,     // ハーフランバート
-	kPhongReflection, // フォンリフレクション
+	kNone,                 // シェーダーなし
+	kLambert,              // ランバート
+	kHalfLambert,          // ハーフランバート
+	kPhongReflection,      // フォンリフレクション
+	kBlingPhongReflection, // ブリンフォンリフレクション
 };
 
 /// <summary>

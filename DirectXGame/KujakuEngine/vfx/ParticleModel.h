@@ -53,7 +53,6 @@ public:
 	/// </summary>
 	static void PostDraw();
 
-
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）
 	/// </summary>
@@ -116,3 +115,4 @@ private:
 };
 
 } // namespace KujakuEngine
+

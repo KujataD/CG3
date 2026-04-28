@@ -69,6 +69,31 @@ PixelShaderOutput main(VertexShaderOutput input)
             output.color.a = gMaterial.color.a * textureColor.a;
             
         }
+        else if (gMaterial.enableLighting == 4)
+        {
+            // BlingPhongReflectionModel
+            float NdotL = dot(normalize(input.normal), -normalize(gDirectionalLight.direction));
+            float cos = pow(NdotL * 0.5f + 0.5f, 2.0f);
+            // カメラへの方向を算出する。数式のv
+            float32_t3 toEye = normalize(gCamera.worldPosition - input.worldPosition);
+    
+            // 入射角の反射ベクトルを求める。数式のr
+            float32_t3 reflectLight = reflect(normalize(gDirectionalLight.direction), normalize(input.normal));
+
+            // 内積をとって、saturateして、shininessを階乗すると鏡面反射の強度が求まる
+            float32_t3 halfVector = normalize(-gDirectionalLight.direction + toEye);
+            float NDotH = dot(normalize(input.normal), halfVector);
+            float specularPow = pow(saturate(NDotH), gMaterial.shininess);
+            
+            // 拡散反射
+            float32_t3 diffuse = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
+            // 鏡面反射
+            float32_t3 specular = gDirectionalLight.color.rgb * gDirectionalLight.intensity * specularPow * float32_t3(1.0f, 1.0f, 1.0f);
+            // 拡散反射+鏡面反射
+            output.color.rgb = diffuse + specular;
+            // アルファは今まで通り
+            output.color.a = gMaterial.color.a * textureColor.a;
+        }
         else
         {
             float cos = saturate(dot(normalize(input.normal), -gDirectionalLight.direction)); // lambertModel

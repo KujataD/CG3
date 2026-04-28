@@ -15,6 +15,7 @@ namespace KujakuEngine {
 struct TransformationMatrix {
 	Matrix4x4 WVP;   // ワールド・ビュー・プロジェクション合成行列
 	Matrix4x4 World; // ワールド行列（法線変換などに使用）
+	Matrix4x4 WorldInverseTranspose; // worldの逆転置行列
 };
 
 /// <summary>
