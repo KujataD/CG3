@@ -62,8 +62,8 @@ public:
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
-	void AddInstanceParticle(const WorldTransform& transform, const Camera& camera, const Vector4& color) {
-		TransformationMatrix transformationMat = transform.GetMatrixData(camera);
+	void AddInstanceParticle(const TransformationMatrix& transformationMatrix, const Vector4& color) {
+		TransformationMatrix transformationMat = transformationMatrix;
 		PartitcleForGPU particleForGPU = {transformationMat.WVP, transformationMat.World, color};
 		instanceParticles_.push_back(particleForGPU);
 	}

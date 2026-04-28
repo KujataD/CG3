@@ -26,22 +26,21 @@ public:
 
 	Matrix4x4 GetViewMatrix() { return matView_; }
 
+	// ローカル回転軸
+	Vector3 rotation_ = {0.0f, 0.0f, 0.0f};
+	// ローカル座標
+	Vector3 translation_ = {0.0f, 0.0f, 0.0f};
+
+	// ビュー
+	Matrix4x4 matView_;
+	Matrix4x4 matRot_;
+	
 private:
 
 	static inline const float kMoveSpeed = 0.05f;
 	static inline const float kRotateSpeed = 0.002f;
 
 private:
-
-	// ローカル回転軸
-	Vector3 rotation_ = {0.0f, 0.0f, 0.0f};
-	// ローカル座標
-	Vector3 translation_ = {0.0f, 0.0f, -10.0f};
-
-	// ビュー
-	Matrix4x4 matView_;
-	Matrix4x4 matRot_;
-	
 	// マウス座標
 	Vector2 mousePos_;
 	Vector2 prevMousePos_;

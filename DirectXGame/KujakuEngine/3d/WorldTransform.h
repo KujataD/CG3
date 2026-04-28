@@ -2,6 +2,7 @@
 
 #include <d3d12.h>
 #include <wrl.h>
+#include <numbers>
 
 #include "../math/Matrix4x4.h"
 #include "../math/Vector3.h"
@@ -45,15 +46,25 @@ public:
 	/// </summary>
 	/// <param name="camera">カメラ（ビュー・プロジェクション行列を取得）</param>
 	void UpdateMatrix(const class Camera& camera);
+	
+	/// <summary>
+	/// ワールド行列を更新してGPUに転送する
+	/// </summary>
+	/// <param name="camera">カメラ（ビュー・プロジェクション行列を取得）</param>
+	void UpdateBillboardMatrix(const class Camera& camera);
 
 	void TransferMatrix(const class Camera& camera);
 
 	TransformationMatrix GetMatrixData(const Camera& camera) const;
+	TransformationMatrix GetBillboardMatrixData(const Camera& camera) const;
 
 	/// <summary>
 	/// 定数バッファの取得
 	/// </summary>
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return constBuffer_; }
+
+private:
+	static inline Matrix4x4 kBackToFrontMatrix = Matrix4x4::MakeRotateYMatrix(std::numbers::pi_v<float>);
 
 private:
 	// 定数バッファ

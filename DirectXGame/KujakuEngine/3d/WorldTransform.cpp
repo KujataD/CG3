@@ -44,6 +44,25 @@ void WorldTransform::UpdateMatrix(const Camera& camera) {
 	TransferMatrix(camera);
 }
 
+void WorldTransform::UpdateBillboardMatrix(const Camera& camera) {
+	// ワールド行列の生成
+	Matrix4x4 billboardMatrix = kBackToFrontMatrix * Matrix4x4::Inverse(camera.matView);
+	billboardMatrix.m[3][0] = 0.0f; // 平行移動成分は要らない
+	billboardMatrix.m[3][1] = 0.0f;
+	billboardMatrix.m[3][2] = 0.0f;
+
+	// 回転対応
+	Matrix4x4 rotateZMatrix = Matrix4x4::MakeRotateZMatrix(rotation_.z);
+
+	Matrix4x4 rotateMatrix = rotateZMatrix * billboardMatrix;
+	Matrix4x4 scaleMatrix = Matrix4x4::MakeScaleMatrix(scale_);
+	Matrix4x4 translateMatrix = Matrix4x4::MakeTranslateMatrix(translation_);
+
+	matWorld_ = scaleMatrix * rotateMatrix * translateMatrix;
+
+	TransferMatrix(camera);
+}
+
 void WorldTransform::TransferMatrix(const Camera& camera) { // WVP行列の生成
 	Matrix4x4 matWVP = matWorld_ * camera.matView * camera.matProjection;
 
@@ -61,7 +80,8 @@ TransformationMatrix WorldTransform::GetMatrixData(const Camera& camera) const {
 	data.World = matWorld_;
 
 	return data;
-
 }
+
+TransformationMatrix WorldTransform::GetBillboardMatrixData(const Camera& camera) const { return TransformationMatrix(); }
 
 } // namespace KujakuEngine
