@@ -1,4 +1,5 @@
 #include "Matrix4x4.h"
+#include "../3d/Camera.h"
 
 namespace KujakuEngine{
 Matrix4x4 Matrix4x4::operator+(const Matrix4x4& other) const {
@@ -290,5 +291,21 @@ Matrix4x4 Matrix4x4::MakeViewportMatrix(float left, float top, float width, floa
 			{left + (width / 2.0f), top + (height / 2.0f), minDepth, 1.0f}
 		}
 	};
+}
+Matrix4x4 Matrix4x4::MakeBillboardMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate, const Camera& camera) {	// ワールド行列の生成
+	Matrix4x4 billboardMatrix = kBackToFrontMatrix * Matrix4x4::Inverse(camera.matView);
+	billboardMatrix.m[3][0] = 0.0f; // 平行移動成分は要らない
+	billboardMatrix.m[3][1] = 0.0f;
+	billboardMatrix.m[3][2] = 0.0f;
+
+	// 回転対応
+	Matrix4x4 rotateZMatrix = Matrix4x4::MakeRotateZMatrix(rotate.z);
+
+	Matrix4x4 rotateMatrix = rotateZMatrix * billboardMatrix;
+	Matrix4x4 scaleMatrix = Matrix4x4::MakeScaleMatrix(scale);
+	Matrix4x4 translateMatrix = Matrix4x4::MakeTranslateMatrix(translate);
+
+ 	return scaleMatrix * rotateMatrix * translateMatrix;
+
 }
 }

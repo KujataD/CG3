@@ -2,8 +2,8 @@
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
-#include "DirectionalLight.h"
-#include "GraphicsPipeline.h"
+#include "../3d/DirectionalLight.h"
+#include "../3d/GraphicsPipeline.h"
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -17,7 +17,7 @@ void ParticleModel::Initialize() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
 	// Instancing用のTransformationMatrixリソースを作る
-	instancingResource_ = dxCommon->CreateBufferResource(sizeof(PartitcleForGPU) * kMaxInstance);
+	instancingResource_ = dxCommon->CreateBufferResource(sizeof(ParticleForGPU) * kMaxInstance);
 
 	// 書き込むためのアドレスを取得
 	instancingResource_->Map(0, nullptr, (void**)&instancingData_);
@@ -39,7 +39,7 @@ void ParticleModel::Initialize() {
 	instancingSrvDesc.Buffer.FirstElement = 0;
 	instancingSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 	instancingSrvDesc.Buffer.NumElements = kMaxInstance;
-	instancingSrvDesc.Buffer.StructureByteStride = sizeof(PartitcleForGPU);
+	instancingSrvDesc.Buffer.StructureByteStride = sizeof(ParticleForGPU);
 
 	dxCommon->GetDevice()->CreateShaderResourceView(instancingResource_.Get(), &instancingSrvDesc, instancingSrvHandleCPU_);
 
@@ -238,7 +238,7 @@ void ParticleModel::Draw(const Camera& camera) {
 	instanceParticles_.clear();
 }
 
-void ParticleModel::UpdateBuffer() { memcpy(instancingData_, instanceParticles_.data(), sizeof(PartitcleForGPU) * instanceParticles_.size()); }
+void ParticleModel::UpdateBuffer() { memcpy(instancingData_, instanceParticles_.data(), sizeof(ParticleForGPU) * instanceParticles_.size()); }
 
 MaterialData ParticleModel::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
 	MaterialData materialData;

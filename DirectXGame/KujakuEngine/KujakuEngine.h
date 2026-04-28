@@ -25,7 +25,6 @@
 #include "3d/DIrectionalLight.h"
 #include "3d/Camera.h"
 #include "3d/DebugCamera.h"
-#include "3d/ParticleModel.h"
 
 #include "math/Vector2.h"
 #include "math/Vector3.h"
@@ -40,6 +39,10 @@
 #include "shapes/ShapeUtil.h"
 
 #include "input/Input.h"
+
+#include "vfx/ParticleModel.h"
+#include "vfx/ParticleEmitter.h"
+#include "vfx/Particle.h"
 
 namespace KujakuEngine {
 

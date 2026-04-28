@@ -7,6 +7,14 @@
 
 using namespace KujakuEngine;
 
+struct Emitter {
+
+	WorldTransform transform; // !< エミッタのTransform
+	uint32_t count;           // !< 発生数
+	float frequency;          // !< 発生頻度
+	float frequencyTime;      // !< 頻度用時刻
+};
+
 struct Particle {
 	WorldTransform transform;
 	Vector3 velocity;
@@ -15,7 +23,9 @@ struct Particle {
 	float currentTime;
 };
 
-Particle* MakeNewParticle();
+Particle* MakeNewParticle(const Vector3& translate);
+
+std::list<Particle*> Emit(const Emitter& emitter);
 
 // Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -40,14 +50,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ------------------------------------------
 	ParticleModel* particleModel = ParticleModel::CreatePlane("resources/circle.png", true);
 	particleModel->Initialize();
-	// particleModel->SetBlendMode(BlendMode::kAdd);
+	particleModel->SetBlendMode(BlendMode::kAdd);
 
 	std::list<Particle*> particles;
 	const uint32_t kNumParticle = 10u;
 
-	for (uint32_t i = 0; i < kNumParticle; i++) {
-		particles.push_back(MakeNewParticle());
-	}
+	// エミッター
+	// ------------------------------------------
+	Emitter emitter{};
+	emitter.transform.translation_ = {0.0f, 0.0f, 0.0f};
+	emitter.transform.rotation_ = {0.0f, 0.0f, 0.0f};
+	emitter.transform.scale_ = {0.0f, 0.0f, 0.0f};
+	emitter.count = 3;
+	emitter.frequency = 0.5f;     // 0.5秒ごとに発生
+	emitter.frequencyTime = 0.0f; // 発生頻度用の時刻、0で初期化
 
 	// ゲームループ
 	while (KujakuEngine::Update()) {
@@ -64,6 +80,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		camera.translation_ = debugCamera.translation_;
 		camera.rotation_ = debugCamera.rotation_;
 		camera.UpdateMatrix();
+
+		// エミッター処理
+		emitter.frequencyTime += DT;                          // 時刻を進める
+		if (emitter.frequency <= emitter.frequencyTime) {     // 頻度より大きいなら発生
+			particles.splice(particles.end(), Emit(emitter)); // 発生処理
+			emitter.frequencyTime -= emitter.frequency;       // 余計に過ぎた時間も加味して頻度計算する
+		}
 
 		// パーティクル処理
 		for (std::list<Particle*>::iterator particleIterator = particles.begin(); particleIterator != particles.end();) {
@@ -90,10 +113,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::SliderFloat3("Direction", &light.direction.x, -1.0f, 1.0f);
 		ImGui::DragFloat("Intensity", &light.intensity, 0.01f);
 		ImGui::Text("particle.size %d", (int)particles.size());
+		ImGui::DragFloat3("EmitterTranslate", &emitter.transform.translation_.x , 0.01f, -100.0f, 100.0f);
 		if (ImGui::Button("Particle Make")) {
-			for (uint32_t i = 0; i < kNumParticle; i++) {
-				particles.push_back(MakeNewParticle());
-			}
+			particles.splice(particles.end(), Emit(emitter));
 		}
 		ImGui::End();
 #endif // USE_IMGUI
@@ -135,14 +157,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	return 0;
 }
 
-Particle* MakeNewParticle() {
+Particle* MakeNewParticle(const Vector3& translate) {
 	Particle* particle = new Particle;
 	particle->transform.Initialize();
-	particle->transform.translation_ = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
+	Vector3 randomTranslation = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
+
+	particle->transform.translation_ = translate + randomTranslation;
 	particle->transform.rotation_.y = std::numbers::pi_v<float>;
 	particle->velocity = {Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f), Random::GetRandom(-1.0f, 1.0f)};
 	particle->color = {Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f), Random::GetRandom(0.0f, 1.0f), 1.0f};
 	particle->lifeTime = Random::GetRandom(1.0f, 3.0f);
 	particle->currentTime = 0.0f;
 	return particle;
+}
+
+std::list<Particle*> Emit(const Emitter& emitter) {
+	std::list<Particle*> particles;
+	for (uint32_t count = 0; count < emitter.count; ++count) {
+		particles.push_back(MakeNewParticle(emitter.transform.translation_));
+	}
+	return particles;
 }

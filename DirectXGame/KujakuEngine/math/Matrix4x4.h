@@ -1,10 +1,11 @@
 #pragma once
-#include <assert.h>
-#include <cmath>
-#include <algorithm>
 #include "Vector3.h"
+#include <algorithm>
+#include <assert.h>
+#include <numbers>
+#include <cmath>
 
-namespace KujakuEngine{
+namespace KujakuEngine {
 class Matrix4x4 {
 public:
 	float m[4][4];
@@ -36,5 +37,9 @@ public:
 
 	// ビューポート変換行列
 	static Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
+
+	static Matrix4x4 MakeBillboardMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate, const class Camera& camera);
 };
-}
+
+static inline Matrix4x4 kBackToFrontMatrix = Matrix4x4::MakeRotateYMatrix(std::numbers::pi_v<float>);
+} // namespace KujakuEngine

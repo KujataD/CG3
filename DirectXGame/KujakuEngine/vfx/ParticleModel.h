@@ -15,7 +15,8 @@
 #include "../../externals/DirectXTex/DirectXTex.h"
 
 namespace KujakuEngine {
-struct PartitcleForGPU {
+
+struct ParticleForGPU {
 	Matrix4x4 WVP;
 	Matrix4x4 World;
 	Vector4 color;
@@ -68,7 +69,7 @@ public:
 			return false;
 		}
 		TransformationMatrix transformationMat = transformationMatrix;
-		PartitcleForGPU particleForGPU = {transformationMat.WVP, transformationMat.World, color};
+		ParticleForGPU particleForGPU = {transformationMat.WVP, transformationMat.World, color};
 		instanceParticles_.push_back(particleForGPU);
 		return true;
 	}
@@ -90,8 +91,8 @@ private:
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_{};
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> instancingResource_;
-	PartitcleForGPU* instancingData_;
-	std::vector<PartitcleForGPU> instanceParticles_;
+	ParticleForGPU* instancingData_;
+	std::vector<ParticleForGPU> instanceParticles_;
 
 	BlendMode blendMode_ = BlendMode::kNormal;
 

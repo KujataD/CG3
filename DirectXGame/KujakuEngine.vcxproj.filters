@@ -46,6 +46,9 @@
     <Filter Include="KujakuEngine\shapes">
       <UniqueIdentifier>{4ce3014d-950b-41ee-9a0a-c94ca6731cb0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="KujakuEngine\vfx">
+      <UniqueIdentifier>{ae19aad8-f3e4-4adc-83d4-4c5a704702bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -144,8 +147,11 @@
     <ClCompile Include="KujakuEngine\base\TextureManager.cpp">
       <Filter>KujakuEngine\base</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\3d\ParticleModel.cpp">
-      <Filter>KujakuEngine\3d</Filter>
+    <ClCompile Include="KujakuEngine\vfx\ParticleEmitter.cpp">
+      <Filter>KujakuEngine\vfx</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\vfx\ParticleModel.cpp">
+      <Filter>KujakuEngine\vfx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -248,8 +254,14 @@
     <ClInclude Include="KujakuEngine\base\TextureManager.h">
       <Filter>KujakuEngine\base</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\3d\ParticleModel.h">
-      <Filter>KujakuEngine\3d</Filter>
+    <ClInclude Include="KujakuEngine\vfx\Particle.h">
+      <Filter>KujakuEngine\vfx</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\vfx\ParticleEmitter.h">
+      <Filter>KujakuEngine\vfx</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\vfx\ParticleModel.h">
+      <Filter>KujakuEngine\vfx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

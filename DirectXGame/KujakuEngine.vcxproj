@@ -110,7 +110,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\3d\DebugCamera.cpp" />
     <ClCompile Include="KujakuEngine\3d\DirectionalLight.cpp" />
     <ClCompile Include="KujakuEngine\3d\GraphicsPipeline.cpp" />
-    <ClCompile Include="KujakuEngine\3d\ParticleModel.cpp" />
     <ClCompile Include="KujakuEngine\3d\Model.cpp" />
     <ClCompile Include="KujakuEngine\3d\WorldTransform.cpp" />
     <ClCompile Include="KujakuEngine\base\DirectXCommon.cpp" />
@@ -129,6 +128,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\shapes\AABB.cpp" />
     <ClCompile Include="KujakuEngine\shapes\Rect.cpp" />
     <ClCompile Include="KujakuEngine\shapes\ShapeUtil.cpp" />
+    <ClCompile Include="KujakuEngine\vfx\ParticleEmitter.cpp" />
+    <ClCompile Include="KujakuEngine\vfx\ParticleModel.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -146,7 +147,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\3d\DebugCamera.h" />
     <ClInclude Include="KujakuEngine\3d\DirectionalLight.h" />
     <ClInclude Include="KujakuEngine\3d\GraphicsPipeline.h" />
-    <ClInclude Include="KujakuEngine\3d\ParticleModel.h" />
     <ClInclude Include="KujakuEngine\3d\Model.h" />
     <ClInclude Include="KujakuEngine\3d\WorldTransform.h" />
     <ClInclude Include="KujakuEngine\base\DirectXCommon.h" />
@@ -166,6 +166,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\shapes\AABB.h" />
     <ClInclude Include="KujakuEngine\shapes\Rect.h" />
     <ClInclude Include="KujakuEngine\shapes\ShapeUtil.h" />
+    <ClInclude Include="KujakuEngine\vfx\Particle.h" />
+    <ClInclude Include="KujakuEngine\vfx\ParticleEmitter.h" />
+    <ClInclude Include="KujakuEngine\vfx\ParticleModel.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

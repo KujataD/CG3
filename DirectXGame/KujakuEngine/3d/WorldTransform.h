@@ -64,7 +64,6 @@ public:
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return constBuffer_; }
 
 private:
-	static inline Matrix4x4 kBackToFrontMatrix = Matrix4x4::MakeRotateYMatrix(std::numbers::pi_v<float>);
 
 private:
 	// 定数バッファ
