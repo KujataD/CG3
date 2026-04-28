@@ -73,6 +73,14 @@ bool IsCollision(const AABB& aabb, const Sphere& sphere) {
 	return (distance <= sphere.radius);
 }
 
+bool IsCollision(const AABB& aabb, const Vector3& point) {
+	bool resultX = (aabb.min.x <= point.x && aabb.max.x >= point.x);
+	bool resultY = (aabb.min.y <= point.y && aabb.max.y >= point.y);
+	bool resultZ = (aabb.min.z <= point.z && aabb.max.z >= point.z);
+
+	return (resultX && resultY && resultZ);
+}
+
 bool IsCollision(const AABB& aabb, const Segment& segment) {
 	float txMin = (aabb.min.x - segment.origin.x) / segment.diff.x;
 	float txMax = (aabb.max.x - segment.origin.x) / segment.diff.x;
@@ -321,5 +329,3 @@ Vector3 Reflect(const Vector3& input, const Vector3& normal) { return input - no
 } // namespace ShapeUtil
 
 } // namespace KujakuEngine
-
-
