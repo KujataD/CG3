@@ -19,6 +19,7 @@ struct PixelShaderOutput
 };
 ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
 ConstantBuffer<Camera> gCamera : register(b2);
+ConstantBuffer<Camera> gPointLight : register(b3);
 
 PixelShaderOutput main(VertexShaderOutput input)
 {

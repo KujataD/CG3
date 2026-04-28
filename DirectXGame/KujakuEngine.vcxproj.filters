@@ -156,6 +156,9 @@
     <ClCompile Include="KujakuEngine\vfx\ParticleField.cpp">
       <Filter>KujakuEngine\vfx</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\3d\PointLight.cpp">
+      <Filter>KujakuEngine\3d</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imconfig.h">
@@ -268,6 +271,9 @@
     </ClInclude>
     <ClInclude Include="KujakuEngine\vfx\ParticleField.h">
       <Filter>KujakuEngine\vfx</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\3d\PointLight.h">
+      <Filter>KujakuEngine\3d</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
