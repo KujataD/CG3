@@ -43,6 +43,6 @@ void SpotLight::SetLight(uint32_t index, const SpotLightData& light) {
 	//}
 }
 
-void SpotLight::SetLight(SpotLightData* light) { map_ = light; }
+void SpotLight::SetLight(SpotLightData* light) { *map_ = *light; }
 
 } // namespace KujakuEngine
