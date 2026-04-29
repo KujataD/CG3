@@ -329,22 +329,7 @@ ModelData ParticleModel::LoadObjFile(const std::string& directoryPath, const std
 
 void ParticleModel::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
 	vertexCount_ = static_cast<uint32_t>(vertices.size());
-
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	D3D12_RESOURCE_DESC bufferDesc{};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = sizeof(VertexData) * vertexCount_;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
-	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource_));
-	assert(SUCCEEDED(hr));
+	vertexResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(VertexData) * vertexCount_);
 
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 	vertexBufferView_.SizeInBytes = static_cast<UINT>(sizeof(VertexData) * vertexCount_);
@@ -357,21 +342,7 @@ void ParticleModel::CreateVertexBuffer(const std::vector<VertexData>& vertices) 
 }
 
 void ParticleModel::CreateMaterialBuffer(const MaterialData& material) {
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	D3D12_RESOURCE_DESC bufferDesc{};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = sizeof(MaterialData);
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
-	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&materialResource_));
-	assert(SUCCEEDED(hr));
+	materialResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(MaterialData));
 
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialMap_));
 	materialMap_->color = material.color;

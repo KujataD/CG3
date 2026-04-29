@@ -62,13 +62,13 @@ public:
 	/// <summary>
 	/// 定数バッファの取得
 	/// </summary>
-	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return constBuffer_; }
+	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return transformationMatrixResource_; }
 
 private:
 
 private:
 	// 定数バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> constBuffer_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource_;
 	// マッピング済みアドレス
 	TransformationMatrix* constMap_ = nullptr;
 

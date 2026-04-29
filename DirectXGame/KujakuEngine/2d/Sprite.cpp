@@ -61,7 +61,7 @@ void Sprite::Draw() {
 
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
-	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d,blendMode_);
+	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d, blendMode_);
 
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
 	commandList->IASetIndexBuffer(&indexBufferView_);
@@ -113,24 +113,9 @@ void Sprite::SetVertexMap(float width, float height) {
 }
 
 void Sprite::CreateVertexBuffer(float width, float height) {
-
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	D3D12_RESOURCE_DESC bufferDesc{};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = sizeof(VertexData) * 4;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
-	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource_));
-	assert(SUCCEEDED(hr));
-
+	vertexResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(VertexData) * 4);
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
+
 	vertexBufferView_.SizeInBytes = sizeof(VertexData) * 4;
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 
@@ -140,24 +125,9 @@ void Sprite::CreateVertexBuffer(float width, float height) {
 }
 
 void Sprite::CreateIndexBuffer() {
-
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	D3D12_RESOURCE_DESC bufferDesc{};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = sizeof(uint32_t) * 6;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
-	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&indexResource_));
-	assert(SUCCEEDED(hr));
-
+	indexResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(uint32_t) * 4);
 	indexBufferView_.BufferLocation = indexResource_->GetGPUVirtualAddress();
+
 	indexBufferView_.SizeInBytes = sizeof(uint32_t) * 6;
 	indexBufferView_.Format = DXGI_FORMAT_R32_UINT;
 
@@ -173,46 +143,14 @@ void Sprite::CreateIndexBuffer() {
 }
 
 void Sprite::CreateTransformationMatrixBuffer() {
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	D3D12_RESOURCE_DESC bufferDesc{};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = (sizeof(Matrix4x4) + 0xFF) & ~0xFF;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
-	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&transformationMatrixResource_));
-	assert(SUCCEEDED(hr));
-
+	transformationMatrixResource_ = DirectXCommon::GetInstance()->CreateBufferResource((sizeof(Matrix4x4) + 0xFF) & ~0xFF);
 	transformationMatrixResource_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixMap_));
 	// 単位行列で初期化
 	*transformationMatrixMap_ = Matrix4x4::MakeIdentity();
 }
 
 void Sprite::CreateMaterialBuffer() {
-	// main.cpp の materialResourceSprite 生成に対応
-
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	D3D12_RESOURCE_DESC bufferDesc{};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = sizeof(MaterialData);
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
-	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&materialResource_));
-	assert(SUCCEEDED(hr));
-
+	materialResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(MaterialData));
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialMap_));
 
 	materialMap_->color = {1.0f, 1.0f, 1.0f, 1.0f};
