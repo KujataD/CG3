@@ -26,6 +26,7 @@ void Initialize(const std::wstring& title, bool enableDebugLayer) {
 
 	// Light初期化
 	DirectionalLight::GetInstance()->Initialize();
+	PointLight::GetInstance()->Initialize();
 	
 	// texture初期化
 	TextureManager::GetInstance()->Initialize();

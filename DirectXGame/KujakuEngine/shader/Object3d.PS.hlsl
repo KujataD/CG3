@@ -19,26 +19,43 @@ struct PixelShaderOutput
 };
 ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
 ConstantBuffer<Camera> gCamera : register(b2);
-ConstantBuffer<Camera> gPointLight : register(b3);
+
+
+static const uint32_t kMaxPointLight = 16;
+struct PointLight
+{
+    float32_t4 color;   // !< ライトの色
+    float32_t3 position;// !< ライトの位置
+    float32_t intensity;// !< 輝度
+    float32_t radius;   // !< ライトの届く最大距離
+    float32_t decay;    // !< 減衰率
+    float32_t2 padding;
+};
+cbuffer gPointLight : register(b3)
+{
+    PointLight pointLights[kMaxPointLight];
+    int32_t pointLightCount;
+};
 
 PixelShaderOutput main(VertexShaderOutput input)
 {
     float32_t4 transformedUV = mul(float32_t4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
     float32_t4 textureColor = gTexture.Sample(gSampler, transformedUV.xy);
     PixelShaderOutput output;
+    // ライティング各処理
     if (gMaterial.enableLighting != 0)
     { // Lightingする場合
     
         if (gMaterial.enableLighting == 1)
-        {
-            float cos = saturate(dot(normalize(input.normal), -normalize(gDirectionalLight.direction))); // lambertModel
+        { // lambertModel
+            float cos = saturate(dot(normalize(input.normal), -normalize(gDirectionalLight.direction)));
     
             output.color.rgb = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
             output.color.a = gMaterial.color.a * textureColor.a;
         }
         else if (gMaterial.enableLighting == 2)
-        {
-            // halfLambertModel
+        { // halfLambertModel
+            
             float NdotL = dot(normalize(input.normal), -normalize(gDirectionalLight.direction));
             float cos = pow(NdotL * 0.5f + 0.5f, 2.0f);
     
@@ -46,8 +63,8 @@ PixelShaderOutput main(VertexShaderOutput input)
             output.color.a = gMaterial.color.a * textureColor.a;
         }
         else if (gMaterial.enableLighting == 3)
-        {
-            // PhongReflectionModel
+        { // PhongReflectionModel
+           
             float NdotL = dot(normalize(input.normal), -normalize(gDirectionalLight.direction));
             float cos = pow(NdotL * 0.5f + 0.5f, 2.0f);
             // カメラへの方向を算出する。数式のv
@@ -71,13 +88,16 @@ PixelShaderOutput main(VertexShaderOutput input)
             
         }
         else if (gMaterial.enableLighting == 4)
-        {
-            // BlingPhongReflectionModel
+        { // BlingPhongReflectionModel
+            
             float NdotL = dot(normalize(input.normal), -normalize(gDirectionalLight.direction));
             float cos = pow(NdotL * 0.5f + 0.5f, 2.0f);
             // カメラへの方向を算出する。数式のv
             float32_t3 toEye = normalize(gCamera.worldPosition - input.worldPosition);
     
+            // DirectionalLight計算処理
+            // ----------------------------------
+            
             // 入射角の反射ベクトルを求める。数式のr
             float32_t3 reflectLight = reflect(normalize(gDirectionalLight.direction), normalize(input.normal));
 
@@ -87,11 +107,35 @@ PixelShaderOutput main(VertexShaderOutput input)
             float specularPow = pow(saturate(NDotH), gMaterial.shininess);
             
             // 拡散反射
-            float32_t3 diffuse = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
+            float32_t3 directionalLightDiffuse = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
             // 鏡面反射
-            float32_t3 specular = gDirectionalLight.color.rgb * gDirectionalLight.intensity * specularPow * float32_t3(1.0f, 1.0f, 1.0f);
+            float32_t3 directionalLightSpecular = gDirectionalLight.color.rgb * gDirectionalLight.intensity * specularPow * float32_t3(1.0f, 1.0f, 1.0f);
             // 拡散反射+鏡面反射
-            output.color.rgb = diffuse + specular;
+            output.color.rgb = directionalLightDiffuse + directionalLightSpecular;
+            
+            // PointLights実装
+            // ----------------------------------
+            for (int32_t i = 0; i < pointLightCount; i++)
+            {
+                // 方向
+                float32_t3 pointLightDirection = normalize(pointLights[i].position - input.worldPosition);
+                float32_t pointLightCos = saturate(dot(normalize(input.normal), pointLightDirection));
+                float32_t3 halfVectorPoint = normalize(pointLightDirection + toEye);
+                float32_t pointLightSpecularPow = pow(saturate(dot(normalize(input.normal), halfVectorPoint)), gMaterial.shininess);
+                
+
+                float32_t distance = length(pointLights[i].position - input.worldPosition); // ポイントライトへの距離
+                float32_t factor = pow(saturate(-distance / pointLights[i].radius + 1.0f), pointLights[i].decay); // 指数によるコントロール
+                
+                // 拡散反射
+                float32_t3 pointLightDiffuse = gMaterial.color.rgb * textureColor.rgb * pointLights[i].color.rgb * pointLightCos * pointLights[i].intensity * factor;
+                // 鏡面反射
+                float32_t3 pointLightSpecular = pointLights[i].color.rgb * pointLights[i].intensity * pointLightSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * factor;
+                
+                output.color.rgb += pointLightDiffuse + pointLightSpecular;
+
+            }
+
             // アルファは今まで通り
             output.color.a = gMaterial.color.a * textureColor.a;
         }

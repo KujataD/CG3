@@ -22,6 +22,7 @@
 #include "3d/Camera.h"
 #include "3d/DebugCamera.h"
 #include "3d/DIrectionalLight.h"
+#include "3d/PointLight.h"
 #include "3d/GraphicsPipeline.h"
 #include "3d/Model.h"
 #include "3d/WorldTransform.h"

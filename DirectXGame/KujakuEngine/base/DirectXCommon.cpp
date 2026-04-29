@@ -236,6 +236,7 @@ ID3D12Resource* DirectXCommon::CreateBufferResource(size_t sizeInBytes) {
 	assert(SUCCEEDED(hr));
 	return resource;
 }
+
 void DirectXCommon::ExecuteCommandAndWait() { // commandListをCloseし、commandQueue->ExecuteCommandListsを使いキックする
 	HRESULT hr = commandList_->Close();
 	assert(SUCCEEDED(hr));

@@ -3,6 +3,7 @@
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
 #include "DirectionalLight.h"
+#include "PointLight.h"
 #include "GraphicsPipeline.h"
 #include <cassert>
 #include <filesystem>
@@ -249,11 +250,14 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera) {
 	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
 	commandList->SetGraphicsRootDescriptorTable(2, handle);
 	
-	// ライト
+	// directional light
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 
 	// カメラ（RootParameter[4]: VertexShader, b2）
 	commandList->SetGraphicsRootConstantBufferView(4, camera.GetCameraForGPUResource()->GetGPUVirtualAddress());
+
+	// pointlight
+	commandList->SetGraphicsRootConstantBufferView(5, PointLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 
 	// 描画
 	commandList->DrawInstanced(vertexCount_, 1, 0, 0);

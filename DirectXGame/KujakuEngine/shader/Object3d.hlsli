@@ -17,17 +17,10 @@ struct DirectionalLight
 {
     float32_t4 color;
     float32_t3 direction;
-    float intensity;
+    float32_t intensity;
 };
 
 struct Camera
 {
     float32_t3 worldPosition;
-};
-
-struct PointLight
-{
-    Vector4 color; // !< ライトの色
-    Vector3 position; // !< ライトの位置
-    float intensity; // !< 輝度
 };
