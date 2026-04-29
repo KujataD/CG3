@@ -159,6 +159,9 @@
     <ClCompile Include="KujakuEngine\3d\PointLight.cpp">
       <Filter>KujakuEngine\3d</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\3d\SpotLight.cpp">
+      <Filter>KujakuEngine\3d</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imconfig.h">
@@ -273,6 +276,9 @@
       <Filter>KujakuEngine\vfx</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\3d\PointLight.h">
+      <Filter>KujakuEngine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\3d\SpotLight.h">
       <Filter>KujakuEngine\3d</Filter>
     </ClInclude>
   </ItemGroup>

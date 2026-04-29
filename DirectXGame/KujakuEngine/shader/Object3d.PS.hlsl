@@ -37,6 +37,25 @@ cbuffer gPointLight : register(b3)
     int32_t pointLightCount;
 };
 
+static const uint32_t kMaxSpotLight = 16;
+struct SpotLight
+{
+    float32_t4 color;   // !< ライトの色
+    float32_t3 position;// !< ライトの位置
+    float32_t intensity;// !< 輝度
+    float32_t3 direction; // !< スポットライトの方向
+    float32_t distance; // !< ライトの届く最大距離
+    float32_t decay; // !< 減衰率
+    float32_t cosAngle; // スポットライトの余弦
+    float32_t cosFalloffStart;
+    float32_t2 padding;
+};
+cbuffer gSpotLight : register(b4)
+{
+    SpotLight spotLights[kMaxSpotLight];
+    int32_t spotLightCount;
+};
+
 PixelShaderOutput main(VertexShaderOutput input)
 {
     float32_t4 transformedUV = mul(float32_t4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
@@ -133,6 +152,33 @@ PixelShaderOutput main(VertexShaderOutput input)
                 float32_t3 pointLightSpecular = pointLights[i].color.rgb * pointLights[i].intensity * pointLightSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * factor;
                 
                 output.color.rgb += pointLightDiffuse + pointLightSpecular;
+
+            }
+            
+            // SpotLights実装
+            // ----------------------------------
+            for (int32_t i = 0; i < spotLightCount; i++)
+            {
+                // 方向
+                float32_t3 spotLightDirection = normalize(spotLights[i].position - input.worldPosition);
+                float32_t spotLightCos = saturate(dot(normalize(input.normal), spotLightDirection));
+                float32_t3 halfVectorSpot = normalize(spotLightDirection + toEye);
+                float32_t spotLightSpecularPow = pow(saturate(dot(normalize(input.normal), halfVectorSpot)), gMaterial.shininess);
+                
+                float32_t3 spotLightDirectionOnSurface = normalize(input.worldPosition - spotLights[i].position);
+                
+                float32_t cosAngle = dot(spotLightDirectionOnSurface, normalize(spotLights[i].direction));
+                float32_t falloffFactor = saturate((cosAngle - spotLights[i].cosAngle) / (spotLights[i].cosFalloffStart - spotLights[i].cosAngle));
+                
+                float32_t distance = length(spotLights[i].position - input.worldPosition);
+                float32_t attenuationFactor = pow(saturate(-distance / spotLights[i].distance + 1.0f), spotLights[i].decay);
+                
+                // 拡散反射
+                float32_t3 spotLightDiffuse = gMaterial.color.rgb * textureColor.rgb * spotLights[i].color.rgb * spotLightCos * spotLights[i].intensity * attenuationFactor * falloffFactor;
+                // 鏡面反射
+                float32_t3 spotLightSpecular = spotLights[i].color.rgb * spotLights[i].intensity * spotLightSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * attenuationFactor * falloffFactor;
+                
+                output.color.rgb += spotLightDiffuse + spotLightSpecular;
 
             }
 

@@ -5,6 +5,7 @@
 #include "DirectionalLight.h"
 #include "GraphicsPipeline.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -258,6 +259,7 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera) {
 
 	// pointlight
 	commandList->SetGraphicsRootConstantBufferView(5, PointLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(6, SpotLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 
 	// 描画
 	commandList->DrawInstanced(vertexCount_, 1, 0, 0);
