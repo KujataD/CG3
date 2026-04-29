@@ -37,7 +37,6 @@ cbuffer gPointLight : register(b3)
     int32_t pointLightCount;
 };
 
-static const uint32_t kMaxSpotLight = 16;
 struct SpotLight
 {
     float32_t4 color;   // !< ライトの色
@@ -49,12 +48,10 @@ struct SpotLight
     float32_t cosAngle; // スポットライトの余弦
     float32_t cosFalloffStart;
     float32_t2 padding;
+    
 };
-cbuffer gSpotLight : register(b4)
-{
-    SpotLight spotLights[kMaxSpotLight];
-    int32_t spotLightCount;
-};
+
+ConstantBuffer<SpotLight> gSpotLight : register(b4);
 
 PixelShaderOutput main(VertexShaderOutput input)
 {
@@ -157,31 +154,29 @@ PixelShaderOutput main(VertexShaderOutput input)
             
             // SpotLights実装
             // ----------------------------------
-            for (int32_t i = 0; i < spotLightCount; i++)
-            {
+            {  
                 // 方向
-                float32_t3 spotLightDirection = normalize(spotLights[i].position - input.worldPosition);
+                float32_t3 spotLightDirection = normalize(gSpotLight.position - input.worldPosition);
                 float32_t spotLightCos = saturate(dot(normalize(input.normal), spotLightDirection));
                 float32_t3 halfVectorSpot = normalize(spotLightDirection + toEye);
                 float32_t spotLightSpecularPow = pow(saturate(dot(normalize(input.normal), halfVectorSpot)), gMaterial.shininess);
                 
-                float32_t3 spotLightDirectionOnSurface = normalize(input.worldPosition - spotLights[i].position);
+                float32_t3 spotLightDirectionOnSurface = normalize(input.worldPosition - gSpotLight.position);
                 
-                float32_t cosAngle = dot(spotLightDirectionOnSurface, normalize(spotLights[i].direction));
-                float32_t falloffFactor = saturate((cosAngle - spotLights[i].cosAngle) / (spotLights[i].cosFalloffStart - spotLights[i].cosAngle));
+                float32_t cosAngle = dot(spotLightDirectionOnSurface, normalize(gSpotLight.direction));
+                float32_t falloffFactor = saturate((cosAngle - gSpotLight.cosAngle) / (gSpotLight.cosFalloffStart - gSpotLight.cosAngle));
                 
-                float32_t distance = length(spotLights[i].position - input.worldPosition);
-                float32_t attenuationFactor = pow(saturate(-distance / spotLights[i].distance + 1.0f), spotLights[i].decay);
+                float32_t distance = length(gSpotLight.position - input.worldPosition);
+                float32_t attenuationFactor = pow(saturate(-distance / gSpotLight.distance + 1.0f), gSpotLight.decay);
                 
                 // 拡散反射
-                float32_t3 spotLightDiffuse = gMaterial.color.rgb * textureColor.rgb * spotLights[i].color.rgb * spotLightCos * spotLights[i].intensity * attenuationFactor * falloffFactor;
+                float32_t3 spotLightDiffuse = gMaterial.color.rgb * textureColor.rgb * gSpotLight.color.rgb * spotLightCos * gSpotLight.intensity * attenuationFactor * falloffFactor;
                 // 鏡面反射
-                float32_t3 spotLightSpecular = spotLights[i].color.rgb * spotLights[i].intensity * spotLightSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * attenuationFactor * falloffFactor;
+                float32_t3 spotLightSpecular = gSpotLight.color.rgb * gSpotLight.intensity * spotLightSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * attenuationFactor * falloffFactor;
                 
                 output.color.rgb += spotLightDiffuse + spotLightSpecular;
 
             }
-
             // アルファは今まで通り
             output.color.a = gMaterial.color.a * textureColor.a;
         }

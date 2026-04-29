@@ -1,4 +1,5 @@
 #include <KujakuEngine.h>
+
 #include <cassert>
 #include <fstream>
 #include <memory>
@@ -79,9 +80,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		camera.rotation_ = debugCamera.rotation_;
 		camera.UpdateMatrix();
 
-		// ライト更新
-		SpotLight::GetInstance()->SetLight(0, spotLight);
-
 		// ボール
 		// --------------------------------------
 		ballTransform.UpdateMatrix(camera);
@@ -94,30 +92,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::SliderFloat3("Direction", &light.direction.x, -1.0f, 1.0f);
 		ImGui::DragFloat("Intensity", &light.intensity, 0.01f, 0.0f, 10.0f);
 
-		//ImGui::ColorEdit3("PointLight Color", &pointLights[0].color.x);
-		//ImGui::DragFloat("PointLight Intensity", &pointLights[0].intensity, 0.01f, 0.0f, 10.0f);
-		//ImGui::DragFloat3("PointLight position", &pointLights[0].position.x, 0.01f);
-		//ImGui::DragFloat("PointLight radius", &pointLights[0].radius, 0.01f, 0.0f, 10.0f);
-		//ImGui::DragFloat("PointLight decay", &pointLights[0].decay, 0.01f, 0.0f, 10.0f);
+		// ImGui::ColorEdit3("PointLight Color", &pointLights[0].color.x);
+		// ImGui::DragFloat("PointLight Intensity", &pointLights[0].intensity, 0.01f, 0.0f, 10.0f);
+		// ImGui::DragFloat3("PointLight position", &pointLights[0].position.x, 0.01f);
+		// ImGui::DragFloat("PointLight radius", &pointLights[0].radius, 0.01f, 0.0f, 10.0f);
+		// ImGui::DragFloat("PointLight decay", &pointLights[0].decay, 0.01f, 0.0f, 10.0f);
 
-		//ImGui::ColorEdit3("PointLight1 Color", &pointLights[1].color.x);
-		//ImGui::DragFloat("PointLight1 Intensity", &pointLights[1].intensity, 0.01f, 0.0f, 10.0f);
-		//ImGui::DragFloat3("PointLight1 position", &pointLights[1].position.x, 0.01f);
-		//ImGui::DragFloat("PointLight1 radius", &pointLights[1].radius, 0.01f, 0.0f, 10.0f);
-		//ImGui::DragFloat("PointLight1 decay", &pointLights[1].decay, 0.01f, 0.0f, 10.0f);
+		// ImGui::ColorEdit3("PointLight1 Color", &pointLights[1].color.x);
+		// ImGui::DragFloat("PointLight1 Intensity", &pointLights[1].intensity, 0.01f, 0.0f, 10.0f);
+		// ImGui::DragFloat3("PointLight1 position", &pointLights[1].position.x, 0.01f);
+		// ImGui::DragFloat("PointLight1 radius", &pointLights[1].radius, 0.01f, 0.0f, 10.0f);
+		// ImGui::DragFloat("PointLight1 decay", &pointLights[1].decay, 0.01f, 0.0f, 10.0f);
 
 		ImGui::ColorEdit3("SpotLight Color", &spotLight.color.x);
-		ImGui::DragFloat("SpotLight Intensity", &spotLight.intensity, 0.01f, 0.0f, 10.0f);
+		ImGui::DragFloat("SpotLight Intensity", &spotLight.intensity, 0.05f, 0.0f, 100.0f);
 		ImGui::DragFloat3("SpotLight position", &spotLight.position.x, 0.01f);
 		ImGui::DragFloat("SpotLight cosAngle", &spotLight.cosAngle, 0.01f, 0.0f, 10.0f);
 		ImGui::DragFloat("SpotLight cosFalloffStart", &spotLight.cosFalloffStart, 0.01f, 0.0f, 10.0f);
-		ImGui::DragFloat3("SpotLight direction", &spotLight.direction.x, 0.01f, 0.0f, 10.0f);
-		ImGui::DragFloat("SpotLight distance", &spotLight.distance, 0.01f, 0.0f, 10.0f);
+		ImGui::DragFloat3("SpotLight direction", &spotLight.direction.x, 0.01f);
+		ImGui::DragFloat("SpotLight distance", &spotLight.distance, 0.1f, 0.0f, 200.0f);
 		ImGui::DragFloat("SpotLight decay", &spotLight.decay, 0.01f, 0.0f, 10.0f);
 
 		ImGui::DragFloat3("monstarBall", &ballTransform.scale_.x, 0.01f);
 		ImGui::End();
 #endif // USE_IMGUI
+
+		// ライト更新
+		spotLight.direction = Vector3::Normalize(spotLight.direction);
+		SpotLight::GetInstance()->SetLight(&spotLight);
+		
 
 		///
 		/// ↑↑↑ 更新処理ここまで ↑↑↑

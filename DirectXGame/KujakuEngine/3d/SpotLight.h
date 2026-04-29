@@ -20,11 +20,11 @@ struct SpotLightData {
 	float cosFalloffStart = 1.0f;
 	float padding[2];
 };
-
-struct SpotLightForGPU {
-	std::array<SpotLightData, kMaxSpotLight> lights;
-	int32_t count = 0;
-};
+//
+//struct SpotLightForGPU {
+//	std::array<SpotLightData, kMaxSpotLight> lights;
+//	int32_t count = 0;
+//};
 
 class SpotLight {
 public:
@@ -35,9 +35,10 @@ public:
 
 	void AddLight(const SpotLightData& light);
 	void SetLight(uint32_t index, const SpotLightData& light);
+	void SetLight(SpotLightData* light);
 
 	ID3D12Resource* GetResource() const { return resource_.Get(); }
-	const SpotLightForGPU& GetData() const { return *map_; }
+	const SpotLightData& GetData() const { return *map_; }
 
 private:
 	SpotLight() = default;
@@ -46,7 +47,7 @@ private:
 	SpotLight& operator=(const SpotLight&) = delete;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> resource_;
-	SpotLightForGPU* map_ = nullptr;
+	SpotLightData* map_ = nullptr;
 };
 
 } // namespace KujakuEngine
