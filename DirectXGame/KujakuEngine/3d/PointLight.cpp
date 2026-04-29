@@ -9,7 +9,8 @@ PointLight* PointLight::GetInstance() {
 }
 
 void PointLight::Initialize() {
-	resource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(PointLightForGPU));
+	constexpr size_t kPointLightBufferSize = (sizeof(PointLightForGPU) + 0xff) & ~size_t(0xff);
+	resource_ = DirectXCommon::GetInstance()->CreateBufferResource(kPointLightBufferSize);
 	resource_->Map(0, nullptr, reinterpret_cast<void**>(&map_));
 }
 

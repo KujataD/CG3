@@ -28,6 +28,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	light.intensity = 0.0f;
 
 	PointLight::GetInstance()->Reset();
+	SpotLight::GetInstance()->Reset();
 
 	PointLightData pointLights[2];
 	pointLights[0].color = {0.0f, 1.0f, 0.0f, 1.0f};
@@ -42,13 +43,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	pointLights[1].decay = 1.0f;
 
 	SpotLightData spotLight;
-	spotLight.color = {1.0f, 1.0f, 1.0f, 1.0f};
-	spotLight.position = {2.0f, 1.25f, 0.0f};
-	spotLight.distance = 7.0f;
-	spotLight.direction = Vector3::Normalize({-1.0f, -1.0f, 0.0f});
-	spotLight.intensity = 4.0f;
-	spotLight.decay = 2.0f;
-	spotLight.cosAngle = std::cos(std::numbers::pi_v<float> / 3.0f);
+	spotLight.position = {0.0f, 5.0f, 0.0f};
+	spotLight.distance = 50.0f;
+	spotLight.direction = Vector3::Normalize({0.0f, -1.0f, 0.0f});
+	spotLight.intensity = 20.0f;
+	spotLight.decay = 1.0f;
+	spotLight.cosAngle = std::cos(std::numbers::pi_v<float> / 2.0f);
+	spotLight.cosFalloffStart = std::cos(std::numbers::pi_v<float> / 3.0f);
 
 	// モンスターボール
 	// ------------------------------------------

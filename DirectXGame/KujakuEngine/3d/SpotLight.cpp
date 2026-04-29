@@ -9,7 +9,8 @@ SpotLight* SpotLight::GetInstance() {
 }
 
 void SpotLight::Initialize() {
-	resource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(SpotLightForGPU));
+	constexpr size_t kPointLightBufferSize = (sizeof(SpotLightForGPU) + 0xff) & ~size_t(0xff);
+	resource_ = DirectXCommon::GetInstance()->CreateBufferResource(kPointLightBufferSize);
 	resource_->Map(0, nullptr, reinterpret_cast<void**>(&map_));
 }
 
