@@ -309,6 +309,8 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 		operation = ImGuizmo::SCALE;
 	}
 
+	ImGuizmo::SetGizmoSizeClipSpace(0.2f);
+
 	if (!ImGuizmo::Manipulate(MatrixData(camera->matView), MatrixData(camera->matProjection), operation, ImGuizmo::LOCAL, MatrixData(gizmoMatrix))) {
 		return;
 	}

@@ -21,6 +21,10 @@
     {
       "name": "Sphere",
       "assetPath": "SceneJson/SampleScene/GameObjects/0004_Sphere.gameobject.json"
+    },
+    {
+      "name": "Entity",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0005_Entity.gameobject.json"
     }
   ]
 }

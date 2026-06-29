@@ -34,8 +34,8 @@ ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primi
 		return ModelRendererComponent::PrimitiveType::Sphere;
 	}
 
-	if (primitiveName == "None") {
-		return ModelRendererComponent::PrimitiveType::None;
+	if (primitiveName == "Model") {
+		return ModelRendererComponent::PrimitiveType::Model;
 	}
 
 	return ModelRendererComponent::PrimitiveType::Custom;
@@ -79,15 +79,23 @@ void ModelRendererComponent::Draw() {
 void ModelRendererComponent::DrawInspector() {
 #ifdef USE_IMGUI
 	int primitiveIndex = 0;
-	if (primitive_ == PrimitiveType::Cube) {
+	switch (primitive_) {
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Custom:
+		break;
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Cube:
 		primitiveIndex = 1;
-	} else if (primitive_ == PrimitiveType::Sphere) {
+		break;
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Sphere:
 		primitiveIndex = 2;
-	} else if (primitive_ == PrimitiveType::None) {
+		break;
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Model:
 		primitiveIndex = 3;
+		break;
+	default:
+		break;
 	}
 
-	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "None"};
+	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Model"};
 	if (ImGui::Combo("Primitive", &primitiveIndex, primitiveItems, IM_ARRAYSIZE(primitiveItems))) {
 		PrimitiveType selectedPrimitive = PrimitiveType::Custom;
 		if (primitiveIndex == 1) {
@@ -95,7 +103,7 @@ void ModelRendererComponent::DrawInspector() {
 		} else if (primitiveIndex == 2) {
 			selectedPrimitive = PrimitiveType::Sphere;
 		} else if (primitiveIndex == 3) {
-			selectedPrimitive = PrimitiveType::None;
+			selectedPrimitive = PrimitiveType::Model;
 		}
 		SetPrimitive(selectedPrimitive, textureFilePath_);
 	}
@@ -106,7 +114,13 @@ void ModelRendererComponent::DrawInspector() {
 		textureFilePath_ = textureBuffer.data();
 	}
 
-	if (ImGui::Button("Apply Texture")) {
+	std::array<char, 256> modelBuffer{};
+	strncpy_s(modelBuffer.data(), modelBuffer.size(), modelFolderPath_.c_str(), _TRUNCATE);
+	if (ImGui::InputText("Model", modelBuffer.data(), modelBuffer.size())) {
+		modelFolderPath_ = modelBuffer.data();
+	}
+
+	if (ImGui::Button("Apply")) {
 		RebuildPrimitiveModel();
 	}
 
@@ -127,7 +141,7 @@ void ModelRendererComponent::DrawInspector() {
 void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	json["primitive"] = GetPrimitiveName();
 	json["texture"] = textureFilePath_;
-	json["modelPath"] = "";
+	json["modelPath"] = modelFolderPath_;
 }
 
 void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
@@ -147,8 +161,8 @@ void ModelRendererComponent::RebuildPrimitiveModel() {
 		return;
 	}
 
-	if (primitive_ == PrimitiveType::None) {
-		model_.reset();
+	if (primitive_ == PrimitiveType::Model) {
+		model_.reset(Model::CreateFromOBJ(modelFolderPath_, ShaderModel::kBlingPhongReflection));
 	}
 }
 
@@ -161,8 +175,8 @@ const char* ModelRendererComponent::GetPrimitiveName() const {
 		return "Sphere";
 	}
 
-	if (primitive_ == PrimitiveType::None) {
-		return "None";
+	if (primitive_ == PrimitiveType::Model) {
+		return "Model";
 	}
 
 	return "Custom";

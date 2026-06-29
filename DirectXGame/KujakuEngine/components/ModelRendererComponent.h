@@ -18,7 +18,7 @@ public:
 		Custom,
 		Cube,
 		Sphere,
-		None,
+		Model,
 	};
 
 	ModelRendererComponent();
@@ -81,7 +81,8 @@ private:
 	std::unique_ptr<Model> model_;
 	const Camera* camera_ = nullptr;
 	PrimitiveType primitive_ = PrimitiveType::Custom;
-	std::string textureFilePath_ = "resources/monsterBall.png";
+	std::string textureFilePath_ = "resources/white1x1.png";
+	std::string modelFolderPath_ = "player";
 };
 
 } // namespace KujakuEngine

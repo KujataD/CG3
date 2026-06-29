@@ -4,33 +4,64 @@
   "active": true,
   "components": [
     {
-      "type": "Transform",
       "enabled": true,
-      "translation": [0, -2, 0],
-      "rotation": [-1.5708, 0, 0],
-      "scale": [1, 1, 1]
+      "properties": {
+        "rotation": [
+          -1.5707999467849731,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          -2.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
     },
     {
-      "type": "TransformSnapshotComponent",
       "enabled": true,
-      "snapshot": {
-        "translation": [0, -2, 0],
-        "rotation": [-1.5708, 0, 0],
-        "scale": [1, 1, 1]
-      }
+      "properties": {
+        "snapshot": {
+          "rotation": [
+            -1.5707999467849731,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "translation": [
+            0.0,
+            -2.0,
+            0.0
+          ]
+        }
+      },
+      "type": "TransformSnapshotComponent"
     },
     {
-      "type": "RotatorComponent",
       "enabled": true,
-      "speed": 0.02
+      "properties": {
+        "speed": 0.019999999552965164
+      },
+      "type": "RotatorComponent"
     },
     {
-      "type": "ModelRendererComponent",
       "enabled": true,
-      "primitive": "Sphere",
-      "texture": "Resources/uvChecker.png",
-      "hasModel": true,
-      "hasCamera": true
+      "properties": {
+        "modelPath": "",
+        "primitive": "Sphere",
+        "texture": "Resources/uvChecker.png"
+      },
+      "type": "ModelRendererComponent"
     }
   ]
 }

@@ -4,19 +4,34 @@
   "active": true,
   "components": [
     {
-      "type": "Transform",
       "enabled": true,
-      "translation": [0, 0, 0],
-      "rotation": [0, 0, 0],
-      "scale": [1, 1, 1]
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
     },
     {
-      "type": "ModelRendererComponent",
       "enabled": true,
-      "primitive": "Cube",
-      "texture": "resources/monsterBall.png",
-      "hasModel": true,
-      "hasCamera": true
+      "properties": {
+        "modelPath": "",
+        "primitive": "Cube",
+        "texture": "resources/monsterBall.png"
+      },
+      "type": "ModelRendererComponent"
     }
   ]
 }
