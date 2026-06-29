@@ -9,6 +9,10 @@
 #include <fstream>
 #include <sstream>
 #include <numbers>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 
 namespace KujakuEngine {
 
@@ -357,65 +361,62 @@ MaterialData ParticleModel::LoadMaterialTemplateFile(const std::string& director
 }
 
 ModelData ParticleModel::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
-	ModelData ModelData;
-	std::vector<Vector4> positions;
-	std::vector<Vector3> normals;
-	std::vector<Vector2> texcoords;
-	std::string line;
+	ModelData modelData;
 
-	std::ifstream file(directoryPath + "/" + filename);
-	assert(file.is_open());
+	// Assimpをつかってobjファイルを読む
+	// ------------------------------------------
+	Assimp::Importer importer;
+	std::string filePath = directoryPath + "/" + filename;
 
-	while (std::getline(file, line)) {
-		std::string identifier;
-		std::istringstream s(line);
-		s >> identifier;
+	// aiProcess_FlipWindingOrder <! 三角形の並び順を逆にする。
+	// aiProcess_Triangulate <! 四角形以上の面を三角形に分割する。
+	// aiProcess_FlipUVs !< UVをフリップする。
+	const aiScene* scene = importer.ReadFile(filePath.c_str(), aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_FlipUVs);
+	assert(scene);
+	assert(scene->HasMeshes()); // メッシュがないのは対応しない
 
-		if (identifier == "v") {
-			Vector4 position;
-			s >> position.x >> position.y >> position.z;
-			position.w = 1.0f;
-			position.x *= -1.0f;
-			positions.push_back(position);
-		} else if (identifier == "vt") {
-			Vector2 texcoord;
-			s >> texcoord.x >> texcoord.y;
-			texcoord.y = 1.0f - texcoord.y;
-			texcoords.push_back(texcoord);
-		} else if (identifier == "vn") {
-			Vector3 normal;
-			s >> normal.x >> normal.y >> normal.z;
-			normal.x *= -1.0f;
-			normals.push_back(normal);
-		} else if (identifier == "f") {
-			// 頂点数を動的に取得する
-			std::vector<VertexData> faceVertices;
-			std::string vertexDefinition;
+	// meshを解析する
+	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
+		aiMesh* mesh = scene->mMeshes[meshIndex];
+		assert(mesh->HasNormals());// 法線がないMeshは今回は非対応
+		assert(mesh->HasTextureCoords(0));// TexcoordがないMeshは今回は非対応
 
-			while (s >> vertexDefinition) {
-				std::istringstream v(vertexDefinition);
-				uint32_t elementIndices[3];
-				for (int32_t element = 0; element < 3; ++element) {
-					std::string index;
-					std::getline(v, index, '/');
-					elementIndices[element] = std::stoi(index);
-				}
-				faceVertices.push_back({positions[elementIndices[0] - 1], texcoords[elementIndices[1] - 1], normals[elementIndices[2] - 1]});
+		// faceを解析する
+		for (uint32_t faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex) {
+			aiFace& face = mesh->mFaces[faceIndex];
+			assert(face.mNumIndices == 3);// 三角形のみサポート
+
+			// vertexを解析する
+			for (uint32_t element = 0; element < face.mNumIndices; ++element) {
+				uint32_t vertexIndex = face.mIndices[element];
+				aiVector3D& position = mesh->mVertices[vertexIndex];
+				aiVector3D& normal = mesh->mNormals[vertexIndex];
+				aiVector3D& texcoord = mesh->mTextureCoords[0][vertexIndex];
+				VertexData vertex;
+				vertex.position = { position.x, position.y, position.z, 1.0f };
+				vertex.normal = { normal.x, normal.y, normal.z };
+				vertex.texcoord = { texcoord.x, texcoord.y };
+				//aiProcess_MakeLeftHandedはz*=-1で、右手->左手に変換するので手動で対処
+				vertex.position.x *= -1.0f;
+				vertex.normal.x *= -1.0f;
+				modelData.vertices.push_back(vertex);
+
 			}
-
-			// 三角形に分割
-			for (size_t i = 1; i + 1 < faceVertices.size(); ++i) {
-				ModelData.vertices.push_back(faceVertices[0]);
-				ModelData.vertices.push_back(faceVertices[i + 1]);
-				ModelData.vertices.push_back(faceVertices[i]);
-			}
-		} else if (identifier == "mtllib") {
-			std::string materialFilename;
-			s >> materialFilename;
-			ModelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
 		}
 	}
-	return ModelData;
+
+	for (uint32_t materialIndex = 0; materialIndex < scene->mNumMaterials; ++materialIndex) {
+		aiMaterial* material = scene->mMaterials[materialIndex];
+
+		// aiTextureType_DIFFUSE <! テクスチャを模様として利用する
+		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
+			aiString textureFilePath;
+			material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
+			modelData.material.textureFilePath = directoryPath + "/" + textureFilePath.C_Str();
+		}
+	}
+
+	return modelData;
 }
 
 void ParticleModel::CreateVertexBuffer(const std::vector<VertexData>& vertices) {

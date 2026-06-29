@@ -44,7 +44,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	spotLight.position = {0.0f, 5.0f, 0.0f};
 	spotLight.distance = 50.0f;
 	spotLight.direction = Normalize({0.0f, -1.0f, 0.0f});
-	spotLight.intensity = 20.0f;
+	spotLight.intensity = 1.0f;
 	spotLight.decay = 1.0f;
 	spotLight.cosAngle = std::cos(std::numbers::pi_v<float> / 2.0f);
 	spotLight.cosFalloffStart = std::cos(std::numbers::pi_v<float> / 3.0f);

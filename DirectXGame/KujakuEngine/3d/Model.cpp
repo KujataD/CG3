@@ -11,6 +11,10 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 namespace KujakuEngine {
 
 Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel) {
@@ -22,7 +26,8 @@ Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel)
 	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
 	if (!rawData.material.textureFilePath.empty()) {
 		rawData.material.textureIndex = TextureManager::GetInstance()->LoadTexture(rawData.material.textureFilePath);
-	} else {
+	}
+	else {
 		rawData.material.textureIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
 	}
 	model->CreateVertexBuffer(rawData.vertices);
@@ -51,29 +56,29 @@ Model* Model::CreateSphere(const std::string& textureFilePath, ShaderModel shade
 
 			uint32_t startIndex = (latIndex * subdivision + lonIndex) * 6;
 
-			vertices[startIndex].position = {cosf(lat) * cosf(lon), sinf(lat), cosf(lat) * sinf(lon), 1.0f};
-			vertices[startIndex].texcoord = {u0, v0};
-			vertices[startIndex].normal = {vertices[startIndex].position.x, vertices[startIndex].position.y, vertices[startIndex].position.z};
+			vertices[startIndex].position = { cosf(lat) * cosf(lon), sinf(lat), cosf(lat) * sinf(lon), 1.0f };
+			vertices[startIndex].texcoord = { u0, v0 };
+			vertices[startIndex].normal = { vertices[startIndex].position.x, vertices[startIndex].position.y, vertices[startIndex].position.z };
 
-			vertices[startIndex + 1].position = {cosf(lat + kLatEvery) * cosf(lon), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon), 1.0f};
-			vertices[startIndex + 1].texcoord = {u0, v1};
-			vertices[startIndex + 1].normal = {vertices[startIndex + 1].position.x, vertices[startIndex + 1].position.y, vertices[startIndex + 1].position.z};
+			vertices[startIndex + 1].position = { cosf(lat + kLatEvery) * cosf(lon), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon), 1.0f };
+			vertices[startIndex + 1].texcoord = { u0, v1 };
+			vertices[startIndex + 1].normal = { vertices[startIndex + 1].position.x, vertices[startIndex + 1].position.y, vertices[startIndex + 1].position.z };
 
-			vertices[startIndex + 2].position = {cosf(lat) * cosf(lon + kLonEvery), sinf(lat), cosf(lat) * sinf(lon + kLonEvery), 1.0f};
-			vertices[startIndex + 2].texcoord = {u1, v0};
-			vertices[startIndex + 2].normal = {vertices[startIndex + 2].position.x, vertices[startIndex + 2].position.y, vertices[startIndex + 2].position.z};
+			vertices[startIndex + 2].position = { cosf(lat) * cosf(lon + kLonEvery), sinf(lat), cosf(lat) * sinf(lon + kLonEvery), 1.0f };
+			vertices[startIndex + 2].texcoord = { u1, v0 };
+			vertices[startIndex + 2].normal = { vertices[startIndex + 2].position.x, vertices[startIndex + 2].position.y, vertices[startIndex + 2].position.z };
 
-			vertices[startIndex + 3].position = {cosf(lat) * cosf(lon + kLonEvery), sinf(lat), cosf(lat) * sinf(lon + kLonEvery), 1.0f};
-			vertices[startIndex + 3].texcoord = {u1, v0};
-			vertices[startIndex + 3].normal = {vertices[startIndex + 3].position.x, vertices[startIndex + 3].position.y, vertices[startIndex + 3].position.z};
+			vertices[startIndex + 3].position = { cosf(lat) * cosf(lon + kLonEvery), sinf(lat), cosf(lat) * sinf(lon + kLonEvery), 1.0f };
+			vertices[startIndex + 3].texcoord = { u1, v0 };
+			vertices[startIndex + 3].normal = { vertices[startIndex + 3].position.x, vertices[startIndex + 3].position.y, vertices[startIndex + 3].position.z };
 
-			vertices[startIndex + 4].position = {cosf(lat + kLatEvery) * cosf(lon), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon), 1.0f};
-			vertices[startIndex + 4].texcoord = {u0, v1};
-			vertices[startIndex + 4].normal = {vertices[startIndex + 4].position.x, vertices[startIndex + 4].position.y, vertices[startIndex + 4].position.z};
+			vertices[startIndex + 4].position = { cosf(lat + kLatEvery) * cosf(lon), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon), 1.0f };
+			vertices[startIndex + 4].texcoord = { u0, v1 };
+			vertices[startIndex + 4].normal = { vertices[startIndex + 4].position.x, vertices[startIndex + 4].position.y, vertices[startIndex + 4].position.z };
 
-			vertices[startIndex + 5].position = {cosf(lat + kLatEvery) * cosf(lon + kLonEvery), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon + kLonEvery), 1.0f};
-			vertices[startIndex + 5].texcoord = {u1, v1};
-			vertices[startIndex + 5].normal = {vertices[startIndex + 5].position.x, vertices[startIndex + 5].position.y, vertices[startIndex + 5].position.z};
+			vertices[startIndex + 5].position = { cosf(lat + kLatEvery) * cosf(lon + kLonEvery), sinf(lat + kLatEvery), cosf(lat + kLatEvery) * sinf(lon + kLonEvery), 1.0f };
+			vertices[startIndex + 5].texcoord = { u1, v1 };
+			vertices[startIndex + 5].normal = { vertices[startIndex + 5].position.x, vertices[startIndex + 5].position.y, vertices[startIndex + 5].position.z };
 		}
 	}
 
@@ -92,53 +97,53 @@ Model* Model::CreateCube(const std::string& textureFilePath, ShaderModel shaderM
 	Model* model = new Model();
 
 	std::vector<VertexData> vertices = {
-	    // 前面 (Z+)
-	    {{-0.5f, 0.5f, 0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-	    {{-0.5f, -0.5f, 0.5f, 1.0f},  {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
-	    {{0.5f, -0.5f, 0.5f, 1.0f},   {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
-	    {{-0.5f, 0.5f, 0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-	    {{0.5f, -0.5f, 0.5f, 1.0f},   {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
-	    {{0.5f, 0.5f, 0.5f, 1.0f},    {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
+		// 前面 (Z+)
+		{{-0.5f, 0.5f, 0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
+		{{-0.5f, -0.5f, 0.5f, 1.0f},  {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
+		{{0.5f, -0.5f, 0.5f, 1.0f},   {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
+		{{-0.5f, 0.5f, 0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
+		{{0.5f, -0.5f, 0.5f, 1.0f},   {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
+		{{0.5f, 0.5f, 0.5f, 1.0f},    {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
 
-	    // 背面 (Z-)
-	    {{0.5f, 0.5f, -0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{0.5f, -0.5f, -0.5f, 1.0f},  {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{-0.5f, -0.5f, -0.5f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{0.5f, 0.5f, -0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{-0.5f, -0.5f, -0.5f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{-0.5f, 0.5f, -0.5f, 1.0f},  {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+		// 背面 (Z-)
+		{{0.5f, 0.5f, -0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+		{{0.5f, -0.5f, -0.5f, 1.0f},  {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
+		{{-0.5f, -0.5f, -0.5f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
+		{{0.5f, 0.5f, -0.5f, 1.0f},   {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+		{{-0.5f, -0.5f, -0.5f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
+		{{-0.5f, 0.5f, -0.5f, 1.0f},  {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
 
-	    // 上面 (Y+)
-	    {{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
-	    {{-0.5f, 0.5f, 0.5f, 1.0f},   {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
-	    {{0.5f, 0.5f, 0.5f, 1.0f},    {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
-	    {{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
-	    {{0.5f, 0.5f, 0.5f, 1.0f},    {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
-	    {{0.5f, 0.5f, -0.5f, 1.0f},   {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
+		// 上面 (Y+)
+		{{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
+		{{-0.5f, 0.5f, 0.5f, 1.0f},   {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
+		{{0.5f, 0.5f, 0.5f, 1.0f},    {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
+		{{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
+		{{0.5f, 0.5f, 0.5f, 1.0f},    {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
+		{{0.5f, 0.5f, -0.5f, 1.0f},   {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
 
-	    // 下面 (Y-)
-	    {{-0.5f, -0.5f, 0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
-	    {{-0.5f, -0.5f, -0.5f, 1.0f}, {1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
-	    {{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
-	    {{-0.5f, -0.5f, 0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
-	    {{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
-	    {{0.5f, -0.5f, 0.5f, 1.0f},   {0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+		// 下面 (Y-)
+		{{-0.5f, -0.5f, 0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+		{{-0.5f, -0.5f, -0.5f, 1.0f}, {1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
+		{{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
+		{{-0.5f, -0.5f, 0.5f, 1.0f},  {1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+		{{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.5f, 1.0f},   {0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
 
-	    // 右面 (X+)
-	    {{0.5f, 0.5f, 0.5f, 1.0f},    {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
-	    {{0.5f, -0.5f, 0.5f, 1.0f},   {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
-	    {{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
-	    {{0.5f, 0.5f, 0.5f, 1.0f},    {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
-	    {{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
-	    {{0.5f, 0.5f, -0.5f, 1.0f},   {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
+		// 右面 (X+)
+		{{0.5f, 0.5f, 0.5f, 1.0f},    {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
+		{{0.5f, -0.5f, 0.5f, 1.0f},   {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
+		{{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
+		{{0.5f, 0.5f, 0.5f, 1.0f},    {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
+		{{0.5f, -0.5f, -0.5f, 1.0f},  {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
+		{{0.5f, 0.5f, -0.5f, 1.0f},   {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
 
-	    // 左面 (X-)
-	    {{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
-	    {{-0.5f, -0.5f, -0.5f, 1.0f}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
-	    {{-0.5f, -0.5f, 0.5f, 1.0f},  {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
-	    {{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
-	    {{-0.5f, -0.5f, 0.5f, 1.0f},  {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
-	    {{-0.5f, 0.5f, 0.5f, 1.0f},   {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
+		// 左面 (X-)
+		{{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, -0.5f, -0.5f, 1.0f}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, -0.5f, 0.5f, 1.0f},  {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, 0.5f, -0.5f, 1.0f},  {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, -0.5f, 0.5f, 1.0f},  {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, 0.5f, 0.5f, 1.0f},   {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
 	};
 
 	// MaterialData
@@ -158,35 +163,35 @@ Model* Model::CreatePlane(const std::string& textureFilePath, ShaderModel shader
 	std::vector<VertexData> vertices;
 
 	vertices.push_back({
-	    .position = {1.0f, 1.0f, 0.0f, 1.0f},
-          .texcoord = {0.0f, 0.0f},
-          .normal = {0.0f, 0.0f, 1.0f}
-    }); // 左上
+		.position = {1.0f, 1.0f, 0.0f, 1.0f},
+		  .texcoord = {0.0f, 0.0f},
+		  .normal = {0.0f, 0.0f, 1.0f}
+	}); // 左上
 	vertices.push_back({
-	    .position = {-1.0f, 1.0f, 0.0f, 1.0f},
-          .texcoord = {1.0f, 0.0f},
-          .normal = {0.0f, 0.0f, 1.0f}
-    }); // 右上
+		.position = {-1.0f, 1.0f, 0.0f, 1.0f},
+		  .texcoord = {1.0f, 0.0f},
+		  .normal = {0.0f, 0.0f, 1.0f}
+	}); // 右上
 	vertices.push_back({
-	    .position = {1.0f, -1.0f, 0.0f, 1.0f},
-          .texcoord = {0.0f, 1.0f},
-          .normal = {0.0f, 0.0f, 1.0f}
-    }); // 左下
+		.position = {1.0f, -1.0f, 0.0f, 1.0f},
+		  .texcoord = {0.0f, 1.0f},
+		  .normal = {0.0f, 0.0f, 1.0f}
+	}); // 左下
 	vertices.push_back({
-	    .position = {1.0f, -1.0f, 0.0f, 1.0f},
-          .texcoord = {0.0f, 1.0f},
-          .normal = {0.0f, 0.0f, 1.0f}
-    }); // 左下
+		.position = {1.0f, -1.0f, 0.0f, 1.0f},
+		  .texcoord = {0.0f, 1.0f},
+		  .normal = {0.0f, 0.0f, 1.0f}
+	}); // 左下
 	vertices.push_back({
-	    .position = {-1.0f, 1.0f, 0.0f, 1.0f},
-          .texcoord = {1.0f, 0.0f},
-          .normal = {0.0f, 0.0f, 1.0f}
-    }); // 右上
+		.position = {-1.0f, 1.0f, 0.0f, 1.0f},
+		  .texcoord = {1.0f, 0.0f},
+		  .normal = {0.0f, 0.0f, 1.0f}
+	}); // 右上
 	vertices.push_back({
-	    .position = {-1.0f, -1.0f, 0.0f, 1.0f},
-          .texcoord = {1.0f, 1.0f},
-          .normal = {0.0f, 0.0f, 1.0f}
-    }); // 右下
+		.position = {-1.0f, -1.0f, 0.0f, 1.0f},
+		  .texcoord = {1.0f, 1.0f},
+		  .normal = {0.0f, 0.0f, 1.0f}
+	}); // 右下
 
 	// MaterialData
 	MaterialData defaultMaterial{};
@@ -291,7 +296,7 @@ void Model::PreDraw() {
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
 
 	// 描画用のDescriptorHeapの設定
-	ID3D12DescriptorHeap* descriptorHeaps[] = {dxCommon->GetSrvDescriptorHeap()};
+	ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon->GetSrvDescriptorHeap() };
 	commandList->SetDescriptorHeaps(1, descriptorHeaps);
 
 	// ビューポートの設定
@@ -329,7 +334,8 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, Fil
 	// RootSignature と PSO をセット
 	if (fillMode == kFillModeSolid) {
 		GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d, blendMode_);
-	} else if (fillMode == kFillModeWireframe) {
+	}
+	else if (fillMode == kFillModeWireframe) {
 		GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3dWireframe, blendMode_);
 	}
 
@@ -384,74 +390,60 @@ MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, c
 
 ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
 	ModelData modelData;
-	std::vector<Vector4> positions;
-	std::vector<Vector3> normals;
-	std::vector<Vector2> texcoords;
-	std::string line;
 
-	std::string fullPath = directoryPath + "/" + filename;
+	// Assimpをつかってobjファイルを読む
+	// ------------------------------------------
+	Assimp::Importer importer;
+	std::string filePath = directoryPath + "/" + filename;
 
-	OutputDebugStringA(("Try Open : " + fullPath + "\n").c_str());
-	std::ifstream file(fullPath);
-	
-	if (!file.is_open()) {
-		OutputDebugStringA(("Failed Open : " + fullPath + "\n").c_str());
+	// aiProcess_FlipWindingOrder <! 三角形の並び順を逆にする。
+	// aiProcess_Triangulate <! 四角形以上の面を三角形に分割する。
+	// aiProcess_FlipUVs !< UVをフリップする。
+	const aiScene* scene = importer.ReadFile(filePath.c_str(), aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_FlipUVs);
+	assert(scene);
+	assert(scene->HasMeshes()); // メッシュがないのは対応しない
 
-		std::string currentPath = std::filesystem::current_path().string();
-		OutputDebugStringA(("CurrentPath : " + currentPath + "\n").c_str());
+	// meshを解析する
+	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
+		aiMesh* mesh = scene->mMeshes[meshIndex];
+		assert(mesh->HasNormals());// 法線がないMeshは今回は非対応
+		assert(mesh->HasTextureCoords(0));// TexcoordがないMeshは今回は非対応
+		
+		// faceを解析する
+		for (uint32_t faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex) {
+			aiFace& face = mesh->mFaces[faceIndex];
+			assert(face.mNumIndices == 3);// 三角形のみサポート
+			
+			// vertexを解析する
+			for (uint32_t element = 0; element < face.mNumIndices; ++element) {
+				uint32_t vertexIndex = face.mIndices[element];
+				aiVector3D& position = mesh->mVertices[vertexIndex];
+				aiVector3D& normal = mesh->mNormals[vertexIndex];
+				aiVector3D& texcoord = mesh->mTextureCoords[0][vertexIndex];
+				VertexData vertex;
+				vertex.position = { position.x, position.y, position.z, 1.0f };
+				vertex.normal = { normal.x, normal.y, normal.z };
+				vertex.texcoord = { texcoord.x, texcoord.y };
+				//aiProcess_MakeLeftHandedはz*=-1で、右手->左手に変換するので手動で対処
+				vertex.position.x *= -1.0f;
+				vertex.normal.x *= -1.0f;
+				modelData.vertices.push_back(vertex);
 
-		assert(false);
-	}
-
-	while (std::getline(file, line)) {
-		std::string identifier;
-		std::istringstream s(line);
-		s >> identifier;
-
-		if (identifier == "v") {
-			Vector4 position;
-			s >> position.x >> position.y >> position.z;
-			position.w = 1.0f;
-			position.x *= -1.0f;
-			positions.push_back(position);
-		} else if (identifier == "vt") {
-			Vector2 texcoord;
-			s >> texcoord.x >> texcoord.y;
-			texcoord.y = 1.0f - texcoord.y;
-			texcoords.push_back(texcoord);
-		} else if (identifier == "vn") {
-			Vector3 normal;
-			s >> normal.x >> normal.y >> normal.z;
-			normal.x *= -1.0f;
-			normals.push_back(normal);
-		} else if (identifier == "f") {
-			// 頂点数を動的に取得する
-			std::vector<VertexData> faceVertices;
-			std::string vertexDefinition;
-
-			while (s >> vertexDefinition) {
-				std::istringstream v(vertexDefinition);
-				uint32_t elementIndices[3];
-				for (int32_t element = 0; element < 3; ++element) {
-					std::string index;
-					std::getline(v, index, '/');
-					elementIndices[element] = std::stoi(index);
-				}
-				faceVertices.push_back({positions[elementIndices[0] - 1], texcoords[elementIndices[1] - 1], normals[elementIndices[2] - 1]});
 			}
-
-			// 三角形に分割
-			for (size_t i = 1; i + 1 < faceVertices.size(); ++i) {
-				modelData.vertices.push_back(faceVertices[0]);
-				modelData.vertices.push_back(faceVertices[i + 1]);
-				modelData.vertices.push_back(faceVertices[i]);
-			}
-		} else if (identifier == "mtllib") {
-			std::string materialFilename;
-			s >> materialFilename;
-			modelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
 		}
 	}
+
+	for (uint32_t materialIndex = 0; materialIndex < scene->mNumMaterials; ++materialIndex) {
+		aiMaterial* material = scene->mMaterials[materialIndex];
+
+		// aiTextureType_DIFFUSE <! テクスチャを模様として利用する
+		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
+			aiString textureFilePath;
+			material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
+			modelData.material.textureFilePath = directoryPath + "/" + textureFilePath.C_Str();
+		}
+	}
+
 	return modelData;
 }
 
