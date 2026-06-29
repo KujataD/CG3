@@ -1,9 +1,4 @@
 #include "SceneJsonImporter.h"
-#include "../components/ModelRendererComponent.h"
-#include "../components/RotatorComponent.h"
-#include "../components/TransformComponent.h"
-#include "../components/TransformSnapshotComponent.h"
-#include "../math/Vector3.h"
 #include "../scene/ComponentFactory.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
@@ -88,36 +83,6 @@ bool ReadBool(const json& value, const std::string& key, bool defaultValue) {
 	return value.at(key).get<bool>();
 }
 
-float ReadFloat(const json& value, const std::string& key, float defaultValue) {
-	if (!value.contains(key)) {
-		return defaultValue;
-	}
-	if (!value.at(key).is_number()) {
-		return defaultValue;
-	}
-	return value.at(key).get<float>();
-}
-
-Vector3 ReadVector3(const json& value, const std::string& key, const Vector3& defaultValue) {
-	if (!value.contains(key)) {
-		return defaultValue;
-	}
-
-	const json& arrayValue = value.at(key);
-	if (!arrayValue.is_array() || arrayValue.size() < 3) {
-		return defaultValue;
-	}
-	if (!arrayValue[0].is_number() || !arrayValue[1].is_number() || !arrayValue[2].is_number()) {
-		return defaultValue;
-	}
-
-	return {
-	    arrayValue[0].get<float>(),
-	    arrayValue[1].get<float>(),
-	    arrayValue[2].get<float>(),
-	};
-}
-
 bool ContainsPointer(const std::vector<GameObject*>& objects, GameObject* target) {
 	return std::find(objects.begin(), objects.end(), target) != objects.end();
 }
@@ -167,71 +132,36 @@ Component* FindExistingComponent(GameObject& gameObject, const std::string& type
 	return nullptr;
 }
 
-ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primitiveName) {
-	if (primitiveName == "Cube") {
-		return ModelRendererComponent::PrimitiveType::Cube;
+bool IsTransformTypeName(const std::string& typeName) {
+	if (typeName == "Transform") {
+		return true;
 	}
-
-	if (primitiveName == "Sphere") {
-		return ModelRendererComponent::PrimitiveType::Sphere;
+	if (typeName == "TransformComponent") {
+		return true;
 	}
-
-	if (primitiveName == "None") {
-		return ModelRendererComponent::PrimitiveType::None;
-	}
-
-	return ModelRendererComponent::PrimitiveType::Custom;
+	return false;
 }
 
-void ApplyTransformComponent(TransformComponent& component, const json& componentJson) {
-	WorldTransform& transform = component.GetTransform();
-	transform.translation_ = ReadVector3(componentJson, "translation", transform.translation_);
-	transform.rotation_ = ReadVector3(componentJson, "rotation", transform.rotation_);
-	transform.scale_ = ReadVector3(componentJson, "scale", transform.scale_);
-}
+const json& GetComponentPropertiesJson(const json& componentJson) {
+	if (componentJson.contains("properties") && componentJson.at("properties").is_object()) {
+		return componentJson.at("properties");
+	}
 
-void ApplyRotatorComponent(RotatorComponent& component, const json& componentJson) {
-	component.SetSpeed(ReadFloat(componentJson, "speed", component.GetSpeed()));
-}
-
-void ApplyModelRendererComponent(ModelRendererComponent& component, const json& componentJson) {
-	std::string primitiveName = ReadString(componentJson, "primitive", "Custom");
-	std::string textureFilePath = ReadString(componentJson, "texture", component.GetTextureFilePath());
-	component.SetPrimitive(ReadPrimitiveType(primitiveName), textureFilePath);
+	// 旧形式ではComponent固有の値が直下にあったため、互換用に直下も読めるようにする。
+	return componentJson;
 }
 
 void ApplyComponent(Component& component, const json& componentJson) {
 	component.SetEnabled(ReadBool(componentJson, "enabled", component.IsEnabled()));
-
-	TransformComponent* transformComponent = dynamic_cast<TransformComponent*>(&component);
-	if (transformComponent) {
-		ApplyTransformComponent(*transformComponent, componentJson);
-		return;
-	}
-
-	RotatorComponent* rotatorComponent = dynamic_cast<RotatorComponent*>(&component);
-	if (rotatorComponent) {
-		ApplyRotatorComponent(*rotatorComponent, componentJson);
-		return;
-	}
-
-	ModelRendererComponent* modelRendererComponent = dynamic_cast<ModelRendererComponent*>(&component);
-	if (modelRendererComponent) {
-		ApplyModelRendererComponent(*modelRendererComponent, componentJson);
-		return;
-	}
+	component.ReadJson(GetComponentPropertiesJson(componentJson));
 }
 
-void RefreshTransformSnapshots(GameObject& gameObject) {
+void NotifyComponentsAfterReadJson(GameObject& gameObject) {
 	for (const std::unique_ptr<Component>& component : gameObject.GetComponents()) {
 		if (!component) {
 			continue;
 		}
-
-		TransformSnapshotComponent* snapshotComponent = dynamic_cast<TransformSnapshotComponent*>(component.get());
-		if (snapshotComponent) {
-			snapshotComponent->Save();
-		}
+		component->OnAfterReadJson();
 	}
 }
 
@@ -244,7 +174,7 @@ size_t ApplyComponents(Scene& scene, GameObject& gameObject, const json& gameObj
 	}
 
 	if (!gameObjectJson.contains("components") || !gameObjectJson.at("components").is_array()) {
-		RefreshTransformSnapshots(gameObject);
+		NotifyComponentsAfterReadJson(gameObject);
 		return importedComponents.size();
 	}
 
@@ -259,14 +189,16 @@ size_t ApplyComponents(Scene& scene, GameObject& gameObject, const json& gameObj
 		}
 
 		Component* component = nullptr;
-		if (typeName == "Transform") {
+		if (IsTransformTypeName(typeName)) {
 			component = gameObject.GetTransformComponent();
 		} else {
 			component = FindExistingComponent(gameObject, typeName, importedComponents);
 			if (!component) {
 				std::unique_ptr<Component> createdComponent = ComponentFactory::GetInstance().Create(typeName);
 				component = gameObject.AddComponent(std::move(createdComponent));
-				scene.OnEditorComponentAdded(&gameObject, component);
+				if (component) {
+					scene.OnEditorComponentAdded(&gameObject, component);
+				}
 			}
 		}
 
@@ -298,7 +230,7 @@ size_t ApplyComponents(Scene& scene, GameObject& gameObject, const json& gameObj
 		gameObject.RemoveComponent(component);
 	}
 
-	RefreshTransformSnapshots(gameObject);
+	NotifyComponentsAfterReadJson(gameObject);
 	return importedComponents.size();
 }
 

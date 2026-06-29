@@ -2,7 +2,6 @@
 #include "../scene/Component.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
-#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -59,24 +58,6 @@ std::string SanitizeFileName(const std::string& name) {
 	return sanitized;
 }
 
-uint64_t HashText(const std::string& text, uint64_t seed) {
-	uint64_t hash = 1469598103934665603ull ^ seed;
-	for (unsigned char character : text) {
-		hash ^= static_cast<uint64_t>(character);
-		hash *= 1099511628211ull;
-	}
-	return hash;
-}
-
-std::string MakePseudoGuid(const std::string& key) {
-	uint64_t first = HashText(key, 0xcbf29ce484222325ull);
-	uint64_t second = HashText(key, 0x9e3779b97f4a7c15ull);
-
-	std::ostringstream os;
-	os << std::hex << std::setfill('0') << std::setw(16) << first << std::setw(16) << second;
-	return os.str();
-}
-
 std::string MakeRelativeAssetPath(const std::filesystem::path& projectRoot, const std::filesystem::path& assetPath) {
 	std::error_code error;
 	std::filesystem::path relative = std::filesystem::relative(assetPath, projectRoot, error);
@@ -100,47 +81,6 @@ bool WriteTextFile(const std::filesystem::path& path, const std::string& text, s
 	}
 
 	return true;
-}
-
-std::string BuildFolderMeta(const std::filesystem::path& projectRoot, const std::filesystem::path& folderPath) {
-	std::string assetPath = MakeRelativeAssetPath(projectRoot, folderPath);
-	std::ostringstream os;
-	os << "fileFormatVersion: 2\n";
-	os << "guid: " << MakePseudoGuid(assetPath) << "\n";
-	os << "folderAsset: yes\n";
-	os << "DefaultImporter:\n";
-	os << "  externalObjects: {}\n";
-	os << "  userData: KujakuEngine generated folder meta\n";
-	os << "  assetBundleName:\n";
-	os << "  assetBundleVariant:\n";
-	return os.str();
-}
-
-std::string BuildAssetMeta(const std::filesystem::path& projectRoot, const std::filesystem::path& assetPath, const std::string& assetType) {
-	std::string relativePath = MakeRelativeAssetPath(projectRoot, assetPath);
-	std::ostringstream os;
-	os << "fileFormatVersion: 2\n";
-	os << "guid: " << MakePseudoGuid(relativePath) << "\n";
-	os << "KujakuJsonImporter:\n";
-	os << "  externalObjects: {}\n";
-	os << "  assetType: " << assetType << "\n";
-	os << "  assetPath: " << relativePath << "\n";
-	os << "  userData: KujakuEngine generated meta\n";
-	os << "  assetBundleName:\n";
-	os << "  assetBundleVariant:\n";
-	return os.str();
-}
-
-bool WriteFolderMeta(const std::filesystem::path& projectRoot, const std::filesystem::path& folderPath, std::string& message) {
-	std::filesystem::path metaPath = folderPath;
-	metaPath += ".meta";
-	return WriteTextFile(metaPath, BuildFolderMeta(projectRoot, folderPath), message);
-}
-
-bool WriteAssetMeta(const std::filesystem::path& projectRoot, const std::filesystem::path& assetPath, const std::string& assetType, std::string& message) {
-	std::filesystem::path metaPath = assetPath;
-	metaPath += ".meta";
-	return WriteTextFile(metaPath, BuildAssetMeta(projectRoot, assetPath, assetType), message);
 }
 
 std::string BuildGameObjectJson(const GameObject& gameObject) {
@@ -234,16 +174,6 @@ SceneJsonExporter::ExportResult SceneJsonExporter::ExportScene(const Scene& scen
 		return result;
 	}
 
-	if (!WriteFolderMeta(normalizedProjectRoot, sceneJsonRoot, result.message)) {
-		return result;
-	}
-	if (!WriteFolderMeta(normalizedProjectRoot, sceneDirectory, result.message)) {
-		return result;
-	}
-	if (!WriteFolderMeta(normalizedProjectRoot, gameObjectDirectory, result.message)) {
-		return result;
-	}
-
 	const std::vector<std::unique_ptr<GameObject>>& gameObjects = scene.GetGameObjects();
 	std::vector<std::filesystem::path> gameObjectPaths;
 	gameObjectPaths.resize(gameObjects.size());
@@ -263,18 +193,12 @@ SceneJsonExporter::ExportResult SceneJsonExporter::ExportScene(const Scene& scen
 		if (!WriteTextFile(gameObjectPath, BuildGameObjectJson(*gameObject), result.message)) {
 			return result;
 		}
-		if (!WriteAssetMeta(normalizedProjectRoot, gameObjectPath, "GameObject", result.message)) {
-			return result;
-		}
 
 		++result.gameObjectFileCount;
 	}
 
 	std::filesystem::path sceneJsonPath = sceneDirectory / (sceneName + ".scene.json");
 	if (!WriteTextFile(sceneJsonPath, BuildSceneJson(scene, normalizedProjectRoot, gameObjectPaths), result.message)) {
-		return result;
-	}
-	if (!WriteAssetMeta(normalizedProjectRoot, sceneJsonPath, "Scene", result.message)) {
 		return result;
 	}
 

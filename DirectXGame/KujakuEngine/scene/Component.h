@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../externals/nlohmann/json.hpp"
 #include <iosfwd>
 
 namespace KujakuEngine {
@@ -39,9 +40,24 @@ public:
 	virtual void DrawInspector() {}
 
 	/// <summary>
-	/// Component情報をJSON形式で書き出す
+	/// Component固有の保存情報をJSONへ書き出す
 	/// </summary>
-	virtual void WriteJson(std::ostream& os, int indent) const;
+	virtual void WriteJson(nlohmann::json& json) const { (void)json; }
+
+	/// <summary>
+	/// Component固有の保存情報をJSONから読み込む
+	/// </summary>
+	virtual void ReadJson(const nlohmann::json& json) { (void)json; }
+
+	/// <summary>
+	/// JSON読み込み後、他Componentの復元結果を参照して整えるための後処理
+	/// </summary>
+	virtual void OnAfterReadJson() {}
+
+	/// <summary>
+	/// Component情報を共通形式のJSONとして書き出す
+	/// </summary>
+	void WriteJson(std::ostream& os, int indent) const;
 
 	/// <summary>
 	/// Editor上で削除可能かどうか

@@ -7,7 +7,6 @@
 #endif // USE_IMGUI
 #include <array>
 #include <cstring>
-#include <ostream>
 #include <string>
 #include <utility>
 
@@ -15,27 +14,31 @@ namespace KujakuEngine {
 
 namespace {
 
-std::string EscapeJsonString(const std::string& text) {
-	std::string escaped;
-	escaped.reserve(text.size());
-
-	for (char character : text) {
-		if (character == '\\') {
-			escaped += "\\\\";
-		} else if (character == '"') {
-			escaped += "\\\"";
-		} else if (character == '\n') {
-			escaped += "\\n";
-		} else if (character == '\r') {
-			escaped += "\\r";
-		} else if (character == '\t') {
-			escaped += "\\t";
-		} else {
-			escaped += character;
-		}
+std::string ReadString(const nlohmann::json& json, const char* key, const std::string& defaultValue) {
+	if (!json.contains(key)) {
+		return defaultValue;
+	}
+	if (!json.at(key).is_string()) {
+		return defaultValue;
 	}
 
-	return escaped;
+	return json.at(key).get<std::string>();
+}
+
+ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primitiveName) {
+	if (primitiveName == "Cube") {
+		return ModelRendererComponent::PrimitiveType::Cube;
+	}
+
+	if (primitiveName == "Sphere") {
+		return ModelRendererComponent::PrimitiveType::Sphere;
+	}
+
+	if (primitiveName == "None") {
+		return ModelRendererComponent::PrimitiveType::None;
+	}
+
+	return ModelRendererComponent::PrimitiveType::Custom;
 }
 
 } // namespace
@@ -121,31 +124,16 @@ void ModelRendererComponent::DrawInspector() {
 #endif // USE_IMGUI
 }
 
-void ModelRendererComponent::WriteJson(std::ostream& os, int indent) const {
-	const std::string padding(static_cast<size_t>(indent), ' ');
-	os << padding << "{\n";
-	os << padding << "  \"type\": \"" << GetTypeName() << "\",\n";
-	os << padding << "  \"enabled\": ";
-	if (IsEnabled()) {
-		os << "true,\n";
-	} else {
-		os << "false,\n";
-	}
-	os << padding << "  \"primitive\": \"" << GetPrimitiveName() << "\",\n";
-	os << padding << "  \"texture\": \"" << EscapeJsonString(textureFilePath_) << "\",\n";
-	os << padding << "  \"hasModel\": ";
-	if (model_) {
-		os << "true,\n";
-	} else {
-		os << "false,\n";
-	}
-	os << padding << "  \"hasCamera\": ";
-	if (camera_) {
-		os << "true\n";
-	} else {
-		os << "false\n";
-	}
-	os << padding << "}";
+void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
+	json["primitive"] = GetPrimitiveName();
+	json["texture"] = textureFilePath_;
+	json["modelPath"] = "";
+}
+
+void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
+	std::string primitiveName = ReadString(json, "primitive", GetPrimitiveName());
+	std::string textureFilePath = ReadString(json, "texture", textureFilePath_);
+	SetPrimitive(ReadPrimitiveType(primitiveName), textureFilePath);
 }
 
 void ModelRendererComponent::RebuildPrimitiveModel() {

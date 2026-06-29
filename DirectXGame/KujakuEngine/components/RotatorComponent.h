@@ -24,7 +24,12 @@ public:
 	/// <summary>
 	/// Component情報をJSON形式で書き出す
 	/// </summary>
-	void WriteJson(std::ostream& os, int indent) const override;
+	void WriteJson(nlohmann::json& json) const override;
+
+	/// <summary>
+	/// Component情報をJSON形式で読み込む
+	/// </summary>
+	void ReadJson(const nlohmann::json& json) override;
 
 	/// <summary>
 	/// 回転速度を設定

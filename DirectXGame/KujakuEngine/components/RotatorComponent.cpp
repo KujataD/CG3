@@ -3,10 +3,23 @@
 #ifdef USE_IMGUI
 #include "../../externals/imgui/imgui.h"
 #endif // USE_IMGUI
-#include <ostream>
-#include <string>
 
 namespace KujakuEngine {
+
+namespace {
+
+float ReadFloat(const nlohmann::json& json, const char* key, float defaultValue) {
+	if (!json.contains(key)) {
+		return defaultValue;
+	}
+	if (!json.at(key).is_number()) {
+		return defaultValue;
+	}
+
+	return json.at(key).get<float>();
+}
+
+} // namespace
 
 void RotatorComponent::Update() {
 	GameObject* owner = GetOwner();
@@ -23,18 +36,12 @@ void RotatorComponent::DrawInspector() {
 #endif // USE_IMGUI
 }
 
-void RotatorComponent::WriteJson(std::ostream& os, int indent) const {
-	const std::string padding(static_cast<size_t>(indent), ' ');
-	os << padding << "{\n";
-	os << padding << "  \"type\": \"" << GetTypeName() << "\",\n";
-	os << padding << "  \"enabled\": ";
-	if (IsEnabled()) {
-		os << "true,\n";
-	} else {
-		os << "false,\n";
-	}
-	os << padding << "  \"speed\": " << speed_ << "\n";
-	os << padding << "}";
+void RotatorComponent::WriteJson(nlohmann::json& json) const {
+	json["speed"] = speed_;
+}
+
+void RotatorComponent::ReadJson(const nlohmann::json& json) {
+	speed_ = ReadFloat(json, "speed", speed_);
 }
 
 } // namespace KujakuEngine

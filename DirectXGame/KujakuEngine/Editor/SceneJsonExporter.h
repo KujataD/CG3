@@ -21,7 +21,7 @@ public:
 	};
 
 	/// <summary>
-	/// SceneごとのJSONとGameObjectごとのJSON、疑似Unity metaを作成する
+	/// SceneごとのJSONとGameObjectごとのJSONを作成する
 	/// </summary>
 	static ExportResult ExportScene(const Scene& scene, const std::filesystem::path& projectRoot);
 };

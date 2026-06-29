@@ -13,7 +13,8 @@ public:
 	const char* GetTypeName() const override { return "Transform"; }
 	void Initialize() override;
 	void DrawInspector() override;
-	void WriteJson(std::ostream& os, int indent) const override;
+	void WriteJson(nlohmann::json& json) const override;
+	void ReadJson(const nlohmann::json& json) override;
 	bool CanRemove() const override { return false; }
 	bool AllowMultiple() const override { return false; }
 

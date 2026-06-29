@@ -1,22 +1,41 @@
 #include "Component.h"
 #include <ostream>
+#include <sstream>
 #include <string>
 
 namespace KujakuEngine {
 
+namespace {
+
+void WriteIndentedJson(std::ostream& os, const nlohmann::json& json, int indent) {
+	const std::string padding(static_cast<size_t>(indent), ' ');
+	std::istringstream lines(json.dump(2));
+	std::string line;
+	bool firstLine = true;
+
+	while (std::getline(lines, line)) {
+		if (!firstLine) {
+			os << "\n";
+		}
+		os << padding << line;
+		firstLine = false;
+	}
+}
+
+} // namespace
+
 Component::~Component() = default;
 
 void Component::WriteJson(std::ostream& os, int indent) const {
-	const std::string padding(static_cast<size_t>(indent), ' ');
-	os << padding << "{\n";
-	os << padding << "  \"type\": \"" << GetTypeName() << "\",\n";
-	os << padding << "  \"enabled\": ";
-	if (IsEnabled()) {
-		os << "true\n";
-	} else {
-		os << "false\n";
-	}
-	os << padding << "}";
+	nlohmann::json properties = nlohmann::json::object();
+	WriteJson(properties);
+
+	nlohmann::json componentJson;
+	componentJson["type"] = GetTypeName();
+	componentJson["enabled"] = IsEnabled();
+	componentJson["properties"] = properties;
+
+	WriteIndentedJson(os, componentJson, indent);
 }
 
 } // namespace KujakuEngine
