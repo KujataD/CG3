@@ -52,6 +52,9 @@
     <Filter Include="KujakuEngine\ai">
       <UniqueIdentifier>{75a96fe1-fa0e-4bb8-aa6f-75708d144c18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="KujakuEngine\Editor">
+      <UniqueIdentifier>{e7b43ca6-a8f5-4d84-a27f-a67608eb0f49}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -119,6 +122,12 @@
     </ClCompile>
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp">
       <Filter>KujakuEngine\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\base\Logger.cpp">
       <Filter>KujakuEngine\base</Filter>
@@ -334,6 +343,12 @@
     </ClInclude>
     <ClInclude Include="KujakuEngine\2d\Sprite.h">
       <Filter>KujakuEngine\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h">
+      <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\base\Logger.h">
       <Filter>KujakuEngine\base</Filter>

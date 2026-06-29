@@ -13,13 +13,27 @@ TextureManager* TextureManager::GetInstance() {
 }
 
 uint32_t TextureManager::LoadTexture(const std::string& filePath) {
+	uint32_t textureIndex = 0;
+	// 通常のゲーム用テクスチャ読み込みは従来通り、失敗時にassertして問題を見つけやすくする。
+	LoadTextureInternal(filePath, textureIndex, true);
+	return textureIndex;
+}
+
+bool TextureManager::TryLoadTexture(const std::string& filePath, uint32_t& outIndex) {
+	// Project Windowは任意の画像ファイルを扱うため、読み込み失敗でエディタ全体を止めない。
+	return LoadTextureInternal(filePath, outIndex, false);
+}
+
+bool TextureManager::LoadTextureInternal(const std::string& filePath, uint32_t& outIndex, bool assertOnFailure) {
 	auto loadStart = std::chrono::steady_clock::now();
+	// 既に読み込んだテクスチャはSRV番号だけ返す。画像プレビューでも毎フレーム読み直さない。
 	if (textures_.contains(filePath)) {
 		recentLoadEvents_.push_front({filePath, 0.0f, true});
 		if (recentLoadEvents_.size() > 32) {
 			recentLoadEvents_.pop_back();
 		}
-		return textures_[filePath].index;
+		outIndex = textures_[filePath].index;
+		return true;
 	}
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
@@ -29,18 +43,38 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) {
 	if (FAILED(hr)) {
 		std::string msg = "Failed to load texture: " + filePath + "\n";
 		OutputDebugStringA(msg.c_str());
-		assert(false);
+		// ゲーム本体の必須テクスチャはassert、Project Windowのプレビューはfalseで呼び出し元へ返す。
+		if (assertOnFailure) {
+			assert(false);
+		}
+		return false;
 	}
 
 	DirectX::ScratchImage mipImages{};
 	// 1x1など最小サイズの場合はミップ生成をスキップ
 	if (image.GetMetadata().width > 1 && image.GetMetadata().height > 1) {
 		hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
-		assert(SUCCEEDED(hr));
+		if (FAILED(hr)) {
+			std::string msg = "Failed to generate mipmaps: " + filePath + "\n";
+			OutputDebugStringA(msg.c_str());
+			// プレビュー画像が壊れていてもProject Window側では通常ファイルアイコンへフォールバックできる。
+			if (assertOnFailure) {
+				assert(false);
+			}
+			return false;
+		}
 	} else {
 		// そのままコピー
 		hr = mipImages.InitializeFromImage(*image.GetImages());
-		assert(SUCCEEDED(hr));
+		if (FAILED(hr)) {
+			std::string msg = "Failed to initialize mip image: " + filePath + "\n";
+			OutputDebugStringA(msg.c_str());
+			// ここもassertOnFailureで、必須テクスチャと任意プレビューの挙動を分ける。
+			if (assertOnFailure) {
+				assert(false);
+			}
+			return false;
+		}
 	}
 
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
@@ -94,7 +128,8 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) {
 		recentLoadEvents_.pop_back();
 	}
 
-	return srvIndex;
+	outIndex = srvIndex;
+	return true;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandle(uint32_t index) {

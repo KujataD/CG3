@@ -25,6 +25,13 @@ std::string ResolveTexturePath(const std::string& directoryPath, const std::stri
 
 ModelData LoadModelFile(const std::string& directoryPath, const std::string& filename) {
 	ModelData modelData;
+	bool loaded = TryLoadModelFile(directoryPath, filename, modelData);
+	assert(loaded);
+	return modelData;
+}
+
+bool TryLoadModelFile(const std::string& directoryPath, const std::string& filename, ModelData& outModelData) {
+	outModelData = {};
 
 	// Assimpを使ってモデルファイルを読む
 	// ------------------------------------------
@@ -34,42 +41,68 @@ ModelData LoadModelFile(const std::string& directoryPath, const std::string& fil
 	// aiProcess_FlipWindingOrder: 三角形の並び順を逆にする。
 	// aiProcess_Triangulate: 四角形以上の面を三角形に分割する。
 	// aiProcess_FlipUVs: UVをフリップする。
-	const unsigned int importFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_FlipUVs;
+	// aiProcess_GenSmoothNormals: 法線がないモデルでも、可能ならAssimp側で法線を作ってプレビューできるようにする。
+	const unsigned int importFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals;
 	const aiScene* scene = importer.ReadFile(filePath.c_str(), importFlags);
-	assert(scene);
-	assert(scene->HasMeshes()); // メッシュがないモデルは対応しない
-	assert(scene->mRootNode);
+	if (!scene) {
+		std::string message = "Failed to load model: " + filePath + "\n";
+		OutputDebugStringA(message.c_str());
+		return false;
+	}
+	if (!scene->HasMeshes()) {
+		std::string message = "Model has no meshes: " + filePath + "\n";
+		OutputDebugStringA(message.c_str());
+		return false;
+	}
+	if (!scene->mRootNode) {
+		std::string message = "Model has no root node: " + filePath + "\n";
+		OutputDebugStringA(message.c_str());
+		return false;
+	}
 
 	// RootNodeのローカル行列を保持し、描画時のモデル固有補正として利用する。
-	modelData.rootNode = ReadNode(scene->mRootNode);
+	outModelData.rootNode = ReadNode(scene->mRootNode);
 
 	// meshを解析する
 	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
 		aiMesh* mesh = scene->mMeshes[meshIndex];
-		assert(mesh->HasNormals());         // 法線がないMeshは今回は非対応
-		assert(mesh->HasTextureCoords(0));  // TexcoordがないMeshは今回は非対応
+		// ProjectのプレビューではUVなしモデルも表示したいので、足りない情報は既定値で補う。
+		bool hasNormals = mesh->HasNormals();
+		bool hasTextureCoords = mesh->HasTextureCoords(0);
 
 		// faceを解析する
 		for (uint32_t faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex) {
 			aiFace& face = mesh->mFaces[faceIndex];
-			assert(face.mNumIndices == 3); // aiProcess_Triangulate後なので三角形のみ来る想定
+			if (face.mNumIndices != 3) {
+				std::string message = "Model face is not triangle: " + filePath + "\n";
+				OutputDebugStringA(message.c_str());
+				return false;
+			}
 
 			// vertexを解析する
 			for (uint32_t element = 0; element < face.mNumIndices; ++element) {
 				uint32_t vertexIndex = face.mIndices[element];
 				aiVector3D& position = mesh->mVertices[vertexIndex];
-				aiVector3D& normal = mesh->mNormals[vertexIndex];
-				aiVector3D& texcoord = mesh->mTextureCoords[0][vertexIndex];
 
 				VertexData vertex;
 				vertex.position = { position.x, position.y, position.z, 1.0f };
-				vertex.normal = { normal.x, normal.y, normal.z };
-				vertex.texcoord = { texcoord.x, texcoord.y };
+				if (hasNormals) {
+					aiVector3D& normal = mesh->mNormals[vertexIndex];
+					vertex.normal = { normal.x, normal.y, normal.z };
+				} else {
+					vertex.normal = {0.0f, 1.0f, 0.0f};
+				}
+				if (hasTextureCoords) {
+					aiVector3D& texcoord = mesh->mTextureCoords[0][vertexIndex];
+					vertex.texcoord = { texcoord.x, texcoord.y };
+				} else {
+					vertex.texcoord = {0.0f, 0.0f};
+				}
 
 				// aiProcess_MakeLeftHandedはZ反転なので、既存のX反転に合わせて手動変換する。
 				vertex.position.x *= -1.0f;
 				vertex.normal.x *= -1.0f;
-				modelData.vertices.push_back(vertex);
+				outModelData.vertices.push_back(vertex);
 			}
 		}
 	}
@@ -81,11 +114,11 @@ ModelData LoadModelFile(const std::string& directoryPath, const std::string& fil
 		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
 			aiString textureFilePath;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
-			modelData.material.textureFilePath = ResolveTexturePath(directoryPath, textureFilePath.C_Str());
+			outModelData.material.textureFilePath = ResolveTexturePath(directoryPath, textureFilePath.C_Str());
 		}
 	}
 
-	return modelData;
+	return true;
 }
 
 Node ReadNode(aiNode* node) {

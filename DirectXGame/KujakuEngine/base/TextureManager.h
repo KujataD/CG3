@@ -4,6 +4,7 @@
 #include <deque>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <wrl.h>
 
@@ -44,6 +45,11 @@ public:
 	uint32_t LoadTexture(const std::string& filePath);
 
 	/// <summary>
+	/// テクスチャを読み込む。失敗してもassertせずfalseを返す
+	/// </summary>
+	bool TryLoadTexture(const std::string& filePath, uint32_t& outIndex);
+
+	/// <summary>
 	/// シェーダーリソースビューハンドル取得
 	/// </summary>
 	/// <param name="index"></param>
@@ -58,6 +64,7 @@ private:
 	TextureManager(const TextureManager&) = delete;
 	const TextureManager& operator=(const TextureManager&) = delete;
 
+	bool LoadTextureInternal(const std::string& filePath, uint32_t& outIndex, bool assertOnFailure);
 	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
 	
 	// nodiscard : 戻り値を破棄してはいけない（破棄でエラー）

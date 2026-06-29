@@ -32,6 +32,7 @@ public:
 	/// </summary>
 	static Model* CreateFromOBJ(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
 	static Model* CreateFromGlTF(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
+	static Model* TryCreateFromFile(const std::string& filePath, ShaderModel shaderModel = ShaderModel::kNone);
 
 	static Model* CreateSphere(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone, uint32_t subdivision = 16);
 

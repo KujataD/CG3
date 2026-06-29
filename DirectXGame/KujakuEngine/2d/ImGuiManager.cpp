@@ -180,19 +180,23 @@ void ImGuiManager::SetupInitialLayout(ImGuiID dockspaceId) {
 	ImGui::DockBuilderSetNodePos(dockspaceId, viewport->WorkPos);
 	ImGui::DockBuilderSetNodeSize(dockspaceId, viewport->WorkSize);
 
-	// centerNodeを少しずつ分割して、左・右・下・中央の4領域を作る。
+	// gameNodeを少しずつ分割して、Game / Hierarchy / Project / Inspector / Consoleを作る。
 	ImGuiID hierarchyNode = 0;
+	ImGuiID projectNode = 0;
 	ImGuiID inspectorNode = 0;
 	ImGuiID consoleNode = 0;
 	ImGuiID gameNode = dockspaceId;
 
-	// 左にHierarchy、右にInspector、下にConsole、残った中央にGameを置く。
+	// 右側にInspector、Project、Hierarchyの順で列を作る。
+	// 画面上ではGame | Hierarchy | Project | Inspectorとなり、ProjectがHierarchyとInspectorの間に入る。
 	ImGui::DockBuilderSplitNode(gameNode, ImGuiDir_Right, 0.25f, &inspectorNode, &gameNode);
+	ImGui::DockBuilderSplitNode(gameNode, ImGuiDir_Right, 0.20f, &projectNode, &gameNode);
 	ImGui::DockBuilderSplitNode(gameNode, ImGuiDir_Right, 0.20f, &hierarchyNode, &gameNode);
 	ImGui::DockBuilderSplitNode(gameNode, ImGuiDir_Down, 0.28f, &consoleNode, &gameNode);
 
 	// ウィンドウ名とDock先を紐づける。名前は各ImGui::Beginの文字列と一致させる。
 	ImGui::DockBuilderDockWindow("Inspector", inspectorNode);
+	ImGui::DockBuilderDockWindow("Project", projectNode);
 	ImGui::DockBuilderDockWindow("Hierarchy", hierarchyNode);
 	ImGui::DockBuilderDockWindow("Console", consoleNode);
 	ImGui::DockBuilderDockWindow("Game", gameNode);
@@ -265,6 +269,13 @@ void ImGuiManager::DrawConsoleWindow() {
 #endif // USE_IMGUI
 }
 
+void ImGuiManager::DrawProjectWindow() {
+#ifdef USE_IMGUI
+	// ProjectDir以下のフォルダ/ファイルを閲覧するProject Windowを描画する。
+	projectWindow_.Draw();
+#endif // USE_IMGUI
+}
+
 void ImGuiManager::DrawEditor() {
 #ifdef USE_IMGUI
 	// Editor UIを構成する各ウィンドウを毎フレーム描画する。
@@ -273,6 +284,8 @@ void ImGuiManager::DrawEditor() {
 	DrawGameWindow();
 	DrawHierarchyWindow();
 	DrawInspectorWindow();
+	// ProjectはDockBuilderでHierarchyとInspectorの間に初期配置される。
+	DrawProjectWindow();
 	DrawConsoleWindow();
 #endif // USE_IMGUI
 }
@@ -291,7 +304,10 @@ void ImGuiManager::End() {
 #ifdef USE_IMGUI
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+	// Project Windowで要求されたモデルサムネイルを、ImGui本体の描画前にOffscreenへ描く。
+	projectWindow_.RenderModelPreviews();
 	ImGui::Render();
+	// ImGuiで作ったUIをDirectX12のCommandListに描画命令として積む
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetCommandList());
 #endif // USE_IMGUI
 }

@@ -2,6 +2,7 @@
 #include "../../externals/imgui/imgui.h"
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
+#include "../Editor/ProjectWindow.h"
 #include <string>
 #include <vector>
 
@@ -78,6 +79,7 @@ private:
 	void DrawHierarchyWindow();
 	void DrawInspectorWindow();
 	void DrawConsoleWindow();
+	void DrawProjectWindow();
 	void StartGame();
 	void StopGame();
 
@@ -88,6 +90,7 @@ private:
 	bool dockLayoutInitialized_ = false;
 	// Consoleウィンドウに表示する簡易ログ。今回は最低限の状態確認用としてメモリ上に保持する。
 	std::vector<std::string> consoleLogs_;
+	ProjectWindow projectWindow_;
 };
 
 } // namespace KujakuEngine

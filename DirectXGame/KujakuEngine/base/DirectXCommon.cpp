@@ -197,17 +197,17 @@ void DirectXCommon::CreateFinalRenderTargets() {
 	// DescriptorSizeを取得しておく
 	const uint32_t descriptorSizeRTV = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-	// RTV用のヒープを作成する。SwapChain分に加えてGameウィンドウ用RTVを確保する。
+	// RTV用のヒープを作成する。SwapChain/Gameウィンドウ/Projectモデルプレビュー用に余裕を持って確保する。
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.NumDescriptors = kSwapChainBufferCount + 1;
+	rtvHeapDesc.NumDescriptors = kRtvDescriptorCount;
 	hr = device_->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap_));
 	assert(SUCCEEDED(hr));
 
-	// SRV用のヒープでディスクリプタの数は128。SRVはShader内で触るものなので、ShaderVisibleはtrue
+	// SRV用のヒープ。GameウィンドウやProjectモデルプレビューも使うため余裕を持って確保する。
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc{};
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	srvHeapDesc.NumDescriptors = 128;
+	srvHeapDesc.NumDescriptors = kSrvDescriptorCount;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	hr = device_->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&srvDescriptorHeap_));
 	assert(SUCCEEDED(hr));
@@ -378,10 +378,10 @@ void DirectXCommon::CreateDepthBuffer() {
 	    IID_PPV_ARGS(&depthStencilResource_));
 	assert(SUCCEEDED(hr));
 
-	// DSV用のヒープでディスクリプタの数は1。DSVはShader内で触るものではないので、ShaderVisibleはfalse
+	// DSV用のヒープ。通常Depthに加えてProjectモデルプレビュー用Depthも確保できるようにする。
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.NumDescriptors = kDsvDescriptorCount;
 	hr = device_->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvDescriptorHeap_));
 	assert(SUCCEEDED(hr));
 

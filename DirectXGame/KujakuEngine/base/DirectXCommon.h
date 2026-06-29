@@ -86,6 +86,8 @@ public:
 	// SRV番号をDirectXCommonで一元管理する。
 	// 通常テクスチャ、Gameウィンドウ用RenderTarget、ImGuiフォントが同じSRVヒープを共有するため。
 	uint32_t AllocateSrvIndex() { return srvIndexCounter_++; }
+	uint32_t AllocateRtvIndex() { return rtvIndexCounter_++; }
+	uint32_t AllocateDsvIndex() { return dsvIndexCounter_++; }
 
 	// --- get ---
 	ID3D12Device* GetDevice() const { return device_.Get(); }
@@ -102,6 +104,7 @@ public:
 	int32_t GetBackBufferWidth() const { return backBufferWidth_; }
 	int32_t GetBackBufferHeight() const { return backBufferHeight_; }
 	uint32_t GetSwapChainBufferCount() const { return kSwapChainBufferCount; }
+	void SetBackBufferRenderTarget();
 
 	// --- set ---
 	void SetClearColor(Vector4 color) {
@@ -161,12 +164,13 @@ private:
 	void CreateFence();
 	// 現在のバックバッファに対応するRTVを取得する。
 	D3D12_CPU_DESCRIPTOR_HANDLE GetBackBufferRtvHandle() const;
-	// Game用RenderTargetへ描いた後、ImGui描画用に描画先をバックバッファへ戻す。
-	void SetBackBufferRenderTarget();
 
 private:
 	static const uint32_t kSwapChainBufferCount = 3;
 	static const uint32_t kGameRenderTargetRtvIndex = kSwapChainBufferCount;
+	static const uint32_t kRtvDescriptorCount = 256;
+	static const uint32_t kSrvDescriptorCount = 256;
+	static const uint32_t kDsvDescriptorCount = 32;
 	WinApp* winApp_ = nullptr;
 	bool initialized_ = false;
 
@@ -215,6 +219,8 @@ private:
 
 	// テクスチャのインデックス管理カウンター
 	uint32_t srvIndexCounter_ = 1;
+	uint32_t rtvIndexCounter_ = kGameRenderTargetRtvIndex + 1;
+	uint32_t dsvIndexCounter_ = 1;
 };
 
 } // namespace KujakuEngine

@@ -110,6 +110,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="KujakuEngine\2d\ImGuiManager.cpp" />
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp" />
     <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp" />
     <ClCompile Include="KujakuEngine\3d\Camera.cpp" />
     <ClCompile Include="KujakuEngine\3d\DebugCamera.cpp" />
@@ -182,6 +184,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="KujakuEngine\2d\ImGuiManager.h" />
     <ClInclude Include="KujakuEngine\2d\Sprite.h" />
+    <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h" />
+    <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h" />
     <ClInclude Include="KujakuEngine\3d\AxisIndicator.h" />
     <ClInclude Include="KujakuEngine\3d\Camera.h" />
     <ClInclude Include="KujakuEngine\3d\DebugCamera.h" />

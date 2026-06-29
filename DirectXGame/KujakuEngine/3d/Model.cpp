@@ -6,6 +6,7 @@
 #include "ModelUtil.h"
 #include "PointLight.h"
 #include "SpotLight.h"
+#include <filesystem>
 #include <numbers>
 
 namespace KujakuEngine {
@@ -37,6 +38,36 @@ Model* Model::CreateFromGlTF(const std::string& objname, ShaderModel shaderModel
 	model->CreateMaterialBuffer(rawData.material);
 	return model;
 }
+
+Model* Model::TryCreateFromFile(const std::string& filePath, ShaderModel shaderModel) {
+	std::filesystem::path path(filePath);
+	std::filesystem::path directory = path.parent_path();
+	std::string filename = path.filename().string();
+
+	ModelData rawData{};
+	if (!ModelUtil::TryLoadModelFile(directory.generic_string(), filename, rawData)) {
+		return nullptr;
+	}
+
+	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
+	if (!rawData.material.textureFilePath.empty()) {
+		uint32_t textureIndex = 0;
+		if (TextureManager::GetInstance()->TryLoadTexture(rawData.material.textureFilePath, textureIndex)) {
+			rawData.material.textureIndex = textureIndex;
+		} else {
+			rawData.material.textureIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
+		}
+	} else {
+		rawData.material.textureIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
+	}
+
+	Model* model = new Model();
+	model->rootLocalMatrix_ = rawData.rootNode.localMatrix;
+	model->CreateVertexBuffer(rawData.vertices);
+	model->CreateMaterialBuffer(rawData.material);
+	return model;
+}
+
 Model* Model::CreateSphere(const std::string& textureFilePath, ShaderModel shaderModel, uint32_t subdivision) {
 	Model* model = new Model();
 	const float kLonEvery = static_cast<float>(2.0f * std::numbers::pi_v<float> / subdivision);
