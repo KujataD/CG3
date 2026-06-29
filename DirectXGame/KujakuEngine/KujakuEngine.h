@@ -24,6 +24,18 @@
 #include "2d/ImGuiManager.h"
 #include "2d/Sprite.h"
 
+#include "Editor/EditorApplication.h"
+#include "Editor/EditorProjectPath.h"
+#include "Editor/EditorSelection.h"
+#include "Editor/SceneJsonExporter.h"
+#include "Editor/SceneJsonImporter.h"
+
+#include "components/BuiltinComponents.h"
+#include "components/ModelRendererComponent.h"
+#include "components/RotatorComponent.h"
+#include "components/TransformComponent.h"
+#include "components/TransformSnapshotComponent.h"
+
 #include "3d/Camera.h"
 #include "3d/FollowCamera.h"
 #include "3d/AxisIndicator.h"
@@ -62,6 +74,12 @@
 #include "vfx/ParticleField.h"
 #include "vfx/ParticleModel.h"
 
+#include "scene/Component.h"
+#include "scene/ComponentFactory.h"
+#include "scene/GameObject.h"
+#include "scene/Scene.h"
+#include "scene/SampleScene.h"
+
 namespace KujakuEngine {
 
 /// <summary>
@@ -77,7 +95,7 @@ void Initialize(const std::wstring& title = L"KujakuEngine", Vector4 color = {0.
 void Finalize();
 
 /// <summary>
-/// フレーム更新（メッセージ処理）
+/// フレーム更新（メッセージ処理・入力・時間更新）
 /// </summary>
 /// <returns>falseで終了リクエスト</returns>
 bool Update();
@@ -90,7 +108,7 @@ void PreDraw();
 
 /// <summary>
 /// 描画後処理
-/// ImGui描画 + DirectXCommon のPostDrawをまとめて呼ぶ
+/// DirectXCommon のPostDrawを呼ぶ
 /// </summary>
 void PostDraw();
 

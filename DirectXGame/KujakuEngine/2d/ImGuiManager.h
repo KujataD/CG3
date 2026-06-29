@@ -3,17 +3,11 @@
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
 #include "../Editor/ProjectWindow.h"
+#include <cstdint>
 #include <string>
 #include <vector>
 
 namespace KujakuEngine {
-
-// エディタ全体の実行状態。
-// 将来Scene Cloneを入れる場合も、このモードを見てEditScene/PlaySceneを切り替える想定。
-enum class EditorMode {
-	Edit,
-	Play,
-};
 
 /// <summary>
 /// ImGui管理クラス
@@ -47,20 +41,14 @@ public:
 	void DrawEditor();
 
 	/// <summary>
-	/// ゲーム再生中かどうか
-	/// main側のゲームUpdateを流すか止めるかを、この戻り値で判断する
-	/// </summary>
-	bool IsPlaying() const { return editorMode_ == EditorMode::Play; }
-
-	/// <summary>
-	/// Editorの現在モードを取得
-	/// </summary>
-	EditorMode GetEditorMode() const { return editorMode_; }
-
-	/// <summary>
 	/// Consoleにログを追加
 	/// </summary>
 	void AddConsoleLog(const std::string& message);
+
+	/// <summary>
+	/// Consoleログを消去
+	/// </summary>
+	void ClearConsoleLogs();
 
 	/// <summary>
 	/// 終了処理
@@ -68,6 +56,12 @@ public:
 	void Finalize();
 
 private:
+	enum class TransformGizmoOperation {
+		Translate,
+		Rotate,
+		Scale,
+	};
+
 	ImGuiManager() = default;
 	~ImGuiManager() = default;
 	ImGuiManager(const ImGuiManager&) = delete;
@@ -80,17 +74,24 @@ private:
 	void DrawInspectorWindow();
 	void DrawConsoleWindow();
 	void DrawProjectWindow();
-	void StartGame();
-	void StopGame();
+	void HandleEditorShortcuts();
+	void ExportCurrentSceneJson();
+	void LoadGizmoIcons();
+	void DrawGizmoToolbar();
+	void DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2& imageSize);
+	bool DrawGizmoModeButton(const char* id, const char* fallbackLabel, uint32_t textureIndex, TransformGizmoOperation operation, const char* tooltip);
 
 private:
-	// 起動時は必ずEdit。Startボタンを押したときだけPlayに移行する。
-	EditorMode editorMode_ = EditorMode::Edit;
 	// DockBuilderによる初期配置は1回だけ行う。毎フレーム実行するとユーザーが動かしたDock配置を上書きしてしまう。
 	bool dockLayoutInitialized_ = false;
 	// Consoleウィンドウに表示する簡易ログ。今回は最低限の状態確認用としてメモリ上に保持する。
 	std::vector<std::string> consoleLogs_;
 	ProjectWindow projectWindow_;
+	TransformGizmoOperation gizmoOperation_ = TransformGizmoOperation::Translate;
+	bool gizmoIconsLoaded_ = false;
+	uint32_t gizmoTranslateIconIndex_ = 0;
+	uint32_t gizmoRotateIconIndex_ = 0;
+	uint32_t gizmoScaleIconIndex_ = 0;
 };
 
 } // namespace KujakuEngine

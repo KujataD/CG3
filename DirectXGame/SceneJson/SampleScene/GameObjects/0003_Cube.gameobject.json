@@ -1,0 +1,22 @@
+{
+  "assetType": "GameObject",
+  "name": "Cube",
+  "active": true,
+  "components": [
+    {
+      "type": "Transform",
+      "enabled": true,
+      "translation": [0, 1.26, 0],
+      "rotation": [0, -1, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "type": "ModelRendererComponent",
+      "enabled": true,
+      "primitive": "Cube",
+      "texture": "resources/monsterBall.png",
+      "hasModel": true,
+      "hasCamera": true
+    }
+  ]
+}

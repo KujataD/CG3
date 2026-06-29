@@ -1,0 +1,36 @@
+{
+  "assetType": "GameObject",
+  "name": "MonsterBall",
+  "active": true,
+  "components": [
+    {
+      "type": "Transform",
+      "enabled": true,
+      "translation": [0, -2, 0],
+      "rotation": [-1.5708, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "type": "TransformSnapshotComponent",
+      "enabled": true,
+      "snapshot": {
+        "translation": [0, -2, 0],
+        "rotation": [-1.5708, 0, 0],
+        "scale": [1, 1, 1]
+      }
+    },
+    {
+      "type": "RotatorComponent",
+      "enabled": true,
+      "speed": 0.02
+    },
+    {
+      "type": "ModelRendererComponent",
+      "enabled": true,
+      "primitive": "Sphere",
+      "texture": "Resources/uvChecker.png",
+      "hasModel": true,
+      "hasCamera": true
+    }
+  ]
+}

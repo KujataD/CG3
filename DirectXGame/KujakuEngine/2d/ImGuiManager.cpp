@@ -1,10 +1,25 @@
 #include "ImGuiManager.h"
 #include "../../externals/imgui/imgui_internal.h"
+#include "../../externals/ImGuizmo-1.9/src/ImGuizmo.h"
+#include "../Editor/EditorApplication.h"
+#include "../Editor/EditorSelection.h"
+#include "../Editor/SceneJsonExporter.h"
+#include "../3d/Camera.h"
+#include "../components/TransformComponent.h"
 #include "../base/DirectXCommon.h"
+#include "../base/TextureManager.h"
 #include "../base/WinApp.h"
+#include "../scene/ComponentFactory.h"
+#include "../math/MathUtil.h"
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <filesystem>
 
 namespace KujakuEngine {
 namespace {
+
+constexpr float kDegreesToRadians = 0.017453292519943295f;
 
 void AllocateImGuiSrvDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle) {
 	// ImGui 1.92系のDX12バックエンドは、フォントや追加テクスチャ用のSRVをバックエンド側へ要求してくる。
@@ -25,6 +40,14 @@ void AllocateImGuiSrvDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIP
 
 void FreeImGuiSrvDescriptor(ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_GPU_DESCRIPTOR_HANDLE) {
 	// 現状はSRVヒープをフレーム中に再利用しないため解放処理は不要。
+}
+
+float* MatrixData(Matrix4x4& matrix) {
+	return &matrix.m[0][0];
+}
+
+const float* MatrixData(const Matrix4x4& matrix) {
+	return &matrix.m[0][0];
 }
 
 } // namespace
@@ -49,6 +72,7 @@ void ImGuiManager::Initialize() {
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	// キーボード操作を有効化して、エディタUIとして最低限扱いやすくする。
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
 
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(winApp->GetHwnd());
@@ -67,13 +91,10 @@ void ImGuiManager::Initialize() {
 	initInfo.SrvDescriptorFreeFn = FreeImGuiSrvDescriptor;
 	ImGui_ImplDX12_Init(&initInfo);
 
-	// エディタは必ず編集状態から始める。Startを押すまではゲームロジックを進めない。
-	editorMode_ = EditorMode::Edit;
 	// 初期レイアウトはImGui初期化後、最初のDrawDockSpaceで構築する。
 	dockLayoutInitialized_ = false;
 	consoleLogs_.clear();
 	AddConsoleLog("Console initialized.");
-	AddConsoleLog("Editor Mode: Edit");
 #endif // USE_IMGUI
 }
 
@@ -85,29 +106,8 @@ void ImGuiManager::AddConsoleLog(const std::string& message) {
 	}
 }
 
-void ImGuiManager::StartGame() {
-	// Play中にStartを連打しても状態遷移やログ追加を重複させない。
-	if (editorMode_ == EditorMode::Play) {
-		return;
-	}
-
-	// ここでPlayへ切り替える。main.cpp側はIsPlaying()を見てゲームUpdateを実行する。
-	editorMode_ = EditorMode::Play;
+void ImGuiManager::ClearConsoleLogs() {
 	consoleLogs_.clear();
-	AddConsoleLog("[Editor] Start");
-	AddConsoleLog("Editor Mode: Play");
-}
-
-void ImGuiManager::StopGame() {
-	// Edit中のStop/Edit操作は何もしない。状態遷移はPlayからEditへ戻す時だけ行う。
-	if (editorMode_ == EditorMode::Edit) {
-		return;
-	}
-
-	// ここでEditへ戻す。main.cpp側のゲームUpdateは次フレームから止まる。
-	editorMode_ = EditorMode::Edit;
-	AddConsoleLog("[Editor] Stop");
-	AddConsoleLog("Editor Mode: Edit");
 }
 
 void ImGuiManager::DrawDockSpace() {
@@ -133,22 +133,22 @@ void ImGuiManager::DrawDockSpace() {
 	if (ImGui::BeginMenuBar()) {
 		// EditはStopと同じ扱い。今はPlayを止めて編集状態に戻すだけにしている。
 		if (ImGui::Button("Edit")) {
-			StopGame();
+			EditorApplication::GetInstance()->Stop();
 		}
 		ImGui::SameLine();
-		// Startを押すとPlayへ入り、main.cpp側でゲームロジックが進む。
+		// Startを押すとPlayへ入り、EditorApplication側でゲームロジックが進む。
 		if (ImGui::Button("Start")) {
-			StartGame();
+			EditorApplication::GetInstance()->Start();
 		}
 		ImGui::SameLine();
-		// Stopを押すとEditへ戻り、main.cpp側でゲームロジックが止まる。
+		// Stopを押すとEditへ戻り、EditorApplication側でゲームロジックが止まる。
 		if (ImGui::Button("Stop")) {
-			StopGame();
+			EditorApplication::GetInstance()->Stop();
 		}
 		ImGui::SameLine();
 
 		// 現在のモードをメニューバー上にも出して、Start/Stopの結果をすぐ確認できるようにする。
-		if (editorMode_ == EditorMode::Play) {
+		if (EditorApplication::GetInstance()->IsPlaying()) {
 			ImGui::TextUnformatted("Mode: Play");
 		} else {
 			ImGui::TextUnformatted("Mode: Edit");
@@ -207,9 +207,146 @@ void ImGuiManager::SetupInitialLayout(ImGuiID dockspaceId) {
 #endif // USE_IMGUI
 }
 
+void ImGuiManager::LoadGizmoIcons() {
+#ifdef USE_IMGUI
+	if (gizmoIconsLoaded_) {
+		return;
+	}
+
+	std::filesystem::path imageDirectory = projectWindow_.GetProjectRoot() / "KujakuEngine" / "resources" / "images";
+	TextureManager* textureManager = TextureManager::GetInstance();
+
+	textureManager->TryLoadTexture((imageDirectory / "icon_guizmo_translate.png").string(), gizmoTranslateIconIndex_);
+	textureManager->TryLoadTexture((imageDirectory / "icon_guizmo_rotate.png").string(), gizmoRotateIconIndex_);
+	textureManager->TryLoadTexture((imageDirectory / "icon_guizmo_scale.png").string(), gizmoScaleIconIndex_);
+
+	gizmoIconsLoaded_ = true;
+#endif // USE_IMGUI
+}
+
+bool ImGuiManager::DrawGizmoModeButton(const char* id, const char* fallbackLabel, uint32_t textureIndex, TransformGizmoOperation operation, const char* tooltip) {
+#ifdef USE_IMGUI
+	bool selected = gizmoOperation_ == operation;
+	if (selected) {
+		ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+	}
+
+	bool clicked = false;
+	if (textureIndex != 0) {
+		D3D12_GPU_DESCRIPTOR_HANDLE handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex);
+		clicked = ImGui::ImageButton(id, static_cast<ImTextureID>(handle.ptr), ImVec2(22.0f, 22.0f));
+	} else {
+		clicked = ImGui::Button(fallbackLabel, ImVec2(32.0f, 32.0f));
+	}
+
+	if (selected) {
+		ImGui::PopStyleColor();
+	}
+
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("%s", tooltip);
+	}
+
+	if (clicked) {
+		gizmoOperation_ = operation;
+		return true;
+	}
+#else
+	(void)id;
+	(void)fallbackLabel;
+	(void)textureIndex;
+	(void)operation;
+	(void)tooltip;
+#endif // USE_IMGUI
+	return false;
+}
+
+void ImGuiManager::DrawGizmoToolbar() {
+#ifdef USE_IMGUI
+	LoadGizmoIcons();
+
+	DrawGizmoModeButton("##GizmoTranslate", "T", gizmoTranslateIconIndex_, TransformGizmoOperation::Translate, "Translate");
+	ImGui::SameLine();
+	DrawGizmoModeButton("##GizmoRotate", "R", gizmoRotateIconIndex_, TransformGizmoOperation::Rotate, "Rotate");
+	ImGui::SameLine();
+	DrawGizmoModeButton("##GizmoScale", "S", gizmoScaleIconIndex_, TransformGizmoOperation::Scale, "Scale");
+#endif // USE_IMGUI
+}
+
+void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2& imageSize) {
+#ifdef USE_IMGUI
+	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
+	if (!scene) {
+		return;
+	}
+
+	Camera* camera = scene->GetEditorCamera();
+	if (!camera) {
+		return;
+	}
+
+	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	if (!selectedObject || !selectedObject->IsActive()) {
+		return;
+	}
+
+	TransformComponent* transformComponent = selectedObject->GetTransformComponent();
+	if (!transformComponent) {
+		return;
+	}
+
+	WorldTransform& transform = transformComponent->GetTransform();
+	Matrix4x4 gizmoMatrix = MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
+
+	ImGuizmo::SetOrthographic(false);
+	ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+	ImGuizmo::SetRect(imagePosition.x, imagePosition.y, imageSize.x, imageSize.y);
+
+	ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+	if (gizmoOperation_ == TransformGizmoOperation::Rotate) {
+		operation = ImGuizmo::ROTATE;
+	} else if (gizmoOperation_ == TransformGizmoOperation::Scale) {
+		operation = ImGuizmo::SCALE;
+	}
+
+	if (!ImGuizmo::Manipulate(MatrixData(camera->matView), MatrixData(camera->matProjection), operation, ImGuizmo::LOCAL, MatrixData(gizmoMatrix))) {
+		return;
+	}
+
+	float translation[3]{};
+	float rotationDegrees[3]{};
+	float scale[3]{};
+	ImGuizmo::DecomposeMatrixToComponents(MatrixData(gizmoMatrix), translation, rotationDegrees, scale);
+
+	transform.translation_ = {translation[0], translation[1], translation[2]};
+	transform.rotation_ = {
+	    rotationDegrees[0] * kDegreesToRadians,
+	    rotationDegrees[1] * kDegreesToRadians,
+	    rotationDegrees[2] * kDegreesToRadians,
+	};
+	transform.scale_ = {scale[0], scale[1], scale[2]};
+
+	if (!std::isfinite(transform.scale_.x) || transform.scale_.x < 0.001f) {
+		transform.scale_.x = 0.001f;
+	}
+	if (!std::isfinite(transform.scale_.y) || transform.scale_.y < 0.001f) {
+		transform.scale_.y = 0.001f;
+	}
+	if (!std::isfinite(transform.scale_.z) || transform.scale_.z < 0.001f) {
+		transform.scale_.z = 0.001f;
+	}
+#else
+	(void)imagePosition;
+	(void)imageSize;
+#endif // USE_IMGUI
+}
+
 void ImGuiManager::DrawGameWindow() {
 #ifdef USE_IMGUI
 	ImGui::Begin("Game");
+	DrawGizmoToolbar();
+	ImGui::Separator();
+
 	// DockされたGameウィンドウの内側サイズを取得する。タブや枠の分を除いた描画可能領域。
 	ImVec2 contentSize = ImGui::GetContentRegionAvail();
 	// Imageに0以下のサイズを渡さないように最低サイズを保証する。
@@ -221,10 +358,12 @@ void ImGuiManager::DrawGameWindow() {
 	}
 
 	// DirectXCommonが作ったGame用RenderTargetのSRVをImGuiへ渡す。
-	// 描画本体はmain.cppでBeginGameRenderからEndGameRenderの間に行われる。
+	// 描画本体はEditorApplicationでBeginGameRenderからEndGameRenderの間に行われる。
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = DirectXCommon::GetInstance()->GetGameRenderSrvHandle();
+	ImVec2 imagePosition = ImGui::GetCursorScreenPos();
 	// Gameウィンドウの現在サイズに合わせてRenderTargetを表示する。
 	ImGui::Image(static_cast<ImTextureID>(handle.ptr), contentSize, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+	DrawTransformGizmo(imagePosition, contentSize);
 	ImGui::End();
 #endif // USE_IMGUI
 }
@@ -232,10 +371,72 @@ void ImGuiManager::DrawGameWindow() {
 void ImGuiManager::DrawHierarchyWindow() {
 #ifdef USE_IMGUI
 	ImGui::Begin("Hierarchy");
-	// 今回はScene管理をまだ入れないため、最低限の仮表示だけにしている。
-	ImGui::TextUnformatted("Camera");
-	ImGui::TextUnformatted("Terrain");
-	ImGui::TextUnformatted("MonsterBall");
+
+	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
+	if (!scene) {
+		EditorSelection::GetInstance()->Clear();
+		ImGui::TextDisabled("No Scene.");
+		ImGui::End();
+		return;
+	}
+
+	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	bool selectedObjectExists = false;
+
+	for (const std::unique_ptr<GameObject>& object : scene->GetGameObjects()) {
+		if (!object) {
+			continue;
+		}
+
+		GameObject* raw = object.get();
+		if (raw == selectedObject) {
+			selectedObjectExists = true;
+		}
+
+		std::string displayName = raw->GetName();
+		if (!raw->IsActive()) {
+			displayName = "[Inactive] " + displayName;
+		}
+
+		ImGui::PushID(raw);
+		if (!raw->IsActive()) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+		}
+
+		bool isSelected = selectedObject == raw;
+		if (ImGui::Selectable(displayName.c_str(), isSelected)) {
+			EditorSelection::GetInstance()->SetSelectedGameObject(raw);
+		}
+
+		if (!raw->IsActive()) {
+			ImGui::PopStyleColor();
+		}
+		ImGui::PopID();
+	}
+
+	if (ImGui::BeginPopupContextWindow("HierarchyCreateMenu", ImGuiPopupFlags_MouseButtonRight)) {
+		if (ImGui::MenuItem("Entity")) {
+			GameObject* created = scene->CreateEditorEntity();
+			EditorSelection::GetInstance()->SetSelectedGameObject(created);
+		}
+
+		if (ImGui::MenuItem("Cube")) {
+			GameObject* created = scene->CreateEditorCube();
+			EditorSelection::GetInstance()->SetSelectedGameObject(created);
+		}
+
+		if (ImGui::MenuItem("Sphere")) {
+			GameObject* created = scene->CreateEditorSphere();
+			EditorSelection::GetInstance()->SetSelectedGameObject(created);
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (selectedObject && !selectedObjectExists) {
+		EditorSelection::GetInstance()->Clear();
+	}
+
 	ImGui::End();
 #endif // USE_IMGUI
 }
@@ -243,7 +444,90 @@ void ImGuiManager::DrawHierarchyWindow() {
 void ImGuiManager::DrawInspectorWindow() {
 #ifdef USE_IMGUI
 	ImGui::Begin("Inspector");
-	// 今回は選択オブジェクトやComponent編集をまだ扱わないため空欄にしている。
+
+	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
+	if (!scene) {
+		EditorSelection::GetInstance()->Clear();
+		ImGui::TextDisabled("No Scene.");
+		ImGui::End();
+		return;
+	}
+
+	GameObject* selected = EditorSelection::GetInstance()->GetSelectedGameObject();
+	if (!selected) {
+		ImGui::TextDisabled("No GameObject selected.");
+		ImGui::End();
+		return;
+	}
+
+	std::array<char, 128> nameBuffer{};
+	std::snprintf(nameBuffer.data(), nameBuffer.size(), "%s", selected->GetName().c_str());
+	if (ImGui::InputText("Name", nameBuffer.data(), nameBuffer.size())) {
+		selected->SetName(nameBuffer.data());
+	}
+
+	bool active = selected->IsActive();
+	if (ImGui::Checkbox("Active", &active)) {
+		selected->SetActive(active);
+	}
+
+	ImGui::Separator();
+	std::vector<std::unique_ptr<Component>>& components = selected->GetComponents();
+	if (components.empty()) {
+		ImGui::TextDisabled("No Components.");
+	}
+
+	Component* removeTarget = nullptr;
+	for (const std::unique_ptr<Component>& component : components) {
+		if (!component) {
+			continue;
+		}
+
+		ImGui::PushID(component.get());
+		if (ImGui::CollapsingHeader(component->GetTypeName(), ImGuiTreeNodeFlags_DefaultOpen)) {
+			bool enabled = component->IsEnabled();
+			if (ImGui::Checkbox("Enabled", &enabled)) {
+				component->SetEnabled(enabled);
+			}
+
+			component->DrawInspector();
+
+			if (component->CanRemove()) {
+				if (ImGui::Button("Remove Component")) {
+					removeTarget = component.get();
+				}
+			} else {
+				ImGui::TextDisabled("Required Component");
+			}
+		}
+		ImGui::PopID();
+	}
+
+	if (removeTarget) {
+		selected->RemoveComponent(removeTarget);
+	}
+
+	ImGui::Separator();
+	if (ImGui::Button("Add Component")) {
+		ImGui::OpenPopup("AddComponentPopup");
+	}
+
+	if (ImGui::BeginPopup("AddComponentPopup")) {
+		const std::vector<std::string>& typeNames = ComponentFactory::GetInstance().GetRegisteredTypeNames();
+		if (typeNames.empty()) {
+			ImGui::TextDisabled("No registered Components.");
+		}
+
+		for (const std::string& typeName : typeNames) {
+			if (ImGui::MenuItem(typeName.c_str())) {
+				Component* added = selected->AddComponent(ComponentFactory::GetInstance().Create(typeName));
+				scene->OnEditorComponentAdded(selected, added);
+			}
+		}
+
+		ImGui::EndPopup();
+	}
+
 	ImGui::End();
 #endif // USE_IMGUI
 }
@@ -252,7 +536,7 @@ void ImGuiManager::DrawConsoleWindow() {
 #ifdef USE_IMGUI
 	ImGui::Begin("Console");
 	// ログとは別に、現在モードを常に先頭へ表示する。
-	if (editorMode_ == EditorMode::Play) {
+	if (EditorApplication::GetInstance()->IsPlaying()) {
 		ImGui::TextUnformatted("Editor Mode: Play");
 	} else {
 		ImGui::TextUnformatted("Editor Mode: Edit");
@@ -276,10 +560,37 @@ void ImGuiManager::DrawProjectWindow() {
 #endif // USE_IMGUI
 }
 
+void ImGuiManager::HandleEditorShortcuts() {
+#ifdef USE_IMGUI
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+		ExportCurrentSceneJson();
+	}
+#endif // USE_IMGUI
+}
+
+void ImGuiManager::ExportCurrentSceneJson() {
+	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
+	if (!scene) {
+		AddConsoleLog("[Editor] Scene JSON export failed: No Scene.");
+		return;
+	}
+
+	SceneJsonExporter::ExportResult exportResult = SceneJsonExporter::ExportScene(*scene, projectWindow_.GetProjectRoot());
+	if (exportResult.succeeded) {
+		AddConsoleLog("[Editor] Scene JSON exported: " + exportResult.outputDirectory.string());
+		projectWindow_.Refresh();
+		return;
+	}
+
+	AddConsoleLog("[Editor] Scene JSON export failed: " + exportResult.message);
+}
+
 void ImGuiManager::DrawEditor() {
 #ifdef USE_IMGUI
 	// Editor UIを構成する各ウィンドウを毎フレーム描画する。
 	// 実際の配置はDockSpace側が管理するため、ここでは各ウィンドウを出すだけでよい。
+	HandleEditorShortcuts();
 	DrawDockSpace();
 	DrawGameWindow();
 	DrawHierarchyWindow();
@@ -297,6 +608,7 @@ void ImGuiManager::Begin() {
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
 #endif // USE_IMGUI
 }
 

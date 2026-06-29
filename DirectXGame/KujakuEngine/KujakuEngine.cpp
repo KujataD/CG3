@@ -66,9 +66,6 @@ bool Update() {
 	// 入力処理更新
 	Input::Update();
 
-	// Imguiのフレーム開始処理
-	ImGuiManager::GetInstance()->Begin();
-
 	// 時間管理の更新
 	Time::GetInstance()->Update();
 
@@ -81,11 +78,6 @@ void PreDraw() {
 }
 
 void PostDraw() {
-
-#ifdef USE_IMGUI
-	// ImGuiの描画コマンドを積む（描画処理の最後に呼ぶ）
-	ImGuiManager::GetInstance()->End();
-#endif // USE_IMGUI
 
 	// プレゼント・フェンス待機・コマンドリストリセット
 	DirectXCommon::GetInstance()->PostDraw();

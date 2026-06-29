@@ -1,0 +1,22 @@
+{
+  "assetType": "GameObject",
+  "name": "Sphere",
+  "active": true,
+  "components": [
+    {
+      "type": "Transform",
+      "enabled": true,
+      "translation": [0, -4.62, 0],
+      "rotation": [0, 0.09, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "type": "ModelRendererComponent",
+      "enabled": true,
+      "primitive": "Sphere",
+      "texture": "resources/monsterBall.png",
+      "hasModel": true,
+      "hasCamera": true
+    }
+  ]
+}

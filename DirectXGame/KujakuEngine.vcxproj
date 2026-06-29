@@ -57,7 +57,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)externals\DirectXTex;$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)externals\DirectXTex;$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\imgui;$(ProjectDir)externals\ImGuizmo-1.9\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -86,7 +86,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\imgui;$(ProjectDir)externals\ImGuizmo-1.9\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -108,10 +108,21 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="externals\imgui\imgui_tables.cpp" />
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="externals\ImGuizmo-1.9\src\ImGuizmo.cpp" />
     <ClCompile Include="KujakuEngine\2d\ImGuiManager.cpp" />
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
+    <ClCompile Include="KujakuEngine\components\BuiltinComponents.cpp" />
+    <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp" />
+    <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp" />
+    <ClCompile Include="KujakuEngine\components\TransformComponent.cpp" />
+    <ClCompile Include="KujakuEngine\components\TransformSnapshotComponent.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\EditorSelection.cpp" />
     <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp" />
     <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\SceneJsonExporter.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\SceneJsonImporter.cpp" />
     <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp" />
     <ClCompile Include="KujakuEngine\3d\Camera.cpp" />
     <ClCompile Include="KujakuEngine\3d\DebugCamera.cpp" />
@@ -162,6 +173,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\math\Random.cpp" />
     <ClCompile Include="KujakuEngine\math\Vector2.cpp" />
     <ClCompile Include="KujakuEngine\math\Vector3.cpp" />
+    <ClCompile Include="KujakuEngine\scene\Component.cpp" />
+    <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp" />
+    <ClCompile Include="KujakuEngine\scene\GameObject.cpp" />
+    <ClCompile Include="KujakuEngine\scene\SampleScene.cpp" />
+    <ClCompile Include="KujakuEngine\scene\Scene.cpp" />
     <ClCompile Include="KujakuEngine\shapes\AABB.cpp" />
     <ClCompile Include="KujakuEngine\shapes\Collider.cpp" />
     <ClCompile Include="KujakuEngine\shapes\CollisionManager.cpp" />
@@ -184,8 +200,19 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="KujakuEngine\2d\ImGuiManager.h" />
     <ClInclude Include="KujakuEngine\2d\Sprite.h" />
+    <ClInclude Include="KujakuEngine\components\BuiltinComponents.h" />
+    <ClInclude Include="KujakuEngine\components\ModelRendererComponent.h" />
+    <ClInclude Include="KujakuEngine\components\RotatorComponent.h" />
+    <ClInclude Include="KujakuEngine\components\TransformComponent.h" />
+    <ClInclude Include="KujakuEngine\components\TransformSnapshotComponent.h" />
+    <ClInclude Include="KujakuEngine\Editor\EditorApplication.h" />
+    <ClInclude Include="KujakuEngine\Editor\EditorProjectPath.h" />
+    <ClInclude Include="KujakuEngine\Editor\EditorSelection.h" />
     <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h" />
     <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h" />
+    <ClInclude Include="KujakuEngine\Editor\SceneJsonExporter.h" />
+    <ClInclude Include="KujakuEngine\Editor\SceneJsonImporter.h" />
+    <ClInclude Include="externals\ImGuizmo-1.9\src\ImGuizmo.h" />
     <ClInclude Include="KujakuEngine\3d\AxisIndicator.h" />
     <ClInclude Include="KujakuEngine\3d\Camera.h" />
     <ClInclude Include="KujakuEngine\3d\DebugCamera.h" />
@@ -243,6 +270,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\math\Vector2.h" />
     <ClInclude Include="KujakuEngine\math\Vector3.h" />
     <ClInclude Include="KujakuEngine\math\Vector4.h" />
+    <ClInclude Include="KujakuEngine\scene\Component.h" />
+    <ClInclude Include="KujakuEngine\scene\ComponentFactory.h" />
+    <ClInclude Include="KujakuEngine\scene\GameObject.h" />
+    <ClInclude Include="KujakuEngine\scene\SampleScene.h" />
+    <ClInclude Include="KujakuEngine\scene\Scene.h" />
     <ClInclude Include="KujakuEngine\shapes\AABB.h" />
     <ClInclude Include="KujakuEngine\shapes\Collider.h" />
     <ClInclude Include="KujakuEngine\shapes\CollisionManager.h" />

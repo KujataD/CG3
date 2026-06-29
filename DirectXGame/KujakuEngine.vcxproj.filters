@@ -16,6 +16,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{c6cc6781-82d6-4b67-9819-0074bbcf487e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImGuizmo">
+      <UniqueIdentifier>{67d74850-0802-48bb-8a07-63839b40c7db}</UniqueIdentifier>
+    </Filter>
     <Filter Include="KujakuEngine">
       <UniqueIdentifier>{adc5439f-48ee-4f7e-a2e9-720c59671c23}</UniqueIdentifier>
     </Filter>
@@ -55,6 +58,9 @@
     <Filter Include="KujakuEngine\Editor">
       <UniqueIdentifier>{e7b43ca6-a8f5-4d84-a27f-a67608eb0f49}</UniqueIdentifier>
     </Filter>
+    <Filter Include="KujakuEngine\components">
+      <UniqueIdentifier>{a2868ec1-0c72-4d5d-8b0f-e5503cc1603f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -80,6 +86,9 @@
     </ClCompile>
     <ClCompile Include="externals\imgui\imgui_impl_win32.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\ImGuizmo-1.9\src\ImGuizmo.cpp">
+      <Filter>ImGuizmo</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\math\Matrix3x3.cpp">
       <Filter>KujakuEngine\math</Filter>
@@ -123,10 +132,40 @@
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp">
       <Filter>KujakuEngine\2d</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\components\BuiltinComponents.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\TransformComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\TransformSnapshotComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\EditorSelection.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\SceneJsonExporter.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\SceneJsonImporter.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\base\Logger.cpp">
@@ -264,6 +303,21 @@
     <ClCompile Include="KujakuEngine\base\Time.cpp">
       <Filter>KujakuEngine\ai</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\Component.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\GameObject.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\SampleScene.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\Scene.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\ai\charactor\utility\UtilityAI.cpp">
       <Filter>KujakuEngine\ai</Filter>
     </ClCompile>
@@ -344,10 +398,40 @@
     <ClInclude Include="KujakuEngine\2d\Sprite.h">
       <Filter>KujakuEngine\2d</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\components\BuiltinComponents.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\ModelRendererComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\RotatorComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\TransformComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\TransformSnapshotComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\EditorApplication.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\EditorProjectPath.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\EditorSelection.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\SceneJsonExporter.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\SceneJsonImporter.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\base\Logger.h">
@@ -506,8 +590,26 @@
     <ClInclude Include="KujakuEngine\base\Time.h">
       <Filter>KujakuEngine\ai</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\Component.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\ComponentFactory.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\GameObject.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\SampleScene.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\Scene.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\ai\charactor\utility\UtilityAI.h">
       <Filter>KujakuEngine\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\ImGuizmo-1.9\src\ImGuizmo.h">
+      <Filter>ImGuizmo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

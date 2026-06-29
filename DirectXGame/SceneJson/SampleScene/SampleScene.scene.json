@@ -1,0 +1,26 @@
+{
+  "assetType": "Scene",
+  "name": "SampleScene",
+  "gameObjects": [
+    {
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0000_MonsterBall.gameobject.json"
+    },
+    {
+      "name": "Terrain",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0001_Terrain.gameobject.json"
+    },
+    {
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0002_Player.gameobject.json"
+    },
+    {
+      "name": "Cubsse",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0003_Cubsse.gameobject.json"
+    },
+    {
+      "name": "Sphere",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0004_Sphere.gameobject.json"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "assetType": "GameObject",
+  "name": "Cubsse",
+  "active": true,
+  "components": [
+    {
+      "type": "Transform",
+      "enabled": true,
+      "translation": [2.87113, 1.68954, -2.81683],
+      "rotation": [-0.714707, 0.715122, 0.0461602],
+      "scale": [1, 2.61528, 2.67579]
+    },
+    {
+      "type": "ModelRendererComponent",
+      "enabled": true,
+      "primitive": "Cube",
+      "texture": "resources/monsterBall.png",
+      "hasModel": true,
+      "hasCamera": true
+    }
+  ]
+}

@@ -21,8 +21,11 @@ namespace KujakuEngine {
 class ProjectWindow {
 public:
 	void Initialize();
+	void EnsureInitialized();
 	void Draw();
 	void RenderModelPreviews();
+	void Refresh();
+	const std::filesystem::path& GetProjectRoot();
 
 private:
 	struct ProjectItem {
@@ -64,8 +67,6 @@ private:
 	// UIに出す相対パス文字列を作る。
 	std::string GetCurrentRelativePathText() const;
 
-	// 現在ディレクトリを再スキャンする。
-	void Refresh();
 	void MoveToDirectory(const std::filesystem::path& directory);
 	void MoveToParent();
 	void OpenFileInExplorer(const std::filesystem::path& filePath) const;

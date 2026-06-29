@@ -1,5 +1,6 @@
 #include "ProjectWindow.h"
 
+#include "EditorProjectPath.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../../externals/imgui/imgui.h"
@@ -25,11 +26,17 @@ void ProjectWindow::Initialize() {
 	Refresh();
 }
 
+void ProjectWindow::EnsureInitialized() {
+	if (initialized_) {
+		return;
+	}
+
+	Initialize();
+}
+
 void ProjectWindow::Draw() {
 	// ImGuiManagerの初期化順が変わっても落ちないよう、未初期化ならここで初期化する。
-	if (!initialized_) {
-		Initialize();
-	}
+	EnsureInitialized();
 
 	// DrawItemで「今フレーム表示されたモデル」を積み直すため、先に前フレーム分をクリアする。
 	modelPreviewsToRender_.clear();
@@ -56,56 +63,17 @@ void ProjectWindow::Draw() {
 	ImGui::End();
 }
 
+const std::filesystem::path& ProjectWindow::GetProjectRoot() {
+	EnsureInitialized();
+	return projectRoot_;
+}
+
 std::filesystem::path ProjectWindow::DetectProjectRoot() const {
-	std::error_code error;
-	// 実行時の作業ディレクトリから探索を始める。
-	// VS実行、exe直接実行、root側出力のどれでもなるべく同じProjectDirへ到達させるため。
-	std::filesystem::path current = std::filesystem::current_path(error);
-	if (error) {
-		return std::filesystem::path(".");
-	}
-
-	std::filesystem::path cursor = current;
-	while (!cursor.empty()) {
-		// DirectXGame直下で起動している場合は、そこにKujakuEngine.vcxprojがある。
-		if (std::filesystem::exists(cursor / "KujakuEngine.vcxproj")) {
-			return NormalizePath(cursor);
-		}
-
-		// リポジトリルート側で起動している場合は、DirectXGame配下のvcxprojを探す。
-		std::filesystem::path directXGameProject = cursor / "DirectXGame" / "KujakuEngine.vcxproj";
-		if (std::filesystem::exists(directXGameProject)) {
-			return NormalizePath(cursor / "DirectXGame");
-		}
-
-		// slnが見つかった場合も、実際のゲームプロジェクトであるDirectXGameを優先する。
-		if (std::filesystem::exists(cursor / "KujakuEngine.sln")) {
-			std::filesystem::path directXGameDirectory = cursor / "DirectXGame";
-			if (std::filesystem::exists(directXGameDirectory)) {
-				return NormalizePath(directXGameDirectory);
-			}
-			return NormalizePath(cursor);
-		}
-
-		std::filesystem::path parent = cursor.parent_path();
-		if (parent == cursor) {
-			break;
-		}
-		cursor = parent;
-	}
-
-	return NormalizePath(current);
+	return DetectEditorProjectRoot();
 }
 
 std::filesystem::path ProjectWindow::NormalizePath(const std::filesystem::path& path) const {
-	std::error_code error;
-	// weakly_canonicalは存在しない末端が含まれても可能な範囲で正規化できる。
-	// ProjectDirより上へ移動していないか判定するときに、表記揺れを減らすため使う。
-	std::filesystem::path normalized = std::filesystem::weakly_canonical(path, error);
-	if (error) {
-		return path.lexically_normal();
-	}
-	return normalized.lexically_normal();
+	return NormalizeEditorPath(path);
 }
 
 bool ProjectWindow::IsInsideProjectRoot(const std::filesystem::path& path) const {
@@ -148,6 +116,7 @@ std::string ProjectWindow::GetCurrentRelativePathText() const {
 
 void ProjectWindow::Refresh() {
 	if (!initialized_) {
+		Initialize();
 		return;
 	}
 
@@ -272,7 +241,8 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 		// TextureManagerに読み込まれたSRVを使って、フォルダアイコンまたは画像プレビューを表示する。
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = TextureManager::GetInstance()->GetSrvHandle(item.textureIndex);
 		ImGui::Image(static_cast<ImTextureID>(handle.ptr), ImVec2(iconSize_, iconSize_));
-	} else {
+	}
+	else {
 		// アイコン読み込みに失敗してもレイアウトが崩れないよう、同じサイズの空白を置く。
 		ImGui::Dummy(ImVec2(iconSize_, iconSize_));
 	}
@@ -286,11 +256,37 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 	// ラベルが空になるとImGuiのID assertにつながるため、空名は"(unnamed)"として表示する。
 	ImGui::Selectable(displayName.c_str(), false, flags, ImVec2(0.0f, iconSize_));
 
+	if (ImGui::BeginPopupContextItem("ProjectItemContext")) {
+		if (ImGui::MenuItem("Copy File Path")) {
+			std::error_code error;
+			std::filesystem::path relativePath = std::filesystem::relative(item.absolutePath, projectRoot_, error);
+
+			std::string filePathText;
+			if (error || relativePath.empty()) {
+				// 失敗時だけ安全側で絶対パスにフォールバック
+				filePathText = item.absolutePath.generic_string();
+			}
+			else {
+				// Windowsの \ ではなく、エンジン内で扱いやすい / 区切りにする
+				filePathText = relativePath.generic_string();
+			}
+
+			ImGui::SetClipboardText(filePathText.c_str());
+		}
+
+		if (ImGui::MenuItem("Show in Explorer")) {
+			OpenFileInExplorer(item.absolutePath);
+		}
+
+		ImGui::EndPopup();
+	}
+
 	// フォルダは中へ移動、ファイルはExplorerで選択する。
 	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 		if (item.isDirectory) {
 			MoveToDirectory(item.absolutePath);
-		} else {
+		}
+		else {
 			OpenFileInExplorer(item.absolutePath);
 		}
 	}
@@ -307,7 +303,8 @@ bool ProjectWindow::TryResolveTexture(ProjectItem& item) {
 	// 画像ファイルはアイコンではなく画像そのものをプレビューとして使う。
 	if (item.viewInfo.usePreview) {
 		texturePath = item.absolutePath;
-	} else {
+	}
+	else {
 		texturePath = item.viewInfo.iconPath;
 	}
 
@@ -401,8 +398,8 @@ ProjectWindow::ModelPreview* ProjectWindow::GetOrCreateModelPreview(const std::f
 
 	// プレビュー用のカメラとTransformは、通常ゲームシーンとは独立した最小構成にする。
 	preview->camera.Initialize();
-	preview->camera.translation_ = {0.0f, 0.0f, -3.0f};
-	preview->camera.rotation_ = {0.0f, 0.0f, 0.0f};
+	preview->camera.translation_ = { 0.0f, 0.0f, -3.0f };
+	preview->camera.rotation_ = { 0.0f, 0.0f, 0.0f };
 	preview->camera.aspectRatio = 1.0f;
 	preview->camera.fovAngleY = 0.65f;
 	preview->camera.UpdateMatrix();
@@ -439,12 +436,12 @@ bool ProjectWindow::CreateModelPreviewResources(ModelPreview& preview) {
 	colorClearValue.Color[3] = 1.0f;
 
 	HRESULT hr = device->CreateCommittedResource(
-	    &heapProperties,
-	    D3D12_HEAP_FLAG_NONE,
-	    &colorDesc,
-	    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-	    &colorClearValue,
-	    IID_PPV_ARGS(&preview.colorResource));
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&colorDesc,
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		&colorClearValue,
+		IID_PPV_ARGS(&preview.colorResource));
 	if (FAILED(hr)) {
 		OutputDebugStringA("Failed to create Project model preview color resource.\n");
 		return false;
@@ -488,12 +485,12 @@ bool ProjectWindow::CreateModelPreviewResources(ModelPreview& preview) {
 	depthClearValue.DepthStencil.Depth = 1.0f;
 
 	hr = device->CreateCommittedResource(
-	    &heapProperties,
-	    D3D12_HEAP_FLAG_NONE,
-	    &depthDesc,
-	    D3D12_RESOURCE_STATE_DEPTH_WRITE,
-	    &depthClearValue,
-	    IID_PPV_ARGS(&preview.depthResource));
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&depthDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&depthClearValue,
+		IID_PPV_ARGS(&preview.depthResource));
 	if (FAILED(hr)) {
 		OutputDebugStringA("Failed to create Project model preview depth resource.\n");
 		return false;
@@ -519,14 +516,14 @@ void ProjectWindow::SetupModelPreviewTransform(ModelPreview& preview) {
 	}
 
 	Vector3 minPosition = {
-	    (std::numeric_limits<float>::max)(),
-	    (std::numeric_limits<float>::max)(),
-	    (std::numeric_limits<float>::max)(),
+		(std::numeric_limits<float>::max)(),
+		(std::numeric_limits<float>::max)(),
+		(std::numeric_limits<float>::max)(),
 	};
 	Vector3 maxPosition = {
-	    std::numeric_limits<float>::lowest(),
-	    std::numeric_limits<float>::lowest(),
-	    std::numeric_limits<float>::lowest(),
+		std::numeric_limits<float>::lowest(),
+		std::numeric_limits<float>::lowest(),
+		std::numeric_limits<float>::lowest(),
 	};
 
 	for (const VertexData& vertex : vertices) {
@@ -555,12 +552,12 @@ void ProjectWindow::SetupModelPreviewTransform(ModelPreview& preview) {
 	}
 
 	// モデルの中心を原点付近へ寄せてから少し回転し、形が分かりやすい角度でサムネイル化する。
-	preview.worldTransform.scale_ = {previewScale, previewScale, previewScale};
-	preview.worldTransform.rotation_ = {0.25f, -0.45f, 0.0f};
+	preview.worldTransform.scale_ = { previewScale, previewScale, previewScale };
+	preview.worldTransform.rotation_ = { 0.25f, -0.45f, 0.0f };
 	preview.worldTransform.translation_ = {
-	    -center.x * previewScale,
-	    -center.y * previewScale,
-	    -center.z * previewScale,
+		-center.x * previewScale,
+		-center.y * previewScale,
+		-center.z * previewScale,
 	};
 	preview.worldTransform.UpdateMatrix(preview.camera);
 }
@@ -598,7 +595,7 @@ void ProjectWindow::RenderModelPreview(ModelPreview& preview) {
 
 	commandList->OMSetRenderTargets(1, &preview.rtvHandle, false, &preview.dsvHandle);
 
-	const float clearColor[4] = {0.08f, 0.08f, 0.09f, 1.0f};
+	const float clearColor[4] = { 0.08f, 0.08f, 0.09f, 1.0f };
 	commandList->ClearRenderTargetView(preview.rtvHandle, clearColor, 0, nullptr);
 	commandList->ClearDepthStencilView(preview.dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 

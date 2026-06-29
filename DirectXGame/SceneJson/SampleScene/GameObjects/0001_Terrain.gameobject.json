@@ -1,0 +1,22 @@
+{
+  "assetType": "GameObject",
+  "name": "Terrain",
+  "active": true,
+  "components": [
+    {
+      "type": "Transform",
+      "enabled": true,
+      "translation": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "type": "ModelRendererComponent",
+      "enabled": true,
+      "primitive": "Custom",
+      "texture": "resources/monsterBall.png",
+      "hasModel": true,
+      "hasCamera": true
+    }
+  ]
+}
