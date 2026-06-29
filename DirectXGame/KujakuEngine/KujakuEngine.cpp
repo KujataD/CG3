@@ -46,7 +46,15 @@ void Initialize(const std::wstring& title, Vector4 color, bool enableDebugLayer)
 	Time::GetInstance()->Init();
 }
 
-void Finalize() { WinApp::GetInstance()->TerminateGameWindow(); }
+void Finalize() {
+#ifdef USE_IMGUI
+	// ImGuiのDX12/Win32バックエンドはWindow破棄前に終了する。
+	// 先にWindowを閉じると、バックエンドが持っているHWNDやDX12リソースの後始末順が崩れやすい。
+	ImGuiManager::GetInstance()->Finalize();
+#endif // USE_IMGUI
+
+	WinApp::GetInstance()->TerminateGameWindow();
+}
 
 bool Update() {
 

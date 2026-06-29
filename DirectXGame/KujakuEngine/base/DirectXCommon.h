@@ -40,6 +40,18 @@ public:
 	void PreDraw();
 
 	/// <summary>
+	/// Gameウィンドウ用描画開始
+	/// ここから後の3D/2D描画は、SwapChainではなくGame用RenderTargetへ描く
+	/// </summary>
+	void BeginGameRender();
+
+	/// <summary>
+	/// Gameウィンドウ用描画終了
+	/// Game用RenderTargetをImGuiから読める状態へ戻し、描画先をSwapChainへ戻す
+	/// </summary>
+	void EndGameRender();
+
+	/// <summary>
 	/// 描画後処理
 	/// </summary>
 	void PostDraw();
@@ -71,14 +83,19 @@ public:
 	/// </summary>
 	bool IsInitialized() const { return initialized_; }
 
+	// SRV番号をDirectXCommonで一元管理する。
+	// 通常テクスチャ、Gameウィンドウ用RenderTarget、ImGuiフォントが同じSRVヒープを共有するため。
 	uint32_t AllocateSrvIndex() { return srvIndexCounter_++; }
 
 	// --- get ---
 	ID3D12Device* GetDevice() const { return device_.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList() const { return commandList_.Get(); }
+	ID3D12CommandQueue* GetCommandQueue() const { return commandQueue_.Get(); }
 	ID3D12DescriptorHeap* GetSrvDescriptorHeap() const { return srvDescriptorHeap_.Get(); }
 	ID3D12DescriptorHeap* GetRtvDescriptorHeap() const { return rtvDescriptorHeap_.Get(); }
 	ID3D12DescriptorHeap* GetDsvDescriptorHeap() const { return dsvDescriptorHeap_.Get(); }
+	// ImGui::Imageへ渡すGame用RenderTargetのGPU側SRVハンドル。
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGameRenderSrvHandle() const { return gameRenderSrvHandleGPU_; }
 	uint32_t GetDescriptorSizeRTV() const { return descriptorSizeRTV_; }
 	uint32_t GetDescriptorSizeSRV() const { return descriptorSizeSRV_; }
 	uint32_t GetDescriptorSizeDSV() const { return descriptorSizeDSV_; }
@@ -139,10 +156,17 @@ private:
 	void CreateFinalRenderTargets();
 
 	void CreateDepthBuffer();
+	// Gameウィンドウに表示するためのOffscreen RenderTargetを作成する。
+	void CreateGameRenderTarget();
 	void CreateFence();
+	// 現在のバックバッファに対応するRTVを取得する。
+	D3D12_CPU_DESCRIPTOR_HANDLE GetBackBufferRtvHandle() const;
+	// Game用RenderTargetへ描いた後、ImGui描画用に描画先をバックバッファへ戻す。
+	void SetBackBufferRenderTarget();
 
 private:
 	static const uint32_t kSwapChainBufferCount = 3;
+	static const uint32_t kGameRenderTargetRtvIndex = kSwapChainBufferCount;
 	WinApp* winApp_ = nullptr;
 	bool initialized_ = false;
 
@@ -158,6 +182,8 @@ private:
 	// リソース関連
 	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[kSwapChainBufferCount];
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource_;
+	// Gameウィンドウへ表示するための描画結果を保持するテクスチャ。
+	Microsoft::WRL::ComPtr<ID3D12Resource> gameRenderResource_;
 
 	// ディスクリプタヒープ
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap_;
@@ -177,6 +203,12 @@ private:
 	uint32_t backBufferIndex_ = 0;
 	int32_t backBufferWidth_ = 0;
 	int32_t backBufferHeight_ = 0;
+	// Game用RenderTargetへ描くためのRTV。CPUハンドルはOMSetRenderTargetsで使う。
+	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderRtvHandle_{};
+	// Game用RenderTargetをSRVとして作成するためのCPUハンドル。
+	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderSrvHandleCPU_{};
+	// ImGui::ImageでGame用RenderTargetを表示するためのGPUハンドル。
+	D3D12_GPU_DESCRIPTOR_HANDLE gameRenderSrvHandleGPU_{};
 
 	// 画面の色
 	float clearColor_[4] = {0.1f, 0.25f, 0.5f, 1.0f}; // 青っぽい色。RGBAの順

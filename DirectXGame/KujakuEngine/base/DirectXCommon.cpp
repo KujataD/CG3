@@ -32,6 +32,7 @@ void DirectXCommon::Initialize(WinApp* winApp, Vector4 color , int32_t backBuffe
 	CreateSwapChain();
 	CreateFinalRenderTargets();
 	CreateDepthBuffer();
+	CreateGameRenderTarget();
 	CreateFence();
 
 	initialized_ = true;
@@ -196,11 +197,10 @@ void DirectXCommon::CreateFinalRenderTargets() {
 	// DescriptorSizeを取得しておく
 	const uint32_t descriptorSizeRTV = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-	// RTV用のヒープでディスクリプタの数は2。RTVはShader内で触るものではないので、ShaderVisibleはfalse
+	// RTV用のヒープを作成する。SwapChain分に加えてGameウィンドウ用RTVを確保する。
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	// rtvHeapDesc.NumDescriptors = 2;
-	rtvHeapDesc.NumDescriptors = kSwapChainBufferCount;
+	rtvHeapDesc.NumDescriptors = kSwapChainBufferCount + 1;
 	hr = device_->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap_));
 	assert(SUCCEEDED(hr));
 
@@ -233,6 +233,71 @@ void DirectXCommon::CreateFinalRenderTargets() {
 		rtvHandles[i].ptr = rtvHandles[i - 1].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		device_->CreateRenderTargetView(swapChainResources_[i].Get(), &rtvDesc, rtvHandles[i]);
 	}
+}
+
+void DirectXCommon::CreateGameRenderTarget() {
+	// Gameウィンドウに表示するための描画先テクスチャを作る。
+	// SwapChainのバックバッファへ直接描くのではなく、このテクスチャへゲーム画面を描いてからImGui::Imageで表示する。
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	// まずはウィンドウのバックバッファサイズと同じ解像度で作る。
+	// Gameウィンドウ側ではImGui::Imageの表示サイズを変えて拡大縮小する。
+	resourceDesc.Width = backBufferWidth_;
+	resourceDesc.Height = backBufferHeight_;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	resourceDesc.SampleDesc.Count = 1;
+	// RenderTargetとして使うため、ALLOW_RENDER_TARGETを付ける。
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	// GPUが描画するテクスチャなのでDEFAULTヒープに置く。
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	D3D12_CLEAR_VALUE clearValue{};
+	// RTV/SRVはsRGBとして扱うため、ClearValueもsRGBフォーマットに合わせる。
+	clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	clearValue.Color[0] = clearColor_[0];
+	clearValue.Color[1] = clearColor_[1];
+	clearValue.Color[2] = clearColor_[2];
+	clearValue.Color[3] = clearColor_[3];
+
+	HRESULT hr = device_->CreateCommittedResource(
+	    &heapProperties,
+	    D3D12_HEAP_FLAG_NONE,
+	    &resourceDesc,
+	    // 作成直後はImGuiから読む側の状態にしておく。描画するときだけBeginGameRenderでRTVへ遷移する。
+	    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+	    &clearValue,
+	    IID_PPV_ARGS(&gameRenderResource_));
+	assert(SUCCEEDED(hr));
+
+	// RTVヒープの末尾をGameウィンドウ用に使う。SwapChain用RTVとは別のDescriptorになる。
+	gameRenderRtvHandle_ = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	gameRenderRtvHandle_.ptr += descriptorSizeRTV_ * kGameRenderTargetRtvIndex;
+
+	// 描き込み用のRTVを作る。BeginGameRender中はこのRTVをOMSetRenderTargetsへ渡す。
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	device_->CreateRenderTargetView(gameRenderResource_.Get(), &rtvDesc, gameRenderRtvHandle_);
+
+	// ImGui::Imageから読むためにはSRVも必要になる。
+	// SRV番号はDirectXCommonで一元採番し、通常テクスチャやImGuiフォントとの衝突を避ける。
+	uint32_t srvIndex = AllocateSrvIndex();
+	gameRenderSrvHandleCPU_ = srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	gameRenderSrvHandleCPU_.ptr += descriptorSizeSRV_ * srvIndex;
+	gameRenderSrvHandleGPU_ = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
+	gameRenderSrvHandleGPU_.ptr += descriptorSizeSRV_ * srvIndex;
+
+	// 読み込み用のSRVを作る。ImGuiへ渡すのはGPUハンドル側。
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	device_->CreateShaderResourceView(gameRenderResource_.Get(), &srvDesc, gameRenderSrvHandleCPU_);
 }
 
 ID3D12Resource* DirectXCommon::CreateBufferResource(size_t sizeInBytes) {
@@ -380,6 +445,76 @@ void DirectXCommon::ClearDepthBuffer() {
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
 	// 指定した深度で画面全体をクリアする
 	commandList_->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::GetBackBufferRtvHandle() const {
+	// 現在のSwapChainバックバッファに対応するRTVを取得する。
+	// GameRenderの後、ImGuiをバックバッファへ描くために使う。
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	rtvHandle.ptr += descriptorSizeRTV_ * backBufferIndex_;
+	return rtvHandle;
+}
+
+void DirectXCommon::SetBackBufferRenderTarget() {
+	// 描画先をSwapChainのバックバッファへ戻す。
+	// EndGameRender後にImGuiを通常画面へ合成するための準備。
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetBackBufferRtvHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	commandList_->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+}
+
+void DirectXCommon::BeginGameRender() {
+	// Game用RenderTargetは通常ImGuiから読まれる状態にしている。
+	// ここからゲーム描画を書き込むため、RENDER_TARGET状態へ遷移する。
+	D3D12_RESOURCE_BARRIER barrier{};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = gameRenderResource_.Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	commandList_->ResourceBarrier(1, &barrier);
+
+	// 以降のDraw呼び出しがGame用RenderTargetへ描かれるように、描画先を差し替える。
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	commandList_->OMSetRenderTargets(1, &gameRenderRtvHandle_, false, &dsvHandle);
+	// 毎フレーム、Gameウィンドウ用の色と深度を初期化する。
+	commandList_->ClearRenderTargetView(gameRenderRtvHandle_, clearColor_, 0, nullptr);
+	commandList_->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+	// 既存の描画コードはウィンドウ全体のビューポート前提なので、暫定的にバックバッファサイズで描く。
+	// 将来Gameウィンドウ解像度に合わせる場合は、ここへ可変サイズを渡す形にするとよい。
+	D3D12_VIEWPORT viewport{};
+	viewport.Width = static_cast<float>(backBufferWidth_);
+	viewport.Height = static_cast<float>(backBufferHeight_);
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	commandList_->RSSetViewports(1, &viewport);
+
+	// ScissorもRenderTarget全体に合わせる。ここが小さいと描画が途中で切れる。
+	D3D12_RECT scissorRect{};
+	scissorRect.left = 0;
+	scissorRect.top = 0;
+	scissorRect.right = backBufferWidth_;
+	scissorRect.bottom = backBufferHeight_;
+	commandList_->RSSetScissorRects(1, &scissorRect);
+}
+
+void DirectXCommon::EndGameRender() {
+	// Game用RenderTargetへの描画が終わったので、ImGui::Imageから読める状態へ戻す。
+	D3D12_RESOURCE_BARRIER barrier{};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = gameRenderResource_.Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	commandList_->ResourceBarrier(1, &barrier);
+
+	// この後のImGui描画はSwapChainバックバッファへ出したいので、描画先を戻す。
+	SetBackBufferRenderTarget();
 }
 
 void DirectXCommon::PostDraw() {

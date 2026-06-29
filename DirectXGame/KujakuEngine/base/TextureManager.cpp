@@ -61,7 +61,9 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) {
 	ID3D12DescriptorHeap* srvHeap = DirectXCommon::GetInstance()->GetSrvDescriptorHeap();
 	const UINT descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	uint32_t srvIndex = srvIndexCounter_++;
+	// SRV番号はDirectXCommonで一元管理する。
+	// Gameウィンドウ用RenderTargetやImGuiフォント用SRVと、通常テクスチャの番号が衝突しないようにする。
+	uint32_t srvIndex = DirectXCommon::GetInstance()->AllocateSrvIndex();
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = srvHeap->GetCPUDescriptorHandleForHeapStart();
 	cpuHandle.ptr += descriptorSizeSRV * srvIndex;
