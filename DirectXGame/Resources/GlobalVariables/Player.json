@@ -1,0 +1,44 @@
+{
+    "Player": {
+        "AttackArmRotationX": 3.1415927410125732,
+        "AttackEndlagFrame": 15,
+        "AttackStartShoulderRotationX": 1.649999976158142,
+        "AttackSwingDownFrame": 5,
+        "AttackWindUpFrame": 17,
+        "AttackWindUpShoulderRotationX": -0.9700000286102295,
+        "FloatingAmplitude": 0.029999999329447746,
+        "FloatingArmRotationAmplitude": 0.699999988079071,
+        "FloatingCycle": 60,
+        "OffsetRotateArm_L": [
+            0.0,
+            -3.140000104904175,
+            0.0
+        ],
+        "OffsetRotateArm_R": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "OffsetTransformArm_L": [
+            0.800000011920929,
+            2.75,
+            0.0
+        ],
+        "OffsetTransformArm_R": [
+            -0.800000011920929,
+            2.75,
+            0.0
+        ],
+        "OffsetTransformBody": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "OffsetTransformHead": [
+            0.0,
+            3.109999895095825,
+            0.0
+        ],
+        "Speed": 0.5
+    }
+}

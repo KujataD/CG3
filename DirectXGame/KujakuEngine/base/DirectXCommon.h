@@ -10,6 +10,7 @@
 #include <wrl.h>
 
 #include "WinApp.h"
+#include <math/Vector4.h>
 
 namespace KujakuEngine {
 
@@ -30,7 +31,8 @@ public:
 	/// <param name="backBufferWidth">バックバッファ幅</param>
 	/// <param name="backBufferHeight">バックバッファ高さ</param>
 	/// <param name="enableDebugLayer">デバッグレイヤーの有効化</param>
-	void Initialize(WinApp* winApp, int32_t backBufferWidth = WinApp::kWindowWidth, int32_t backBufferHeight = WinApp::kWindowHeight, bool enableDebugLayer = false);
+	void Initialize(
+	    WinApp* winApp, Vector4 color = {0.1f, 0.25f, 0.5f, 1.0f}, int32_t backBufferWidth = WinApp::kWindowWidth, int32_t backBufferHeight = WinApp::kWindowHeight, bool enableDebugLayer = false);
 
 	/// <summary>
 	/// 描画前処理
@@ -51,7 +53,7 @@ public:
 	/// 深度バッファのクリア
 	/// </summary>
 	void ClearDepthBuffer();
-	
+
 	/// <summary>
 	/// リソース作成
 	/// </summary>
@@ -82,6 +84,16 @@ public:
 	uint32_t GetDescriptorSizeDSV() const { return descriptorSizeDSV_; }
 	int32_t GetBackBufferWidth() const { return backBufferWidth_; }
 	int32_t GetBackBufferHeight() const { return backBufferHeight_; }
+	uint32_t GetSwapChainBufferCount() const { return kSwapChainBufferCount; }
+
+	// --- set ---
+	void SetClearColor(Vector4 color) {
+		clearColor_[0] = color.x;
+		clearColor_[1] = color.y;
+		clearColor_[2] = color.z;
+		clearColor_[3] = color.w;
+	}
+
 private:
 	DirectXCommon() = default;
 	~DirectXCommon() = default;
@@ -126,11 +138,11 @@ private:
 	/// </summary>
 	void CreateFinalRenderTargets();
 
-
 	void CreateDepthBuffer();
 	void CreateFence();
 
 private:
+	static const uint32_t kSwapChainBufferCount = 3;
 	WinApp* winApp_ = nullptr;
 	bool initialized_ = false;
 
@@ -138,12 +150,13 @@ private:
 	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory_;
 	Microsoft::WRL::ComPtr<ID3D12Device> device_;
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator_;
+	// Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator_;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators_[kSwapChainBufferCount];
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue_;
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain_;
 
 	// リソース関連
-	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[2];
+	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[kSwapChainBufferCount];
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource_;
 
 	// ディスクリプタヒープ
@@ -154,6 +167,7 @@ private:
 	// 同期関連
 	Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
 	uint64_t fenceValue_ = 0;
+	uint64_t fenceValues_[kSwapChainBufferCount] = {};
 	HANDLE fenceEvent_ = nullptr;
 
 	uint32_t descriptorSizeSRV_;
@@ -163,6 +177,9 @@ private:
 	uint32_t backBufferIndex_ = 0;
 	int32_t backBufferWidth_ = 0;
 	int32_t backBufferHeight_ = 0;
+
+	// 画面の色
+	float clearColor_[4] = {0.1f, 0.25f, 0.5f, 1.0f}; // 青っぽい色。RGBAの順
 
 	// テクスチャのインデックス管理カウンター
 	uint32_t srvIndexCounter_ = 1;

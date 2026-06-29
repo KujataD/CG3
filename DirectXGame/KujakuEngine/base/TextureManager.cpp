@@ -5,14 +5,20 @@
 #include "WinApp.h"
 
 namespace KujakuEngine {
-void TextureManager::Initialize() { defaultWhiteTextureIndex_ = LoadTexture("resources/white1x1.png"); }
+void TextureManager::Initialize() { defaultWhiteTextureIndex_ = LoadTexture("Resources/white1x1.png"); }
+
 TextureManager* TextureManager::GetInstance() {
 	static TextureManager instance;
 	return &instance;
 }
 
-uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::LoadTexture と同じ処理
+uint32_t TextureManager::LoadTexture(const std::string& filePath) {
+	auto loadStart = std::chrono::steady_clock::now();
 	if (textures_.contains(filePath)) {
+		recentLoadEvents_.push_front({filePath, 0.0f, true});
+		if (recentLoadEvents_.size() > 32) {
+			recentLoadEvents_.pop_back();
+		}
 		return textures_[filePath].index;
 	}
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
@@ -79,6 +85,12 @@ uint32_t TextureManager::LoadTexture(const std::string& filePath) { // Model::Lo
 	data.index = srvIndex;
 
 	textures_[filePath] = data;
+	
+	float loadMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - loadStart).count();
+	recentLoadEvents_.push_front({filePath, loadMs, false});
+	if (recentLoadEvents_.size() > 32) {
+		recentLoadEvents_.pop_back();
+	}
 
 	return srvIndex;
 }

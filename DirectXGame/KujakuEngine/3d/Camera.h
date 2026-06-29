@@ -5,8 +5,7 @@
 #include <wrl.h>
 
 #include "../base/WinApp.h"
-#include "../math/Matrix4x4.h"
-#include "../math/Vector3.h"
+#include <math/MathUtil.h>
 #include "../shapes/Rect.h"
 
 namespace KujakuEngine {
@@ -35,14 +34,14 @@ public:
 	Vector3 translation_ = {0.0f, 0.0f, -10.0f};
 
 	// 射影行列の設定
-	float fovAngleY = 0.45f;                                                                                  // 垂直方向視野角（ラジアン）
+	float fovAngleY = 0.60f;                                                                                  // 垂直方向視野角（ラジアン）
 	float aspectRatio = static_cast<float>(WinApp::kWindowWidth) / static_cast<float>(WinApp::kWindowHeight); // アスペクト比
 	float nearZ = 0.1f;                                                                                       // 深度限界（手前側）
-	float farZ = 100.0f;                                                                                      // 深度限界（奥側）
+	float farZ = 1000.0f;                                                                                      // 深度限界（奥側）
 
 	// ビュー・射影行列
-	Matrix4x4 matView;
-	Matrix4x4 matProjection;
+	Matrix4x4 matView; // ワールドからカメラへの変換行列
+	Matrix4x4 matProjection; // カメラから画面への変換行列
 
 	Camera() = default;
 	~Camera() = default;
@@ -63,7 +62,7 @@ public:
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return constBuffer_; }
 
 	/// <summary>
-	/// 
+	///
 	/// </summary>
 	/// <returns></returns>
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetCameraForGPUResource() const { return cameraForGPUResource_; }
@@ -78,7 +77,12 @@ public:
 	/// <summary>
 	/// カメラが映っている範囲を求める(回転固定)
 	/// </summary>
-	Rect GetVisibleRect(float posZ);
+	Rect GetVisibleRect(float posZ) const;
+
+	/// <summary>
+	/// カメラが映っている範囲を求める(親子関係である前提)
+	/// </summary>
+	Rect GetVisibleRect(float distance, float blank) const;
 
 private:
 	// 定数バッファ

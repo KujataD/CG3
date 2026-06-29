@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <d3d12.h>
+#include <deque>
 #include <map>
 #include <string>
 #include <vector>
@@ -19,6 +20,12 @@ namespace KujakuEngine {
 
 class TextureManager {
 public:
+	struct TextureLoadEvent {
+		std::string filePath;
+		float loadMs = 0.0f;
+		bool cacheHit = false;
+	};
+
 	struct TextureData {
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
 		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
@@ -41,6 +48,7 @@ public:
 	/// </summary>
 	/// <param name="index"></param>
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandle(uint32_t index);
+	const std::deque<TextureLoadEvent>& GetRecentLoadEvents() const { return recentLoadEvents_; }
 
 	uint32_t GetDefaultWhiteTexture() const { return defaultWhiteTextureIndex_; }
 
@@ -63,6 +71,7 @@ private:
 
 	// テクスチャコンテナ
 	std::unordered_map<std::string, TextureData> textures_;
+	std::deque<TextureLoadEvent> recentLoadEvents_;
 };
 
 } // namespace KujakuEngine

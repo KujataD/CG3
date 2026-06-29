@@ -10,11 +10,12 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 namespace KujakuEngine {
 
 Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel) {
 	Model* model = new Model();
-	std::string directoryPathFinal = "resources/" + objname;
+	std::string directoryPathFinal = "Resources/" + objname;
 	std::string filename = objname + ".obj";
 
 	ModelData rawData = LoadObjFile(directoryPathFinal, filename);
@@ -198,6 +199,93 @@ Model* Model::CreatePlane(const std::string& textureFilePath, ShaderModel shader
 	return model;
 }
 
+Model* Model::CreateTriangle(const std::string& textureFilePath, ShaderModel shaderModel) {
+	Model* model = new Model();
+
+	std::vector<VertexData> vertices;
+
+	const float halfWidth = std::numbers::sqrt3_v<float> *0.5f;
+
+	vertices.push_back({
+		.position = {0.0f, 1.0f, 0.0f, 1.0f},
+		.texcoord = {0.5f, 0.0f},
+		.normal = {0.0f, 0.0f, 1.0f}
+		}); // 上
+
+	vertices.push_back({
+		.position = {halfWidth, -0.5f, 0.0f, 1.0f},
+		.texcoord = {1.0f, 1.0f},
+		.normal = {0.0f, 0.0f, 1.0f}
+		}); // 右下
+
+	vertices.push_back({
+		.position = {-halfWidth, -0.5f, 0.0f, 1.0f},
+		.texcoord = {0.0f, 1.0f},
+		.normal = {0.0f, 0.0f, 1.0f}
+		}); // 左下
+
+	// MaterialData
+	MaterialData defaultMaterial{};
+	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
+	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
+
+	model->CreateVertexBuffer(vertices);
+	model->CreateMaterialBuffer(defaultMaterial);
+
+	return model;
+}
+
+Model* Model::CreateTetrahedron(const std::string& textureFilePath, ShaderModel shaderModel) {
+	Model* model = new Model();
+
+	std::vector<VertexData> vertices;
+
+	const Vector3 v0 = { 1.0f,  1.0f,  1.0f };
+	const Vector3 v1 = { -1.0f, -1.0f,  1.0f };
+	const Vector3 v2 = { -1.0f,  1.0f, -1.0f };
+	const Vector3 v3 = { 1.0f, -1.0f, -1.0f };
+
+	auto AddFace = [&](const Vector3& a, const Vector3& b, const Vector3& c) {
+
+		Vector3 normal =
+			Normalize(Cross(b - a, c - a));
+
+		vertices.push_back({
+			.position = {a.x, a.y, a.z, 1.0f},
+			.texcoord = {0.5f, 0.0f},
+			.normal = normal
+			});
+
+		vertices.push_back({
+			.position = {b.x, b.y, b.z, 1.0f},
+			.texcoord = {0.0f, 1.0f},
+			.normal = normal
+			});
+
+		vertices.push_back({
+			.position = {c.x, c.y, c.z, 1.0f},
+			.texcoord = {1.0f, 1.0f},
+			.normal = normal
+			});
+		};
+
+	// 4面
+	AddFace(v0, v2, v1);
+	AddFace(v0, v1, v3);
+	AddFace(v0, v3, v2);
+	AddFace(v1, v2, v3);
+
+	// MaterialData
+	MaterialData defaultMaterial{};
+	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
+	defaultMaterial.textureIndex =
+		TextureManager::GetInstance()->LoadTexture(textureFilePath);
+
+	model->CreateVertexBuffer(vertices);
+	model->CreateMaterialBuffer(defaultMaterial);
+
+	return model;
+}
 void Model::PreDraw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
@@ -232,11 +320,18 @@ void Model::PostDraw() {
 	// 将来的にここで描画状態のリセットなどを行う
 }
 
-void Model::Draw(const WorldTransform& worldTransform, const Camera& camera) {
+void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, FillMode fillMode) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
+	// 描画直前のカメラでWVPを作り直す
+	worldTransform.TransferMatrix(camera);
+
 	// RootSignature と PSO をセット
-	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d, blendMode_);
+	if (fillMode == kFillModeSolid) {
+		GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d, blendMode_);
+	} else if (fillMode == kFillModeWireframe) {
+		GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3dWireframe, blendMode_);
+	}
 
 	// VBVを設定
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
@@ -294,8 +389,19 @@ ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string
 	std::vector<Vector2> texcoords;
 	std::string line;
 
-	std::ifstream file(directoryPath + "/" + filename);
-	assert(file.is_open());
+	std::string fullPath = directoryPath + "/" + filename;
+
+	OutputDebugStringA(("Try Open : " + fullPath + "\n").c_str());
+	std::ifstream file(fullPath);
+	
+	if (!file.is_open()) {
+		OutputDebugStringA(("Failed Open : " + fullPath + "\n").c_str());
+
+		std::string currentPath = std::filesystem::current_path().string();
+		OutputDebugStringA(("CurrentPath : " + currentPath + "\n").c_str());
+
+		assert(false);
+	}
 
 	while (std::getline(file, line)) {
 		std::string identifier;
@@ -350,8 +456,13 @@ ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string
 }
 
 void Model::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
+	// 頂点保存
+	vertices_ = vertices;
+
+	// 頂点数を取得
 	vertexCount_ = static_cast<uint32_t>(vertices.size());
 
+	// 頂点数分のリソース作成
 	vertexResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(VertexData) * vertexCount_);
 
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
@@ -366,12 +477,12 @@ void Model::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
 
 void Model::CreateMaterialBuffer(const MaterialData& material) {
 
-	materialResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(VertexData) * vertexCount_);
+	materialResource_ = DirectXCommon::GetInstance()->CreateBufferResource((sizeof(MaterialData) + 0xff) & ~0xff);
 
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialMap_));
 	materialMap_->color = material.color;
 	materialMap_->enableLighting = material.enableLighting;
-	materialMap_->uvTransform = Matrix4x4::MakeIdentity();
+	materialMap_->uvTransform = MakeIdentity();
 	materialMap_->shininess = material.shininess;
 	textureIndex_ = material.textureIndex;
 }

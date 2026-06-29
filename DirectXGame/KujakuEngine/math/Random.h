@@ -2,6 +2,7 @@
 #include <numbers>
 #include <random>
 #include <type_traits>
+#include <algorithm>
 
 namespace KujakuEngine {
 
@@ -18,6 +19,11 @@ public:
 	/// 値の取得
 	/// </summary>
 	template<typename T> static T GetRandom(T min, T max) {
+		// スワップ
+		if (min > max) {
+			std::swap(min, max);
+		}
+
 		// 整数型か少数型かどうか
 		if constexpr (std::is_integral_v<T>) {
 			std::uniform_int_distribution<T> distribution(min, max);
@@ -25,6 +31,8 @@ public:
 		} else if constexpr (std::is_floating_point_v<T>) {
 			std::uniform_real_distribution<T> distribution(min, max);
 			return distribution(randomEngine);
+		} else {
+			return min;
 		}
 	}
 

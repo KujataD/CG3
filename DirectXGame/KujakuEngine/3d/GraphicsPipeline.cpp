@@ -16,9 +16,9 @@ GraphicsPipeline* GraphicsPipeline::GetInstance() {
 void GraphicsPipeline::Initialize() {
 	InitializeDXC();
 	CreateObject3dRootSignature();
-	CreateParticleRootSignature();
+	CreateInstancingRootSignature();
 	CreateObject3dPipelineStateObject();
-	CreateParticlePipelineStateObject();
+	CreateInstancingPipelineStateObject();
 }
 
 void GraphicsPipeline::InitializeDXC() {
@@ -155,8 +155,8 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	rootParameters[6].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // PixelShaderで使う
 	rootParameters[6].Descriptor.ShaderRegister = 4;                    // レジスタ番号4を使う
 
-	descriptionRootSignature.pParameters = rootParameters;              // ルートパラメータ配列へのポインタ
-	descriptionRootSignature.NumParameters = _countof(rootParameters);  // 配列の長さ
+	descriptionRootSignature.pParameters = rootParameters;             // ルートパラメータ配列へのポインタ
+	descriptionRootSignature.NumParameters = _countof(rootParameters); // 配列の長さ
 
 	// Samplerの設定
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
@@ -183,6 +183,8 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	// バイナリを元に生成
 	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kObject3d)]));
 	assert(SUCCEEDED(hr));
+	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kObject3dWireframe)]));
+	assert(SUCCEEDED(hr));
 
 	signatureBlob->Release();
 	if (errorBlob) {
@@ -190,7 +192,7 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	}
 }
 
-void GraphicsPipeline::CreateParticleRootSignature() {
+void GraphicsPipeline::CreateInstancingRootSignature() {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 	HRESULT hr;
 
@@ -251,6 +253,7 @@ void GraphicsPipeline::CreateParticleRootSignature() {
 
 	// バイナリを元に生成
 	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kParticle)]));
+	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kInstancingObject3d)]));
 	assert(SUCCEEDED(hr));
 
 	signatureBlob->Release();
@@ -263,10 +266,10 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	// シェーダーをコンパイルする
-	IDxcBlob* vertexShaderBlob = CompileShader(L"KujakuEngine/shader/Object3D.VS.hlsl", L"vs_6_0");
+	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/Object3D.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"KujakuEngine/shader/Object3D.PS.hlsl", L"ps_6_0");
+	IDxcBlob* pixelShaderBlob = CompileShader(L"Resources/shader/Object3D.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	// 2. InputLayoutの設定
@@ -320,6 +323,34 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+
+	// --- ワイヤーフレーム ---
+	// 4. RasterizerStateの設定
+	D3D12_RASTERIZER_DESC rasterizerDescWireframe{};
+	rasterizerDescWireframe.CullMode = D3D12_CULL_MODE_NONE;      // 裏面は表示する
+	rasterizerDescWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME; // ワイヤーフレーム表示
+	rasterizerDescWireframe.DepthClipEnable = true;               // far範囲外の頂点は描画しない
+
+	D3D12_DEPTH_STENCIL_DESC depthStencilDescWireframe{};
+	depthStencilDescWireframe.DepthEnable = true;
+	depthStencilDescWireframe.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	depthStencilDescWireframe.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	// PSOの生成
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescWireframe{};
+	graphicsPipelineStateDescWireframe.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kObject3dWireframe)].Get();
+	graphicsPipelineStateDescWireframe.InputLayout = inputLayoutDesc;
+	graphicsPipelineStateDescWireframe.BlendState = blendDesc;
+	graphicsPipelineStateDescWireframe.RasterizerState = rasterizerDescWireframe;
+	graphicsPipelineStateDescWireframe.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDescWireframe.PS = {pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDescWireframe.DepthStencilState = depthStencilDescWireframe;
+	graphicsPipelineStateDescWireframe.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	graphicsPipelineStateDescWireframe.NumRenderTargets = 1;
+	graphicsPipelineStateDescWireframe.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDescWireframe.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	graphicsPipelineStateDescWireframe.SampleDesc.Count = 1;
+	graphicsPipelineStateDescWireframe.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	for (int32_t i = 0; i < static_cast<int32_t>(BlendMode::kCountOfBlendMode); i++) {
 		D3D12_BLEND_DESC blendDesc{};
@@ -384,6 +415,9 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 
 		graphicsPipelineStateDesc.BlendState = blendDesc;
 		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3d)][i]));
+
+		graphicsPipelineStateDescWireframe.BlendState = blendDesc;
+		hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDescWireframe, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3dWireframe)][i]));
 		assert(SUCCEEDED(hr));
 	}
 
@@ -391,14 +425,14 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 	pixelShaderBlob->Release();
 }
 
-void GraphicsPipeline::CreateParticlePipelineStateObject() {
+void GraphicsPipeline::CreateInstancingPipelineStateObject() {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	// シェーダーをコンパイルする
-	IDxcBlob* vertexShaderBlob = CompileShader(L"KujakuEngine/shader/Particle.VS.hlsl", L"vs_6_0");
+	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/Particle.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"KujakuEngine/shader/Particle.PS.hlsl", L"ps_6_0");
+	IDxcBlob* pixelShaderBlob = CompileShader(L"Resources/shader/Particle.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	// 2. InputLayoutの設定
@@ -431,27 +465,52 @@ void GraphicsPipeline::CreateParticlePipelineStateObject() {
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;  // 裏面（時計回り）を表示しない
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID; // 三角形の中を塗りつぶす
 
+	D3D12_RASTERIZER_DESC rasterizerDescParticle{};
+	rasterizerDescParticle.CullMode = D3D12_CULL_MODE_NONE;  // 裏面（時計回り）を表示しない
+	rasterizerDescParticle.FillMode = D3D12_FILL_MODE_SOLID; // 三角形の中を塗りつぶす
+
 	// 7. DepthStencilStateの設定
-	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
-	depthStencilDesc.DepthEnable = true;
-	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO; // Depthの書き込みを行わない
-	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	D3D12_DEPTH_STENCIL_DESC depthStencilDescParticle{};
+	depthStencilDescParticle.DepthEnable = true;
+	depthStencilDescParticle.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO; // Depthの書き込みを行わない
+	depthStencilDescParticle.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	D3D12_DEPTH_STENCIL_DESC depthStencilDescInstancingObject3d{}; 
+	depthStencilDescInstancingObject3d.DepthEnable = true;
+	depthStencilDescInstancingObject3d.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL; // Depthの書き込みを行う
+	depthStencilDescInstancingObject3d.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 
 	// PSOの生成
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
-	graphicsPipelineStateDesc.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kParticle)].Get();
-	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
-	graphicsPipelineStateDesc.BlendState = blendDesc;
-	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
-	graphicsPipelineStateDesc.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
-	graphicsPipelineStateDesc.PS = {pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize()};
-	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
-	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	graphicsPipelineStateDesc.NumRenderTargets = 1;
-	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	graphicsPipelineStateDesc.SampleDesc.Count = 1;
-	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescParticle{};
+	graphicsPipelineStateDescParticle.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kParticle)].Get();
+	graphicsPipelineStateDescParticle.InputLayout = inputLayoutDesc;
+	graphicsPipelineStateDescParticle.BlendState = blendDesc;
+	graphicsPipelineStateDescParticle.RasterizerState = rasterizerDescParticle;
+	graphicsPipelineStateDescParticle.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDescParticle.PS = {pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDescParticle.DepthStencilState = depthStencilDescParticle;
+	graphicsPipelineStateDescParticle.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	graphicsPipelineStateDescParticle.NumRenderTargets = 1;
+	graphicsPipelineStateDescParticle.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDescParticle.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	graphicsPipelineStateDescParticle.SampleDesc.Count = 1;
+	graphicsPipelineStateDescParticle.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+
+	// PSOの生成
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescInstancingObject3d{};
+	graphicsPipelineStateDescInstancingObject3d.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kInstancingObject3d)].Get();
+	graphicsPipelineStateDescInstancingObject3d.InputLayout = inputLayoutDesc;
+	graphicsPipelineStateDescInstancingObject3d.BlendState = blendDesc;
+	graphicsPipelineStateDescInstancingObject3d.RasterizerState = rasterizerDesc;
+	graphicsPipelineStateDescInstancingObject3d.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDescInstancingObject3d.PS = {pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDescInstancingObject3d.DepthStencilState = depthStencilDescInstancingObject3d;
+	graphicsPipelineStateDescInstancingObject3d.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	graphicsPipelineStateDescInstancingObject3d.NumRenderTargets = 1;
+	graphicsPipelineStateDescInstancingObject3d.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDescInstancingObject3d.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	graphicsPipelineStateDescInstancingObject3d.SampleDesc.Count = 1;
+	graphicsPipelineStateDescInstancingObject3d.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	for (int32_t i = 0; i < static_cast<int32_t>(BlendMode::kCountOfBlendMode); i++) {
 		D3D12_BLEND_DESC blendDesc{};
@@ -514,8 +573,11 @@ void GraphicsPipeline::CreateParticlePipelineStateObject() {
 			break;
 		}
 
-		graphicsPipelineStateDesc.BlendState = blendDesc;
-		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kParticle)][i]));
+		graphicsPipelineStateDescParticle.BlendState = blendDesc;
+		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDescParticle, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kParticle)][i]));
+
+		graphicsPipelineStateDescInstancingObject3d.BlendState = blendDesc;
+		hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDescInstancingObject3d, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kInstancingObject3d)][i]));
 		assert(SUCCEEDED(hr));
 	}
 

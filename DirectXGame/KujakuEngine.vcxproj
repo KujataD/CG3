@@ -22,13 +22,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -57,13 +57,14 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)externals\DirectXTex;$(ProjectDir)KujakuEngine</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)externals\DirectXTex;$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>$(ProjectDir)externals\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxcompiler.dll" "$(TargetDir )dxcompiler.dll"
@@ -84,11 +85,12 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(ProjectDir)KujakuEngine</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)externals\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxcompiler.dll" "$(TargetDir )dxcompiler.dll"
@@ -106,30 +108,61 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="KujakuEngine\2d\ImGuiManager.cpp" />
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
+    <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp" />
     <ClCompile Include="KujakuEngine\3d\Camera.cpp" />
     <ClCompile Include="KujakuEngine\3d\DebugCamera.cpp" />
     <ClCompile Include="KujakuEngine\3d\DirectionalLight.cpp" />
+    <ClCompile Include="KujakuEngine\3d\FollowCamera.cpp" />
     <ClCompile Include="KujakuEngine\3d\GraphicsPipeline.cpp" />
     <ClCompile Include="KujakuEngine\3d\Model.cpp" />
     <ClCompile Include="KujakuEngine\3d\PointLight.cpp" />
+    <ClCompile Include="KujakuEngine\3d\RailCameraController.cpp" />
     <ClCompile Include="KujakuEngine\3d\SpotLight.cpp" />
     <ClCompile Include="KujakuEngine\3d\WorldTransform.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\BehaviorTree.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\BTNode.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Composite\CompositeNode.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SelectorNode.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SequenceNode.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Decorator\Decorator.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\ActionNode.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\LeafNode.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\Core\Blackboard.cpp" />
+    <ClCompile Include="KujakuEngine\ai\charactor\utility\UtilityAI.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\Grid.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\NavigationUtil.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\pathfinding\AStar.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\pathfinding\ThetaStar.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\AligmentBehavior.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\ArriveBehavior.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\AvoidanceBehavior.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\CohesionBehavior.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\ISteeringBehavior.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\SeekBehavior.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\SeparationBehavior.cpp" />
+    <ClCompile Include="KujakuEngine\ai\navigation\steer\WanderBehavior.cpp" />
     <ClCompile Include="KujakuEngine\base\DirectXCommon.cpp" />
+    <ClCompile Include="KujakuEngine\base\GlobalVariables.cpp" />
     <ClCompile Include="KujakuEngine\base\Logger.cpp" />
     <ClCompile Include="KujakuEngine\base\StringUtil.cpp" />
     <ClCompile Include="KujakuEngine\base\TextureManager.cpp" />
+    <ClCompile Include="KujakuEngine\base\Time.cpp" />
     <ClCompile Include="KujakuEngine\base\WinApp.cpp" />
     <ClCompile Include="KujakuEngine\input\Input.cpp" />
     <ClCompile Include="KujakuEngine\KujakuEngine.cpp" />
     <ClCompile Include="KujakuEngine\math\Easing.cpp" />
+    <ClCompile Include="KujakuEngine\math\MathUtil.cpp" />
     <ClCompile Include="KujakuEngine\math\Matrix3x3.cpp" />
     <ClCompile Include="KujakuEngine\math\Matrix4x4.cpp" />
     <ClCompile Include="KujakuEngine\math\Random.cpp" />
     <ClCompile Include="KujakuEngine\math\Vector2.cpp" />
     <ClCompile Include="KujakuEngine\math\Vector3.cpp" />
     <ClCompile Include="KujakuEngine\shapes\AABB.cpp" />
+    <ClCompile Include="KujakuEngine\shapes\Collider.cpp" />
+    <ClCompile Include="KujakuEngine\shapes\CollisionManager.cpp" />
     <ClCompile Include="KujakuEngine\shapes\Rect.cpp" />
     <ClCompile Include="KujakuEngine\shapes\ShapeUtil.cpp" />
+    <ClCompile Include="KujakuEngine\vfx\InstancingModel.cpp" />
     <ClCompile Include="KujakuEngine\vfx\ParticleField.cpp" />
     <ClCompile Include="KujakuEngine\vfx\ParticleEmitter.cpp" />
     <ClCompile Include="KujakuEngine\vfx\ParticleModel.cpp" />
@@ -146,22 +179,56 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="KujakuEngine\2d\ImGuiManager.h" />
     <ClInclude Include="KujakuEngine\2d\Sprite.h" />
+    <ClInclude Include="KujakuEngine\3d\AxisIndicator.h" />
     <ClInclude Include="KujakuEngine\3d\Camera.h" />
     <ClInclude Include="KujakuEngine\3d\DebugCamera.h" />
     <ClInclude Include="KujakuEngine\3d\DirectionalLight.h" />
+    <ClInclude Include="KujakuEngine\3d\FollowCamera.h" />
     <ClInclude Include="KujakuEngine\3d\GraphicsPipeline.h" />
     <ClInclude Include="KujakuEngine\3d\Model.h" />
     <ClInclude Include="KujakuEngine\3d\PointLight.h" />
+    <ClInclude Include="KujakuEngine\3d\RailCameraController.h" />
     <ClInclude Include="KujakuEngine\3d\SpotLight.h" />
     <ClInclude Include="KujakuEngine\3d\WorldTransform.h" />
+    <ClInclude Include="KujakuEngine\ai\AI.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\BehaviorTree.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\BTNode.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\BTStatus.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Composite\CompositeNode.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SelectorNode.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SequenceNode.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Decorator\Decorator.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\ActionNode.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\LeafNode.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\Core\AIContext.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\Core\Blackboard.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\fsm\IState.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\fsm\StateMachine.h" />
+    <ClInclude Include="KujakuEngine\ai\charactor\utility\UtilityAI.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\Grid.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\NavigationUtil.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\pathfinding\AStar.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\pathfinding\ThetaStar.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\SearchNode.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\AligmentBehavior.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\ArriveBehavior.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\AvoidanceBehavior.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\CohesionBehavior.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\ISteeringBehavior.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\SeekBehavior.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\SeparationBehavior.h" />
+    <ClInclude Include="KujakuEngine\ai\navigation\steer\WanderBehavior.h" />
     <ClInclude Include="KujakuEngine\base\DirectXCommon.h" />
+    <ClInclude Include="KujakuEngine\base\GlobalVariables.h" />
     <ClInclude Include="KujakuEngine\base\Logger.h" />
     <ClInclude Include="KujakuEngine\base\StringUtil.h" />
     <ClInclude Include="KujakuEngine\base\TextureManager.h" />
+    <ClInclude Include="KujakuEngine\base\Time.h" />
     <ClInclude Include="KujakuEngine\base\WinApp.h" />
     <ClInclude Include="KujakuEngine\input\Input.h" />
     <ClInclude Include="KujakuEngine\KujakuEngine.h" />
     <ClInclude Include="KujakuEngine\math\Easing.h" />
+    <ClInclude Include="KujakuEngine\math\MathUtil.h" />
     <ClInclude Include="KujakuEngine\math\Matrix3x3.h" />
     <ClInclude Include="KujakuEngine\math\Matrix4x4.h" />
     <ClInclude Include="KujakuEngine\math\Random.h" />
@@ -169,8 +236,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\math\Vector3.h" />
     <ClInclude Include="KujakuEngine\math\Vector4.h" />
     <ClInclude Include="KujakuEngine\shapes\AABB.h" />
+    <ClInclude Include="KujakuEngine\shapes\Collider.h" />
+    <ClInclude Include="KujakuEngine\shapes\CollisionManager.h" />
     <ClInclude Include="KujakuEngine\shapes\Rect.h" />
     <ClInclude Include="KujakuEngine\shapes\ShapeUtil.h" />
+    <ClInclude Include="KujakuEngine\vfx\InstancingModel.h" />
     <ClInclude Include="KujakuEngine\vfx\Particle.h" />
     <ClInclude Include="KujakuEngine\vfx\ParticleEmitter.h" />
     <ClInclude Include="KujakuEngine\vfx\ParticleField.h" />

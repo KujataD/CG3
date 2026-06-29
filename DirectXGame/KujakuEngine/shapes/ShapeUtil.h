@@ -1,6 +1,10 @@
 #pragma once
-#include "Rect.h"
 #include "AABB.h"
+#include "Rect.h"
+#include <vector>
+#include "../vfx/InstancingModel.h"
+#include "../3d/Camera.h"
+#include <math/MathUtil.h>
 
 namespace KujakuEngine {
 
@@ -41,7 +45,6 @@ struct ConicalPendulum {
 	float angularVelocity;
 };
 
-
 class Segment {
 public:
 	Vector3 origin; // 始点
@@ -68,7 +71,6 @@ struct Plane {
 	float distance;
 };
 namespace ShapeUtil {
-
 
 bool IsCollision(const Sphere& sphere, const Plane& plane);
 
@@ -98,6 +100,8 @@ bool IsCollision(const OBB& obb, const Ray& ray);
 
 bool IsCollision(const OBB& obb1, const OBB& obb2);
 
+bool IsCollision(const Sphere& a, const Sphere& b);
+
 /// <summary>
 /// 軸が重なっているかどうか
 /// </summary>
@@ -105,6 +109,36 @@ bool IsOverlappingOnAxis(const OBB& A, const OBB& B, const Vector3& axis);
 
 Vector3 Reflect(const Vector3& input, const Vector3& normal);
 
+///< summary>
+/// CatmullRom補間
+///</summary>
+///< param name="po">点0の座標</param>
+///< param name="p1">点1の座標</param>
+///< param name="p2">点2の座標</param>
+///< param name="p3">点3の座標</param>
+///< param name="t">点1を0.0f、点2を1.0fとした割合指定</param>
+///< returns>点1と点2の間で指定された座標</returns>
+Vector3 CatmullRomInterpolation(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
+
+///< summary>
+/// CatmullRomスプライン曲線上の座標を得る
+///  </summary>
+///< param name="points">制御点の集合</param>
+/// <param name="t">スプラインの全区間の中での割合指定[0,1]</param>
+///< returns>座標</returns>
+Vector3 CatmullRomPosition(const std::vector<Vector3>& points, float t);
+
+void DrawSplineParticles(InstancingModel* model, const std::vector<Vector3>& controlPoints, const Camera& camera);
+
+/// <summary>
+/// 始点と終点から大きさの制限された線分を返します。
+/// </summary>
+/// <param name="start"></param>
+/// <param name="end"></param>
+/// <param name="maxDistance"></param>
+/// <returns></returns>
+Segment MakeLimitedSegment(const Vector3& start, const Vector3& end, float maxDistance);
+Segment MakeNattoSegment(const Vector3& start, const Vector3& end, float maxDistance, float minDistance);
 
 } // namespace ShapeUtil
 

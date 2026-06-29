@@ -52,6 +52,8 @@ enum class BlendMode {
 enum class PipelineType {
 	kObject3d,
 	kParticle,
+	kInstancingObject3d,
+	kObject3dWireframe,
 	kCountOfPipeLineType,
 };
 
@@ -71,7 +73,7 @@ class GraphicsPipeline {
 public:
 public:
 	friend class Model;
-	friend class ParticleModel;
+	friend class InstancingModel;
 	/// <summary>
 	/// シングルトンインスタンスの取得
 	/// </summary>
@@ -118,7 +120,7 @@ private:
 	/// <summary>
 	/// Particle用RootSignatureを生成する
 	/// </summary>
-	void CreateParticleRootSignature();
+	void CreateInstancingRootSignature();
 
 	/// <summary>
 	/// Object3d用PSOを生成する
@@ -128,7 +130,7 @@ private:
 	/// <summary>
 	/// Sprite用PSOを生成する
 	/// </summary>
-	void CreateParticlePipelineStateObject();
+	void CreateInstancingPipelineStateObject();
 
 private:
 	// DXCコンパイラ関連

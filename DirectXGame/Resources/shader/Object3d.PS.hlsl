@@ -139,7 +139,7 @@ PixelShaderOutput main(VertexShaderOutput input)
                 float32_t3 halfVectorPoint = normalize(pointLightDirection + toEye);
                 float32_t pointLightSpecularPow = pow(saturate(dot(normalize(input.normal), halfVectorPoint)), gMaterial.shininess);
                 
-
+ 
                 float32_t distance = length(pointLights[i].position - input.worldPosition); // ポイントライトへの距離
                 float32_t factor = pow(saturate(-distance / pointLights[i].radius + 1.0f), pointLights[i].decay); // 指数によるコントロール
                 
@@ -149,11 +149,12 @@ PixelShaderOutput main(VertexShaderOutput input)
                 float32_t3 pointLightSpecular = pointLights[i].color.rgb * pointLights[i].intensity * pointLightSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * factor;
                 
                 output.color.rgb += pointLightDiffuse + pointLightSpecular;
-
+ 
             }
             
             // SpotLights実装
             // ----------------------------------
+            if (gSpotLight.intensity > 0.0f)
             {  
                 // 方向
                 float32_t3 spotLightDirection = normalize(gSpotLight.position - input.worldPosition);
@@ -175,7 +176,7 @@ PixelShaderOutput main(VertexShaderOutput input)
                 float32_t3 spotLightSpecular = gSpotLight.color.rgb * gSpotLight.intensity * spotLightSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * attenuationFactor * falloffFactor;
                 
                 output.color.rgb += spotLightDiffuse + spotLightSpecular;
-
+ 
             }
             // アルファは今まで通り
             output.color.a = gMaterial.color.a * textureColor.a;

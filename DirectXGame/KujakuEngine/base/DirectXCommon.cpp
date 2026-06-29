@@ -14,8 +14,13 @@ DirectXCommon* DirectXCommon::GetInstance() {
 	return &instance;
 }
 
-void DirectXCommon::Initialize(WinApp* winApp, int32_t backBufferWidth, int32_t backBufferHeight, bool enableDebugLayer) {
+void DirectXCommon::Initialize(WinApp* winApp, Vector4 color , int32_t backBufferWidth, int32_t backBufferHeight, bool enableDebugLayer) {
 	assert(winApp);
+
+	clearColor_[0] = color.x;
+	clearColor_[1] = color.y;
+	clearColor_[2] = color.z;
+	clearColor_[3] = color.w;
 
 	winApp_ = winApp;
 	backBufferWidth_ = backBufferWidth;
@@ -135,13 +140,20 @@ void DirectXCommon::InitializeCommand() {
 	// コマンドキューの生成がうまくいかなかったので起動できない
 	assert(SUCCEEDED(hr));
 
-	// コマンドアロケータを生成する
-	hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator_));
-	// コマンドアロケータの生成がうまくいかなかったので起動できない
-	assert(SUCCEEDED(hr));
+	//// コマンドアロケータを生成する
+	// hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator_));
+	//// コマンドアロケータの生成がうまくいかなかったので起動できない
+	// assert(SUCCEEDED(hr));
+	for (uint32_t i = 0; i < kSwapChainBufferCount; ++i) {
+		// コマンドアロケータを生成する
+		hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocators_[i]));
+		// コマンドアロケータの生成がうまくいかなかったので起動できない
+		assert(SUCCEEDED(hr));
+	}
 
 	// コマンドリストを生成する
-	hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.Get(), nullptr, IID_PPV_ARGS(&commandList_));
+	// hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.Get(), nullptr, IID_PPV_ARGS(&commandList_));
+	hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocators_[0].Get(), nullptr, IID_PPV_ARGS(&commandList_));
 	// コマンドリストの生成がうまくいかなかったので起動できない
 	assert(SUCCEEDED(hr));
 }
@@ -160,7 +172,7 @@ void DirectXCommon::CreateSwapChain() {
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;           // 色の形式
 	swapChainDesc.SampleDesc.Count = 1;                          // マルチサンプルしない
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 描画のターゲットとして利用する
-	swapChainDesc.BufferCount = 2;                               // ダブルバッファ
+	swapChainDesc.BufferCount = kSwapChainBufferCount;           // ダブルバッファ
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;    // モニタにうつしたら、中身を破棄
 
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
@@ -171,11 +183,15 @@ void DirectXCommon::CreateSwapChain() {
 void DirectXCommon::CreateFinalRenderTargets() {
 	HRESULT hr;
 
-	hr = swapChain_->GetBuffer(0, IID_PPV_ARGS(&swapChainResources_[0]));
-	// うまく取得できなければ起動できない
-	assert(SUCCEEDED(hr));
-	hr = swapChain_->GetBuffer(1, IID_PPV_ARGS(&swapChainResources_[1]));
-	assert(SUCCEEDED(hr));
+	// hr = swapChain_->GetBuffer(0, IID_PPV_ARGS(&swapChainResources_[0]));
+	//// うまく取得できなければ起動できない
+	// assert(SUCCEEDED(hr));
+	// hr = swapChain_->GetBuffer(1, IID_PPV_ARGS(&swapChainResources_[1]));
+	// assert(SUCCEEDED(hr));
+	for (uint32_t i = 0; i < kSwapChainBufferCount; ++i) {
+		hr = swapChain_->GetBuffer(i, IID_PPV_ARGS(&swapChainResources_[i]));
+		assert(SUCCEEDED(hr));
+	}
 
 	// DescriptorSizeを取得しておく
 	const uint32_t descriptorSizeRTV = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -183,7 +199,8 @@ void DirectXCommon::CreateFinalRenderTargets() {
 	// RTV用のヒープでディスクリプタの数は2。RTVはShader内で触るものではないので、ShaderVisibleはfalse
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.NumDescriptors = 2;
+	// rtvHeapDesc.NumDescriptors = 2;
+	rtvHeapDesc.NumDescriptors = kSwapChainBufferCount;
 	hr = device_->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap_));
 	assert(SUCCEEDED(hr));
 
@@ -203,14 +220,19 @@ void DirectXCommon::CreateFinalRenderTargets() {
 	// ディスクリプタの先頭を取得する
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
 	// RTVを2つ作るのでディスクリプタを2つ用意
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
+	// D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[kSwapChainBufferCount];
 	// まず1つ目を作る。1つ目は最初のところに作る。作る場所をこちらで指定してあげる必要がある
 	rtvHandles[0] = rtvStartHandle;
 	device_->CreateRenderTargetView(swapChainResources_[0].Get(), &rtvDesc, rtvHandles[0]);
-	// 2つ目のディスクリプタハンドルを得る(自力で)
-	rtvHandles[1].ptr = rtvHandles[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	// 2つ目を作る
-	device_->CreateRenderTargetView(swapChainResources_[1].Get(), &rtvDesc, rtvHandles[1]);
+	//// 2つ目のディスクリプタハンドルを得る(自力で)
+	// rtvHandles[1].ptr = rtvHandles[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	//// 2つ目を作る
+	// device_->CreateRenderTargetView(swapChainResources_[1].Get(), &rtvDesc, rtvHandles[1]);
+	for (uint32_t i = 1; i < kSwapChainBufferCount; ++i) {
+		rtvHandles[i].ptr = rtvHandles[i - 1].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		device_->CreateRenderTargetView(swapChainResources_[i].Get(), &rtvDesc, rtvHandles[i]);
+	}
 }
 
 ID3D12Resource* DirectXCommon::CreateBufferResource(size_t sizeInBytes) {
@@ -253,9 +275,11 @@ void DirectXCommon::ExecuteCommandAndWait() { // commandListをCloseし、comman
 	}
 
 	// 実行が完了したので、allocatorとcommandListをResetして次のコマンドを積めるようにする
-	hr = commandAllocator_->Reset();
+	// hr = commandAllocator_->Reset();
+	hr = commandAllocators_[backBufferIndex_]->Reset();
 	assert(SUCCEEDED(hr));
-	hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
+	// hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
+	hr = commandList_->Reset(commandAllocators_[backBufferIndex_].Get(), nullptr);
 	assert(SUCCEEDED(hr));
 }
 void DirectXCommon::CreateDepthBuffer() {
@@ -349,8 +373,7 @@ void DirectXCommon::ClearRenderTarget() {
 	commandList_->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
 	// 指定した色で画面全体をクリアする
-	float clearColor[] = {0.1f, 0.25f, 0.5f, 1.0f}; // 青っぽい色。RGBAの順
-	commandList_->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList_->ClearRenderTargetView(rtvHandle, clearColor_, 0, nullptr);
 }
 
 void DirectXCommon::ClearDepthBuffer() {
@@ -360,6 +383,7 @@ void DirectXCommon::ClearDepthBuffer() {
 }
 
 void DirectXCommon::PostDraw() {
+	const uint32_t currentBackBufferIndex = backBufferIndex_;
 	// 画面に描く処理はすべて終わり、画面に映すので、状態を遷移
 	// 今回はRenderTargetからPresentにする
 	D3D12_RESOURCE_BARRIER barrier{};
@@ -382,24 +406,38 @@ void DirectXCommon::PostDraw() {
 	// GPUとOSに画面の交換を行うよう通知する
 	swapChain_->Present(1, 0);
 
+	// VSync待ちによるPostDrawの周期的スパイクを避けるため、同期を切ってPresentする
+	// swapChain_->Present(0, 0);
+
 	// Fenceの値を更新
 	fenceValue_++;
+	fenceValues_[currentBackBufferIndex] = fenceValue_;
 	// GPUがここまでたどり着いたら、Fenceの値を指定した値に代入するようにSignalを送る
 	commandQueue_->Signal(fence_.Get(), fenceValue_);
 
-	// Fenceの値が指定したsignal値にたどり着いているか確認する
-	// GetCompletedValueの初期値はFence作成時に渡した初期値
+	// 1つの定数バッファを毎フレーム上書きしているため、GPUの読み取り完了を待ってから次フレームへ進む
 	if (fence_->GetCompletedValue() < fenceValue_) {
-		// 指定したSignalにたどりついていないので、たどり着くまで待つようにイベントを設定する
 		fence_->SetEventOnCompletion(fenceValue_, fenceEvent_);
+		WaitForSingleObject(fenceEvent_, INFINITE);
+	}
+
+	// 次のフレーム用のバックバッファを取得
+	backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
+
+	// 次に使うバックバッファ用の処理がGPUで終わっていなければ待機
+	if (fence_->GetCompletedValue() < fenceValues_[backBufferIndex_]) {
+		// 指定したSignalにたどりついていないので、たどり着くまで待つようにイベントを設定する
+		fence_->SetEventOnCompletion(fenceValues_[backBufferIndex_], fenceEvent_);
 		// イベント待つ
 		WaitForSingleObject(fenceEvent_, INFINITE);
 	}
 
 	// 次のフレーム用のコマンドリストを準備
-	hr = commandAllocator_->Reset();
+	//hr = commandAllocator_->Reset();
+	hr = commandAllocators_[backBufferIndex_]->Reset();
 	assert(SUCCEEDED(hr));
-	hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
+	//hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
+	hr = commandList_->Reset(commandAllocators_[backBufferIndex_].Get(), nullptr);
 	assert(SUCCEEDED(hr));
 }
 } // namespace KujakuEngine

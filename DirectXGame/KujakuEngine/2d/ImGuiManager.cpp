@@ -2,10 +2,6 @@
 #include "../base/DirectXCommon.h"
 #include "../base/WinApp.h"
 
-#include "../../externals/imgui/imgui.h"
-#include "../../externals/imgui/imgui_impl_dx12.h"
-#include "../../externals/imgui/imgui_impl_win32.h"
-
 namespace KujakuEngine {
 
 ImGuiManager* ImGuiManager::GetInstance() {
@@ -27,7 +23,7 @@ void ImGuiManager::Initialize() {
 	ImGui_ImplWin32_Init(winApp->GetHwnd());
 	ImGui_ImplDX12_Init(
 	    dxCommon->GetDevice(),
-	    2, // BufferCount（ダブルバッファ）
+	    dxCommon->GetSwapChainBufferCount(), // BufferCount
 	    DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, dxCommon->GetSrvDescriptorHeap(),
 	    // SRVヒープの先頭（index=0）をImGuiが使用する
 	    dxCommon->GetSrvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart(), dxCommon->GetSrvDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
@@ -37,7 +33,7 @@ void ImGuiManager::Initialize() {
 void ImGuiManager::Begin() {
 #ifdef USE_IMGUI
 
-	// main.cpp のフレーム先頭処理に対応
+	// エンジンのフレーム先頭処理に対応
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();

@@ -54,6 +54,9 @@ public:
 	Vector2 operator/(const Vector2& other) const;
 	Vector2& operator/=(const Vector2& other);
 
+	bool operator!=(const Vector2& other) const;
+	bool operator==(const Vector2& other) const;
+
 	// 行列変換
 	Vector2 Transform(const Matrix3x3& m) const;
 };

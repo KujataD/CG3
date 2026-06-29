@@ -1,5 +1,6 @@
 #include "DebugCamera.h"
 #include "../input/Input.h"
+#include "../2d/ImGuiManager.h"
 
 namespace KujakuEngine{
 
@@ -11,7 +12,7 @@ void DebugCamera::Initialize(Vector3 rotation, Vector3 translation) {
 
 void DebugCamera::Update() {
 	prevMousePos_ = mousePos_;
-	mousePos_ = Input::GetMousePos();
+	mousePos_ = Input::GetMouseClientPos();
 
 	if (Input::GetClick(1)) {
 		Vector2 dPos = mousePos_ - prevMousePos_;
@@ -45,16 +46,26 @@ void DebugCamera::Update() {
 		translation_.y -= kMoveSpeed;
 	}
 
+#ifdef USE_IMGUI
+
+	ImGui::Begin("DebugCamera");
+	ImGui::DragFloat3("Translation", &translation_.x, 0.01f);
+	ImGui::DragFloat3("Rotation", &rotation_.x, 0.01f);
+	ImGui::End();
+
+#endif // USE_IMGUI
+
+
 	// ビュー行列の更新
 	UpdateViewMatrix();
 }
 
 void DebugCamera::UpdateViewMatrix() {
 	// 回転行列と平行移動行列からワールド行列を計算する
-	matRot_ = Matrix4x4::MakeRotateXMatrix(rotation_.x) * Matrix4x4::MakeRotateYMatrix(rotation_.y);
-	Matrix4x4 cameraMatrix = matRot_ * Matrix4x4::MakeTranslateMatrix(translation_);
+	matRot_ = MakeRotateXMatrix(rotation_.x) * MakeRotateYMatrix(rotation_.y);
+	Matrix4x4 cameraMatrix = matRot_ * MakeTranslateMatrix(translation_);
 
 	// ワールド行列の逆行列
-	matView_ = Matrix4x4::Inverse(cameraMatrix);
+	matView_ = Inverse(cameraMatrix);
 }
 }

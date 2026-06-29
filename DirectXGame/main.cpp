@@ -10,10 +10,7 @@ using namespace KujakuEngine;
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// エンジン初期化
-	KujakuEngine::Initialize(L"LC2B_04_オオツカ_ダイチ_AL3", true);
-
-	// ImGuiManagerインスタンスの取得
-	ImGuiManager* imguiManager = ImGuiManager::GetInstance();
+	KujakuEngine::Initialize(L"LC2B_04_オオツカ_ダイチ_AL3");
 
 	// カメラ
 	// ------------------------------------------
@@ -46,7 +43,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	SpotLightData spotLight;
 	spotLight.position = {0.0f, 5.0f, 0.0f};
 	spotLight.distance = 50.0f;
-	spotLight.direction = Vector3::Normalize({0.0f, -1.0f, 0.0f});
+	spotLight.direction = Normalize({0.0f, -1.0f, 0.0f});
 	spotLight.intensity = 20.0f;
 	spotLight.decay = 1.0f;
 	spotLight.cosAngle = std::cos(std::numbers::pi_v<float> / 2.0f);
@@ -65,9 +62,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ゲームループ
 	while (KujakuEngine::Update()) {
-		Input::Update();
-
-		imguiManager->Begin();
 
 		///
 		/// ↓↓↓ 更新処理ここから ↓↓↓
@@ -118,7 +112,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #endif // USE_IMGUI
 
 		// ライト更新
-		spotLight.direction = Vector3::Normalize(spotLight.direction);
+		spotLight.direction = Normalize(spotLight.direction);
 		SpotLight::GetInstance()->SetLight(&spotLight);
 		
 

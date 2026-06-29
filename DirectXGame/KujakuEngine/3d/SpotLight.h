@@ -12,7 +12,7 @@ static const uint32_t kMaxSpotLight = 16;
 struct SpotLightData {
 	Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; // !< ライトの色
 	Vector3 position = {0.0f, 0.0f, 0.0f};    // !< ライトの位置
-	float intensity = 1.0f;                   // !< 輝度
+	float intensity = 0.0f;                   // !< 輝度
 	Vector3 direction;                        // !< スポットライトの方向
 	float distance;                           // !< ライトの届く最大距離
 	float decay = 1.0f;                       // !< 減衰率

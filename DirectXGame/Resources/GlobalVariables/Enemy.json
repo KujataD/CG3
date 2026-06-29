@@ -1,0 +1,37 @@
+{
+    "Enemy": {
+        "MoveSpeed": 0.23999999463558197,
+        "OffsetRotateArm_L": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "OffsetRotateArm_R": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "OffsetRotateBody": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "OffsetTransformArm_L": [
+            0.800000011920929,
+            0.0,
+            0.0
+        ],
+        "OffsetTransformArm_R": [
+            -0.800000011920929,
+            0.0,
+            0.0
+        ],
+        "OffsetTransformBody": [
+            0.0,
+            2.0,
+            0.0
+        ],
+        "RotateSpeed": 0.029999999329447746,
+        "RotationOffsetY": 3.1415927410125732
+    }
+}

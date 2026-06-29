@@ -92,6 +92,15 @@ Vector2& Vector2::operator/=(const Vector2& other) {
 	return *this;
 }
 
+bool Vector2::operator!=(const Vector2& other) const {
+	return (x != other.x || y != other.y);
+}
+
+bool Vector2::operator==(const Vector2& other) const {
+	return (x == other.x && y == other.y);
+}
+
+
 Vector2 Vector2::Transform(const Matrix3x3& m) const {
 	Vector2 result;
 	result.x = x * m.m[0][0] + y * m.m[1][0] + 1.0f * m.m[2][0];
