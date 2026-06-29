@@ -31,6 +31,7 @@ public:
 	/// OBJファイルからモデルを生成する(省略版)
 	/// </summary>
 	static Model* CreateFromOBJ(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
+	static Model* CreateFromGlTF(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
 
 	static Model* CreateSphere(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone, uint32_t subdivision = 16);
 
@@ -89,6 +90,7 @@ private:
 
 	// モデル頂点
 	std::vector<VertexData> vertices_;
+	Matrix4x4 rootLocalMatrix_ = MakeIdentity();
 
 	uint32_t textureIndex_;
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);

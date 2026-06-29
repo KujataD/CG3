@@ -72,6 +72,9 @@ public:
 			return false;
 		}
 		TransformationMatrix transformationMat = transformationMatrix;
+		// RootNodeのローカル行列をモデル固有の補正としてインスタンス行列に適用する
+		transformationMat.WVP = rootLocalMatrix_ * transformationMat.WVP;
+		transformationMat.World = rootLocalMatrix_ * transformationMat.World;
 		ParticleForGPU particleForGPU = {transformationMat.WVP, transformationMat.World, color};
 		instanceParticles_.push_back(particleForGPU);
 		return true;
@@ -100,6 +103,7 @@ private:
 
 	BlendMode blendMode_ = BlendMode::kNormal;
 
+	Matrix4x4 rootLocalMatrix_ = MakeIdentity();
 	uint32_t textureIndex_;
 
 	static inline const uint32_t kMaxInstance = 10000;

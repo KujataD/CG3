@@ -32,9 +32,16 @@ struct MaterialData {
 	uint32_t textureIndex;
 };
 
+struct Node {
+	Matrix4x4 localMatrix = {{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}};
+	std::string name;
+	std::vector<Node> children;
+};
+
 struct ModelData {
 	std::vector<VertexData> vertices;
 	MaterialData material;
+	Node rootNode;
 };
 
 enum class BlendMode {

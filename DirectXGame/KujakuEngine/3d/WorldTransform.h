@@ -48,6 +48,7 @@ public:
 	void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
 
 	void TransferMatrix(const Camera& camera) const;
+	void TransferMatrix(const Camera& camera, const Matrix4x4& worldMatrix) const;
 
 	TransformationMatrix GetMatrixData(const Camera& camera) const;
 	TransformationMatrix GetBillboardMatrixData(const Camera& camera) const;

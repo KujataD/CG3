@@ -2,9 +2,6 @@
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -26,10 +23,10 @@ std::string ResolveTexturePath(const std::string& directoryPath, const std::stri
 
 } // namespace
 
-ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename) {
+ModelData LoadModelFile(const std::string& directoryPath, const std::string& filename) {
 	ModelData modelData;
 
-	// Assimpを使ってOBJファイルを読む
+	// Assimpを使ってモデルファイルを読む
 	// ------------------------------------------
 	Assimp::Importer importer;
 	std::string filePath = directoryPath + "/" + filename;
@@ -41,6 +38,10 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 	const aiScene* scene = importer.ReadFile(filePath.c_str(), importFlags);
 	assert(scene);
 	assert(scene->HasMeshes()); // メッシュがないモデルは対応しない
+	assert(scene->mRootNode);
+
+	// RootNodeのローカル行列を保持し、描画時のモデル固有補正として利用する。
+	modelData.rootNode = ReadNode(scene->mRootNode);
 
 	// meshを解析する
 	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
@@ -61,9 +62,9 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 				aiVector3D& texcoord = mesh->mTextureCoords[0][vertexIndex];
 
 				VertexData vertex;
-				vertex.position = {position.x, position.y, position.z, 1.0f};
-				vertex.normal = {normal.x, normal.y, normal.z};
-				vertex.texcoord = {texcoord.x, texcoord.y};
+				vertex.position = { position.x, position.y, position.z, 1.0f };
+				vertex.normal = { normal.x, normal.y, normal.z };
+				vertex.texcoord = { texcoord.x, texcoord.y };
 
 				// aiProcess_MakeLeftHandedはZ反転なので、既存のX反転に合わせて手動変換する。
 				vertex.position.x *= -1.0f;
@@ -85,6 +86,24 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 	}
 
 	return modelData;
+}
+
+Node ReadNode(aiNode* node) {
+	Node result;
+	aiMatrix4x4 aiLocalMatrix = node->mTransformation; // nodeのlocalMatrixを取得
+	aiLocalMatrix.Transpose();                         // 列ベクトル形式を行ベクトル形式に転置
+	for (uint32_t i = 0; i < 4; ++i) {
+		for (uint32_t j = 0; j < 4; ++j) {
+			result.localMatrix.m[i][j] = aiLocalMatrix[i][j];
+		}
+	}
+	result.name = node->mName.C_Str();          // Node名を格納
+	result.children.resize(node->mNumChildren); // 子供の数だけ確保
+	for (uint32_t childIndex = 0; childIndex < node->mNumChildren; ++childIndex) {
+		// 再帰的に読んで階層構造を作っていく
+		result.children[childIndex] = ReadNode(node->mChildren[childIndex]);
+	}
+	return result;
 }
 
 MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
@@ -135,7 +154,7 @@ void SetCommonRenderState() {
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
 
 	// 描画用のDescriptorHeapの設定
-	ID3D12DescriptorHeap* descriptorHeaps[] = {dxCommon->GetSrvDescriptorHeap()};
+	ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon->GetSrvDescriptorHeap() };
 	commandList->SetDescriptorHeaps(1, descriptorHeaps);
 
 	// ビューポートの設定

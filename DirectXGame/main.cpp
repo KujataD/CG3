@@ -55,10 +55,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	WorldTransform ballTransform;
 	ballTransform.Initialize();
 	ballTransform.translation_ = {0.0f, -2.0f, 0.0f};
+	ballTransform.rotation_.x = std::numbers::pi_v<float> * -0.5f;
 
 	// テレイン
 	// ------------------------------------------
-	Model* modelTerrain = Model::CreateFromOBJ("terrain", ShaderModel::kBlingPhongReflection);
+	Model* modelTerrain = Model::CreateFromGlTF("plane", ShaderModel::kBlingPhongReflection);
 
 	// ゲームループ
 	while (KujakuEngine::Update()) {
@@ -76,6 +77,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// ボール
 		// --------------------------------------
+		ballTransform.rotation_.x += 0.02f;
 		ballTransform.UpdateMatrix(camera);
 
 		// Imgui
@@ -130,7 +132,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ParticleModel::PostDraw();
 
 		Model::PreDraw();
-		modelBall->Draw(ballTransform, camera);
+		//modelBall->Draw(ballTransform, camera);
 		modelTerrain->Draw(ballTransform, camera);
 		Model::PostDraw();
 

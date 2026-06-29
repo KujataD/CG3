@@ -3,13 +3,21 @@
 #include "GraphicsPipeline.h"
 #include <cstdint>
 #include <string>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 namespace KujakuEngine::ModelUtil {
 
 /// <summary>
-/// OBJファイルを読み込み、エンジン用のモデルデータに変換する
+/// モデルファイルを読み込み、エンジン用のモデルデータに変換する
 /// </summary>
-ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+ModelData LoadModelFile(const std::string& directoryPath, const std::string& filename);
+
+/// <summary>
+/// aiNodeをNodeに変換する。
+/// </summary>
+Node ReadNode(aiNode* node);
 
 /// <summary>
 /// MTLファイルからマテリアル情報を読み込む

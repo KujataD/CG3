@@ -40,13 +40,16 @@ void WorldTransform::UpdateMatrix(const Camera& camera, bool isBillboard) {
 	TransferMatrix(camera);
 }
 
-void WorldTransform::TransferMatrix(const Camera& camera) const { // WVP行列の生成
-	Matrix4x4 matWVP = matWorld_ * camera.matView * camera.matProjection;
+void WorldTransform::TransferMatrix(const Camera& camera) const { TransferMatrix(camera, matWorld_); }
+
+void WorldTransform::TransferMatrix(const Camera& camera, const Matrix4x4& worldMatrix) const {
+	// WVP行列の生成
+	Matrix4x4 matWVP = worldMatrix * camera.matView * camera.matProjection;
 
 	// 定数バッファへ転送
 	constMap_->WVP = matWVP;
-	constMap_->World = matWorld_;
-	constMap_->WorldInverseTranspose = Transpose(Inverse(matWorld_));
+	constMap_->World = worldMatrix;
+	constMap_->WorldInverseTranspose = Transpose(Inverse(worldMatrix));
 }
 
 TransformationMatrix WorldTransform::GetMatrixData(const Camera& camera) const {

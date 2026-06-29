@@ -15,9 +15,24 @@ Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel)
 	std::string directoryPathFinal = "Resources/" + objname;
 	std::string filename = objname + ".obj";
 
-	ModelData rawData = ModelUtil::LoadObjFile(directoryPathFinal, filename);
+	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);
 	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
 	ModelUtil::ResolveTextureIndex(rawData.material);
+	model->rootLocalMatrix_ = rawData.rootNode.localMatrix;
+	model->CreateVertexBuffer(rawData.vertices);
+	model->CreateMaterialBuffer(rawData.material);
+	return model;
+}
+
+Model* Model::CreateFromGlTF(const std::string& objname, ShaderModel shaderModel) {
+	Model* model = new Model();
+	std::string directoryPathFinal = "Resources/" + objname;
+	std::string filename = objname + ".gltf";
+
+	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);
+	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
+	ModelUtil::ResolveTextureIndex(rawData.material);
+	model->rootLocalMatrix_ = rawData.rootNode.localMatrix;
 	model->CreateVertexBuffer(rawData.vertices);
 	model->CreateMaterialBuffer(rawData.material);
 	return model;
@@ -279,8 +294,9 @@ void Model::PostDraw() {
 void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, FillMode fillMode) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 
-	// 描画直前のカメラでWVPを作り直す
-	worldTransform.TransferMatrix(camera);
+	// RootNodeのローカル行列をモデル固有の補正として描画時だけ適用する
+	Matrix4x4 modelWorldMatrix = rootLocalMatrix_ * worldTransform.matWorld_;
+	worldTransform.TransferMatrix(camera, modelWorldMatrix);
 
 	// RootSignature と PSO をセット
 	if (fillMode == kFillModeSolid) {

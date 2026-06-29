@@ -56,9 +56,10 @@ ParticleModel* ParticleModel::CreateFromOBJ(const std::string& objname, bool ena
 	std::string directoryPathFinal = "Resources/" + objname;
 	std::string filename = objname + ".obj";
 
-	ModelData rawData = ModelUtil::LoadObjFile(directoryPathFinal, filename);
+	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);
 	rawData.material.enableLighting = enableLighting;
 	ModelUtil::ResolveTextureIndex(rawData.material);
+	particle->rootLocalMatrix_ = rawData.rootNode.localMatrix;
 	particle->CreateVertexBuffer(rawData.vertices);
 	particle->CreateMaterialBuffer(rawData.material);
 	particle->Initialize();
