@@ -91,8 +91,6 @@ private:
 	std::vector<VertexData> vertices_;
 
 	uint32_t textureIndex_;
-	static ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
-	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
 	void CreateMaterialBuffer(const MaterialData& material);
 

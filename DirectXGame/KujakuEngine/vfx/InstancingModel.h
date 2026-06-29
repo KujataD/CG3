@@ -106,8 +106,6 @@ private:
 	InstancingModel(const InstancingModel&) = delete;
 	InstancingModel& operator=(const InstancingModel&) = delete;
 
-	static ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
-	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
 	void CreateMaterialBuffer(const MaterialData& material);
 };

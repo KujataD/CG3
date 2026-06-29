@@ -117,6 +117,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\3d\FollowCamera.cpp" />
     <ClCompile Include="KujakuEngine\3d\GraphicsPipeline.cpp" />
     <ClCompile Include="KujakuEngine\3d\Model.cpp" />
+    <ClCompile Include="KujakuEngine\3d\ModelUtil.cpp" />
     <ClCompile Include="KujakuEngine\3d\PointLight.cpp" />
     <ClCompile Include="KujakuEngine\3d\RailCameraController.cpp" />
     <ClCompile Include="KujakuEngine\3d\SpotLight.cpp" />
@@ -188,6 +189,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\3d\FollowCamera.h" />
     <ClInclude Include="KujakuEngine\3d\GraphicsPipeline.h" />
     <ClInclude Include="KujakuEngine\3d\Model.h" />
+    <ClInclude Include="KujakuEngine\3d\ModelUtil.h" />
     <ClInclude Include="KujakuEngine\3d\PointLight.h" />
     <ClInclude Include="KujakuEngine\3d\RailCameraController.h" />
     <ClInclude Include="KujakuEngine\3d\SpotLight.h" />

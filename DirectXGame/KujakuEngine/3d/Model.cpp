@@ -1,19 +1,12 @@
 #include "Model.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
-#include "../base/WinApp.h"
 #include "DirectionalLight.h"
 #include "GraphicsPipeline.h"
+#include "ModelUtil.h"
 #include "PointLight.h"
 #include "SpotLight.h"
-#include <cassert>
-#include <filesystem>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include <numbers>
 
 namespace KujakuEngine {
 
@@ -22,14 +15,9 @@ Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel)
 	std::string directoryPathFinal = "Resources/" + objname;
 	std::string filename = objname + ".obj";
 
-	ModelData rawData = LoadObjFile(directoryPathFinal, filename);
+	ModelData rawData = ModelUtil::LoadObjFile(directoryPathFinal, filename);
 	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
-	if (!rawData.material.textureFilePath.empty()) {
-		rawData.material.textureIndex = TextureManager::GetInstance()->LoadTexture(rawData.material.textureFilePath);
-	}
-	else {
-		rawData.material.textureIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
-	}
+	ModelUtil::ResolveTextureIndex(rawData.material);
 	model->CreateVertexBuffer(rawData.vertices);
 	model->CreateMaterialBuffer(rawData.material);
 	return model;
@@ -83,9 +71,7 @@ Model* Model::CreateSphere(const std::string& textureFilePath, ShaderModel shade
 	}
 
 	// MaterialData
-	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
-	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
 	model->CreateVertexBuffer(vertices);
 	model->CreateMaterialBuffer(defaultMaterial);
@@ -147,9 +133,7 @@ Model* Model::CreateCube(const std::string& textureFilePath, ShaderModel shaderM
 	};
 
 	// MaterialData
-	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
-	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
 	model->CreateVertexBuffer(vertices);
 	model->CreateMaterialBuffer(defaultMaterial);
@@ -194,9 +178,7 @@ Model* Model::CreatePlane(const std::string& textureFilePath, ShaderModel shader
 	}); // 右下
 
 	// MaterialData
-	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
-	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
 	model->CreateVertexBuffer(vertices);
 	model->CreateMaterialBuffer(defaultMaterial);
@@ -230,9 +212,7 @@ Model* Model::CreateTriangle(const std::string& textureFilePath, ShaderModel sha
 		}); // 左下
 
 	// MaterialData
-	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
-	defaultMaterial.textureIndex = TextureManager::GetInstance()->LoadTexture(textureFilePath);
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
 	model->CreateVertexBuffer(vertices);
 	model->CreateMaterialBuffer(defaultMaterial);
@@ -281,10 +261,7 @@ Model* Model::CreateTetrahedron(const std::string& textureFilePath, ShaderModel 
 	AddFace(v1, v2, v3);
 
 	// MaterialData
-	MaterialData defaultMaterial{};
-	defaultMaterial.enableLighting = static_cast<int32_t>(shaderModel);
-	defaultMaterial.textureIndex =
-		TextureManager::GetInstance()->LoadTexture(textureFilePath);
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
 	model->CreateVertexBuffer(vertices);
 	model->CreateMaterialBuffer(defaultMaterial);
@@ -292,33 +269,7 @@ Model* Model::CreateTetrahedron(const std::string& textureFilePath, ShaderModel 
 	return model;
 }
 void Model::PreDraw() {
-	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
-
-	// 描画用のDescriptorHeapの設定
-	ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon->GetSrvDescriptorHeap() };
-	commandList->SetDescriptorHeaps(1, descriptorHeaps);
-
-	// ビューポートの設定
-	D3D12_VIEWPORT viewport{};
-	viewport.Width = static_cast<float>(WinApp::kWindowWidth);
-	viewport.Height = static_cast<float>(WinApp::kWindowHeight);
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	commandList->RSSetViewports(1, &viewport);
-
-	// シザー矩形の設定
-	D3D12_RECT scissorRect{};
-	scissorRect.left = 0;
-	scissorRect.right = WinApp::kWindowWidth;
-	scissorRect.top = 0;
-	scissorRect.bottom = WinApp::kWindowHeight;
-	commandList->RSSetScissorRects(1, &scissorRect);
-
-	// プリミティブトポロジの設定（main.cpp で毎フレームセットしているものに対応）
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	ModelUtil::SetCommonRenderState();
 }
 
 void Model::PostDraw() {
@@ -364,87 +315,6 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, Fil
 
 	// 描画
 	commandList->DrawInstanced(vertexCount_, 1, 0, 0);
-}
-
-MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
-	MaterialData materialData;
-	std::string line;
-	std::ifstream file(directoryPath + "/" + filename);
-	assert(file.is_open());
-
-	while (std::getline(file, line)) {
-		std::string identifier;
-		std::istringstream s(line);
-		s >> identifier;
-
-		if (identifier == "map_Kd") {
-			std::string textureFilename;
-			s >> textureFilename;
-			// ファイル名だけ取り出す（絶対パス対策）
-			std::filesystem::path texPath(textureFilename);
-			materialData.textureFilePath = directoryPath + "/" + texPath.filename().string();
-		}
-	}
-	return materialData;
-}
-
-ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
-	ModelData modelData;
-
-	// Assimpをつかってobjファイルを読む
-	// ------------------------------------------
-	Assimp::Importer importer;
-	std::string filePath = directoryPath + "/" + filename;
-
-	// aiProcess_FlipWindingOrder <! 三角形の並び順を逆にする。
-	// aiProcess_Triangulate <! 四角形以上の面を三角形に分割する。
-	// aiProcess_FlipUVs !< UVをフリップする。
-	const aiScene* scene = importer.ReadFile(filePath.c_str(), aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_FlipUVs);
-	assert(scene);
-	assert(scene->HasMeshes()); // メッシュがないのは対応しない
-
-	// meshを解析する
-	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
-		aiMesh* mesh = scene->mMeshes[meshIndex];
-		assert(mesh->HasNormals());// 法線がないMeshは今回は非対応
-		assert(mesh->HasTextureCoords(0));// TexcoordがないMeshは今回は非対応
-		
-		// faceを解析する
-		for (uint32_t faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex) {
-			aiFace& face = mesh->mFaces[faceIndex];
-			assert(face.mNumIndices == 3);// 三角形のみサポート
-			
-			// vertexを解析する
-			for (uint32_t element = 0; element < face.mNumIndices; ++element) {
-				uint32_t vertexIndex = face.mIndices[element];
-				aiVector3D& position = mesh->mVertices[vertexIndex];
-				aiVector3D& normal = mesh->mNormals[vertexIndex];
-				aiVector3D& texcoord = mesh->mTextureCoords[0][vertexIndex];
-				VertexData vertex;
-				vertex.position = { position.x, position.y, position.z, 1.0f };
-				vertex.normal = { normal.x, normal.y, normal.z };
-				vertex.texcoord = { texcoord.x, texcoord.y };
-				//aiProcess_MakeLeftHandedはz*=-1で、右手->左手に変換するので手動で対処
-				vertex.position.x *= -1.0f;
-				vertex.normal.x *= -1.0f;
-				modelData.vertices.push_back(vertex);
-
-			}
-		}
-	}
-
-	for (uint32_t materialIndex = 0; materialIndex < scene->mNumMaterials; ++materialIndex) {
-		aiMaterial* material = scene->mMaterials[materialIndex];
-
-		// aiTextureType_DIFFUSE <! テクスチャを模様として利用する
-		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
-			aiString textureFilePath;
-			material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
-			modelData.material.textureFilePath = directoryPath + "/" + textureFilePath.C_Str();
-		}
-	}
-
-	return modelData;
 }
 
 void Model::CreateVertexBuffer(const std::vector<VertexData>& vertices) {

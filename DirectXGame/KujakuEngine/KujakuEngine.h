@@ -31,6 +31,7 @@
 #include "3d/DebugCamera.h"
 #include "3d/GraphicsPipeline.h"
 #include "3d/Model.h"
+#include "3d/ModelUtil.h"
 #include "3d/PointLight.h"
 #include "3d/RailCameraController.h"
 #include "3d/SpotLight.h"

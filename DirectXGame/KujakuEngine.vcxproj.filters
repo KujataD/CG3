@@ -99,6 +99,9 @@
     <ClCompile Include="KujakuEngine\3d\Model.cpp">
       <Filter>KujakuEngine\3d</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\3d\ModelUtil.cpp">
+      <Filter>KujakuEngine\3d</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\3d\WorldTransform.cpp">
       <Filter>KujakuEngine\3d</Filter>
     </ClCompile>
@@ -309,6 +312,9 @@
       <Filter>KujakuEngine\3d</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\3d\Model.h">
+      <Filter>KujakuEngine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\3d\ModelUtil.h">
       <Filter>KujakuEngine\3d</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\3d\WorldTransform.h">
