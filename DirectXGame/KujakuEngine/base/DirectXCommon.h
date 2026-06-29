@@ -40,6 +40,11 @@ public:
 	void PreDraw();
 
 	/// <summary>
+	/// ウィンドウのクライアントサイズに合わせてSwapChainをリサイズする
+	/// </summary>
+	void ResizeBackBuffer(int32_t width, int32_t height);
+
+	/// <summary>
 	/// Gameウィンドウ用描画開始
 	/// ここから後の3D/2D描画は、SwapChainではなくGame用RenderTargetへ描く
 	/// </summary>
@@ -98,11 +103,14 @@ public:
 	ID3D12DescriptorHeap* GetDsvDescriptorHeap() const { return dsvDescriptorHeap_.Get(); }
 	// ImGui::Imageへ渡すGame用RenderTargetのGPU側SRVハンドル。
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGameRenderSrvHandle() const { return gameRenderSrvHandleGPU_; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetGameRenderDsvHandle() const { return gameRenderDsvHandle_; }
 	uint32_t GetDescriptorSizeRTV() const { return descriptorSizeRTV_; }
 	uint32_t GetDescriptorSizeSRV() const { return descriptorSizeSRV_; }
 	uint32_t GetDescriptorSizeDSV() const { return descriptorSizeDSV_; }
 	int32_t GetBackBufferWidth() const { return backBufferWidth_; }
 	int32_t GetBackBufferHeight() const { return backBufferHeight_; }
+	int32_t GetGameRenderWidth() const { return gameRenderWidth_; }
+	int32_t GetGameRenderHeight() const { return gameRenderHeight_; }
 	uint32_t GetSwapChainBufferCount() const { return kSwapChainBufferCount; }
 	void SetBackBufferRenderTarget();
 
@@ -157,17 +165,21 @@ private:
 	///
 	/// </summary>
 	void CreateFinalRenderTargets();
+	void CreateSwapChainRenderTargetViews();
 
 	void CreateDepthBuffer();
 	// Gameウィンドウに表示するためのOffscreen RenderTargetを作成する。
 	void CreateGameRenderTarget();
+	void CreateGameDepthBuffer();
 	void CreateFence();
+	void WaitForGpu();
 	// 現在のバックバッファに対応するRTVを取得する。
 	D3D12_CPU_DESCRIPTOR_HANDLE GetBackBufferRtvHandle() const;
 
 private:
 	static const uint32_t kSwapChainBufferCount = 3;
 	static const uint32_t kGameRenderTargetRtvIndex = kSwapChainBufferCount;
+	static const uint32_t kGameRenderDsvIndex = 1;
 	static const uint32_t kRtvDescriptorCount = 256;
 	static const uint32_t kSrvDescriptorCount = 256;
 	static const uint32_t kDsvDescriptorCount = 32;
@@ -188,6 +200,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource_;
 	// Gameウィンドウへ表示するための描画結果を保持するテクスチャ。
 	Microsoft::WRL::ComPtr<ID3D12Resource> gameRenderResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> gameDepthStencilResource_;
 
 	// ディスクリプタヒープ
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap_;
@@ -207,8 +220,11 @@ private:
 	uint32_t backBufferIndex_ = 0;
 	int32_t backBufferWidth_ = 0;
 	int32_t backBufferHeight_ = 0;
+	int32_t gameRenderWidth_ = WinApp::kWindowWidth;
+	int32_t gameRenderHeight_ = WinApp::kWindowHeight;
 	// Game用RenderTargetへ描くためのRTV。CPUハンドルはOMSetRenderTargetsで使う。
 	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderRtvHandle_{};
+	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderDsvHandle_{};
 	// Game用RenderTargetをSRVとして作成するためのCPUハンドル。
 	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderSrvHandleCPU_{};
 	// ImGui::ImageでGame用RenderTargetを表示するためのGPUハンドル。
@@ -220,7 +236,7 @@ private:
 	// テクスチャのインデックス管理カウンター
 	uint32_t srvIndexCounter_ = 1;
 	uint32_t rtvIndexCounter_ = kGameRenderTargetRtvIndex + 1;
-	uint32_t dsvIndexCounter_ = 1;
+	uint32_t dsvIndexCounter_ = kGameRenderDsvIndex + 1;
 };
 
 } // namespace KujakuEngine

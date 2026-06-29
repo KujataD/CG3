@@ -1,4 +1,5 @@
 #include "WinApp.h"
+#include "DirectXCommon.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -22,6 +23,17 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	
 	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
+	case WM_SIZE:
+		if (wparam != SIZE_MINIMIZED) {
+			DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+			if (dxCommon->IsInitialized()) {
+				int32_t width = static_cast<int32_t>(LOWORD(lparam));
+				int32_t height = static_cast<int32_t>(HIWORD(lparam));
+				dxCommon->ResizeBackBuffer(width, height);
+			}
+		}
+		return 0;
+
 		// ウィンドウが破棄された
 	case WM_DESTROY:
 		// OSに対して、アプリの終了を伝える

@@ -361,11 +361,37 @@ void ImGuiManager::DrawGameWindow() {
 
 	// DirectXCommonが作ったGame用RenderTargetのSRVをImGuiへ渡す。
 	// 描画本体はEditorApplicationでBeginGameRenderからEndGameRenderの間に行われる。
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = DirectXCommon::GetInstance()->GetGameRenderSrvHandle();
-	ImVec2 imagePosition = ImGui::GetCursorScreenPos();
-	// Gameウィンドウの現在サイズに合わせてRenderTargetを表示する。
-	ImGui::Image(static_cast<ImTextureID>(handle.ptr), contentSize, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
-	DrawTransformGizmo(imagePosition, contentSize);
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = dxCommon->GetGameRenderSrvHandle();
+
+	float gameAspect = 16.0f / 9.0f;
+	if (dxCommon->GetGameRenderHeight() > 0) {
+		gameAspect = static_cast<float>(dxCommon->GetGameRenderWidth()) / static_cast<float>(dxCommon->GetGameRenderHeight());
+	}
+
+	ImVec2 imageSize = contentSize;
+	ImVec2 imageOffset = {0.0f, 0.0f};
+	float contentAspect = contentSize.x / contentSize.y;
+	if (contentAspect > gameAspect) {
+		imageSize.y = contentSize.y;
+		imageSize.x = imageSize.y * gameAspect;
+		imageOffset.x = (contentSize.x - imageSize.x) * 0.5f;
+	} else {
+		imageSize.x = contentSize.x;
+		imageSize.y = imageSize.x / gameAspect;
+		imageOffset.y = (contentSize.y - imageSize.y) * 0.5f;
+	}
+
+	ImVec2 contentPosition = ImGui::GetCursorScreenPos();
+	ImVec2 contentEnd = {contentPosition.x + contentSize.x, contentPosition.y + contentSize.y};
+	ImVec2 imagePosition = {contentPosition.x + imageOffset.x, contentPosition.y + imageOffset.y};
+	ImVec2 imageEnd = {imagePosition.x + imageSize.x, imagePosition.y + imageSize.y};
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	drawList->AddRectFilled(contentPosition, contentEnd, IM_COL32(0, 0, 0, 255));
+	drawList->AddImage(static_cast<ImTextureID>(handle.ptr), imagePosition, imageEnd, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+	ImGui::Dummy(contentSize);
+	DrawTransformGizmo(imagePosition, imageSize);
 	ImGui::End();
 #endif // USE_IMGUI
 }

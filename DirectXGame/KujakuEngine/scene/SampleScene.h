@@ -35,7 +35,7 @@ public:
 	/// <summary>
 	/// Editor操作で使うCameraを取得
 	/// </summary>
-	Camera* GetEditorCamera() override { return &camera_; }
+	Camera* GetEditorCamera() override { return currentViewCamera_; }
 
 	/// <summary>
 	/// EditorのHierarchyからCubeを作成する
@@ -54,9 +54,12 @@ public:
 
 private:
 	void UpdateSceneView();
+	void ApplyRenderCameraToModelRenderers(const Camera* camera);
 
 private:
 	Camera camera_;
+	Camera editorCamera_;
+	Camera* currentViewCamera_ = &camera_;
 	DebugCamera debugCamera_;
 	SpotLightData spotLight_{};
 };

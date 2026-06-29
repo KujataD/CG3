@@ -33,6 +33,7 @@ void DirectXCommon::Initialize(WinApp* winApp, Vector4 color , int32_t backBuffe
 	CreateFinalRenderTargets();
 	CreateDepthBuffer();
 	CreateGameRenderTarget();
+	CreateGameDepthBuffer();
 	CreateFence();
 
 	initialized_ = true;
@@ -102,7 +103,6 @@ void DirectXCommon::InitializeDXGIDevice(bool enableDebugLayer) {
 	Logger::Log("Complete create D3D12Device!!!\n");
 
 #pragma endregion
-
 #pragma region DX12のエラーチェック
 #ifdef _DEBUG
 	if (enableDebugLayer) {
@@ -194,9 +194,6 @@ void DirectXCommon::CreateFinalRenderTargets() {
 		assert(SUCCEEDED(hr));
 	}
 
-	// DescriptorSizeを取得しておく
-	const uint32_t descriptorSizeRTV = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
 	// RTV用のヒープを作成する。SwapChain/Gameウィンドウ/Projectモデルプレビュー用に余裕を持って確保する。
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -212,6 +209,10 @@ void DirectXCommon::CreateFinalRenderTargets() {
 	hr = device_->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&srvDescriptorHeap_));
 	assert(SUCCEEDED(hr));
 
+	CreateSwapChainRenderTargetViews();
+}
+
+void DirectXCommon::CreateSwapChainRenderTargetViews() {
 	// RTVの設定
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;      // 出力結果をSRGBに変換して書き込む
@@ -219,18 +220,12 @@ void DirectXCommon::CreateFinalRenderTargets() {
 
 	// ディスクリプタの先頭を取得する
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	// RTVを2つ作るのでディスクリプタを2つ用意
-	// D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[kSwapChainBufferCount];
 	// まず1つ目を作る。1つ目は最初のところに作る。作る場所をこちらで指定してあげる必要がある
 	rtvHandles[0] = rtvStartHandle;
 	device_->CreateRenderTargetView(swapChainResources_[0].Get(), &rtvDesc, rtvHandles[0]);
-	//// 2つ目のディスクリプタハンドルを得る(自力で)
-	// rtvHandles[1].ptr = rtvHandles[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	//// 2つ目を作る
-	// device_->CreateRenderTargetView(swapChainResources_[1].Get(), &rtvDesc, rtvHandles[1]);
 	for (uint32_t i = 1; i < kSwapChainBufferCount; ++i) {
-		rtvHandles[i].ptr = rtvHandles[i - 1].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		rtvHandles[i].ptr = rtvHandles[i - 1].ptr + descriptorSizeRTV_;
 		device_->CreateRenderTargetView(swapChainResources_[i].Get(), &rtvDesc, rtvHandles[i]);
 	}
 }
@@ -242,8 +237,8 @@ void DirectXCommon::CreateGameRenderTarget() {
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	// まずはウィンドウのバックバッファサイズと同じ解像度で作る。
 	// Gameウィンドウ側ではImGui::Imageの表示サイズを変えて拡大縮小する。
-	resourceDesc.Width = backBufferWidth_;
-	resourceDesc.Height = backBufferHeight_;
+	resourceDesc.Width = gameRenderWidth_;
+	resourceDesc.Height = gameRenderHeight_;
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;
 	resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -298,6 +293,42 @@ void DirectXCommon::CreateGameRenderTarget() {
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 	device_->CreateShaderResourceView(gameRenderResource_.Get(), &srvDesc, gameRenderSrvHandleCPU_);
+}
+
+void DirectXCommon::CreateGameDepthBuffer() {
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Width = gameRenderWidth_;
+	resourceDesc.Height = gameRenderHeight_;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	D3D12_CLEAR_VALUE depthClearValue{};
+	depthClearValue.DepthStencil.Depth = 1.0f;
+	depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+	HRESULT hr = device_->CreateCommittedResource(
+	    &heapProperties,
+	    D3D12_HEAP_FLAG_NONE,
+	    &resourceDesc,
+	    D3D12_RESOURCE_STATE_DEPTH_WRITE,
+	    &depthClearValue,
+	    IID_PPV_ARGS(&gameDepthStencilResource_));
+	assert(SUCCEEDED(hr));
+
+	gameRenderDsvHandle_ = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	gameRenderDsvHandle_.ptr += descriptorSizeDSV_ * kGameRenderDsvIndex;
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	device_->CreateDepthStencilView(gameDepthStencilResource_.Get(), &dsvDesc, gameRenderDsvHandle_);
 }
 
 ID3D12Resource* DirectXCommon::CreateBufferResource(size_t sizeInBytes) {
@@ -378,12 +409,14 @@ void DirectXCommon::CreateDepthBuffer() {
 	    IID_PPV_ARGS(&depthStencilResource_));
 	assert(SUCCEEDED(hr));
 
-	// DSV用のヒープ。通常Depthに加えてProjectモデルプレビュー用Depthも確保できるようにする。
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.NumDescriptors = kDsvDescriptorCount;
-	hr = device_->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvDescriptorHeap_));
-	assert(SUCCEEDED(hr));
+	if (!dsvDescriptorHeap_) {
+		// DSV用のヒープ。通常Depth、Gameウィンドウ、Projectモデルプレビュー用Depthも確保できるようにする。
+		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
+		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		dsvHeapDesc.NumDescriptors = kDsvDescriptorCount;
+		hr = device_->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvDescriptorHeap_));
+		assert(SUCCEEDED(hr));
+	}
 
 	// DSVの設定
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
@@ -424,6 +457,41 @@ void DirectXCommon::PreDraw() {
 
 	ClearRenderTarget();
 	ClearDepthBuffer();
+}
+
+void DirectXCommon::ResizeBackBuffer(int32_t width, int32_t height) {
+	if (!initialized_) {
+		return;
+	}
+	if (width <= 0 || height <= 0) {
+		return;
+	}
+	if (backBufferWidth_ == width && backBufferHeight_ == height) {
+		return;
+	}
+
+	WaitForGpu();
+
+	for (uint32_t i = 0; i < kSwapChainBufferCount; ++i) {
+		swapChainResources_[i].Reset();
+		fenceValues_[i] = fenceValue_;
+	}
+	depthStencilResource_.Reset();
+
+	HRESULT hr = swapChain_->ResizeBuffers(kSwapChainBufferCount, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	assert(SUCCEEDED(hr));
+
+	backBufferWidth_ = width;
+	backBufferHeight_ = height;
+	backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
+
+	for (uint32_t i = 0; i < kSwapChainBufferCount; ++i) {
+		hr = swapChain_->GetBuffer(i, IID_PPV_ARGS(&swapChainResources_[i]));
+		assert(SUCCEEDED(hr));
+	}
+
+	CreateSwapChainRenderTargetViews();
+	CreateDepthBuffer();
 }
 
 void DirectXCommon::ClearRenderTarget() {
@@ -476,17 +544,15 @@ void DirectXCommon::BeginGameRender() {
 	commandList_->ResourceBarrier(1, &barrier);
 
 	// 以降のDraw呼び出しがGame用RenderTargetへ描かれるように、描画先を差し替える。
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	commandList_->OMSetRenderTargets(1, &gameRenderRtvHandle_, false, &dsvHandle);
+	commandList_->OMSetRenderTargets(1, &gameRenderRtvHandle_, false, &gameRenderDsvHandle_);
 	// 毎フレーム、Gameウィンドウ用の色と深度を初期化する。
 	commandList_->ClearRenderTargetView(gameRenderRtvHandle_, clearColor_, 0, nullptr);
-	commandList_->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList_->ClearDepthStencilView(gameRenderDsvHandle_, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	// 既存の描画コードはウィンドウ全体のビューポート前提なので、暫定的にバックバッファサイズで描く。
-	// 将来Gameウィンドウ解像度に合わせる場合は、ここへ可変サイズを渡す形にするとよい。
+	// Game用RenderTargetは固定解像度で描く。Gameウィンドウ側でアスペクト比を保って拡大縮小する。
 	D3D12_VIEWPORT viewport{};
-	viewport.Width = static_cast<float>(backBufferWidth_);
-	viewport.Height = static_cast<float>(backBufferHeight_);
+	viewport.Width = static_cast<float>(gameRenderWidth_);
+	viewport.Height = static_cast<float>(gameRenderHeight_);
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
 	viewport.MinDepth = 0.0f;
@@ -497,8 +563,8 @@ void DirectXCommon::BeginGameRender() {
 	D3D12_RECT scissorRect{};
 	scissorRect.left = 0;
 	scissorRect.top = 0;
-	scissorRect.right = backBufferWidth_;
-	scissorRect.bottom = backBufferHeight_;
+	scissorRect.right = gameRenderWidth_;
+	scissorRect.bottom = gameRenderHeight_;
 	commandList_->RSSetScissorRects(1, &scissorRect);
 }
 
@@ -575,4 +641,19 @@ void DirectXCommon::PostDraw() {
 	hr = commandList_->Reset(commandAllocators_[backBufferIndex_].Get(), nullptr);
 	assert(SUCCEEDED(hr));
 }
+
+void DirectXCommon::WaitForGpu() {
+	if (!commandQueue_ || !fence_) {
+		return;
+	}
+
+	fenceValue_++;
+	commandQueue_->Signal(fence_.Get(), fenceValue_);
+
+	if (fence_->GetCompletedValue() < fenceValue_) {
+		fence_->SetEventOnCompletion(fenceValue_, fenceEvent_);
+		WaitForSingleObject(fenceEvent_, INFINITE);
+	}
+}
 } // namespace KujakuEngine
+

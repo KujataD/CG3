@@ -3,6 +3,7 @@
 #include "../3d/DirectionalLight.h"
 #include "../3d/Model.h"
 #include "../3d/PointLight.h"
+#include "../Editor/EditorApplication.h"
 #include "../components/ModelRendererComponent.h"
 #include "../components/RotatorComponent.h"
 #include "../components/TransformSnapshotComponent.h"
@@ -19,7 +20,13 @@ void SampleScene::Initialize() {
 	camera_.translation_ = {0.0f, 0.0f, -20.0f};
 	camera_.UpdateMatrix();
 
-	debugCamera_.Initialize(camera_.rotation_, camera_.translation_);
+	editorCamera_.Initialize();
+	editorCamera_.translation_ = camera_.translation_;
+	editorCamera_.rotation_ = camera_.rotation_;
+	editorCamera_.UpdateMatrix();
+	currentViewCamera_ = &editorCamera_;
+
+	debugCamera_.Initialize(editorCamera_.rotation_, editorCamera_.translation_);
 
 	DirectionalLight::GetInstance()->GetData().intensity = 0.0f;
 
@@ -59,6 +66,7 @@ void SampleScene::Draw() {
 	ParticleModel::PostDraw();
 
 	Model::PreDraw();
+	ApplyRenderCameraToModelRenderers(currentViewCamera_);
 	Scene::Draw();
 	Model::PostDraw();
 
@@ -67,13 +75,40 @@ void SampleScene::Draw() {
 }
 
 void SampleScene::UpdateSceneView() {
-	debugCamera_.Update();
-	camera_.translation_ = debugCamera_.translation_;
-	camera_.rotation_ = debugCamera_.rotation_;
-	camera_.UpdateMatrix();
+	if (EditorApplication::GetInstance()->IsPlaying()) {
+		currentViewCamera_ = &camera_;
+		camera_.UpdateMatrix();
+	} else {
+		debugCamera_.Update();
+		editorCamera_.translation_ = debugCamera_.translation_;
+		editorCamera_.rotation_ = debugCamera_.rotation_;
+		editorCamera_.UpdateMatrix();
+		currentViewCamera_ = &editorCamera_;
+	}
 
 	spotLight_.direction = Normalize(spotLight_.direction);
 	SpotLight::GetInstance()->SetLight(&spotLight_);
+}
+
+void SampleScene::ApplyRenderCameraToModelRenderers(const Camera* camera) {
+	for (const std::unique_ptr<GameObject>& gameObject : GetGameObjects()) {
+		if (!gameObject) {
+			continue;
+		}
+
+		for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+			if (!component) {
+				continue;
+			}
+
+			ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component.get());
+			if (!renderer) {
+				continue;
+			}
+
+			renderer->SetCamera(camera);
+		}
+	}
 }
 
 GameObject* SampleScene::CreateEditorCube() {
@@ -82,7 +117,7 @@ GameObject* SampleScene::CreateEditorCube() {
 		return nullptr;
 	}
 
-	ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(&camera_);
+	ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(currentViewCamera_);
 	if (renderer) {
 		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");
 	}
@@ -96,7 +131,7 @@ GameObject* SampleScene::CreateEditorSphere() {
 		return nullptr;
 	}
 
-	ModelRendererComponent* renderer = sphere->AddComponent<ModelRendererComponent>(&camera_);
+	ModelRendererComponent* renderer = sphere->AddComponent<ModelRendererComponent>(currentViewCamera_);
 	if (renderer) {
 		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/monsterBall.png");
 	}
@@ -112,7 +147,7 @@ void SampleScene::OnEditorComponentAdded(GameObject* gameObject, Component* comp
 		return;
 	}
 
-	renderer->SetCamera(&camera_);
+	renderer->SetCamera(currentViewCamera_);
 }
 
 } // namespace KujakuEngine

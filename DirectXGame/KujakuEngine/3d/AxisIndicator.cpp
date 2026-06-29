@@ -99,7 +99,7 @@ namespace KujakuEngine {
 		commandList->RSSetScissorRects(1, &axisScissorRect);
 
 		// 深度残ってると、たまに見えんくなるからここだけ深度リセット
-		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon->GetDsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon->GetGameRenderDsvHandle();
 		commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &axisScissorRect);
 
 		// モデル描画
