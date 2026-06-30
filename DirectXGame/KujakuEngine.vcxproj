@@ -112,7 +112,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\2d\ImGuiManager.cpp" />
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
     <ClCompile Include="KujakuEngine\components\BuiltinComponents.cpp" />
+    <ClCompile Include="KujakuEngine\components\CameraComponent.cpp" />
+    <ClCompile Include="KujakuEngine\components\DebugCameraComponent.cpp" />
+    <ClCompile Include="KujakuEngine\components\DirectionalLightComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp" />
+    <ClCompile Include="KujakuEngine\components\PointLightComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\TransformComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\TransformSnapshotComponent.cpp" />
@@ -201,7 +205,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\2d\ImGuiManager.h" />
     <ClInclude Include="KujakuEngine\2d\Sprite.h" />
     <ClInclude Include="KujakuEngine\components\BuiltinComponents.h" />
+    <ClInclude Include="KujakuEngine\components\CameraComponent.h" />
+    <ClInclude Include="KujakuEngine\components\DebugCameraComponent.h" />
+    <ClInclude Include="KujakuEngine\components\DirectionalLightComponent.h" />
     <ClInclude Include="KujakuEngine\components\ModelRendererComponent.h" />
+    <ClInclude Include="KujakuEngine\components\PointLightComponent.h" />
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h" />
     <ClInclude Include="KujakuEngine\components\TransformComponent.h" />
     <ClInclude Include="KujakuEngine\components\TransformSnapshotComponent.h" />

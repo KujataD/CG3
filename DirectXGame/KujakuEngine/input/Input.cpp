@@ -94,11 +94,11 @@ void Input::Initialize() {
 	hr = directInput_->CreateDevice(GUID_SysKeyboard, &keyboard_, NULL);
 	assert(SUCCEEDED(hr));
 
-	// キーボード入力データの形式を設定する。
+	// キーボード入力データの形式 。
 	hr = keyboard_->SetDataFormat(&c_dfDIKeyboard);
 	assert(SUCCEEDED(hr));
 
-	// キーボードの協調レベルを設定する。
+	// キーボードの協調レベル 。
 	hr = keyboard_->SetCooperativeLevel(hwnd_, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
 	assert(SUCCEEDED(hr));
 
@@ -106,10 +106,10 @@ void Input::Initialize() {
 	hr = directInput_->CreateDevice(GUID_SysMouse, &mouse_, NULL);
 	assert(SUCCEEDED(hr));
 
-	// マウス入力データの形式を設定する。
+	// マウス入力データの形式 。
 	hr = mouse_->SetDataFormat(&c_dfDIMouse2);
 
-	// マウスの協調レベルを設定する。
+	// マウスの協調レベル 。
 	mouse_->SetCooperativeLevel(hwnd_, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
 }
 

@@ -94,13 +94,7 @@ bool ContainsPointer(const std::vector<Component*>& components, Component* targe
 GameObject* FindExistingGameObject(Scene& scene, size_t objectIndex, const std::string& objectName, const std::vector<GameObject*>& importedObjects) {
 	std::vector<std::unique_ptr<GameObject>>& gameObjects = scene.GetGameObjects();
 
-	if (objectIndex < gameObjects.size()) {
-		GameObject* indexedObject = gameObjects[objectIndex].get();
-		if (indexedObject && !ContainsPointer(importedObjects, indexedObject)) {
-			return indexedObject;
-		}
-	}
-
+	// 標準GameObjectが増えても保存済みSceneを崩さないよう、まず名前一致を優先する。
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects) {
 		if (!gameObject) {
 			continue;
@@ -110,6 +104,13 @@ GameObject* FindExistingGameObject(Scene& scene, size_t objectIndex, const std::
 		}
 		if (gameObject->GetName() == objectName) {
 			return gameObject.get();
+		}
+	}
+
+	if (objectIndex < gameObjects.size()) {
+		GameObject* indexedObject = gameObjects[objectIndex].get();
+		if (indexedObject && !ContainsPointer(importedObjects, indexedObject)) {
+			return indexedObject;
 		}
 	}
 

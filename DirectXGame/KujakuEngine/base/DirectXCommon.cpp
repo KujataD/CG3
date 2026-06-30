@@ -502,7 +502,7 @@ void DirectXCommon::ClearRenderTarget() {
 
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
 
-	// 描画先のRTVとDSVを設定する
+	// 描画先のRTVとDSV 
 	commandList_->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
 	// 指定した色で画面全体をクリアする
@@ -627,7 +627,7 @@ void DirectXCommon::PostDraw() {
 
 	// 次に使うバックバッファ用の処理がGPUで終わっていなければ待機
 	if (fence_->GetCompletedValue() < fenceValues_[backBufferIndex_]) {
-		// 指定したSignalにたどりついていないので、たどり着くまで待つようにイベントを設定する
+		// 指定したSignalにたどりついていないので、たどり着くまで待つようにイベント 
 		fence_->SetEventOnCompletion(fenceValues_[backBufferIndex_], fenceEvent_);
 		// イベント待つ
 		WaitForSingleObject(fenceEvent_, INFINITE);

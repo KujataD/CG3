@@ -26,7 +26,7 @@ Node ReadNode(aiNode* node);
 MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 
 /// <summary>
-/// マテリアルのテクスチャパスからSRVインデックスを設定する
+/// マテリアルのテクスチャパスからSRVインデックス 
 /// </summary>
 void ResolveTextureIndex(MaterialData& material);
 
@@ -36,7 +36,7 @@ void ResolveTextureIndex(MaterialData& material);
 MaterialData CreateTexturedMaterial(const std::string& textureFilePath, int32_t enableLighting);
 
 /// <summary>
-/// 3Dモデル描画で共通のビューポート・シザー・トポロジを設定する
+/// 3Dモデル描画で共通のビューポート・シザー・トポロジ 
 /// </summary>
 void SetCommonRenderState();
 

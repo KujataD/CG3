@@ -1,6 +1,6 @@
 {
   "assetType": "GameObject",
-  "name": "Sphere",
+  "name": "Directional Light",
   "active": true,
   "components": [
     {
@@ -8,7 +8,7 @@
       "properties": {
         "rotation": [
           0.0,
-          0.0899999737739563,
+          0.0,
           0.0
         ],
         "scale": [
@@ -17,9 +17,9 @@
           1.0
         ],
         "translation": [
-          -0.5714707374572754,
-          -2.0798301696777344,
-          0.05157190561294556
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "type": "Transform"
@@ -27,11 +27,20 @@
     {
       "enabled": true,
       "properties": {
-        "modelPath": "player",
-        "primitive": "Sphere",
-        "texture": "resources/monsterBall.png"
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "direction": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "intensity": 0.0
       },
-      "type": "ModelRendererComponent"
+      "type": "DirectionalLightComponent"
     }
   ]
 }

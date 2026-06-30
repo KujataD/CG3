@@ -1,5 +1,9 @@
 #include "BuiltinComponents.h"
+#include "CameraComponent.h"
+#include "DebugCameraComponent.h"
+#include "DirectionalLightComponent.h"
 #include "ModelRendererComponent.h"
+#include "PointLightComponent.h"
 #include "RotatorComponent.h"
 #include "TransformSnapshotComponent.h"
 #include "../scene/ComponentFactory.h"
@@ -23,6 +27,22 @@ void RegisterBuiltinComponents() {
 
 	ComponentFactory::GetInstance().Register("ModelRendererComponent", []() {
 		return std::make_unique<ModelRendererComponent>();
+	});
+
+	ComponentFactory::GetInstance().Register("CameraComponent", []() {
+		return std::make_unique<CameraComponent>();
+	});
+
+	ComponentFactory::GetInstance().Register("DebugCameraComponent", []() {
+		return std::make_unique<DebugCameraComponent>();
+	});
+
+	ComponentFactory::GetInstance().Register("DirectionalLightComponent", []() {
+		return std::make_unique<DirectionalLightComponent>();
+	});
+
+	ComponentFactory::GetInstance().Register("PointLightComponent", []() {
+		return std::make_unique<PointLightComponent>();
 	});
 
 	registered = true;

@@ -9,6 +9,9 @@
 
 namespace KujakuEngine {
 
+class Camera;
+class GameObject;
+
 /// <summary>
 /// ImGui管理クラス
 /// 初期化・フレーム開始・描画・終了処理を一括管理する
@@ -79,6 +82,8 @@ private:
 	void LoadGizmoIcons();
 	void DrawGizmoToolbar();
 	void DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2& imageSize);
+	void HandleGameWindowObjectSelection(const ImVec2& imagePosition, const ImVec2& imageSize);
+	GameObject* PickGameObjectInGameWindow(const ImVec2& mousePosition, const ImVec2& imagePosition, const ImVec2& imageSize, const Camera& camera);
 	bool DrawGizmoModeButton(const char* id, const char* fallbackLabel, uint32_t textureIndex, TransformGizmoOperation operation, const char* tooltip);
 
 private:

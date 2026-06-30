@@ -1,11 +1,14 @@
 #pragma once
 
 #include "Scene.h"
-#include "../3d/Camera.h"
-#include "../3d/DebugCamera.h"
 #include "../3d/SpotLight.h"
+#include <string>
 
 namespace KujakuEngine {
+
+class Camera;
+class CameraComponent;
+class DebugCameraComponent;
 
 /// <summary>
 /// 現在のmain.cppにあったサンプル用Scene
@@ -35,7 +38,7 @@ public:
 	/// <summary>
 	/// Editor操作で使うCameraを取得
 	/// </summary>
-	Camera* GetEditorCamera() override { return currentViewCamera_; }
+	Camera* GetEditorCamera() override;
 
 	/// <summary>
 	/// EditorのHierarchyからCubeを作成する
@@ -54,13 +57,17 @@ public:
 
 private:
 	void UpdateSceneView();
+	void EnsureSceneServiceObjects();
+	GameObject* FindGameObjectByName(const std::string& name);
+	Camera* GetCurrentViewCamera();
+	void ApplySceneLights();
 	void ApplyRenderCameraToModelRenderers(const Camera* camera);
 
 private:
-	Camera camera_;
-	Camera editorCamera_;
-	Camera* currentViewCamera_ = &camera_;
-	DebugCamera debugCamera_;
+	CameraComponent* gameCameraComponent_ = nullptr;
+	CameraComponent* editorCameraComponent_ = nullptr;
+	DebugCameraComponent* editorDebugCameraComponent_ = nullptr;
+	CameraComponent* currentViewCameraComponent_ = nullptr;
 	SpotLightData spotLight_{};
 };
 

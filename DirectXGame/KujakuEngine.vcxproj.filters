@@ -135,7 +135,19 @@
     <ClCompile Include="KujakuEngine\components\BuiltinComponents.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\components\CameraComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\DebugCameraComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\DirectionalLightComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\PointLightComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp">
@@ -401,7 +413,19 @@
     <ClInclude Include="KujakuEngine\components\BuiltinComponents.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\components\CameraComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\DebugCameraComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\DirectionalLightComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\components\ModelRendererComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\PointLightComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h">

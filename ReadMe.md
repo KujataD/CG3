@@ -1,43 +1,340 @@
-# KujakuEngine README
+# KujakuEngine
 
-KujakuEngine は、DirectX 12 ベースの描画基盤に、ImGui Docking を使った簡易エディタ、Unity 風の `Scene` / `GameObject` / `Component` 構造、JSON による Scene 保存、Project Window、Transform Gizmo を追加した学習・制作向けエンジンです。
+KujakuEngine は、DirectX 12 の描画基盤に、ImGui Docking を使った簡易エディタ、Unity 風の `Scene` / `GameObject` / `Component` 構造、JSON による Scene 保存・復元、Project Window、Transform Gizmo を追加した学習・制作向けの C++ エンジンです。
 
-現在の設計では、`main.cpp` はできるだけ薄くし、Editor / Play の制御は `EditorApplication`、Object の更新・描画は `Scene`、個別機能は `Component` に寄せています。
+現在の設計では、`main.cpp` はできるだけ薄くし、Editor / Play の制御は `EditorApplication`、ゲーム内の Object 管理は `Scene`、個別の振る舞いは `Component` に寄せています。
 
-## 起動フロー
+## 目次
+
+- [必要環境](#必要環境)
+- [起動方法](#起動方法)
+- [全体構造](#全体構造)
+- [実行フロー](#実行フロー)
+- [Editor の使い方](#editor-の使い方)
+- [Play / Edit の仕様](#play--edit-の仕様)
+- [Scene / GameObject / Component](#scene--gameobject--component)
+- [標準 Component](#標準-component)
+- [Scene JSON 保存と復元](#scene-json-保存と復元)
+- [Game Window 選択と Transform Gizmo](#game-window-選択と-transform-gizmo)
+- [Camera / Light の扱い](#camera--light-の扱い)
+- [Model / Texture / 描画](#model--texture--描画)
+- [Project Window](#project-window)
+- [新しい Component の作り方](#新しい-component-の作り方)
+- [新しい Scene の作り方](#新しい-scene-の作り方)
+- [主要ファイル一覧](#主要ファイル一覧)
+- [実装時の注意](#実装時の注意)
+- [よくある問題](#よくある問題)
+
+## 必要環境
+
+- Windows
+- Visual Studio 2022 以降
+- C++20 相当のコンパイラ
+- DirectX 12
+- x64 / Debug または x64 / Release
+
+外部ライブラリは `DirectXGame/externals` 配下に置かれています。
+
+- Dear ImGui docking
+- ImGuizmo
+- DirectXTex
+- nlohmann/json
+- Assimp
+
+Assimp を使うモデル読み込みでは、プロジェクト側と Assimp 側の Runtime Library 設定を揃える必要があります。Debug で静的ランタイムを使うなら `/MTd`、Release で静的ランタイムを使うなら `/MT` に揃えます。
+
+## 起動方法
+
+1. `KujakuEngine.sln` を Visual Studio で開きます。
+2. 構成を `Debug`、プラットフォームを `x64` にします。
+3. スタートアッププロジェクトを `DirectXGame` にします。
+4. 実行します。
+
+エントリーポイントは `DirectXGame/main.cpp` です。
 
 ```cpp
-KujakuEngine::Initialize(L"LC2B_04_オオツカ_ダイチ_AL3");
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+	KujakuEngine::Initialize(L"LC2B_04_オオツカ_ダイチ_AL3");
 
-EditorApplication* editorApplication = EditorApplication::GetInstance();
-editorApplication->Initialize();
-editorApplication->SetCurrentScene(std::make_unique<SampleScene>());
+	EditorApplication* editorApplication = EditorApplication::GetInstance();
+	editorApplication->Initialize();
+	editorApplication->SetCurrentScene(std::make_unique<SampleScene>());
 
-while (KujakuEngine::Update()) {
-    editorApplication->BeginFrame();
-    editorApplication->Update();
-    editorApplication->Draw();
-    editorApplication->EndFrame();
+	while (KujakuEngine::Update()) {
+		editorApplication->BeginFrame();
+		editorApplication->Update();
+		editorApplication->Draw();
+		editorApplication->EndFrame();
+	}
+
+	editorApplication->Finalize();
+	KujakuEngine::Finalize();
+	return 0;
 }
-
-editorApplication->Finalize();
-KujakuEngine::Finalize();
 ```
 
-`KujakuEngine::Update()` はウィンドウメッセージ、入力、時間を更新します。`EditorApplication::Update()` は Editor UI を更新し、Play 中だけ `Scene::Update()` を呼びます。`EditorApplication::Draw()` は Edit / Play どちらでも `Scene::Draw()` を呼び、Game Window 用 RenderTarget へ描画します。
+`main.cpp` は `EditorApplication` を呼ぶだけに近い形になっています。Edit / Play の分岐や、Scene の Update を流すかどうかの判断は `main.cpp` には置かない方針です。
 
-## Editor の基本操作
+## 全体構造
 
-- `Hierarchy` の空き部分を右クリックすると `Create Entity` / `Create Cube` / `Create Sphere` を追加できます。
-- `Hierarchy` の GameObject を選択すると `Inspector` に Component が表示されます。
-- `Transform` は必須 Component なので削除できません。
-- `Inspector` の Add Component から登録済み Component を追加できます。
-- `Game` Window 左上のアイコンで Transform Gizmo の `Translate` / `Rotate` / `Scale` を切り替えます。
-- `Ctrl + S` で `DirectXGame/SceneJson/<SceneName>/` に Scene / GameObject JSON を保存します。
-- エディタ起動時は保存済み JSON があれば `SceneJsonImporter` が読み込み、前回保存時の GameObject / Component / Transform / ModelRenderer 設定を復元します。
-- `Project` Window のファイル右クリックメニューから `Copy File Path` と `Show in Explorer` を実行できます。
+```mermaid
+graph TD
+	main["DirectXGame/main.cpp"] --> engine["KujakuEngine::Initialize / Update / Finalize"]
+	main --> editorApp["EditorApplication"]
 
-## 保存構造
+	editorApp --> imgui["ImGuiManager"]
+	editorApp --> scene["Scene"]
+	editorApp --> jsonImport["SceneJsonImporter"]
+
+	imgui --> gameWindow["Game Window"]
+	imgui --> hierarchy["Hierarchy"]
+	imgui --> inspector["Inspector"]
+	imgui --> project["Project Window"]
+	imgui --> console["Console"]
+
+	scene --> gameObject["GameObject"]
+	gameObject --> transform["TransformComponent"]
+	gameObject --> component["Component"]
+	component --> renderer["ModelRendererComponent"]
+	component --> camera["CameraComponent / DebugCameraComponent"]
+	component --> light["DirectionalLightComponent / PointLightComponent"]
+
+	scene --> modelDraw["Model / Sprite / Particle Draw"]
+	modelDraw --> dx["DirectXCommon / GraphicsPipeline"]
+```
+
+責務は次のように分けています。
+
+| 層 | 主な役割 |
+| --- | --- |
+| `main.cpp` | エンジン初期化、EditorApplication 呼び出し、終了処理 |
+| `KujakuEngine` | WinApp、DirectXCommon、Input、Time、TextureManager などの初期化と毎フレーム更新 |
+| `EditorApplication` | EditorMode、Start / Stop、Scene 所有、Play 中だけ Scene Update を流す判断 |
+| `ImGuiManager` | ImGui 初期化、DockSpace、各 Editor Window、ショートカット、Gizmo、Game Window 表示 |
+| `Scene` | GameObject 一覧の所有、Update / Draw / Finalize の入口 |
+| `GameObject` | 名前、Active、必須 Transform、Component 一覧 |
+| `Component` | GameObject に追加する振る舞い、Inspector、JSON 保存・復元 |
+| `DirectXCommon` | DX12 Device、SwapChain、Command、Descriptor、Game 用 RenderTarget |
+
+## 実行フロー
+
+### 起動時
+
+1. `KujakuEngine::Initialize()` が呼ばれます。
+2. `WinApp` がウィンドウを作成します。
+3. `DirectXCommon` が DX12、SwapChain、Game 用 RenderTarget を初期化します。
+4. `ImGuiManager` が ImGui を初期化します。
+5. `GraphicsPipeline`、Light、TextureManager、Input、Random、Time などを初期化します。
+6. `EditorApplication::Initialize()` が呼ばれ、標準 Component を登録し、EditorMode を `Edit` にします。
+7. `EditorApplication::SetCurrentScene(std::make_unique<SampleScene>())` で Scene をセットします。
+8. `SampleScene::Initialize()` で初期 GameObject を作ります。
+9. `SceneJsonImporter` が `SceneJson` を探し、保存済み JSON があれば Scene に適用します。
+
+### 毎フレーム
+
+```cpp
+while (KujakuEngine::Update()) {
+	editorApplication->BeginFrame();
+	editorApplication->Update();
+	editorApplication->Draw();
+	editorApplication->EndFrame();
+}
+```
+
+各関数の中身は次のような役割です。
+
+| 関数 | 役割 |
+| --- | --- |
+| `KujakuEngine::Update()` | Windows メッセージ、Input、Time を更新 |
+| `EditorApplication::BeginFrame()` | ImGui のフレーム開始 |
+| `EditorApplication::Update()` | Editor UI を描画し、Play 中だけ `currentScene_->Update()` |
+| `EditorApplication::Draw()` | Game 用 RenderTarget に Scene を描画 |
+| `EditorApplication::EndFrame()` | ImGui 描画、SwapChain Present、Fence 待機 |
+
+## Editor の使い方
+
+起動すると ImGui Docking ベースの Editor が表示されます。
+
+| Window | 役割 |
+| --- | --- |
+| `Game` | ゲーム描画結果を表示します。Edit 中は DebugCamera、Play 中は Main Camera を使います。 |
+| `Hierarchy` | Scene 内の GameObject 一覧を表示します。選択状態は Inspector と同期します。 |
+| `Inspector` | 選択中 GameObject の名前、Active、Component を編集します。 |
+| `Project` | `DirectXGame` 配下のファイルを閲覧します。画像・モデルはプレビューできます。 |
+| `Console` | Editor の Start / Stop、JSON 保存・読込などのログを表示します。 |
+
+### 基本操作
+
+| 操作 | 内容 |
+| --- | --- |
+| `Start` ボタン | Edit から Play に移行します。 |
+| `Stop` ボタン | Play から Edit に戻ります。 |
+| `Ctrl + S` | 現在の Scene を JSON として保存します。 |
+| Hierarchy の左クリック | GameObject を選択します。 |
+| Game Window の左クリック | Edit 中だけ、描画されている GameObject を選択します。 |
+| Hierarchy の右クリック | `Entity`、`Cube`、`Sphere` を作成できます。 |
+| Inspector の `Add Component` | 登録済み Component を追加できます。 |
+| Project Window の右クリック | `Copy File Path`、`Show in Explorer` を実行できます。 |
+
+## Play / Edit の仕様
+
+EditorMode は `EditorApplication` が管理します。
+
+```cpp
+enum class EditorMode {
+	Edit,
+	Play,
+};
+```
+
+現在の仕様は次の通りです。
+
+| 状態 | Scene Update | Scene Draw | Camera |
+| --- | --- | --- | --- |
+| Edit | 呼ばない | 呼ぶ | Editor Debug Camera |
+| Play | 呼ぶ | 呼ぶ | Main Camera |
+
+`EditorApplication::Update()` では次の考え方で制御しています。
+
+```cpp
+void EditorApplication::Update() {
+	ImGuiManager::GetInstance()->DrawEditor();
+
+	if (ShouldUpdateGame() && currentScene_) {
+		currentScene_->Update();
+	}
+}
+```
+
+`ShouldUpdateGame()` は現在 `IsPlaying()` を返します。将来的に Scene Clone を実装する場合も、この入口を拡張する想定です。
+
+### Start / Stop
+
+`Start()` は Play に入り、Scene と GameObject と Component の `OnPlayStart()` を呼びます。
+
+`Stop()` は Edit に戻り、`OnPlayStop()` を呼びます。
+
+`TransformSnapshotComponent` を付けた GameObject は、Play 開始時の Transform を保存し、Stop 時に復元できます。ただし、現時点では Unity のような完全な PlayScene Clone はまだ実装していません。
+
+## Scene / GameObject / Component
+
+### Scene
+
+`Scene` は GameObject 一覧を所有し、Update / Draw の入口になります。
+
+```cpp
+class Scene {
+public:
+	virtual void Initialize();
+	virtual void Update();
+	virtual void Draw();
+	virtual void Finalize();
+
+	GameObject* CreateGameObject(const std::string& name = "GameObject");
+	GameObject* AddGameObject(std::unique_ptr<GameObject> gameObject);
+
+	std::vector<std::unique_ptr<GameObject>>& GetGameObjects();
+};
+```
+
+`main.cpp` や `EditorApplication` が個別の Player、Enemy、Model を直接 Update / Draw するのではなく、外側は Scene の入口だけを呼びます。
+
+```cpp
+if (ShouldUpdateGame() && currentScene_) {
+	currentScene_->Update();
+}
+
+if (currentScene_) {
+	currentScene_->Draw();
+}
+```
+
+### GameObject
+
+`GameObject` は Scene 上に存在する Object の最小単位です。
+
+主な情報は次の通りです。
+
+| 情報 | 内容 |
+| --- | --- |
+| `name_` | Hierarchy / Inspector に表示する名前 |
+| `active_` | 無効化された GameObject は Update / Draw 対象外 |
+| `TransformComponent` | 必須 Component。削除不可 |
+| `components_` | `std::vector<std::unique_ptr<Component>>` で所有する Component 一覧 |
+
+`GameObject` は必ず `TransformComponent` を持ちます。Inspector 上でも `Transform` は他の Component と同じ階層で表示されます。
+
+```text
+Transform
+ModelRendererComponent
+RotatorComponent
+```
+
+### Component
+
+`Component` は GameObject に追加する振る舞いの基底クラスです。
+
+```cpp
+class Component {
+public:
+	virtual void Initialize() {}
+	virtual void Update() {}
+	virtual void Draw() {}
+	virtual const char* GetTypeName() const { return "Component"; }
+	virtual void DrawInspector() {}
+	virtual void WriteJson(nlohmann::json& json) const {}
+	virtual void ReadJson(const nlohmann::json& json) {}
+	virtual void OnAfterReadJson() {}
+	virtual void OnPlayStart() {}
+	virtual void OnPlayStop() {}
+
+	virtual bool CanRemove() const { return true; }
+	virtual bool AllowMultiple() const { return true; }
+};
+```
+
+Component は次の目的を持ちます。
+
+- `Update()` で Play 中の挙動を作る。
+- `Draw()` で描画処理を行う。
+- `DrawInspector()` で Inspector の編集 UI を出す。
+- `WriteJson()` / `ReadJson()` で保存・復元する。
+- `OnPlayStart()` / `OnPlayStop()` で Play 開始・終了時の処理を行う。
+
+## 標準 Component
+
+現在登録されている標準 Component は `DirectXGame/KujakuEngine/components/BuiltinComponents.cpp` で登録されています。
+
+| Component | 役割 |
+| --- | --- |
+| `Transform` | GameObject の位置、回転、スケールを持つ必須 Component。削除不可、複数追加不可。 |
+| `ModelRendererComponent` | `Model` を GameObject の Transform で描画します。Cube / Sphere / Model / Custom を扱います。 |
+| `CameraComponent` | GameObject の Transform を Camera に反映します。 |
+| `DebugCameraComponent` | Edit 中の DebugCamera 操作を GameObject の Transform と Camera に反映します。 |
+| `DirectionalLightComponent` | DirectionalLight の GPU データを GameObject 上で管理します。 |
+| `PointLightComponent` | GameObject の Transform 位置を PointLight に反映します。 |
+| `RotatorComponent` | 所有 GameObject を回転させるサンプル Component です。 |
+| `TransformSnapshotComponent` | Play 開始時の Transform を保存し、Stop 時に戻します。 |
+
+Inspector の `Add Component` メニューには、`ComponentFactory` に登録された Component 名が表示されます。
+
+## Scene JSON 保存と復元
+
+### 保存操作
+
+`Ctrl + S` で現在の Scene を JSON として保存します。Export 専用ボタンは使わず、Editor ショートカットとして処理しています。
+
+実装場所は `ImGuiManager::HandleEditorShortcuts()` と `ImGuiManager::ExportCurrentSceneJson()` です。
+
+```cpp
+if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+	ExportCurrentSceneJson();
+}
+```
+
+### 保存先
+
+ProjectDir は通常 `DirectXGame` です。保存先は次の構造になります。
 
 ```text
 DirectXGame/
@@ -45,338 +342,624 @@ DirectXGame/
     SampleScene/
       SampleScene.scene.json
       GameObjects/
-        0000_MonsterBall.gameobject.json
+        0000_Main Camera.gameobject.json
+        0001_Editor Debug Camera.gameobject.json
+        0002_Directional Light.gameobject.json
+        0003_Point Light.gameobject.json
+        0004_MonsterBall.gameobject.json
+        ...
 ```
 
-Scene JSON は Scene 全体の構造、GameObject JSON は各 GameObject の `name` / `active` / `components` を持ちます。現在は参照解決に GUID を使っていないため、`.meta` は生成しません。
+`.meta` ファイルは現在生成しません。以前は Unity の meta 風ファイルを検討していましたが、現状のエンジンでは参照解決に使っていないため、生成処理は削除しています。
 
-## 新しい Component の追加方法
+### Scene JSON
 
-1. `Component` を継承したクラスを `DirectXGame/KujakuEngine/components/` に追加します。
-2. `GetTypeName()`、必要なら `Initialize()` / `Update()` / `Draw()` / `DrawInspector()` / `WriteJson()` / `ReadJson()` を実装します。
-3. Editor から追加したい場合は `BuiltinComponents.cpp` の `RegisterBuiltinComponents()` に登録します。
-4. `SceneJsonImporter.cpp` や `ImGuiManager.cpp` の Inspector 本体には、Component 個別処理を追加しません。
-
-Component の JSON は共通で `type` / `enabled` / `properties` を持ちます。`type` と `enabled` は基底 `Component` が扱い、各 Component は `properties` の中身だけを `WriteJson()` / `ReadJson()` で扱います。
+Scene 側の JSON は、GameObject JSON への参照を持ちます。
 
 ```json
 {
-  "type": "RotatorComponent",
-  "enabled": true,
-  "properties": {
-    "speed": 0.02
-  }
+  "assetType": "Scene",
+  "name": "SampleScene",
+  "gameObjects": [
+    {
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0004_MonsterBall.gameobject.json"
+    }
+  ]
 }
 ```
 
-```cpp
-class BlinkComponent : public Component {
-public:
-    const char* GetTypeName() const override { return "BlinkComponent"; }
-    void Update() override;
-    void DrawInspector() override;
-    void WriteJson(nlohmann::json& json) const override;
-    void ReadJson(const nlohmann::json& json) override;
-};
+### GameObject JSON
+
+GameObject 側の JSON は、名前、Active、Component 一覧を持ちます。
+
+```json
+{
+  "assetType": "GameObject",
+  "name": "MonsterBall",
+  "active": true,
+  "components": [
+    {
+      "type": "Transform",
+      "enabled": true,
+      "properties": {
+        "scale": [1.0, 1.0, 1.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "translation": [0.0, -2.0, 0.0]
+      }
+    },
+    {
+      "type": "ModelRendererComponent",
+      "enabled": true,
+      "properties": {
+        "primitive": "Sphere",
+        "texture": "resources/monsterBall.png",
+        "modelPath": "player"
+      }
+    }
+  ]
+}
 ```
 
-## 新しい Scene の追加方法
+### 起動時の復元
 
-`Scene` を継承し、`Initialize()` で初期 GameObject を作成、`Update()` で `Scene::Update()`、`Draw()` で描画前後処理と `Scene::Draw()` を呼びます。Editor の Camera が必要な場合は `GetEditorCamera()` を返します。
+`EditorApplication::SetCurrentScene()` の中で Scene 初期化後に `SceneJsonImporter::ImportScene()` を呼びます。
+
+```cpp
+currentScene_ = std::move(scene);
+if (currentScene_) {
+	currentScene_->Initialize();
+	SceneJsonImporter::ImportScene(*currentScene_, DetectEditorProjectRoot());
+}
+```
+
+保存済み JSON が存在する場合は、起動時にその内容が Scene へ適用されます。
+
+Import の特徴は次の通りです。
+
+- Scene 名から `SceneJson/<SceneName>/<SceneName>.scene.json` を探します。
+- GameObject はまず名前一致で既存 Object に適用します。
+- 一致しない場合は index を見ます。
+- それでも存在しない場合は新規 GameObject を作ります。
+- JSON にない削除可能 Component は削除されます。
+- JSON にない GameObject は削除されます。
+- Transform は必須 Component として扱い、削除しません。
+- Component は `ComponentFactory` に登録された型名から生成されます。
+
+## Game Window 選択と Transform Gizmo
+
+### Game Window のアスペクト比
+
+Game Window は Game 用 RenderTarget を `ImGui::Image` で表示しています。表示領域の縦横比が RenderTarget と合わない場合は、黒帯を描画して中央に表示します。
+
+```cpp
+drawList->AddRectFilled(contentPosition, contentEnd, IM_COL32(0, 0, 0, 255));
+drawList->AddImage(static_cast<ImTextureID>(handle.ptr), imagePosition, imageEnd);
+```
+
+マウス座標や Gizmo の矩形も、黒帯を除いた実際の `imagePosition` / `imageSize` を基準に計算しています。そのため、ウィンドウ最大化時でも Game Window 上の判定がずれにくい構造です。
+
+### GameObject のクリック選択
+
+Edit 中に Game Window を左クリックすると、描画中の GameObject を選択できます。
+
+実装場所は `ImGuiManager::HandleGameWindowObjectSelection()` と `ImGuiManager::PickGameObjectInGameWindow()` です。
+
+処理の流れは次の通りです。
+
+1. Play 中なら選択しません。
+2. Game Window 上のクリックか確認します。
+3. ImGuizmo 操作中なら選択しません。
+4. マウス座標を Game Window 内の NDC 座標に変換します。
+5. Camera の ViewProjection 逆行列で Ray を作ります。
+6. Scene 内の GameObject を走査します。
+7. `ModelRendererComponent` を持つ Object だけを対象にします。
+8. Model の頂点からローカル AABB を作ります。
+9. `Model::GetRootLocalMatrix()` と GameObject Transform を合わせて World 行列を作ります。
+10. Ray と AABB の交差判定を行い、最も近い Object を選択します。
+
+選択状態は `EditorSelection` が持ちます。Hierarchy と Inspector は同じ `EditorSelection` を見ているため、Game Window で選んだ Object は Hierarchy 側でも選択中に見えます。
+
+### Transform Gizmo
+
+Transform Gizmo は ImGuizmo を使っています。
+
+| モード | アイコン |
+| --- | --- |
+| Translate | `resources/images/icon_guizmo_translate.png` |
+| Rotate | `resources/images/icon_guizmo_rotate.png` |
+| Scale | `resources/images/icon_guizmo_scale.png` |
+
+`DrawTransformGizmo()` は選択中 GameObject の `TransformComponent` を取得し、ImGuizmo の操作結果を `WorldTransform` の `translation_`、`rotation_`、`scale_` に戻します。
+
+```cpp
+WorldTransform& transform = transformComponent->GetTransform();
+Matrix4x4 gizmoMatrix = MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
+
+ImGuizmo::Manipulate(
+	MatrixData(camera->matView),
+	MatrixData(camera->matProjection),
+	operation,
+	ImGuizmo::LOCAL,
+	MatrixData(gizmoMatrix));
+```
+
+Scale は 0 に近づきすぎると描画や行列計算が壊れやすいため、最小値を `0.001f` に補正しています。
+
+## Camera / Light の扱い
+
+Camera、DebugCamera、DirectionalLight、PointLight は GameObject + Component として扱います。
+
+`SampleScene::EnsureSceneServiceObjects()` が、標準サービス Object を存在確認し、なければ作成します。
+
+| GameObject | Component | 役割 |
+| --- | --- | --- |
+| `Main Camera` | `CameraComponent` | Play 中の表示 Camera |
+| `Editor Debug Camera` | `CameraComponent` + `DebugCameraComponent` | Edit 中の表示 Camera |
+| `Directional Light` | `DirectionalLightComponent` | 平行光源 |
+| `Point Light` | `PointLightComponent` | 点光源 |
+
+Edit 中は `Editor Debug Camera` を使い、Play 中は `Main Camera` を使います。
+
+```cpp
+if (EditorApplication::GetInstance()->IsPlaying()) {
+	currentViewCameraComponent_ = gameCameraComponent_;
+} else {
+	editorDebugCameraComponent_->UpdateEditorCamera();
+	currentViewCameraComponent_ = editorCameraComponent_;
+}
+```
+
+Light は `SampleScene::ApplySceneLights()` で Scene 内 Component を走査し、GPU 側の Light 管理クラスへ反映します。
+
+## Model / Texture / 描画
+
+### Model
+
+`Model` は 3D モデルの頂点バッファ、マテリアル、テクスチャ、描画処理を持ちます。
+
+主な生成関数は次の通りです。
+
+```cpp
+Model* model = Model::CreateFromOBJ("player", ShaderModel::kBlingPhongReflection);
+Model* gltf = Model::CreateFromGlTF("plane", ShaderModel::kBlingPhongReflection);
+Model* cube = Model::CreateCube("resources/monsterBall.png", ShaderModel::kBlingPhongReflection);
+Model* sphere = Model::CreateSphere("resources/monsterBall.png", ShaderModel::kBlingPhongReflection);
+```
+
+`ModelUtil` は Assimp を使って OBJ / glTF などを読み込み、エンジン内部の `ModelData` へ変換します。Assimp 読み込み時は三角形化を前提にしており、四角形や多角形を含むモデルでも三角形として扱いやすくします。
+
+`Model::GetRootLocalMatrix()` は Assimp の RootNode 行列を保持するために使います。描画や Game Window のクリック選択では、GameObject の Transform だけでなく RootNode のローカル行列も考慮します。
+
+### ModelRendererComponent
+
+`ModelRendererComponent` は GameObject の Transform で `Model` を描画する Component です。
+
+Scene 内で描画用 Camera を取得できる場合は、次のように追加します。
+
+```cpp
+Camera* renderCamera = GetEditorCamera();
+
+GameObject* cube = CreateGameObject("Cube");
+ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(renderCamera);
+renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");
+```
+
+Inspector では次の項目を編集できます。
+
+- `Primitive`: `Custom` / `Cube` / `Sphere` / `Model`
+- `Texture`: テクスチャパス
+- `Model`: モデルフォルダ名
+- `Apply`: 設定を反映
+
+現状の Editor 用途では、主に `Cube` / `Sphere` と Texture 変更が安定して使えます。OBJ / glTF の Editor 上での本格的な選択・永続化は今後拡張予定です。
+
+### TextureManager
+
+`TextureManager` はテクスチャ読み込みと SRV 管理を担当します。
+
+```cpp
+uint32_t textureIndex = TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");
+D3D12_GPU_DESCRIPTOR_HANDLE handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex);
+```
+
+Project Window では任意ファイルを扱うため、失敗しても assert しない `TryLoadTexture()` を使っています。
+
+## Project Window
+
+`ProjectWindow` は Unity の Project Window に近いファイル閲覧 UI です。
+
+Project root は `EditorProjectPath::DetectEditorProjectRoot()` で検出します。通常は `DirectXGame` が root になります。
+
+表示対象は ProjectDir 配下に制限されます。ProjectDir 外へ移動しないようにガードしています。
+
+### アセット分類
+
+`ProjectAssetClassifier` が拡張子やフォルダ状態から表示方法を決めます。
+
+| 種類 | 表示 |
+| --- | --- |
+| Folder | 空 / 非空フォルダアイコン |
+| Image | 実画像プレビュー |
+| Model | 小さな RenderTarget に描いたモデルプレビュー |
+| Audio | 音声ファイルアイコン |
+| Other | 通常ファイルアイコン |
+
+### 右クリックメニュー
+
+Project Window のファイルを右クリックすると、次のメニューが出ます。
+
+| メニュー | 内容 |
+| --- | --- |
+| `Copy File Path` | 絶対パスをクリップボードにコピーします。 |
+| `Show in Explorer` | Explorer で対象ファイルを選択表示します。 |
+
+## 新しい Component の作り方
+
+ここでは、GameObject を Z 方向に動かす Component を例にします。
+
+### 1. ヘッダを作る
+
+`DirectXGame/KujakuEngine/components/MoveForwardComponent.h`
+
+```cpp
+#pragma once
+
+#include "../scene/Component.h"
+
+namespace KujakuEngine {
+
+class MoveForwardComponent : public Component {
+public:
+	const char* GetTypeName() const override { return "MoveForwardComponent"; }
+
+	void Update() override;
+	void DrawInspector() override;
+	void WriteJson(nlohmann::json& json) const override;
+	void ReadJson(const nlohmann::json& json) override;
+
+private:
+	float speed_ = 0.05f;
+};
+
+} // namespace KujakuEngine
+```
+
+### 2. cpp を作る
+
+`DirectXGame/KujakuEngine/components/MoveForwardComponent.cpp`
+
+```cpp
+#include "MoveForwardComponent.h"
+#include "../scene/GameObject.h"
+#ifdef USE_IMGUI
+#include "../../externals/imgui/imgui.h"
+#endif
+
+namespace KujakuEngine {
+
+void MoveForwardComponent::Update() {
+	GameObject* owner = GetOwner();
+	if (!owner) {
+		return;
+	}
+
+	owner->GetTransform().translation_.z += speed_;
+}
+
+void MoveForwardComponent::DrawInspector() {
+#ifdef USE_IMGUI
+	ImGui::DragFloat("Speed", &speed_, 0.001f);
+#endif
+}
+
+void MoveForwardComponent::WriteJson(nlohmann::json& json) const {
+	json["speed"] = speed_;
+}
+
+void MoveForwardComponent::ReadJson(const nlohmann::json& json) {
+	if (!json.contains("speed")) {
+		return;
+	}
+	if (!json.at("speed").is_number()) {
+		return;
+	}
+
+	speed_ = json.at("speed").get<float>();
+}
+
+} // namespace KujakuEngine
+```
+
+### 3. Factory に登録する
+
+`DirectXGame/KujakuEngine/components/BuiltinComponents.cpp` に include と登録を追加します。
+
+```cpp
+#include "MoveForwardComponent.h"
+
+ComponentFactory::GetInstance().Register("MoveForwardComponent", []() {
+	return std::make_unique<MoveForwardComponent>();
+});
+```
+
+登録すると、Inspector の `Add Component` メニューに表示され、JSON Import 時にも `type: "MoveForwardComponent"` から復元できるようになります。
+
+### 4. Visual Studio プロジェクトへ追加する
+
+新しい `.h` / `.cpp` は、Visual Studio のプロジェクトにも追加してください。ファイルを作っただけでは `.vcxproj` に含まれず、ビルドされないことがあります。
+
+## 新しい Scene の作り方
+
+`Scene` を継承して、`Initialize()`、`Update()`、`Draw()`、`GetSceneName()` などを実装します。
 
 ```cpp
 class MyScene : public Scene {
 public:
-    void Initialize() override {
-        camera_.Initialize();
-        GameObject* object = CreateGameObject("Cube");
-        object->AddComponent<ModelRendererComponent>(&camera_)
-            ->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");
-        Scene::Initialize();
-    }
-
-    void Update() override {
-        Scene::Update();
-    }
-
-    void Draw() override {
-        Model::PreDraw();
-        Scene::Draw();
-        Model::PostDraw();
-    }
-
-    const char* GetSceneName() const override { return "MyScene"; }
-    Camera* GetEditorCamera() override { return &camera_; }
+	void Initialize() override;
+	void Update() override;
+	void Draw() override;
+	const char* GetSceneName() const override { return "MyScene"; }
+	Camera* GetEditorCamera() override;
 
 private:
-    Camera camera_;
+	CameraComponent* cameraComponent_ = nullptr;
 };
 ```
 
-## ファイル別リファレンス
+最小の考え方は次の通りです。
 
-`.h` は公開インターフェース、`.cpp` は実装です。ペアになっているものは同じ行にまとめています。
+```cpp
+void MyScene::Initialize() {
+	GameObject* cameraObject = CreateGameObject("Main Camera");
+	cameraObject->GetTransform().translation_ = {0.0f, 0.0f, -20.0f};
+	cameraComponent_ = cameraObject->AddComponent<CameraComponent>();
 
-### 入口・統合
+	GameObject* cube = CreateGameObject("Cube");
+	ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(&cameraComponent_->GetCamera());
+	renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `KujakuEngine.sln` | Visual Studio ソリューション。 | `DirectXGame/KujakuEngine.vcxproj` をビルド対象にします。 | Visual Studio で開いて `Debug x64` を実行します。 |
-| `DirectXGame/KujakuEngine.vcxproj` | エンジン本体のプロジェクト設定。 | include path、lib、ImGui、ImGuizmo、Assimp などを登録します。 | 新規 `.cpp` を追加したらプロジェクトにも追加します。 |
-| `DirectXGame/main.cpp` | Windows アプリのエントリーポイント。 | Engine 初期化、`EditorApplication` 初期化、Scene 設定、メインループだけを持ちます。 | `editorApplication->SetCurrentScene(std::make_unique<SampleScene>());` |
-| `DirectXGame/KujakuEngine/KujakuEngine.h` / `.cpp` | エンジン初期化・終了・フレーム更新の統合入口。 | Window、DirectX、ImGui、Pipeline、Light、Texture、Input、Random、GlobalVariables、Time を順に初期化します。 | `KujakuEngine::Initialize();` / `KujakuEngine::Update();` |
+	Scene::Initialize();
+}
+
+void MyScene::Update() {
+	Scene::Update();
+}
+
+void MyScene::Draw() {
+	Model::PreDraw();
+	Scene::Draw();
+	Model::PostDraw();
+}
+
+Camera* MyScene::GetEditorCamera() {
+	if (!cameraComponent_) {
+		return nullptr;
+	}
+
+	return &cameraComponent_->GetCamera();
+}
+```
+
+実際の `SampleScene` では、Edit 用の DebugCamera、Play 用の Main Camera、Light の適用、ModelRenderer への Camera 再設定なども行っています。新しい Scene を作る場合は、まず `SampleScene` を参考にするのが一番早いです。
+
+作成した Scene を使うには `DirectXGame/main.cpp` の `SetCurrentScene()` を変更します。
+
+```cpp
+editorApplication->SetCurrentScene(std::make_unique<MyScene>());
+```
+
+## 主要ファイル一覧
+
+### エントリーポイント
+
+| ファイル | 役割 |
+| --- | --- |
+| `DirectXGame/main.cpp` | Windows アプリの入口。KujakuEngine 初期化、EditorApplication 呼び出し、Scene セット、終了処理を行います。 |
+| `DirectXGame/KujakuEngine/KujakuEngine.h` | エンジン利用側が include する総合ヘッダです。主要クラスをまとめて include しています。 |
+| `DirectXGame/KujakuEngine/KujakuEngine.cpp` | WinApp、DirectXCommon、ImGui、GraphicsPipeline、Light、Texture、Input、Time などの初期化と毎フレーム更新をまとめます。 |
 
 ### Editor
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `Editor/EditorApplication.h` / `.cpp` | Editor 全体の状態管理。 | `EditorMode::Edit` / `Play`、Start / Stop、Scene 所有、Play 中だけ Update を流す判断を持ちます。 | `EditorApplication::GetInstance()->Start();` |
-| `Editor/EditorSelection.h` / `.cpp` | Editor の選択状態。 | 選択中 `GameObject*` を保持します。所有権は `Scene` が持ちます。 | `EditorSelection::GetInstance()->SetSelectedGameObject(object);` |
-| `Editor/EditorProjectPath.h` / `.cpp` | ProjectDir 検出とパス正規化。 | 実行時カレントから `DirectXGame` 相当のプロジェクトルートを探します。 | `DetectEditorProjectRoot();` |
-| `Editor/SceneJsonExporter.h` / `.cpp` | Scene / GameObject JSON の保存。 | `Scene::ToJson()` と Component の `WriteJson()` を使い、Scene ごと・GameObject ごとにファイルを出します。 | `SceneJsonExporter::ExportScene(*scene, root);` |
-| `Editor/SceneJsonImporter.h` / `.cpp` | Scene JSON の読み込み。 | Scene 起動後に JSON を読み、GameObject / Component / Transform / ModelRenderer などを復元します。 | `SceneJsonImporter::ImportScene(*scene, root);` |
-| `Editor/ProjectWindow.h` / `.cpp` | Project Window。 | ProjectDir 以下を列挙し、画像・モデル・音声・フォルダを分類して表示します。右クリックメニューも持ちます。 | `projectWindow_.Draw();` |
-| `Editor/ProjectAssetClassifier.h` / `.cpp` | Project Window 用のファイル分類。 | 拡張子とフォルダ状態からアイコン、画像プレビュー、モデルプレビューを決めます。 | `classifier.Classify(path);` |
-
-### Scene / GameObject / Component
-
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `scene/Scene.h` / `.cpp` | Scene 基底クラス。 | `std::vector<std::unique_ptr<GameObject>>` を所有し、`Initialize` / `Update` / `Draw` / `Finalize` を GameObject に流します。 | `GameObject* cube = scene->CreateEditorCube();` |
-| `scene/SampleScene.h` / `.cpp` | 現在のサンプル Scene。 | Camera、DebugCamera、Light を初期化し、MonsterBall と Terrain を GameObject として作ります。 | `editorApplication->SetCurrentScene(std::make_unique<SampleScene>());` |
-| `scene/GameObject.h` / `.cpp` | Scene 上の Object 単位。 | 必須 `TransformComponent` と複数 Component を持ち、Component の Update / Draw を順に呼びます。 | `object->AddComponent<RotatorComponent>();` |
-| `scene/Component.h` / `.cpp` | Component 基底クラス。 | `Initialize` / `Update` / `Draw` / `DrawInspector` / `WriteJson` / `ReadJson` / `OnAfterReadJson` を virtual にして、Editor・実行処理・保存復元の共通入口にします。 | `class MyComponent : public Component { ... };` |
-| `scene/ComponentFactory.h` / `.cpp` | Component の文字列生成。 | `typeName` と生成関数を登録し、Editor の Add Component や Import で生成します。 | `ComponentFactory::GetInstance().Create("RotatorComponent");` |
-| `components/BuiltinComponents.h` / `.cpp` | 組み込み Component の登録。 | `TransformSnapshotComponent`、`RotatorComponent`、`ModelRendererComponent` などを `ComponentFactory` へ登録します。 | `RegisterBuiltinComponents();` |
-| `components/TransformComponent.h` / `.cpp` | 必須 Transform Component。 | 内部に `WorldTransform` を持ち、Inspector で translate / rotate / scale を編集し、JSON に保存します。 | `object->GetTransformComponent()->GetTransform().translation_ = {0, 1, 0};` |
-| `components/ModelRendererComponent.h` / `.cpp` | Model 描画 Component。 | `Model` と `Camera` を持ち、GameObject の Transform で描画します。Primitive は Cube / Sphere / None / Custom を選べます。 | `renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");` |
-| `components/RotatorComponent.h` / `.cpp` | 回転テスト用 Component。 | Play 中の `Update()` で owner の Transform を回転させ、速度を Inspector / JSON に対応させます。 | `object->AddComponent<RotatorComponent>()->SetSpeed(0.05f);` |
-| `components/TransformSnapshotComponent.h` / `.cpp` | Play 前後の Transform 復元。 | `OnPlayStart()` で Edit 状態を保存し、`OnPlayStop()` で戻します。 | Play 停止時に Transform を Edit 時の状態へ戻したい Object に追加します。 |
+| ファイル | 役割 |
+| --- | --- |
+| `Editor/EditorApplication.h/.cpp` | Editor 全体の状態管理。Edit / Play、Start / Stop、Scene 所有、Scene Update の制御、起動時 JSON Import を担当します。 |
+| `Editor/EditorSelection.h/.cpp` | Editor 内の選択状態を管理します。Hierarchy、Inspector、Game Window 選択が共有します。 |
+| `Editor/EditorProjectPath.h/.cpp` | ProjectDir を検出し、保存・Project Window の基準パスを決めます。 |
+| `Editor/SceneJsonExporter.h/.cpp` | Scene と GameObject を JSON ファイルへ分割保存します。 |
+| `Editor/SceneJsonImporter.h/.cpp` | 起動時に Scene JSON と GameObject JSON を読み込み、Scene へ適用します。 |
+| `Editor/ProjectWindow.h/.cpp` | Project Window の UI、ファイル一覧、右クリックメニュー、画像・モデルプレビューを担当します。 |
+| `Editor/ProjectAssetClassifier.h/.cpp` | ファイル種別を分類し、Project Window 上のアイコンやプレビュー方式を決めます。 |
 
 ### ImGui / 2D
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `2d/ImGuiManager.h` / `.cpp` | ImGui 初期化と Editor UI 描画。 | DockSpace、Game、Hierarchy、Inspector、Console、Project Window、Ctrl+S、ImGuizmo を描画します。Start / Stop は `EditorApplication` を呼ぶだけにしています。 | `ImGuiManager::GetInstance()->DrawEditor();` |
-| `2d/Sprite.h` / `.cpp` | 2D Sprite 描画。 | 頂点・Index・Material・Transform 用 Buffer を作り、TextureManager の SRV index で描画します。 | `Sprite* sprite = Sprite::Create(textureIndex, {0, 0});` |
+| ファイル | 役割 |
+| --- | --- |
+| `2d/ImGuiManager.h/.cpp` | ImGui 初期化、DockSpace、Game / Hierarchy / Inspector / Project / Console Window、Ctrl+S、Game Window 選択、ImGuizmo を担当します。 |
+| `2d/Sprite.h/.cpp` | 2D Sprite 描画を担当します。 |
 
-### 3D / Rendering
+### Scene
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `3d/GraphicsPipeline.h` / `.cpp` | RootSignature / PSO / Shader 管理。 | DXC で HLSL をコンパイルし、Object / Particle / Instancing / Wireframe の PSO を BlendMode ごとに作ります。 | `GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d, BlendMode::kNormal);` |
-| `3d/Model.h` / `.cpp` | 通常 3D Model。 | Assimp 経由で OBJ / glTF を読み込み、または Cube / Sphere / Plane などの頂点を生成して描画します。Root Node の local matrix も描画に適用します。 | `std::unique_ptr<Model> model(Model::CreateFromGlTF("plane"));` |
-| `3d/ModelUtil.h` / `.cpp` | Model 読み込み共通処理。 | Assimp の Scene / Mesh / Material / Node をエンジン用 `ModelData` に変換し、Texture index を解決します。 | `ModelUtil::TryLoadModelFile("Resources", "plane.gltf", data);` |
-| `3d/WorldTransform.h` / `.cpp` | World 行列と Transform 定数バッファ。 | scale / rotation / translation から `matWorld_` を作り、Camera と合成した WVP を GPU に転送します。 | `worldTransform.UpdateMatrix(camera);` |
-| `3d/Camera.h` / `.cpp` | View / Projection 管理。 | Camera の Transform と投影パラメータから行列を作り、GPU 用 Buffer に転送します。 | `camera.translation_ = {0, 0, -20}; camera.UpdateMatrix();` |
-| `3d/DebugCamera.h` / `.cpp` | マウス操作用 Debug Camera。 | 入力から回転・移動を更新し、`SampleScene` の Camera へ反映します。 | `debugCamera_.Update();` |
-| `3d/FollowCamera.h` / `.cpp` | 追従 Camera。 | 対象 `WorldTransform` を参照し、Camera を追従させる用途の薄い Controller です。 | `followCamera.SetTarget(&playerTransform);` |
-| `3d/RailCameraController.h` / `.cpp` | レール移動用 Camera Controller。 | 内部 `WorldTransform` の位置・回転から Camera View を更新します。 | `railCamera.SetPosition({0, 5, -10});` |
-| `3d/DirectionalLight.h` / `.cpp` | 平行光源。 | Singleton で Light Buffer を持ち、色・方向・強度を GPU に転送します。 | `DirectionalLight::GetInstance()->GetData().intensity = 0.5f;` |
-| `3d/PointLight.h` / `.cpp` | 点光源。 | 最大 `kMaxPointLight` 個の Light を配列で GPU に渡します。 | `PointLight::GetInstance()->AddLight(light);` |
-| `3d/SpotLight.h` / `.cpp` | スポットライト。 | `SpotLightData` を Buffer に保持し、位置・方向・角度・減衰を渡します。 | `SpotLight::GetInstance()->SetLight(&spotLight);` |
-| `3d/AxisIndicator.h` / `.cpp` | 軸方向表示。 | 対象 Camera を参照し、小さな軸モデルを専用 Camera / Viewport で描画します。 | `AxisIndicator::SetTargetCamera(&camera);` |
+| ファイル | 役割 |
+| --- | --- |
+| `scene/Scene.h/.cpp` | Scene 基底。GameObject 一覧の所有、Create / Add、Update / Draw / Finalize、JSON 文字列出力を持ちます。 |
+| `scene/GameObject.h/.cpp` | Scene 上の Object。名前、Active、必須 Transform、Component 一覧、Lifecycle を持ちます。 |
+| `scene/Component.h/.cpp` | Component 基底。Lifecycle、Inspector、JSON、Play Start / Stop、Enabled を持ちます。 |
+| `scene/ComponentFactory.h/.cpp` | 型名文字列から Component を生成する Factory です。Inspector の Add Component と JSON Import で使います。 |
+| `scene/SampleScene.h/.cpp` | 現在のサンプル Scene。標準 Camera / Light GameObject、MonsterBall、Terrain、描画順、Camera 切り替えを実装しています。 |
+
+### Components
+
+| ファイル | 役割 |
+| --- | --- |
+| `components/BuiltinComponents.h/.cpp` | 標準 Component を `ComponentFactory` に登録します。 |
+| `components/TransformComponent.h/.cpp` | 必須 Transform Component。WorldTransform の Inspector と JSON を担当します。 |
+| `components/ModelRendererComponent.h/.cpp` | Model 描画 Component。Primitive、Texture、Model の Inspector と JSON を担当します。 |
+| `components/CameraComponent.h/.cpp` | GameObject Transform を Camera に反映します。 |
+| `components/DebugCameraComponent.h/.cpp` | Edit 中の DebugCamera 操作を GameObject Transform に反映します。 |
+| `components/DirectionalLightComponent.h/.cpp` | DirectionalLight のデータを Inspector / JSON / GPU 反映します。 |
+| `components/PointLightComponent.h/.cpp` | PointLight のデータを Inspector / JSON / GPU 反映します。 |
+| `components/RotatorComponent.h/.cpp` | 回転処理のサンプル Component です。 |
+| `components/TransformSnapshotComponent.h/.cpp` | Play 開始時の Transform 保存と Stop 時の復元を行います。 |
 
 ### Base
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `base/WinApp.h` / `.cpp` | Win32 Window 管理。 | Window Class 登録、Window 作成、Message 処理、Window 破棄を担当します。 | `WinApp::GetInstance()->CreateGameWindow(title);` |
-| `base/DirectXCommon.h` / `.cpp` | DirectX 12 共通基盤。 | Device、Command、SwapChain、DescriptorHeap、Depth、Game Window 用 RenderTarget、Fence を管理します。 | `DirectXCommon::GetInstance()->BeginGameRender();` |
-| `base/TextureManager.h` / `.cpp` | Texture 読み込みと SRV 管理。 | DirectXTex で画像を読み、共通 SRV Heap に登録し、path ごとの cache を持ちます。 | `uint32_t tex = TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");` |
-| `base/Time.h` / `.cpp` | DeltaTime 管理。 | `QueryPerformanceCounter` でフレーム間時間を計測します。 | `float dt = Time::GetDeltaTime();` |
-| `base/GlobalVariables.h` / `.cpp` | JSON ベースのグローバル変数。 | group / key / value を `Resources/GlobalVariables/` に保存・読み込みします。 | `GlobalVariables::GetInstance()->AddItem("Player", "Speed", 1.0f);` |
-| `base/Logger.h` / `.cpp` | ログ出力。 | 初期化したログファイルへ文字列を出力します。 | `Logger::Log("loaded texture");` |
-| `base/StringUtil.h` / `.cpp` | 文字列変換。 | `std::string` と `std::wstring` を変換します。 | `StringUtil::ToWString("Kujaku");` |
+| ファイル | 役割 |
+| --- | --- |
+| `base/WinApp.h/.cpp` | Win32 ウィンドウ作成、メッセージ処理、リサイズ処理を担当します。 |
+| `base/DirectXCommon.h/.cpp` | DX12 Device、SwapChain、Command、Fence、DescriptorHeap、BackBuffer、Game RenderTarget を管理します。 |
+| `base/TextureManager.h/.cpp` | テクスチャ読み込み、SRV 作成、キャッシュ、デフォルト白テクスチャを管理します。 |
+| `base/Time.h/.cpp` | フレーム時間を管理します。 |
+| `base/GlobalVariables.h/.cpp` | グローバル変数ファイルの読み込みを担当します。 |
+| `base/Logger.h/.cpp` | ログ出力を担当します。 |
+| `base/StringUtil.h/.cpp` | 文字列変換などの補助関数です。 |
 
-### Input
+### 3D
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `input/Input.h` / `.cpp` | キーボード・マウス・XInput 管理。 | DirectInput と XInput の現在状態・前フレーム状態を保持し、Trigger / Release を判定します。 | `if (Input::GetKeyTrigger(DIK_SPACE)) { ... }` |
+| ファイル | 役割 |
+| --- | --- |
+| `3d/GraphicsPipeline.h/.cpp` | RootSignature、PSO、BlendMode、ShaderModel などの描画パイプラインを管理します。 |
+| `3d/Model.h/.cpp` | 3D Model の生成、頂点バッファ、マテリアル、Texture、Draw を担当します。 |
+| `3d/ModelUtil.h/.cpp` | Assimp によるモデル読み込み、Node 変換、Material 生成、Texture 解決、共通 RenderState を担当します。 |
+| `3d/WorldTransform.h/.cpp` | scale / rotation / translation、World 行列、WVP、定数バッファ転送を担当します。 |
+| `3d/Camera.h/.cpp` | View / Projection 行列、Camera 定数バッファを管理します。 |
+| `3d/DebugCamera.h/.cpp` | Edit 用の自由操作 Camera です。 |
+| `3d/DirectionalLight.h/.cpp` | DirectionalLight の GPU データを管理します。 |
+| `3d/PointLight.h/.cpp` | PointLight の GPU データを管理します。 |
+| `3d/SpotLight.h/.cpp` | SpotLight の GPU データを管理します。 |
+| `3d/AxisIndicator.h/.cpp` | 軸表示用の補助描画です。 |
+| `3d/FollowCamera.h/.cpp` | 追従 Camera 用の補助クラスです。 |
+| `3d/RailCameraController.h/.cpp` | レール Camera 制御用の補助クラスです。 |
 
-### Math
+### Input / Math / Shapes / VFX / AI
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `math/Vector2.h` / `.cpp` | 2D Vector。 | 四則演算、Normalize、Dot、行列変換を提供します。 | `Vector2 p = Vector2::Normalize(v);` |
-| `math/Vector3.h` / `.cpp` | 3D Vector。 | 3D 座標・方向の基本型です。演算子は一部 `MathUtil` 側にもあります。 | `Vector3 pos{0, 1, 0};` |
-| `math/Vector4.h` | 4D Vector / Color。 | `x,y,z,w` の単純な構造体です。 | `Vector4 color{1, 1, 1, 1};` |
-| `math/Matrix3x3.h` / `.cpp` | 2D 用 3x3 行列。 | 2D の scale / rotate / translate / affine / viewport を作ります。 | `Matrix3x3::MakeAffineMatrix(scale, rotate, translate);` |
-| `math/Matrix4x4.h` / `.cpp` | 3D 用 4x4 行列。 | 行列の四則演算と 3D 変換の土台です。 | `Matrix4x4 world = MakeAffineMatrix(scale, rotate, translate);` |
-| `math/MathUtil.h` / `.cpp` | 数学ユーティリティ。 | Dot、Cross、Normalize、Lerp、Bezier、Project、Inverse、Perspective、Billboard などを提供します。 | `Vector3 dir = Normalize(target - pos);` |
-| `math/Random.h` / `.cpp` | 乱数。 | `std::mt19937_64` を使い、整数・浮動小数の範囲乱数を返します。 | `float r = Random::GetRandom(0.0f, 1.0f);` |
-| `math/Easing.h` / `.cpp` | Easing。 | `EaseType` に応じて補間係数を変換します。 | `EaseUtil::EaseLerp(0.0f, 10.0f, t, EaseUtil::EaseType::OutQuad);` |
+| ディレクトリ | 役割 |
+| --- | --- |
+| `input/Input.h/.cpp` | Keyboard、Mouse、XInput Controller の入力状態を管理します。 |
+| `math` | Vector、Matrix、Easing、Random、MathUtil などの数学系処理をまとめています。 |
+| `shapes` | AABB、Collider、CollisionManager、Rect、ShapeUtil などの形状・当たり判定系処理をまとめています。 |
+| `vfx` | InstancingModel、Particle、ParticleEmitter、ParticleField、ParticleModel などのエフェクト系処理をまとめています。 |
+| `ai` | BehaviorTree、Blackboard、FSM、UtilityAI、Navigation、Steering などの AI 実験用モジュールをまとめています。現時点では Editor の中核には接続していません。 |
 
-### Shape / Collision
+### Resources / Externals
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `shapes/AABB.h` / `.cpp` | AABB / OBB データ。 | AABB の min/max 補正、OBB の回転軸更新と World 行列生成を持ちます。 | `aabb.SwapMinMax();` |
-| `shapes/Rect.h` / `.cpp` | 矩形データ。 | `left` / `right` / `bottom` / `top` の単純な範囲です。 | `Rect visible = camera.GetVisibleRect(0.0f);` |
-| `shapes/ShapeUtil.h` / `.cpp` | 図形と衝突判定。 | Sphere、Plane、Segment、Ray、Line などの判定と CatmullRom 補間を提供します。 | `ShapeUtil::IsCollision(sphereA, sphereB);` |
-| `shapes/Collider.h` / `.cpp` | 衝突対象の基底クラス。 | 半径、属性、マスク、`OnCollision()`、World 位置取得を virtual にします。 | Player などが継承して `GetWorldPosition()` を返します。 |
-| `shapes/CollisionManager.h` / `.cpp` | Collider 同士の判定管理。 | 登録された Collider の組み合わせを走査し、属性・マスクに合う相手を判定します。 | `collisionManager.AddCollider(player); collisionManager.Update();` |
+| パス | 内容 |
+| --- | --- |
+| `DirectXGame/KujakuEngine/resources/images` | Editor アイコン、Gizmo アイコン、Project Window アイコンです。 |
+| `DirectXGame/resources` | モデルやテクスチャなど、ゲーム側で使うリソースを置く想定の場所です。 |
+| `DirectXGame/externals` | ImGui、ImGuizmo、DirectXTex、Assimp、nlohmann/json などの外部ライブラリです。 |
 
-### VFX / Instancing
+## 実装時の注意
 
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `vfx/Particle.h` | 1 Particle のデータ。 | 位置・速度・寿命・色を持ち、`Update()` で移動とフェードを行います。 | `particle.Update(Time::GetDeltaTime());` |
-| `vfx/ParticleField.h` / `.cpp` | Particle に影響する加速度 Field。 | AABB 範囲と加速度を持ちます。 | `emitter.AddField(field);` |
-| `vfx/ParticleEmitter.h` / `.cpp` | Particle 生成・更新。 | Box、Model Edge、Segment Edge から Particle を生成し、`ParticleModel` へ instance を積みます。 | `emitter.Update(dt, camera); emitter.Draw();` |
-| `vfx/ParticleModel.h` / `.cpp` | Particle 用 Instancing Model。 | 最大 10000 個の instance buffer を持ち、Particle 描画用 PSO で描画します。 | `model->AddInstanceParticle(matrix, color);` |
-| `vfx/InstancingModel.h` / `.cpp` | 汎用 Instancing Model。 | 最大 1000 個の instance をまとめて描画します。Root Node local matrix を instance 行列に適用します。 | `instancing->AddInstanceModel(matrix, color);` |
+### main.cpp に EditorMode 分岐を増やさない
 
-### AI
+Edit / Play の判断は `EditorApplication` に集約します。
 
-AI 系は現在 Editor / GameObject へ完全統合する前のライブラリ層です。GameObject / Component から呼ぶ場合は、今後 `AIControllerComponent` のような Component を作って接続すると自然です。
-
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `ai/AI.h` | AI 関連 include の入口。 | AI 機能をまとめて include するためのヘッダです。 | `#include <KujakuEngine.h>` 経由で利用します。 |
-| `ai/navigation/Grid.h` / `.cpp` | 経路探索用 Grid。 | `GridCell` の `walkable` と `additionalCost` を 2D 配列で持ちます。 | `grid.ResizeGridCells(20, 20);` |
-| `ai/navigation/SearchNode.h` | 探索ノード。 | Grid index、cost、parent など、AStar / ThetaStar の内部で使うデータです。 | 経路探索内部で利用します。 |
-| `ai/navigation/NavigationUtil.h` / `.cpp` | ナビゲーション補助。 | Manhattan / Euclidean の heuristic を計算します。 | `NavigationUtil::Heuristic(a, b);` |
-| `ai/navigation/pathfinding/AStar.h` / `.cpp` | A* 経路探索。 | Grid を参照し、start から goal までの GridIndex 配列を返します。 | `path = aStar.FindPath(start, goal);` |
-| `ai/navigation/pathfinding/ThetaStar.h` / `.cpp` | Theta* 経路探索。 | 見通し判定を使い、A* より滑らかな経路を返します。Agent radius も設定できます。 | `thetaStar.SetAgentRadius(0.5f);` |
-| `ai/navigation/steer/ISteeringBehavior.h` / `.cpp` | Steering 基底。 | `SteeringContext` を受け取り、操舵力 `Vector3` を返す interface です。 | `behavior.Calculate(context);` |
-| `ai/navigation/steer/SeekBehavior.h` / `.cpp` | 目標へ向かう Steering。 | target 方向へ速度を寄せる力を返します。 | 追跡 AI の Component 内で使います。 |
-| `ai/navigation/steer/ArriveBehavior.h` / `.cpp` | 目標へ減速しながら近づく Steering。 | 到着距離に応じて速度を落とします。 | 目的地で止まりたい移動に使います。 |
-| `ai/navigation/steer/AvoidanceBehavior.h` / `.cpp` | 障害回避 Steering。 | 障害物を避ける方向の力を返します。 | 障害物リストを持つ AI で使います。 |
-| `ai/navigation/steer/CohesionBehavior.h` / `.cpp` | 群れの中心へ向かう Steering。 | 周囲の仲間の中心へ寄せます。 | 群れ移動に使います。 |
-| `ai/navigation/steer/AligmentBehavior.h` / `.cpp` | 群れの向きを合わせる Steering。 | 周囲の平均速度へ合わせます。 | 群れ移動に使います。 |
-| `ai/navigation/steer/SeparationBehavior.h` / `.cpp` | 近すぎる相手から離れる Steering。 | 周囲との距離を取り、重なりを防ぎます。 | 群れ移動に使います。 |
-| `ai/navigation/steer/WanderBehavior.h` / `.cpp` | ランダム散策 Steering。 | ランダムな方向へ自然に揺れる移動力を返します。 | 徘徊 AI に使います。 |
-| `ai/charactor/Core/AIContext.h` | AI 実行時 Context。 | Blackboard など、AI ノードに渡す共有情報をまとめます。 | `AIContext context{...};` |
-| `ai/charactor/Core/Blackboard.h` / `.cpp` | AI 用 Key-Value Store。 | `int` / `float` / `bool` / `string` / Vec / Matrix を variant で持ちます。 | `blackboard.SetValue("hp", 10);` |
-| `ai/charactor/behaviorTree/BTStatus.h` | BehaviorTree の戻り値。 | Success / Failure / Running などの状態を表します。 | `return BTStatus::Success;` |
-| `ai/charactor/behaviorTree/BTNode.h` / `.cpp` | BehaviorTree Node 基底。 | `Tick()` が `OnTick()` を呼び、`Reset()` を持ちます。 | `class AttackNode : public BTNode { ... };` |
-| `ai/charactor/behaviorTree/BehaviorTree.h` / `.cpp` | BehaviorTree 本体。 | root node を所有し、`Tick(context)` で木を実行します。 | `tree.SetRoot(std::move(root)); tree.Tick(context);` |
-| `ai/charactor/behaviorTree/Composite/CompositeNode.h` / `.cpp` | 複数 child を持つ BT Node。 | `std::vector<std::unique_ptr<BTNode>>` と current index を持ちます。 | `selector->AddChild(std::make_unique<ActionNode>(...));` |
-| `ai/charactor/behaviorTree/Composite/SelectorNode.h` / `.cpp` | Selector Node。 | child を順に実行し、成功したものを採用します。 | 条件分岐に使います。 |
-| `ai/charactor/behaviorTree/Composite/SequenceNode.h` / `.cpp` | Sequence Node。 | child を順に実行し、途中失敗で失敗します。 | 一連の行動に使います。 |
-| `ai/charactor/behaviorTree/Decorator/Decorator.h` / `.cpp` | Decorator Node 基底。 | child 1つを包み、条件反転や制限などを追加する拡張口です。 | `decorator->SetChild(std::move(node));` |
-| `ai/charactor/behaviorTree/Leaf/LeafNode.h` / `.cpp` | Leaf Node 基底。 | child を持たない行動・条件用の基底です。 | Action / Condition の親にします。 |
-| `ai/charactor/behaviorTree/Leaf/ActionNode.h` / `.cpp` | 関数で行動を書く Leaf Node。 | `std::function<BTStatus(AIContext&)>` を保持します。 | `ActionNode node([](AIContext&) { return BTStatus::Success; });` |
-| `ai/charactor/fsm/IState.h` | FSM State interface。 | `Enter` / `Update` / `Exit` を owner 型ごとに実装します。 | `class IdleState : public IState<Player> { ... };` |
-| `ai/charactor/fsm/StateMachine.h` | 汎用 StateMachine。 | state id と state object を map で持ち、変更時に Exit / Enter を呼びます。 | `stateMachine.ChangeState(PlayerState::Idle, player);` |
-| `ai/charactor/utility/UtilityAI.h` / `.cpp` | Utility AI。 | option ごとの score 関数を評価し、最大 score の option を選びます。 | `utilityAI.SelectBest(context);` |
-
-### Shader
-
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `Resources/shader/Object3d.VS.hlsl` / `Object3d.PS.hlsl` / `Object3d.hlsli` | 3D Object 用 Shader。 | Vertex / Material / Light / Camera 情報を受けて通常モデルを描画します。 | `GraphicsPipeline` の Object3d PSO から使われます。 |
-| `Resources/shader/Particle.VS.hlsl` / `Particle.PS.hlsl` / `Particle.hlsli` | Particle 用 Shader。 | Instance Buffer の WVP / World / color を使って大量描画します。 | `ParticleModel::PreDraw()` から使われます。 |
-| `Resources/shaders/ObjVS.hlsl` / `ObjPS.hlsl` / `Obj.hlsli` | OBJ 系描画 Shader。 | OBJ モデルの頂点・UV・法線・Material を扱います。 | 旧または追加の OBJ pipeline 用です。 |
-| `Resources/shaders/SpriteVS.hlsl` / `SpritePS.hlsl` / `SpriteSRGBOutputPS.hlsl` / `Sprite.hlsli` | Sprite 用 Shader。 | 2D 頂点と UV transform、Texture を合成します。 | `Sprite::Draw()` で使います。 |
-| `Resources/shaders/PrimitiveVS.hlsl` / `PrimitivePS.hlsl` / `Primitive.hlsli` | Primitive 用 Shader。 | 基本形状描画向けの最小 Shader 群です。 | Cube / Sphere などの簡易描画拡張に使います。 |
-| `Resources/shaders/ShapeVS.hlsl` / `ShapePS.hlsl` / `ShapeSRGBOutputPS.hlsl` / `Shape.hlsli` | Shape 用 Shader。 | デバッグ形状や 2D/3D shape 表示向けです。 | Collision 可視化などに使えます。 |
-| `Resources/shaders/TerrainVS.hlsl` / `TerrainPS.hlsl` / `Terrain.hlsli` | Terrain 用 Shader。 | 地形描画向けの Shader 群です。 | Terrain 専用 Pipeline を作る場合に使います。 |
-
-### Engine Resource
-
-| ファイル | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `KujakuEngine/resources/images/icon_guizmo_translate.png` | Translate Gizmo ボタン画像。 | `TextureManager` で読み込み、`ImGui::ImageButton` に渡します。 | Game Window の移動アイコン。 |
-| `KujakuEngine/resources/images/icon_guizmo_rotate.png` | Rotate Gizmo ボタン画像。 | `TextureManager` で読み込み、`ImGui::ImageButton` に渡します。 | Game Window の回転アイコン。 |
-| `KujakuEngine/resources/images/icon_guizmo_scale.png` | Scale Gizmo ボタン画像。 | `TextureManager` で読み込み、`ImGui::ImageButton` に渡します。 | Game Window の拡縮アイコン。 |
-| `KujakuEngine/resources/images/icon_folder_fill.png` | Project Window の中身ありフォルダアイコン。 | `ProjectAssetClassifier` がフォルダ状態に応じて選びます。 | Project Window 表示。 |
-| `KujakuEngine/resources/images/icon_folder_empty.png` | Project Window の空フォルダアイコン。 | `ProjectAssetClassifier` がフォルダ状態に応じて選びます。 | Project Window 表示。 |
-| `KujakuEngine/resources/images/icon_file.png` | Project Window の通常ファイルアイコン。 | 未分類ファイルに使います。 | Project Window 表示。 |
-| `KujakuEngine/resources/images/icon_file_audio.png` | Project Window の音声ファイルアイコン。 | `.wav` などの音声拡張子に使います。 | Project Window 表示。 |
-
-### External Libraries
-
-| ディレクトリ | 役割 | 簡易的な実装方法 | 使用例 |
-| --- | --- | --- | --- |
-| `externals/imgui` | 現在ビルドに使う ImGui 本体と Win32 / DX12 backend。 | `ImGuiManager` が context、backend、DockSpace、Editor UI を管理します。 | `ImGui::Begin("Inspector");` |
-| `externals/imgui-1.92.8-docking` | Docking 版 ImGui のソース一式。 | 参照・移行用のコピーです。 | API 差分確認に使います。 |
-| `externals/ImGuizmo-1.9` | Transform Gizmo。 | `ImGuiManager::DrawTransformGizmo()` から `ImGuizmo::Manipulate()` を呼びます。 | 選択 GameObject の Transform 編集。 |
-| `externals/DirectXTex` | Texture 読み込み。 | `TextureManager` が画像ロードと mip upload に使います。 | PNG / JPG / DDS などの読み込み。 |
-| `externals/assimp` | Model 読み込み。 | `ModelUtil` が OBJ / glTF の Mesh / Material / Node を読むために使います。 | `Model::CreateFromGlTF("plane");` |
-| `externals/nlohmann` | JSON。 | `GlobalVariables`、Scene JSON import/export で使います。 | `nlohmann::json j;` |
-
-## よく使うコード例
-
-### GameObject を作成して描画 Component を付ける
+避けたい形です。
 
 ```cpp
-GameObject* cube = scene->CreateGameObject("Cube");
-cube->GetTransform().translation_ = {0.0f, 0.0f, 0.0f};
-
-ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(&camera);
-renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");
+if (EditorApplication::GetInstance()->IsPlaying()) {
+	scene->Update();
+}
 ```
 
-### Play 中だけ回転させる
+`main.cpp` は次の形を保ちます。
 
 ```cpp
-GameObject* ball = scene->CreateGameObject("MonsterBall");
-ball->AddComponent<TransformSnapshotComponent>();
-RotatorComponent* rotator = ball->AddComponent<RotatorComponent>();
-rotator->SetSpeed(0.02f);
+editorApplication->BeginFrame();
+editorApplication->Update();
+editorApplication->Draw();
+editorApplication->EndFrame();
 ```
 
-### 直接 Model を描画する
+### 個別 Object の Update / Draw を外側へ散らさない
+
+Player、Enemy、Model などを `main.cpp` や `EditorApplication` から直接呼ぶのではなく、Scene の内側に置きます。
 
 ```cpp
-std::unique_ptr<Model> model(Model::CreateFromGlTF("plane", ShaderModel::kBlingPhongReflection));
-WorldTransform transform;
-transform.Initialize();
+void MyScene::Update() {
+	Scene::Update();
+}
 
-Model::PreDraw();
-model->Draw(transform, camera);
-Model::PostDraw();
+void MyScene::Draw() {
+	Model::PreDraw();
+	Scene::Draw();
+	Model::PostDraw();
+}
 ```
 
-### Texture を読み込んで Sprite を作る
+### Component は自分の保存情報だけを書く
+
+GameObject 名や Active、Component 共通情報は外側が保存します。各 Component は自分固有の値だけを `WriteJson()` / `ReadJson()` に書きます。
 
 ```cpp
-uint32_t textureIndex = TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");
-Sprite* sprite = Sprite::Create(textureIndex, {100.0f, 100.0f}, 128.0f, 128.0f);
-
-Sprite::PreDraw();
-sprite->Draw();
-Sprite::PostDraw();
+void RotatorComponent::WriteJson(nlohmann::json& json) const {
+	json["speed"] = speed_;
+}
 ```
 
-### A* で経路を取る
+### Transform は必須 Component
 
-```cpp
-Grid grid;
-grid.ResizeGridCells(20, 20);
-grid.cells[5][5].walkable = false;
+Transform は GameObject が必ず持つ Component です。Inspector では普通の Component と同じ階層で表示しますが、削除はできません。
 
-AStar aStar;
-aStar.Init(&grid);
-std::vector<GridIndex> path = aStar.FindPath({0, 0}, {10, 10});
+### コメントと文字コード
+
+KujakuEngine のコメントは UTF-8 として扱います。新しくコメントを追加する場合も UTF-8 で保存してください。
+
+### 三項演算子
+
+このプロジェクトでは三項演算子の使用を極力控えます。条件分岐は読みやすさを優先して `if` / `else` を使います。
+
+## よくある問題
+
+### 起動時に ImGui の assert が出る
+
+`ImGuiManager::Begin()`、Editor UI 描画、`ImGuiManager::End()` の対応が崩れている可能性があります。現在の基本形は `EditorApplication::BeginFrame()` から `EndFrame()` までを毎フレーム 1 回ずつ呼ぶ形です。
+
+### OBJ 読み込み後に `face.mNumIndices == 3` の assert が出る
+
+四角形や多角形 Face が三角形化されていない可能性があります。Assimp 読み込み時に `aiProcess_Triangulate` を使うことで、Face を三角形へ変換します。
+
+### Assimp の未解決外部シンボルが出る
+
+`assimp.lib` がリンクされていない、または Runtime Library 設定がプロジェクトと Assimp で合っていない可能性があります。Debug なら `/MTd`、Release なら `/MT` のように、構成ごとに揃えてください。
+
+### 保存した Texture や Transform が再起動後に戻る
+
+`Ctrl + S` で Scene JSON が出力されているか確認してください。Console に export ログが出ます。保存先は `DirectXGame/SceneJson/<SceneName>` です。
+
+### Project Window にファイルが出ない
+
+Project root の検出に失敗している可能性があります。`EditorProjectPath::DetectEditorProjectRoot()` は、`KujakuEngine.vcxproj`、`DirectXGame/KujakuEngine.vcxproj`、`KujakuEngine.sln` を手がかりに ProjectDir を探します。
+
+### Game Window のクリック選択が効かない
+
+現在の選択は Edit 中のみ有効です。Play 中、ImGuizmo 操作中、ModelRendererComponent がない Object、Model 頂点から AABB を作れない Object は選択対象になりません。
+
+## 今後の拡張予定の入口
+
+現在の構造は、次の拡張を入れやすいように分けています。
+
+- Scene Clone
+- GameObject / Component の本格的な Inspector 編集
+- Hierarchy の親子関係
+- Prefab
+- Scene Serialize の拡張
+- Undo / Redo
+- Gizmo の拡張
+- OBJ / glTF の Project Window からの割り当て
+- Component のドラッグ & ドロップ
+
+特に Scene Clone は、`EditorApplication` が `EditScene` と `PlayScene` を持つ形に拡張する想定です。
+
+```text
+EditScene
+  ↓ Start 時に Clone
+PlayScene
+  ↓ Play 中だけ Update
+Stop
+  ↓ PlayScene 破棄
+EditScene へ戻る
 ```
 
-### BehaviorTree の最小構成
-
-```cpp
-Blackboard blackboard;
-AIContext context{blackboard};
-
-auto root = std::make_unique<SelectorNode>();
-root->AddChild(std::make_unique<ActionNode>([](AIContext&) {
-    return BTStatus::Success;
-}));
-
-BehaviorTree tree;
-tree.SetRoot(std::move(root));
-tree.Tick(context);
-```
-
-## 現在の設計メモ
-
-- `main.cpp` に EditorMode 判定を増やさず、Play / Edit の判断は `EditorApplication` に集約しています。
-- `Scene` が GameObject 一覧を所有し、Update / Draw の入口になっています。
-- `GameObject` は `TransformComponent` を必ず持ちます。
-- `SceneJsonImporter` は Component の中身を直接読まず、`ComponentFactory` で生成して `ReadJson()` を呼びます。
-- `SceneJsonExporter` は Component の共通 JSON ラッパーを使い、固有値は各 Component の `WriteJson()` に任せます。
-- `ModelRendererComponent` は現時点では Cube / Sphere / None / Custom に対応しています。OBJ / glTF を Editor 上から選ぶ仕組みは今後の拡張予定です。
-- Stop 時の完全な Scene Clone 復元は未実装です。現在は `TransformSnapshotComponent` が Transform の復元を担当します。
-- AI はまだ Editor / Component と完全統合していません。次に進めるなら `AIControllerComponent` のような Component を作り、Blackboard / BehaviorTree / UtilityAI を GameObject に接続するのが自然です。
+このため、今後も Editor / Play の判断は `main.cpp` ではなく `EditorApplication` に集約してください。

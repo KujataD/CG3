@@ -31,7 +31,11 @@
 #include "Editor/SceneJsonImporter.h"
 
 #include "components/BuiltinComponents.h"
+#include "components/CameraComponent.h"
+#include "components/DebugCameraComponent.h"
+#include "components/DirectionalLightComponent.h"
 #include "components/ModelRendererComponent.h"
+#include "components/PointLightComponent.h"
 #include "components/RotatorComponent.h"
 #include "components/TransformComponent.h"
 #include "components/TransformSnapshotComponent.h"

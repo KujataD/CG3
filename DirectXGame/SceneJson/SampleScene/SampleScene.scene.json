@@ -3,20 +3,20 @@
   "name": "SampleScene",
   "gameObjects": [
     {
-      "name": "MonsterBall",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0000_MonsterBall.gameobject.json"
-    },
-    {
-      "name": "Terrain",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0001_Terrain.gameobject.json"
-    },
-    {
       "name": "Player",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0002_Player.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/0000_Player.gameobject.json"
     },
     {
       "name": "Cubsse",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0003_Cubsse.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/0001_Cubsse.gameobject.json"
+    },
+    {
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0002_MonsterBall.gameobject.json"
+    },
+    {
+      "name": "Terrain",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0003_Terrain.gameobject.json"
     },
     {
       "name": "Sphere",
@@ -25,6 +25,22 @@
     {
       "name": "Entity",
       "assetPath": "SceneJson/SampleScene/GameObjects/0005_Entity.gameobject.json"
+    },
+    {
+      "name": "Main Camera",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0006_Main Camera.gameobject.json"
+    },
+    {
+      "name": "Editor Debug Camera",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0007_Editor Debug Camera.gameobject.json"
+    },
+    {
+      "name": "Directional Light",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0008_Directional Light.gameobject.json"
+    },
+    {
+      "name": "Point Light",
+      "assetPath": "SceneJson/SampleScene/GameObjects/0009_Point Light.gameobject.json"
     }
   ]
 }

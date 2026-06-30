@@ -1,10 +1,15 @@
 #include "SampleScene.h"
 #include "../2d/Sprite.h"
+#include "../3d/Camera.h"
 #include "../3d/DirectionalLight.h"
 #include "../3d/Model.h"
 #include "../3d/PointLight.h"
 #include "../Editor/EditorApplication.h"
+#include "../components/CameraComponent.h"
+#include "../components/DebugCameraComponent.h"
+#include "../components/DirectionalLightComponent.h"
 #include "../components/ModelRendererComponent.h"
+#include "../components/PointLightComponent.h"
 #include "../components/RotatorComponent.h"
 #include "../components/TransformSnapshotComponent.h"
 #include "../math/MathUtil.h"
@@ -15,20 +20,17 @@
 
 namespace KujakuEngine {
 
+namespace {
+
+const char* kMainCameraName = "Main Camera";
+const char* kEditorDebugCameraName = "Editor Debug Camera";
+const char* kDirectionalLightName = "Directional Light";
+const char* kPointLightName = "Point Light";
+
+} // namespace
+
 void SampleScene::Initialize() {
-	camera_.Initialize();
-	camera_.translation_ = {0.0f, 0.0f, -20.0f};
-	camera_.UpdateMatrix();
-
-	editorCamera_.Initialize();
-	editorCamera_.translation_ = camera_.translation_;
-	editorCamera_.rotation_ = camera_.rotation_;
-	editorCamera_.UpdateMatrix();
-	currentViewCamera_ = &editorCamera_;
-
-	debugCamera_.Initialize(editorCamera_.rotation_, editorCamera_.translation_);
-
-	DirectionalLight::GetInstance()->GetData().intensity = 0.0f;
+	EnsureSceneServiceObjects();
 
 	PointLight::GetInstance()->Reset();
 	SpotLight::GetInstance()->Reset();
@@ -41,18 +43,21 @@ void SampleScene::Initialize() {
 	spotLight_.cosAngle = std::cos(std::numbers::pi_v<float> / 2.0f);
 	spotLight_.cosFalloffStart = std::cos(std::numbers::pi_v<float> / 3.0f);
 
+	Camera* renderCamera = GetCurrentViewCamera();
+
 	GameObject* ball = CreateGameObject("MonsterBall");
 	ball->GetTransform().translation_ = {0.0f, -2.0f, 0.0f};
 	ball->GetTransform().rotation_.x = std::numbers::pi_v<float> * -0.5f;
 	ball->AddComponent<TransformSnapshotComponent>();
 	ball->AddComponent<RotatorComponent>();
-	ModelRendererComponent* ballRenderer = ball->AddComponent<ModelRendererComponent>(&camera_);
+	ModelRendererComponent* ballRenderer = ball->AddComponent<ModelRendererComponent>(renderCamera);
 	ballRenderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/monsterBall.png");
 
 	GameObject* terrain = CreateGameObject("Terrain");
-	terrain->AddComponent<ModelRendererComponent>(std::unique_ptr<Model>(Model::CreateFromGlTF("plane", ShaderModel::kBlingPhongReflection)), &camera_);
+	terrain->AddComponent<ModelRendererComponent>(std::unique_ptr<Model>(Model::CreateFromGlTF("plane", ShaderModel::kBlingPhongReflection)), renderCamera);
 
 	Scene::Initialize();
+	ApplyRenderCameraToModelRenderers(GetCurrentViewCamera());
 }
 
 void SampleScene::Update() {
@@ -61,12 +66,13 @@ void SampleScene::Update() {
 
 void SampleScene::Draw() {
 	UpdateSceneView();
+	ApplySceneLights();
 
 	ParticleModel::PreDraw();
 	ParticleModel::PostDraw();
 
 	Model::PreDraw();
-	ApplyRenderCameraToModelRenderers(currentViewCamera_);
+	ApplyRenderCameraToModelRenderers(GetCurrentViewCamera());
 	Scene::Draw();
 	Model::PostDraw();
 
@@ -74,20 +80,136 @@ void SampleScene::Draw() {
 	Sprite::PostDraw();
 }
 
+Camera* SampleScene::GetEditorCamera() {
+	return GetCurrentViewCamera();
+}
+
 void SampleScene::UpdateSceneView() {
+	EnsureSceneServiceObjects();
+
 	if (EditorApplication::GetInstance()->IsPlaying()) {
-		currentViewCamera_ = &camera_;
-		camera_.UpdateMatrix();
+		currentViewCameraComponent_ = gameCameraComponent_;
 	} else {
-		debugCamera_.Update();
-		editorCamera_.translation_ = debugCamera_.translation_;
-		editorCamera_.rotation_ = debugCamera_.rotation_;
-		editorCamera_.UpdateMatrix();
-		currentViewCamera_ = &editorCamera_;
+		if (editorDebugCameraComponent_) {
+			editorDebugCameraComponent_->UpdateEditorCamera();
+		}
+		currentViewCameraComponent_ = editorCameraComponent_;
+	}
+
+	if (currentViewCameraComponent_) {
+		currentViewCameraComponent_->SyncFromOwnerTransform();
 	}
 
 	spotLight_.direction = Normalize(spotLight_.direction);
 	SpotLight::GetInstance()->SetLight(&spotLight_);
+}
+
+void SampleScene::EnsureSceneServiceObjects() {
+	GameObject* mainCamera = FindGameObjectByName(kMainCameraName);
+	if (!mainCamera) {
+		mainCamera = CreateGameObject(kMainCameraName);
+		mainCamera->GetTransform().translation_ = {0.0f, 0.0f, -20.0f};
+	}
+	gameCameraComponent_ = mainCamera->GetComponent<CameraComponent>();
+	if (!gameCameraComponent_) {
+		gameCameraComponent_ = mainCamera->AddComponent<CameraComponent>();
+	}
+
+	GameObject* editorCamera = FindGameObjectByName(kEditorDebugCameraName);
+	if (!editorCamera) {
+		editorCamera = CreateGameObject(kEditorDebugCameraName);
+		editorCamera->GetTransform().translation_ = {0.0f, 0.0f, -20.0f};
+	}
+	editorCameraComponent_ = editorCamera->GetComponent<CameraComponent>();
+	if (!editorCameraComponent_) {
+		editorCameraComponent_ = editorCamera->AddComponent<CameraComponent>();
+	}
+	editorDebugCameraComponent_ = editorCamera->GetComponent<DebugCameraComponent>();
+	if (!editorDebugCameraComponent_) {
+		editorDebugCameraComponent_ = editorCamera->AddComponent<DebugCameraComponent>();
+	}
+
+	GameObject* directionalLight = FindGameObjectByName(kDirectionalLightName);
+	if (!directionalLight) {
+		directionalLight = CreateGameObject(kDirectionalLightName);
+	}
+	DirectionalLightComponent* directionalLightComponent = directionalLight->GetComponent<DirectionalLightComponent>();
+	if (!directionalLightComponent) {
+		directionalLightComponent = directionalLight->AddComponent<DirectionalLightComponent>();
+		directionalLightComponent->GetData().intensity = 0.0f;
+	}
+
+	GameObject* pointLight = FindGameObjectByName(kPointLightName);
+	if (!pointLight) {
+		pointLight = CreateGameObject(kPointLightName);
+		pointLight->GetTransform().translation_ = {0.0f, 5.0f, 0.0f};
+	}
+	PointLightComponent* pointLightComponent = pointLight->GetComponent<PointLightComponent>();
+	if (!pointLightComponent) {
+		pointLightComponent = pointLight->AddComponent<PointLightComponent>();
+		pointLightComponent->GetData().intensity = 0.0f;
+	}
+
+	if (EditorApplication::GetInstance()->IsPlaying()) {
+		currentViewCameraComponent_ = gameCameraComponent_;
+	} else {
+		currentViewCameraComponent_ = editorCameraComponent_;
+	}
+}
+
+GameObject* SampleScene::FindGameObjectByName(const std::string& name) {
+	for (const std::unique_ptr<GameObject>& gameObject : GetGameObjects()) {
+		if (!gameObject) {
+			continue;
+		}
+		if (gameObject->GetName() == name) {
+			return gameObject.get();
+		}
+	}
+
+	return nullptr;
+}
+
+Camera* SampleScene::GetCurrentViewCamera() {
+	EnsureSceneServiceObjects();
+
+	if (currentViewCameraComponent_) {
+		currentViewCameraComponent_->SyncFromOwnerTransform();
+		return &currentViewCameraComponent_->GetCamera();
+	}
+
+	return nullptr;
+}
+
+void SampleScene::ApplySceneLights() {
+	DirectionalLightData directionalLightData{};
+	directionalLightData.intensity = 0.0f;
+	DirectionalLight::GetInstance()->GetData() = directionalLightData;
+
+	PointLight::GetInstance()->Reset();
+
+	for (const std::unique_ptr<GameObject>& gameObject : GetGameObjects()) {
+		if (!gameObject || !gameObject->IsActive()) {
+			continue;
+		}
+
+		for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+			if (!component || !component->IsEnabled()) {
+				continue;
+			}
+
+			DirectionalLightComponent* directionalLight = dynamic_cast<DirectionalLightComponent*>(component.get());
+			if (directionalLight) {
+				directionalLight->Apply();
+				continue;
+			}
+
+			PointLightComponent* pointLight = dynamic_cast<PointLightComponent*>(component.get());
+			if (pointLight) {
+				pointLight->Apply();
+			}
+		}
+	}
 }
 
 void SampleScene::ApplyRenderCameraToModelRenderers(const Camera* camera) {
@@ -117,7 +239,7 @@ GameObject* SampleScene::CreateEditorCube() {
 		return nullptr;
 	}
 
-	ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(currentViewCamera_);
+	ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(GetCurrentViewCamera());
 	if (renderer) {
 		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");
 	}
@@ -131,7 +253,7 @@ GameObject* SampleScene::CreateEditorSphere() {
 		return nullptr;
 	}
 
-	ModelRendererComponent* renderer = sphere->AddComponent<ModelRendererComponent>(currentViewCamera_);
+	ModelRendererComponent* renderer = sphere->AddComponent<ModelRendererComponent>(GetCurrentViewCamera());
 	if (renderer) {
 		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/monsterBall.png");
 	}
@@ -140,14 +262,24 @@ GameObject* SampleScene::CreateEditorSphere() {
 }
 
 void SampleScene::OnEditorComponentAdded(GameObject* gameObject, Component* component) {
-	(void)gameObject;
-
 	ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component);
-	if (!renderer) {
+	if (renderer) {
+		renderer->SetCamera(GetCurrentViewCamera());
 		return;
 	}
 
-	renderer->SetCamera(currentViewCamera_);
+	DebugCameraComponent* debugCamera = dynamic_cast<DebugCameraComponent*>(component);
+	if (debugCamera && gameObject) {
+		if (!gameObject->GetComponent<CameraComponent>()) {
+			gameObject->AddComponent<CameraComponent>();
+		}
+		debugCamera->OnAfterReadJson();
+	}
+
+	CameraComponent* camera = dynamic_cast<CameraComponent*>(component);
+	if (camera || debugCamera) {
+		EnsureSceneServiceObjects();
+	}
 }
 
 } // namespace KujakuEngine

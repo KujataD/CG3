@@ -44,7 +44,7 @@ IDxcBlob* GraphicsPipeline::CompileShader(const std::wstring& filePath, const wc
 	HRESULT hr = dxcUtils_->LoadFile(filePath.c_str(), nullptr, &shaderSource);
 	assert(SUCCEEDED(hr));
 
-	// 読み込んだファイルの内容を設定する
+	// 読み込んだファイルの内容 
 	DxcBuffer shaderSourceBuffer;
 	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
 	shaderSourceBuffer.Size = shaderSource->GetBufferSize();

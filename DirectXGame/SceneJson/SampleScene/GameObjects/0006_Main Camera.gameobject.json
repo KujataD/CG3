@@ -1,6 +1,6 @@
 {
   "assetType": "GameObject",
-  "name": "Sphere",
+  "name": "Main Camera",
   "active": true,
   "components": [
     {
@@ -8,7 +8,7 @@
       "properties": {
         "rotation": [
           0.0,
-          0.0899999737739563,
+          -0.0,
           0.0
         ],
         "scale": [
@@ -17,9 +17,9 @@
           1.0
         ],
         "translation": [
-          -0.5714707374572754,
-          -2.0798301696777344,
-          0.05157190561294556
+          -1.3371950387954712,
+          0.0,
+          -10.981897354125977
         ]
       },
       "type": "Transform"
@@ -27,11 +27,12 @@
     {
       "enabled": true,
       "properties": {
-        "modelPath": "player",
-        "primitive": "Sphere",
-        "texture": "resources/monsterBall.png"
+        "aspectRatio": 1.7777777910232544,
+        "farZ": 1000.0,
+        "fovAngleY": 0.6000000238418579,
+        "nearZ": 0.10000000149011612
       },
-      "type": "ModelRendererComponent"
+      "type": "CameraComponent"
     }
   ]
 }

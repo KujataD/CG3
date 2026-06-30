@@ -74,6 +74,11 @@ public:
 	/// <returns></returns>
 	const std::vector<VertexData>& GetVertices() const { return vertices_; }
 
+	/// <summary>
+	/// モデルRootNodeのローカル行列を取得
+	/// </summary>
+	const Matrix4x4& GetRootLocalMatrix() const { return rootLocalMatrix_; }
+
 private:
 	Model(const Model&) = delete;
 	Model& operator=(const Model&) = delete;

@@ -1,6 +1,6 @@
 {
   "assetType": "GameObject",
-  "name": "Sphere",
+  "name": "Player",
   "active": true,
   "components": [
     {
@@ -8,7 +8,7 @@
       "properties": {
         "rotation": [
           0.0,
-          0.0899999737739563,
+          -0.0,
           0.0
         ],
         "scale": [
@@ -17,9 +17,9 @@
           1.0
         ],
         "translation": [
-          -0.5714707374572754,
-          -2.0798301696777344,
-          0.05157190561294556
+          -0.14084148406982422,
+          0.0,
+          1.3348360061645508
         ]
       },
       "type": "Transform"
@@ -28,7 +28,7 @@
       "enabled": true,
       "properties": {
         "modelPath": "player",
-        "primitive": "Sphere",
+        "primitive": "Cube",
         "texture": "resources/monsterBall.png"
       },
       "type": "ModelRendererComponent"

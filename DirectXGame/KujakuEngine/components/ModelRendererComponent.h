@@ -55,6 +55,11 @@ public:
 	const std::string& GetTextureFilePath() const { return textureFilePath_; }
 
 	/// <summary>
+	/// 描画に使用するModelを取得
+	/// </summary>
+	const Model* GetModel() const { return model_.get(); }
+
+	/// <summary>
 	/// Model描画
 	/// </summary>
 	void Draw() override;
