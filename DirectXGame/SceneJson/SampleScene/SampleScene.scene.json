@@ -3,44 +3,54 @@
   "name": "SampleScene",
   "gameObjects": [
     {
+      "instanceId": "go_3b8c537eb6b19afa1dc4ee34095ef002",
       "name": "Player",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0000_Player.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_3b8c537eb6b19afa1dc4ee34095ef002.gameobject.json"
     },
     {
+      "instanceId": "go_0028e633fb05a08c0016b492af8aebe2",
       "name": "Cubsse",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0001_Cubsse.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_0028e633fb05a08c0016b492af8aebe2.gameobject.json"
     },
     {
+      "instanceId": "go_20bf9823fb61c498105d0b9aafb8922d",
       "name": "Directional Light",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0002_Directional Light.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_20bf9823fb61c498105d0b9aafb8922d.gameobject.json"
     },
     {
+      "instanceId": "go_0b3976b031f89672059e7cd34af4cc9d",
       "name": "Point Light",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0003_Point Light.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_0b3976b031f89672059e7cd34af4cc9d.gameobject.json"
     },
     {
+      "instanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
       "name": "MonsterBall",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0004_MonsterBall.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_79e2f32fb527f1b13cf3be1c889a51c9.gameobject.json"
     },
     {
+      "instanceId": "go_ebb9b52e9bae0c3875de1d1c18c6b11a",
       "name": "Terrain",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0005_Terrain.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_ebb9b52e9bae0c3875de1d1c18c6b11a.gameobject.json"
     },
     {
+      "instanceId": "go_54bb2aec2d051fe82a5f52fd4139f659",
       "name": "Main Camera",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0006_Main Camera.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_54bb2aec2d051fe82a5f52fd4139f659.gameobject.json"
     },
     {
+      "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
       "name": "Editor Debug Camera",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0007_Editor Debug Camera.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_974b53e590e9d7314ba76e7990287e96.gameobject.json"
     },
     {
+      "instanceId": "go_40a7b1b0788dc6c920511f5365d92e47",
       "name": "Sphere",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0008_Sphere.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_40a7b1b0788dc6c920511f5365d92e47.gameobject.json"
     },
     {
+      "instanceId": "go_79a398819d3e1bb83cd30bcb9736a716",
       "name": "Entity",
-      "assetPath": "SceneJson/SampleScene/GameObjects/0009_Entity.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_79a398819d3e1bb83cd30bcb9736a716.gameobject.json"
     }
   ]
 }

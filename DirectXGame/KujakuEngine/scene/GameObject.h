@@ -51,6 +51,16 @@ public:
 	KUJAKU_API void OnPlayStop();
 
 	/// <summary>
+	/// Scene保存/復元で使う安定IDを取得
+	/// </summary>
+	const std::string& GetInstanceId() const { return instanceId_; }
+
+	/// <summary>
+	/// Scene保存/復元で使う安定IDを設定
+	/// </summary>
+	KUJAKU_API void SetInstanceId(const std::string& instanceId);
+
+	/// <summary>
 	/// 名前を取得
 	/// </summary>
 	const std::string& GetName() const { return name_; }
@@ -128,6 +138,7 @@ public:
 	const std::vector<std::unique_ptr<Component>>& GetComponents() const { return components_; }
 
 private:
+	std::string instanceId_;
 	std::string name_ = "GameObject";
 	bool active_ = true;
 	bool initialized_ = false;

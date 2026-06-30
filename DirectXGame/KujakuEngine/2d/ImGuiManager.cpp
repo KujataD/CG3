@@ -8,8 +8,11 @@
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
+#include "../scene/Component.h"
 #include "../scene/ComponentFactory.h"
+#include "../scene/GameObject.h"
 #include "../scene/RayCast.h"
+#include "../scene/Scene.h"
 #include "../math/MathUtil.h"
 #include <array>
 #include <cmath>
@@ -508,7 +511,7 @@ void ImGuiManager::HandleGameWindowObjectSelection(const ImVec2& imagePosition, 
 	}
 
 	RayCastHit hit{};
-	if (RayCast::Cast(*scene, ray, hit) && hit.gameObject) {
+	if (RayCast::CastForEditor(*scene, ray, hit) && hit.gameObject) {
 		EditorSelection::GetInstance()->SetSelectedGameObject(hit.gameObject);
 	}
 #else

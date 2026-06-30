@@ -1,0 +1,44 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
+  "name": "Editor Debug Camera",
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.615999698638916,
+          2.165999412536621,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          -14.163597106933594,
+          9.19999885559082,
+          7.314271926879883
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "aspectRatio": 1.7777777910232544,
+        "farZ": 1000.0,
+        "fovAngleY": 0.6000000238418579,
+        "nearZ": 0.10000000149011612
+      },
+      "type": "CameraComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "DebugCameraComponent"
+    }
+  ]
+}

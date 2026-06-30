@@ -1,8 +1,6 @@
 #include "RotatorComponent.h"
+#include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
-#ifdef USE_IMGUI
-#include "../../externals/imgui/imgui.h"
-#endif // USE_IMGUI
 
 namespace KujakuEngine {
 
@@ -32,7 +30,7 @@ void RotatorComponent::Update() {
 
 void RotatorComponent::DrawInspector() {
 #ifdef USE_IMGUI
-	ImGui::DragFloat("Speed", &speed_, 0.001f);
+	InspectorUI::DragFloat("Speed", &speed_, 0.001f);
 #endif // USE_IMGUI
 }
 

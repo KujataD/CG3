@@ -1,10 +1,8 @@
 #include "ModelRendererComponent.h"
 #include "../3d/Camera.h"
 #include "../3d/Model.h"
+#include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
-#ifdef USE_IMGUI
-#include "../../externals/imgui/imgui.h"
-#endif // USE_IMGUI
 #include <array>
 #include <cstring>
 #include <string>
@@ -96,7 +94,8 @@ void ModelRendererComponent::DrawInspector() {
 	}
 
 	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Model"};
-	if (ImGui::Combo("Primitive", &primitiveIndex, primitiveItems, IM_ARRAYSIZE(primitiveItems))) {
+	constexpr int primitiveItemCount = static_cast<int>(sizeof(primitiveItems) / sizeof(primitiveItems[0]));
+	if (InspectorUI::Combo("Primitive", &primitiveIndex, primitiveItems, primitiveItemCount)) {
 		PrimitiveType selectedPrimitive = PrimitiveType::Custom;
 		if (primitiveIndex == 1) {
 			selectedPrimitive = PrimitiveType::Cube;
@@ -110,30 +109,30 @@ void ModelRendererComponent::DrawInspector() {
 
 	std::array<char, 256> textureBuffer{};
 	strncpy_s(textureBuffer.data(), textureBuffer.size(), textureFilePath_.c_str(), _TRUNCATE);
-	if (ImGui::InputText("Texture", textureBuffer.data(), textureBuffer.size())) {
+	if (InspectorUI::InputText("Texture", textureBuffer.data(), textureBuffer.size())) {
 		textureFilePath_ = textureBuffer.data();
 	}
 
 	std::array<char, 256> modelBuffer{};
 	strncpy_s(modelBuffer.data(), modelBuffer.size(), modelFolderPath_.c_str(), _TRUNCATE);
-	if (ImGui::InputText("Model", modelBuffer.data(), modelBuffer.size())) {
+	if (InspectorUI::InputText("Model", modelBuffer.data(), modelBuffer.size())) {
 		modelFolderPath_ = modelBuffer.data();
 	}
 
-	if (ImGui::Button("Apply")) {
+	if (InspectorUI::Button("Apply")) {
 		RebuildPrimitiveModel();
 	}
 
 	if (model_) {
-		ImGui::TextUnformatted("Model: Assigned");
+		InspectorUI::TextUnformatted("Model: Assigned");
 	} else {
-		ImGui::TextDisabled("Model: None");
+		InspectorUI::TextDisabled("Model: None");
 	}
 
 	if (camera_) {
-		ImGui::TextUnformatted("Camera: Assigned");
+		InspectorUI::TextUnformatted("Camera: Assigned");
 	} else {
-		ImGui::TextDisabled("Camera: None");
+		InspectorUI::TextDisabled("Camera: None");
 	}
 #endif // USE_IMGUI
 }

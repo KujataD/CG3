@@ -1,8 +1,6 @@
 #include "PointLightComponent.h"
+#include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
-#ifdef USE_IMGUI
-#include "../../externals/imgui/imgui.h"
-#endif // USE_IMGUI
 
 namespace KujakuEngine {
 
@@ -42,11 +40,11 @@ Vector4 ReadVector4(const nlohmann::json& json, const char* key, const Vector4& 
 
 void PointLightComponent::DrawInspector() {
 #ifdef USE_IMGUI
-	ImGui::ColorEdit4("Color", &data_.color.x);
-	ImGui::DragFloat("Intensity", &data_.intensity, 0.01f, 0.0f, 100.0f);
-	ImGui::DragFloat("Radius", &data_.radius, 0.01f, 0.0f, 1000.0f);
-	ImGui::DragFloat("Decay", &data_.decay, 0.01f, 0.0f, 100.0f);
-	ImGui::TextDisabled("Position is read from Transform.");
+	InspectorUI::ColorEdit4("Color", &data_.color.x);
+	InspectorUI::DragFloat("Intensity", &data_.intensity, 0.01f, 0.0f, 100.0f);
+	InspectorUI::DragFloat("Radius", &data_.radius, 0.01f, 0.0f, 1000.0f);
+	InspectorUI::DragFloat("Decay", &data_.decay, 0.01f, 0.0f, 100.0f);
+	InspectorUI::TextDisabled("Position is read from Transform.");
 
 	if (data_.intensity < 0.0f) {
 		data_.intensity = 0.0f;

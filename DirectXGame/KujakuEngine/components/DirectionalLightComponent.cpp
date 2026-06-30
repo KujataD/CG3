@@ -1,8 +1,6 @@
 #include "DirectionalLightComponent.h"
+#include "../Editor/InspectorUI.h"
 #include "../math/MathUtil.h"
-#ifdef USE_IMGUI
-#include "../../externals/imgui/imgui.h"
-#endif // USE_IMGUI
 
 namespace KujakuEngine {
 
@@ -61,9 +59,9 @@ Vector4 ReadVector4(const nlohmann::json& json, const char* key, const Vector4& 
 
 void DirectionalLightComponent::DrawInspector() {
 #ifdef USE_IMGUI
-	ImGui::ColorEdit4("Color", &data_.color.x);
-	ImGui::DragFloat3("Direction", &data_.direction.x, 0.01f);
-	ImGui::DragFloat("Intensity", &data_.intensity, 0.01f, 0.0f, 100.0f);
+	InspectorUI::ColorEdit4("Color", &data_.color.x);
+	InspectorUI::DragFloat3("Direction", &data_.direction.x, 0.01f);
+	InspectorUI::DragFloat("Intensity", &data_.intensity, 0.01f, 0.0f, 100.0f);
 
 	if (data_.intensity < 0.0f) {
 		data_.intensity = 0.0f;

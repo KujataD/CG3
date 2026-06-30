@@ -1,7 +1,17 @@
 #pragma once
 
 #include "../runtime/KujakuApi.h"
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 26495)
+#pragma warning(disable : 26819)
+#endif
 #include "../../externals/nlohmann/json.hpp"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <iosfwd>
 
 namespace KujakuEngine {
@@ -121,6 +131,21 @@ public:
 	/// RayCast対象にできるModelを取得
 	/// </summary>
 	virtual const Model* GetRayCastModel() const { return nullptr; }
+
+	/// <summary>
+	/// Edit中のScene表示で、実体を持たないComponentの位置を示すアイコンを描画するかどうか。
+	/// </summary>
+	virtual bool HasEditorBillboard() const;
+
+	/// <summary>
+	/// Editor用ビルボードに使う画像ファイル名。KujakuEngine/resources/images から読み込む。
+	/// </summary>
+	virtual const char* GetEditorBillboardIconName() const;
+
+	/// <summary>
+	/// Editor用ビルボードをRayCastで選択するためのワールド半径。
+	/// </summary>
+	virtual float GetEditorBillboardPickRadius() const;
 
 protected:
 	GameObject* owner_ = nullptr;

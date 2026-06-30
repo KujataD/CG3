@@ -4,7 +4,6 @@
 #include "../scene/Scene.h"
 #include <filesystem>
 #include <fstream>
-#include <iomanip>
 #include <memory>
 #include <sstream>
 #include <system_error>
@@ -87,6 +86,8 @@ std::string BuildGameObjectJson(const GameObject& gameObject) {
 	std::ostringstream os;
 	os << "{\n";
 	os << "  \"assetType\": \"GameObject\",\n";
+	// 個別ファイルにもinstanceIdを持たせ、Scene側の参照情報が壊れてもObject単体から復元できるようにする。
+	os << "  \"instanceId\": \"" << EscapeJsonString(gameObject.GetInstanceId()) << "\",\n";
 	os << "  \"name\": \"" << EscapeJsonString(gameObject.GetName()) << "\",\n";
 	os << "  \"active\": ";
 	if (gameObject.IsActive()) {
@@ -133,6 +134,8 @@ std::string BuildSceneJson(
 		}
 
 		os << "    {\n";
+		// Scene側の一覧にもinstanceIdを置き、Import時は名前や並び順ではなくIDでObjectを探す。
+		os << "      \"instanceId\": \"" << EscapeJsonString(gameObject->GetInstanceId()) << "\",\n";
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
 		os << "      \"assetPath\": \"" << EscapeJsonString(MakeRelativeAssetPath(projectRoot, gameObjectPaths[objectIndex])) << "\"\n";
 		os << "    }";
@@ -184,10 +187,10 @@ SceneJsonExporter::ExportResult SceneJsonExporter::ExportScene(const Scene& scen
 			continue;
 		}
 
-		std::ostringstream fileName;
-		fileName << std::setfill('0') << std::setw(4) << objectIndex << "_" << SanitizeFileName(gameObject->GetName()) << ".gameobject.json";
+		// GameObject名はEditor上で気軽に変更されるため、保存ファイル名には安定したinstanceIdを使う。
+		std::string fileName = SanitizeFileName(gameObject->GetInstanceId()) + ".gameobject.json";
 
-		std::filesystem::path gameObjectPath = gameObjectDirectory / fileName.str();
+		std::filesystem::path gameObjectPath = gameObjectDirectory / fileName;
 		gameObjectPaths[objectIndex] = gameObjectPath;
 
 		if (!WriteTextFile(gameObjectPath, BuildGameObjectJson(*gameObject), result.message)) {

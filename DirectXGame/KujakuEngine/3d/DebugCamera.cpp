@@ -46,15 +46,6 @@ void DebugCamera::Update() {
 		translation_.y -= kMoveSpeed;
 	}
 
-#ifdef USE_IMGUI
-
-	ImGui::Begin("DebugCamera");
-	ImGui::DragFloat3("Translation", &translation_.x, 0.01f);
-	ImGui::DragFloat3("Rotation", &rotation_.x, 0.01f);
-	ImGui::End();
-
-#endif // USE_IMGUI
-
 
 	// ビュー行列の更新
 	UpdateViewMatrix();

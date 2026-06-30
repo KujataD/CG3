@@ -42,6 +42,11 @@ public:
 	static bool Cast(const Scene& scene, const Ray& ray, RayCastHit& outHit);
 
 	/// <summary>
+	/// Editor表示用のアイコン当たり判定も含めてRayを当てる。
+	/// </summary>
+	static bool CastForEditor(const Scene& scene, const Ray& ray, RayCastHit& outHit);
+
+	/// <summary>
 	/// RayとAABBの交差判定
 	/// </summary>
 	static bool IntersectRayAabb(const Ray& ray, const Vector3& minValue, const Vector3& maxValue, float& outDistance);

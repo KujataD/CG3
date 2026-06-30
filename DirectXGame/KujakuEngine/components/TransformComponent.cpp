@@ -1,9 +1,6 @@
 #include "TransformComponent.h"
+#include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
-
-#ifdef USE_IMGUI
-#include "../../externals/imgui/imgui.h"
-#endif
 
 namespace KujakuEngine {
 
@@ -57,9 +54,9 @@ void TransformComponent::Initialize() {
 void TransformComponent::DrawInspector() {
 #ifdef USE_IMGUI
 	WorldTransform& transform = GetTransform();
-	ImGui::DragFloat3("Translation", &transform.translation_.x, 0.01f);
-	ImGui::DragFloat3("Rotation", &transform.rotation_.x, 0.01f);
-	ImGui::DragFloat3("Scale", &transform.scale_.x, 0.01f);
+	InspectorUI::DragFloat3("Translation", &transform.translation_.x, 0.01f);
+	InspectorUI::DragFloat3("Rotation", &transform.rotation_.x, 0.01f);
+	InspectorUI::DragFloat3("Scale", &transform.scale_.x, 0.01f);
 
 	if (transform.scale_.x < 0.001f) {
 		transform.scale_.x = 0.001f;

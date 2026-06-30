@@ -12,6 +12,9 @@ class PointLightComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "PointLightComponent"; }
 	bool AllowMultiple() const override { return false; }
+	bool HasEditorBillboard() const override { return true; }
+	const char* GetEditorBillboardIconName() const override { return "icon_light_point.png"; }
+	float GetEditorBillboardPickRadius() const override { return 0.65f; }
 
 	/// <summary>
 	/// Inspector表示

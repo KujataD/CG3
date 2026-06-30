@@ -26,6 +26,18 @@ void WriteIndentedJson(std::ostream& os, const nlohmann::json& json, int indent)
 
 Component::~Component() = default;
 
+bool Component::HasEditorBillboard() const {
+	return false;
+}
+
+const char* Component::GetEditorBillboardIconName() const {
+	return "";
+}
+
+float Component::GetEditorBillboardPickRadius() const {
+	return 0.5f;
+}
+
 void Component::WriteJson(std::ostream& os, int indent) const {
 	nlohmann::json properties = nlohmann::json::object();
 	WriteJson(properties);

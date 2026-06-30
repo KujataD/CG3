@@ -1,10 +1,8 @@
 #include "DebugCameraComponent.h"
 #include "CameraComponent.h"
 #include "../Editor/EditorApplication.h"
+#include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
-#ifdef USE_IMGUI
-#include "../../externals/imgui/imgui.h"
-#endif // USE_IMGUI
 #include <cmath>
 
 namespace KujakuEngine {
@@ -30,13 +28,13 @@ void DebugCameraComponent::DrawInspector() {
 	}
 
 	if (cameraComponent) {
-		ImGui::TextUnformatted("Target Camera: Owner CameraComponent");
+		InspectorUI::TextUnformatted("Target Camera: Owner CameraComponent");
 	} else {
-		ImGui::TextDisabled("Target Camera: None");
-		ImGui::TextDisabled("Add CameraComponent to this GameObject.");
+		InspectorUI::TextDisabled("Target Camera: None");
+		InspectorUI::TextDisabled("Add CameraComponent to this GameObject.");
 	}
 
-	ImGui::TextDisabled("Active only in Edit mode.");
+	InspectorUI::TextDisabled("Active only in Edit mode.");
 #endif // USE_IMGUI
 }
 

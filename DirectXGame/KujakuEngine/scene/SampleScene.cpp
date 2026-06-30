@@ -262,6 +262,8 @@ GameObject* SampleScene::CreateEditorSphere() {
 }
 
 void SampleScene::OnEditorComponentAdded(GameObject* gameObject, Component* component) {
+	Scene::OnEditorComponentAdded(gameObject, component);
+
 	ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component);
 	if (renderer) {
 		renderer->SetCamera(GetCurrentViewCamera());
@@ -271,7 +273,8 @@ void SampleScene::OnEditorComponentAdded(GameObject* gameObject, Component* comp
 	DebugCameraComponent* debugCamera = dynamic_cast<DebugCameraComponent*>(component);
 	if (debugCamera && gameObject) {
 		if (!gameObject->GetComponent<CameraComponent>()) {
-			gameObject->AddComponent<CameraComponent>();
+			CameraComponent* addedCamera = gameObject->AddComponent<CameraComponent>();
+			Scene::OnEditorComponentAdded(gameObject, addedCamera);
 		}
 		debugCamera->OnAfterReadJson();
 	}

@@ -2,7 +2,17 @@
 #include "../scene/ComponentFactory.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 26495)
+#pragma warning(disable : 26819)
+#endif
 #include "../../externals/nlohmann/json.hpp"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -91,10 +101,50 @@ bool ContainsPointer(const std::vector<Component*>& components, Component* targe
 	return std::find(components.begin(), components.end(), target) != components.end();
 }
 
-GameObject* FindExistingGameObject(Scene& scene, size_t objectIndex, const std::string& objectName, const std::vector<GameObject*>& importedObjects) {
+bool IsInstanceIdUsedByOtherObject(Scene& scene, const std::string& instanceId, const GameObject* ignoreObject) {
+	if (instanceId.empty()) {
+		return false;
+	}
+
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (!gameObject) {
+			continue;
+		}
+		if (gameObject.get() == ignoreObject) {
+			continue;
+		}
+		if (gameObject->GetInstanceId() == instanceId) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+GameObject* FindExistingGameObject(
+    Scene& scene,
+    const std::string& instanceId,
+    size_t objectIndex,
+    const std::string& objectName,
+    const std::vector<GameObject*>& importedObjects) {
 	std::vector<std::unique_ptr<GameObject>>& gameObjects = scene.GetGameObjects();
 
-	// 標準GameObjectが増えても保存済みSceneを崩さないよう、まず名前一致を優先する。
+	// 現行形式ではinstanceIdを最優先する。名前変更や並び替えがあっても同じObjectへ復元できる。
+	if (!instanceId.empty()) {
+		for (const std::unique_ptr<GameObject>& gameObject : gameObjects) {
+			if (!gameObject) {
+				continue;
+			}
+			if (ContainsPointer(importedObjects, gameObject.get())) {
+				continue;
+			}
+			if (gameObject->GetInstanceId() == instanceId) {
+				return gameObject.get();
+			}
+		}
+	}
+
+	// 旧形式JSONにはinstanceIdがないため、互換用に名前一致へフォールバックする。
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects) {
 		if (!gameObject) {
 			continue;
@@ -107,6 +157,7 @@ GameObject* FindExistingGameObject(Scene& scene, size_t objectIndex, const std::
 		}
 	}
 
+	// 名前も変わっている旧形式JSONでは、最後に保存順と初期Scene生成順で対応付ける。
 	if (objectIndex < gameObjects.size()) {
 		GameObject* indexedObject = gameObjects[objectIndex].get();
 		if (indexedObject && !ContainsPointer(importedObjects, indexedObject)) {
@@ -235,7 +286,12 @@ size_t ApplyComponents(Scene& scene, GameObject& gameObject, const json& gameObj
 	return importedComponents.size();
 }
 
-void ApplyGameObject(Scene& scene, GameObject& gameObject, const json& gameObjectJson, size_t& componentCount) {
+void ApplyGameObject(Scene& scene, GameObject& gameObject, const json& gameObjectJson, const std::string& instanceId, size_t& componentCount) {
+	// instanceIdは参照の軸なので、空値や重複IDで既存Objectを壊さないようにしてから適用する。
+	if (!instanceId.empty() && !IsInstanceIdUsedByOtherObject(scene, instanceId, &gameObject)) {
+		gameObject.SetInstanceId(instanceId);
+	}
+
 	gameObject.SetName(ReadString(gameObjectJson, "name", gameObject.GetName()));
 	gameObject.SetActive(ReadBool(gameObjectJson, "active", gameObject.IsActive()));
 	componentCount += ApplyComponents(scene, gameObject, gameObjectJson);
@@ -300,6 +356,7 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 		}
 
 		std::string objectName = ReadString(objectEntry, "name", "GameObject");
+		std::string objectEntryInstanceId = ReadString(objectEntry, "instanceId", "");
 		std::string assetPathText = ReadString(objectEntry, "assetPath", "");
 		if (assetPathText.empty()) {
 			continue;
@@ -313,7 +370,8 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 		}
 
 		std::string savedObjectName = ReadString(gameObjectJson, "name", objectName);
-		GameObject* gameObject = FindExistingGameObject(scene, objectIndex, savedObjectName, importedObjects);
+		std::string savedInstanceId = ReadString(gameObjectJson, "instanceId", objectEntryInstanceId);
+		GameObject* gameObject = FindExistingGameObject(scene, savedInstanceId, objectIndex, savedObjectName, importedObjects);
 		if (!gameObject) {
 			gameObject = scene.CreateGameObject(savedObjectName);
 		}
@@ -321,7 +379,7 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 			continue;
 		}
 
-		ApplyGameObject(scene, *gameObject, gameObjectJson, result.componentCount);
+		ApplyGameObject(scene, *gameObject, gameObjectJson, savedInstanceId, result.componentCount);
 		importedObjects.push_back(gameObject);
 		++result.gameObjectCount;
 	}

@@ -31,8 +31,8 @@ public:
 	Vector3 translation_ = {0.0f, 0.0f, 0.0f};
 
 	// ビュー
-	Matrix4x4 matView_;
-	Matrix4x4 matRot_;
+	Matrix4x4 matView_ = MakeIdentity();
+	Matrix4x4 matRot_ = MakeIdentity();
 	
 private:
 
@@ -41,7 +41,7 @@ private:
 
 private:
 	// マウス座標
-	Vector2 mousePos_;
-	Vector2 prevMousePos_;
+	Vector2 mousePos_ = {0.0f, 0.0f};
+	Vector2 prevMousePos_ = {0.0f, 0.0f};
 };
 }

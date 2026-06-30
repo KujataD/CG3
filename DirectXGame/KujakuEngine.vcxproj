@@ -114,6 +114,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorSelection.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\InspectorUI.cpp" />
     <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp" />
     <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\SceneJsonExporter.cpp" />
@@ -208,6 +209,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\Editor\EditorApplication.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorProjectPath.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorSelection.h" />
+    <ClInclude Include="KujakuEngine\Editor\InspectorUI.h" />
     <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h" />
     <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\SceneJsonExporter.h" />

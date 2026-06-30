@@ -1,8 +1,6 @@
 #include "CameraComponent.h"
+#include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
-#ifdef USE_IMGUI
-#include "../../externals/imgui/imgui.h"
-#endif // USE_IMGUI
 
 namespace KujakuEngine {
 
@@ -41,10 +39,10 @@ void CameraComponent::Draw() {
 
 void CameraComponent::DrawInspector() {
 #ifdef USE_IMGUI
-	ImGui::DragFloat("Fov Y", &camera_.fovAngleY, 0.001f, 0.01f, 3.13f);
-	ImGui::DragFloat("Aspect", &camera_.aspectRatio, 0.001f, 0.01f, 10.0f);
-	ImGui::DragFloat("Near Z", &camera_.nearZ, 0.001f, 0.001f, 1000.0f);
-	ImGui::DragFloat("Far Z", &camera_.farZ, 1.0f, 0.01f, 100000.0f);
+	InspectorUI::DragFloat("Fov Y", &camera_.fovAngleY, 0.001f, 0.01f, 3.13f);
+	InspectorUI::DragFloat("Aspect", &camera_.aspectRatio, 0.001f, 0.01f, 10.0f);
+	InspectorUI::DragFloat("Near Z", &camera_.nearZ, 0.001f, 0.001f, 1000.0f);
+	InspectorUI::DragFloat("Far Z", &camera_.farZ, 1.0f, 0.01f, 100000.0f);
 
 	if (camera_.fovAngleY < 0.01f) {
 		camera_.fovAngleY = 0.01f;

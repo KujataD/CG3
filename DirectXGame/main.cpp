@@ -10,7 +10,7 @@ using namespace KujakuEngine;
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// エンジン初期化
-	KujakuEngine::Initialize(L"LC2B_04_オオツカ_ダイチ_AL3");
+	KujakuEngine::Initialize(L"Kujaku Engine");
 
 	EditorApplication* editorApplication = EditorApplication::GetInstance();
 	editorApplication->Initialize();

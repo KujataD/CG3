@@ -1,0 +1,47 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_20bf9823fb61c498105d0b9aafb8922d",
+  "name": "Directional Light",
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          -4.630000114440918,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "color": [
+          0.9239130616188049,
+          0.9010990262031555,
+          0.733104944229126,
+          1.0
+        ],
+        "direction": [
+          0.0013089225394651294,
+          -0.12215984612703323,
+          0.9925096035003662
+        ],
+        "intensity": 1.8200000524520874
+      },
+      "type": "DirectionalLightComponent"
+    }
+  ]
+}

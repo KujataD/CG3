@@ -1,14 +1,49 @@
 #include "GameObject.h"
 #include "ComponentFactory.h"
 #include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <iomanip>
+#include <random>
+#include <sstream>
 
 namespace KujakuEngine {
 
-GameObject::GameObject(const std::string& name) : name_(name) {
+namespace {
+
+std::string GenerateInstanceId() {
+	static std::atomic<uint64_t> counter = 0;
+	static std::random_device randomDevice;
+	static std::mt19937_64 randomEngine(randomDevice());
+
+	const uint64_t now = static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
+	const uint64_t sequence = ++counter;
+	const uint64_t randomValue = randomEngine();
+
+	std::ostringstream os;
+	os << "go_";
+	os << std::hex << std::setfill('0');
+	os << std::setw(16) << (now ^ randomValue);
+	os << std::setw(16) << (sequence ^ (randomValue >> 1));
+	return os.str();
+}
+
+} // namespace
+
+GameObject::GameObject(const std::string& name) : instanceId_(GenerateInstanceId()), name_(name) {
 	EnsureTransformComponent();
 }
 
 GameObject::~GameObject() = default;
+
+void GameObject::SetInstanceId(const std::string& instanceId) {
+	// 既存JSONにIDがない場合や壊れている場合は、生成済みIDを維持する。
+	if (instanceId.empty()) {
+		return;
+	}
+
+	instanceId_ = instanceId;
+}
 
 void GameObject::Initialize() {
 	if (initialized_) {

@@ -95,6 +95,147 @@ bool FindPickableRenderer(GameObject& gameObject, Component*& outRenderer) {
 	return false;
 }
 
+bool IntersectRaySphere(const Ray& ray, const Vector3& center, float radius, float& outDistance) {
+	Vector3 offset = ray.origin - center;
+	float b = Dot(offset, ray.diff);
+	float c = Dot(offset, offset) - radius * radius;
+
+	if (c > 0.0f && b > 0.0f) {
+		return false;
+	}
+
+	float discriminant = b * b - c;
+	if (discriminant < 0.0f) {
+		return false;
+	}
+
+	outDistance = -b - std::sqrt(discriminant);
+	if (outDistance < 0.0f) {
+		outDistance = 0.0f;
+	}
+
+	return true;
+}
+
+void UpdateNearestHit(
+    GameObject* gameObject,
+    Component* component,
+    const Vector3& point,
+    float distance,
+    GameObject*& nearestObject,
+    Component*& nearestComponent,
+    Vector3& nearestPoint,
+    float& nearestDistance) {
+	if (distance >= nearestDistance) {
+		return;
+	}
+
+	nearestDistance = distance;
+	nearestPoint = point;
+	nearestObject = gameObject;
+	nearestComponent = component;
+}
+
+bool TryCastModel(GameObject& gameObject, Component& renderer, const Ray& worldRay, Vector3& outPoint, float& outDistance) {
+	const Model* model = renderer.GetRayCastModel();
+	if (!model) {
+		return false;
+	}
+
+	Vector3 localMin{};
+	Vector3 localMax{};
+	if (!GetModelLocalBounds(*model, localMin, localMax)) {
+		return false;
+	}
+
+	const WorldTransform& transform = gameObject.GetTransform();
+	Matrix4x4 worldMatrix = model->GetRootLocalMatrix() * MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
+	Matrix4x4 inverseWorld = Inverse(worldMatrix);
+
+	Ray localRay{};
+	localRay.origin = Transform(worldRay.origin, inverseWorld);
+	localRay.diff = TransformNormal(worldRay.diff, inverseWorld);
+	if (Length(localRay.diff) == 0.0f) {
+		return false;
+	}
+
+	float hitDistance = 0.0f;
+	if (!RayCast::IntersectRayAabb(localRay, localMin, localMax, hitDistance)) {
+		return false;
+	}
+
+	Vector3 localHitPoint = localRay.origin + localRay.diff * hitDistance;
+	outPoint = Transform(localHitPoint, worldMatrix);
+	outDistance = Length(outPoint - worldRay.origin);
+	return true;
+}
+
+bool CastInternal(const Scene& scene, const Ray& ray, bool includeEditorBillboards, RayCastHit& outHit) {
+	Ray worldRay = ray;
+	if (Length(worldRay.diff) == 0.0f) {
+		outHit = {};
+		return false;
+	}
+	worldRay.diff = Normalize(worldRay.diff);
+
+	GameObject* nearestObject = nullptr;
+	Component* nearestComponent = nullptr;
+	Vector3 nearestPoint{};
+	float nearestDistance = (std::numeric_limits<float>::max)();
+
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (!gameObject || !gameObject->IsActive()) {
+			continue;
+		}
+
+		Component* renderer = nullptr;
+		if (FindPickableRenderer(*gameObject, renderer)) {
+			Vector3 hitPoint{};
+			float distance = 0.0f;
+			if (TryCastModel(*gameObject, *renderer, worldRay, hitPoint, distance)) {
+				UpdateNearestHit(gameObject.get(), renderer, hitPoint, distance, nearestObject, nearestComponent, nearestPoint, nearestDistance);
+			}
+		}
+
+		if (!includeEditorBillboards) {
+			continue;
+		}
+
+		for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+			if (!component || !component->IsEnabled()) {
+				continue;
+			}
+			if (!component->HasEditorBillboard()) {
+				continue;
+			}
+
+			float radius = component->GetEditorBillboardPickRadius();
+			if (radius <= 0.0f) {
+				continue;
+			}
+
+			float distance = 0.0f;
+			if (!IntersectRaySphere(worldRay, gameObject->GetTransform().translation_, radius, distance)) {
+				continue;
+			}
+
+			Vector3 hitPoint = worldRay.origin + worldRay.diff * distance;
+			UpdateNearestHit(gameObject.get(), component.get(), hitPoint, distance, nearestObject, nearestComponent, nearestPoint, nearestDistance);
+		}
+	}
+
+	if (!nearestObject) {
+		outHit = {};
+		return false;
+	}
+
+	outHit.gameObject = nearestObject;
+	outHit.renderer = nearestComponent;
+	outHit.distance = nearestDistance;
+	outHit.point = nearestPoint;
+	return true;
+}
+
 } // namespace
 
 bool RayCast::CreateRayFromViewportPoint(
@@ -138,76 +279,11 @@ bool RayCast::CreateRayFromViewportPoint(
 }
 
 bool RayCast::Cast(const Scene& scene, const Ray& ray, RayCastHit& outHit) {
-	Ray worldRay = ray;
-	if (Length(worldRay.diff) == 0.0f) {
-		outHit = {};
-		return false;
-	}
-	worldRay.diff = Normalize(worldRay.diff);
+	return CastInternal(scene, ray, false, outHit);
+}
 
-	GameObject* nearestObject = nullptr;
-	Component* nearestRenderer = nullptr;
-	Vector3 nearestPoint{};
-	float nearestDistance = (std::numeric_limits<float>::max)();
-
-	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
-		if (!gameObject || !gameObject->IsActive()) {
-			continue;
-		}
-
-		Component* renderer = nullptr;
-		if (!FindPickableRenderer(*gameObject, renderer)) {
-			continue;
-		}
-
-		const Model* model = renderer->GetRayCastModel();
-		if (!model) {
-			continue;
-		}
-
-		Vector3 localMin{};
-		Vector3 localMax{};
-		if (!GetModelLocalBounds(*model, localMin, localMax)) {
-			continue;
-		}
-
-		const WorldTransform& transform = gameObject->GetTransform();
-		Matrix4x4 worldMatrix = model->GetRootLocalMatrix() * MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
-		Matrix4x4 inverseWorld = Inverse(worldMatrix);
-
-		Ray localRay{};
-		localRay.origin = Transform(worldRay.origin, inverseWorld);
-		localRay.diff = TransformNormal(worldRay.diff, inverseWorld);
-		if (Length(localRay.diff) == 0.0f) {
-			continue;
-		}
-
-		float hitDistance = 0.0f;
-		if (!IntersectRayAabb(localRay, localMin, localMax, hitDistance)) {
-			continue;
-		}
-
-		Vector3 localHitPoint = localRay.origin + localRay.diff * hitDistance;
-		Vector3 worldHitPoint = Transform(localHitPoint, worldMatrix);
-		float worldDistance = Length(worldHitPoint - worldRay.origin);
-		if (worldDistance < nearestDistance) {
-			nearestDistance = worldDistance;
-			nearestPoint = worldHitPoint;
-			nearestObject = gameObject.get();
-			nearestRenderer = renderer;
-		}
-	}
-
-	if (!nearestObject) {
-		outHit = {};
-		return false;
-	}
-
-	outHit.gameObject = nearestObject;
-	outHit.renderer = nearestRenderer;
-	outHit.distance = nearestDistance;
-	outHit.point = nearestPoint;
-	return true;
+bool RayCast::CastForEditor(const Scene& scene, const Ray& ray, RayCastHit& outHit) {
+	return CastInternal(scene, ray, true, outHit);
 }
 
 bool RayCast::IntersectRayAabb(const Ray& ray, const Vector3& minValue, const Vector3& maxValue, float& outDistance) {

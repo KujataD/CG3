@@ -12,6 +12,9 @@ class CameraComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "CameraComponent"; }
 	bool AllowMultiple() const override { return false; }
+	bool HasEditorBillboard() const override { return true; }
+	const char* GetEditorBillboardIconName() const override { return "icon_camera.png"; }
+	float GetEditorBillboardPickRadius() const override { return 0.65f; }
 
 	/// <summary>
 	/// Cameraの定数バッファを初期化する
