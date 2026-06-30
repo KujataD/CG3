@@ -1,0 +1,43 @@
+{
+  "assetType": "GameObject",
+  "name": "Point Light",
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          5.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "decay": 1.0,
+        "intensity": 0.0,
+        "radius": 10.0
+      },
+      "type": "PointLightComponent"
+    }
+  ]
+}

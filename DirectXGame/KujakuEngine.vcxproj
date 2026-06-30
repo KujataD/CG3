@@ -180,6 +180,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\scene\Component.cpp" />
     <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp" />
     <ClCompile Include="KujakuEngine\scene\GameObject.cpp" />
+    <ClCompile Include="KujakuEngine\scene\RayCast.cpp" />
     <ClCompile Include="KujakuEngine\scene\SampleScene.cpp" />
     <ClCompile Include="KujakuEngine\scene\Scene.cpp" />
     <ClCompile Include="KujakuEngine\shapes\AABB.cpp" />
@@ -281,6 +282,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\scene\Component.h" />
     <ClInclude Include="KujakuEngine\scene\ComponentFactory.h" />
     <ClInclude Include="KujakuEngine\scene\GameObject.h" />
+    <ClInclude Include="KujakuEngine\scene\RayCast.h" />
     <ClInclude Include="KujakuEngine\scene\SampleScene.h" />
     <ClInclude Include="KujakuEngine\scene\Scene.h" />
     <ClInclude Include="KujakuEngine\shapes\AABB.h" />

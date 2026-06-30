@@ -443,20 +443,30 @@ drawList->AddImage(static_cast<ImTextureID>(handle.ptr), imagePosition, imageEnd
 
 Edit 中に Game Window を左クリックすると、描画中の GameObject を選択できます。
 
-実装場所は `ImGuiManager::HandleGameWindowObjectSelection()` と `ImGuiManager::PickGameObjectInGameWindow()` です。
+Editor 側の入口は `ImGuiManager::HandleGameWindowObjectSelection()` です。実際の Ray 作成と Scene へのヒット判定は `scene/RayCast.h/.cpp` に分離しているため、ゲーム中の処理からも同じ仕組みを使えます。
+
+```cpp
+Ray ray{};
+if (RayCast::CreateRayFromViewportPoint(point, viewportPosition, viewportSize, camera, ray)) {
+	RayCastHit hit{};
+	if (RayCast::Cast(scene, ray, hit)) {
+		GameObject* selected = hit.gameObject;
+	}
+}
+```
 
 処理の流れは次の通りです。
 
 1. Play 中なら選択しません。
 2. Game Window 上のクリックか確認します。
 3. ImGuizmo 操作中なら選択しません。
-4. マウス座標を Game Window 内の NDC 座標に変換します。
-5. Camera の ViewProjection 逆行列で Ray を作ります。
-6. Scene 内の GameObject を走査します。
+4. `RayCast::CreateRayFromViewportPoint()` でマウス座標を Camera 基準の Ray に変換します。
+5. `RayCast::Cast()` で Scene 内の GameObject を走査します。
+6. Active な `GameObject` だけを対象にします。
 7. `ModelRendererComponent` を持つ Object だけを対象にします。
 8. Model の頂点からローカル AABB を作ります。
 9. `Model::GetRootLocalMatrix()` と GameObject Transform を合わせて World 行列を作ります。
-10. Ray と AABB の交差判定を行い、最も近い Object を選択します。
+10. Ray と AABB の交差判定を行い、最も近い Object を `RayCastHit` として返します。
 
 選択状態は `EditorSelection` が持ちます。Hierarchy と Inspector は同じ `EditorSelection` を見ているため、Game Window で選んだ Object は Hierarchy 側でも選択中に見えます。
 
@@ -786,6 +796,7 @@ editorApplication->SetCurrentScene(std::make_unique<MyScene>());
 | `scene/GameObject.h/.cpp` | Scene 上の Object。名前、Active、必須 Transform、Component 一覧、Lifecycle を持ちます。 |
 | `scene/Component.h/.cpp` | Component 基底。Lifecycle、Inspector、JSON、Play Start / Stop、Enabled を持ちます。 |
 | `scene/ComponentFactory.h/.cpp` | 型名文字列から Component を生成する Factory です。Inspector の Add Component と JSON Import で使います。 |
+| `scene/RayCast.h/.cpp` | Viewport 座標から Ray を作成し、Scene 内の ModelRendererComponent へ RayCast します。Editor 選択とゲーム中判定の共通入口です。 |
 | `scene/SampleScene.h/.cpp` | 現在のサンプル Scene。標準 Camera / Light GameObject、MonsterBall、Terrain、描画順、Camera 切り替えを実装しています。 |
 
 ### Components

@@ -5,31 +5,22 @@
 #include "../Editor/EditorSelection.h"
 #include "../Editor/SceneJsonExporter.h"
 #include "../3d/Camera.h"
-#include "../3d/Model.h"
-#include "../components/ModelRendererComponent.h"
 #include "../components/TransformComponent.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
 #include "../scene/ComponentFactory.h"
+#include "../scene/RayCast.h"
 #include "../math/MathUtil.h"
-#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdio>
 #include <filesystem>
-#include <limits>
 
 namespace KujakuEngine {
 namespace {
 
 constexpr float kDegreesToRadians = 0.017453292519943295f;
-constexpr float kRayEpsilon = 0.000001f;
-
-struct PickRay {
-	Vector3 origin;
-	Vector3 direction;
-};
 
 void AllocateImGuiSrvDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle) {
 	// ImGui 1.92系のDX12バックエンドは、フォントや追加テクスチャ用のSRVをバックエンド側へ要求してくる。
@@ -71,8 +62,8 @@ void ApplyCinderImGuiDarkStyle() {
 	style.Alpha = 0.95f;						// UI全体の透明度 
 	style.WindowRounding = 4.0f;				// ウィンドウ角の丸み 
 	style.FrameRounding = 2.0f;					// ボタンや入力欄などの角の丸み 
-	style.ChildRounding = 5.0f;					// 子ウィンドウ角の丸み 
-	style.PopupRounding = 5.0f;					// ポップアップウィンドウ角の丸み 
+	style.ChildRounding = 5.0f;				// 子ウィンドウ角の丸み 
+	style.PopupRounding = 5.0f;				// ポップアップウィンドウ角の丸み 
 	style.IndentSpacing = 6.0f;					// ツリーなどでインデントする幅 
 	style.ColumnsMinSpacing = 50.0f;			// カラム同士の最小間隔 
 	style.GrabMinSize = 14.0f;					// スライダーやスクロールバーのつまみの最小サイズ 
@@ -175,113 +166,6 @@ void ApplyCinderImGuiDarkStyle() {
 	colors[ImGuiCol_NavWindowingHighlight] = textHighlightColor;             // ナビゲーション時のウィンドウ強調色 
 	colors[ImGuiCol_NavWindowingDimBg] = mainBgTransparentColor;             // ナビゲーション時の背景暗転色 
 	colors[ImGuiCol_ModalWindowDimBg] = mainBgTransparentColor;              // モーダルウィンドウ表示時の背景暗転色 
-}
-
-bool GetModelLocalBounds(const Model& model, Vector3& outMin, Vector3& outMax) {
-	const std::vector<VertexData>& vertices = model.GetVertices();
-	if (vertices.empty()) {
-		return false;
-	}
-
-	outMin = {vertices[0].position.x, vertices[0].position.y, vertices[0].position.z};
-	outMax = outMin;
-
-	for (const VertexData& vertex : vertices) {
-		outMin.x = (std::min)(outMin.x, vertex.position.x);
-		outMin.y = (std::min)(outMin.y, vertex.position.y);
-		outMin.z = (std::min)(outMin.z, vertex.position.z);
-		outMax.x = (std::max)(outMax.x, vertex.position.x);
-		outMax.y = (std::max)(outMax.y, vertex.position.y);
-		outMax.z = (std::max)(outMax.z, vertex.position.z);
-	}
-
-	// 平面など厚みがないModelもクリックしやすいよう、薄い軸だけ少し広げる。
-	if (std::fabs(outMax.x - outMin.x) < 0.001f) {
-		outMin.x -= 0.05f;
-		outMax.x += 0.05f;
-	}
-	if (std::fabs(outMax.y - outMin.y) < 0.001f) {
-		outMin.y -= 0.05f;
-		outMax.y += 0.05f;
-	}
-	if (std::fabs(outMax.z - outMin.z) < 0.001f) {
-		outMin.z -= 0.05f;
-		outMax.z += 0.05f;
-	}
-
-	return true;
-}
-
-bool UpdateRayAabbSlab(float origin, float direction, float minValue, float maxValue, float& inOutNear, float& inOutFar) {
-	if (std::fabs(direction) < kRayEpsilon) {
-		if (origin < minValue) {
-			return false;
-		}
-		if (origin > maxValue) {
-			return false;
-		}
-		return true;
-	}
-
-	float nearValue = (minValue - origin) / direction;
-	float farValue = (maxValue - origin) / direction;
-	if (nearValue > farValue) {
-		std::swap(nearValue, farValue);
-	}
-
-	inOutNear = (std::max)(inOutNear, nearValue);
-	inOutFar = (std::min)(inOutFar, farValue);
-	if (inOutNear > inOutFar) {
-		return false;
-	}
-
-	return true;
-}
-
-bool IntersectRayAabb(const PickRay& ray, const Vector3& minValue, const Vector3& maxValue, float& outDistance) {
-	float nearDistance = 0.0f;
-	float farDistance = (std::numeric_limits<float>::max)();
-
-	if (!UpdateRayAabbSlab(ray.origin.x, ray.direction.x, minValue.x, maxValue.x, nearDistance, farDistance)) {
-		return false;
-	}
-	if (!UpdateRayAabbSlab(ray.origin.y, ray.direction.y, minValue.y, maxValue.y, nearDistance, farDistance)) {
-		return false;
-	}
-	if (!UpdateRayAabbSlab(ray.origin.z, ray.direction.z, minValue.z, maxValue.z, nearDistance, farDistance)) {
-		return false;
-	}
-
-	outDistance = nearDistance;
-	if (outDistance < 0.0f) {
-		outDistance = farDistance;
-	}
-	if (outDistance < 0.0f) {
-		return false;
-	}
-
-	return true;
-}
-
-bool HasPickableRenderer(GameObject& gameObject, ModelRendererComponent*& outRenderer) {
-	for (const std::unique_ptr<Component>& component : gameObject.GetComponents()) {
-		if (!component || !component->IsEnabled()) {
-			continue;
-		}
-
-		ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component.get());
-		if (!renderer) {
-			continue;
-		}
-		if (!renderer->GetModel()) {
-			continue;
-		}
-
-		outRenderer = renderer;
-		return true;
-	}
-
-	return false;
 }
 
 } // namespace
@@ -616,81 +500,22 @@ void ImGuiManager::HandleGameWindowObjectSelection(const ImVec2& imagePosition, 
 		return;
 	}
 
-	GameObject* pickedObject = PickGameObjectInGameWindow(mousePosition, imagePosition, imageSize, *camera);
-	if (pickedObject) {
-		EditorSelection::GetInstance()->SetSelectedGameObject(pickedObject);
+	Ray ray{};
+	Vector2 point = {mousePosition.x, mousePosition.y};
+	Vector2 viewportPosition = {imagePosition.x, imagePosition.y};
+	Vector2 viewportSize = {imageSize.x, imageSize.y};
+	if (!RayCast::CreateRayFromViewportPoint(point, viewportPosition, viewportSize, *camera, ray)) {
+		return;
+	}
+
+	RayCastHit hit{};
+	if (RayCast::Cast(*scene, ray, hit) && hit.gameObject) {
+		EditorSelection::GetInstance()->SetSelectedGameObject(hit.gameObject);
 	}
 #else
 	(void)imagePosition;
 	(void)imageSize;
 #endif // USE_IMGUI
-}
-
-GameObject* ImGuiManager::PickGameObjectInGameWindow(const ImVec2& mousePosition, const ImVec2& imagePosition, const ImVec2& imageSize, const Camera& camera) {
-	if (imageSize.x <= 0.0f || imageSize.y <= 0.0f) {
-		return nullptr;
-	}
-
-	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
-	if (!scene) {
-		return nullptr;
-	}
-
-	float localX = mousePosition.x - imagePosition.x;
-	float localY = mousePosition.y - imagePosition.y;
-	float ndcX = localX / imageSize.x * 2.0f - 1.0f;
-	float ndcY = 1.0f - localY / imageSize.y * 2.0f;
-
-	Matrix4x4 inverseViewProjection = Inverse(camera.matView * camera.matProjection);
-	Vector3 nearPoint = Transform({ndcX, ndcY, 0.0f}, inverseViewProjection);
-	Vector3 farPoint = Transform({ndcX, ndcY, 1.0f}, inverseViewProjection);
-
-	PickRay worldRay{};
-	worldRay.origin = nearPoint;
-	worldRay.direction = Normalize(farPoint - nearPoint);
-	if (Length(worldRay.direction) == 0.0f) {
-		return nullptr;
-	}
-
-	GameObject* nearestObject = nullptr;
-	float nearestDistance = (std::numeric_limits<float>::max)();
-
-	for (const std::unique_ptr<GameObject>& gameObject : scene->GetGameObjects()) {
-		if (!gameObject || !gameObject->IsActive()) {
-			continue;
-		}
-
-		ModelRendererComponent* renderer = nullptr;
-		if (!HasPickableRenderer(*gameObject, renderer)) {
-			continue;
-		}
-
-		Vector3 localMin{};
-		Vector3 localMax{};
-		if (!GetModelLocalBounds(*renderer->GetModel(), localMin, localMax)) {
-			continue;
-		}
-
-		const WorldTransform& transform = gameObject->GetTransform();
-		Matrix4x4 worldMatrix = renderer->GetModel()->GetRootLocalMatrix() * MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
-		Matrix4x4 inverseWorld = Inverse(worldMatrix);
-
-		PickRay localRay{};
-		localRay.origin = Transform(worldRay.origin, inverseWorld);
-		localRay.direction = TransformNormal(worldRay.direction, inverseWorld);
-
-		float hitDistance = 0.0f;
-		if (!IntersectRayAabb(localRay, localMin, localMax, hitDistance)) {
-			continue;
-		}
-
-		if (hitDistance < nearestDistance) {
-			nearestDistance = hitDistance;
-			nearestObject = gameObject.get();
-		}
-	}
-
-	return nearestObject;
 }
 
 void ImGuiManager::DrawGameWindow() {

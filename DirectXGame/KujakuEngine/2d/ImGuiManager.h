@@ -83,7 +83,6 @@ private:
 	void DrawGizmoToolbar();
 	void DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2& imageSize);
 	void HandleGameWindowObjectSelection(const ImVec2& imagePosition, const ImVec2& imageSize);
-	GameObject* PickGameObjectInGameWindow(const ImVec2& mousePosition, const ImVec2& imagePosition, const ImVec2& imageSize, const Camera& camera);
 	bool DrawGizmoModeButton(const char* id, const char* fallbackLabel, uint32_t textureIndex, TransformGizmoOperation operation, const char* tooltip);
 
 private:
