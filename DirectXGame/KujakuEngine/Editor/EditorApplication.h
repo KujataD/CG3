@@ -1,6 +1,10 @@
 #pragma once
 
+#include "../runtime/GameModule.h"
+#include "../runtime/GameModuleLoader.h"
 #include "../scene/Scene.h"
+#include <filesystem>
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -21,7 +25,7 @@ public:
 	/// <summary>
 	/// シングルトンインスタンスの取得
 	/// </summary>
-	static EditorApplication* GetInstance();
+	static KUJAKU_API EditorApplication* GetInstance();
 
 	/// <summary>
 	/// 初期化
@@ -66,7 +70,7 @@ public:
 	/// <summary>
 	/// ゲーム再生中かどうか
 	/// </summary>
-	bool IsPlaying() const;
+	KUJAKU_API bool IsPlaying() const;
 
 	/// <summary>
 	/// Editorの現在モードを取得
@@ -84,6 +88,11 @@ public:
 	void SetCurrentScene(std::unique_ptr<Scene> scene);
 
 	/// <summary>
+	/// Game DLLをReloadする
+	/// </summary>
+	bool ReloadGameModule();
+
+	/// <summary>
 	/// 現在操作対象のSceneを取得
 	/// </summary>
 	Scene* GetCurrentScene() const;
@@ -95,13 +104,42 @@ private:
 	EditorApplication& operator=(const EditorApplication&) = delete;
 
 	void AddConsoleLog(const std::string& message);
+	void DestroyCurrentScene();
+	void SetCurrentSceneRaw(Scene* scene, GameModuleApi::DestroySceneFunc destroySceneFunc);
+	void InitializeCurrentSceneAndImportJson();
+	/// <summary>
+	/// HotReload用の世代別一時ディレクトリへGameModuleをビルドする
+	/// </summary>
+	bool BuildGameModuleForHotReload(std::filesystem::path& outDllPath);
+	/// <summary>
+	/// 起動時に標準配置のGameModuleを読み込み、Componentを登録する
+	/// </summary>
+	bool LoadGameModuleComponentsForEditor();
+	/// <summary>
+	/// DLL差し替え前に現在SceneをJSONへ退避する
+	/// </summary>
+	bool SaveCurrentSceneJsonForHotReload();
+	/// <summary>
+	/// GameModule由来のComponent登録を解除し、読み込み済みDLLを解放する
+	/// </summary>
+	void UnregisterAndUnloadGameModule();
+	std::filesystem::path GetGameModuleProjectPath() const;
+	std::filesystem::path GetGameModuleDllPath() const;
+	/// <summary>
+	/// HotReload世代別ビルドのルートディレクトリを取得する
+	/// </summary>
+	std::filesystem::path GetGameModuleHotReloadBuildRoot() const;
+	std::filesystem::path GetGameModuleCopyDirectory() const;
+	void RestoreFallbackSceneAfterHotReloadFailure();
 
 private:
 	// 起動時は必ずEdit。Startを押したときだけPlayに移行する。
 	EditorMode editorMode_ = EditorMode::Edit;
 
-	// 将来のEditScene/PlayScene差し替え口。現時点では1つのSceneを直接制御する。
-	std::unique_ptr<Scene> currentScene_;
+	// 将来のEditScene/PlayScene差し替え口。DLL由来SceneはDLL側DestroySceneで破棄する。
+	Scene* currentScene_ = nullptr;
+	GameModuleApi::DestroySceneFunc destroyCurrentSceneFunc_ = nullptr;
+	GameModuleLoader gameModuleLoader_;
 };
 
 } // namespace KujakuEngine

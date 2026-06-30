@@ -1,6 +1,7 @@
 #pragma once
 #include <assert.h>
 #include <cmath>
+#include "../runtime/KujakuApi.h"
 #include <math/Matrix3x3.h>
 #include <math/Matrix4x4.h>
 #include <math/Vector2.h>
@@ -31,8 +32,8 @@ Vector3 Transform(const Vector3& v, const Matrix4x4& m);
 
 float Dot(const Vector3& v1, const Vector3& v2);
 Vector3 Cross(const Vector3& a, const Vector3& b);
-float Length(const Vector3& v);
-Vector3 Normalize(const Vector3& v);
+KUJAKU_API float Length(const Vector3& v);
+KUJAKU_API Vector3 Normalize(const Vector3& v);
 float Lerp(float f1, float f2, float t);
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
 Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t);
@@ -74,7 +75,7 @@ Matrix4x4 MakeIdentity();
 Matrix4x4 MakeTranslateMatrix(const Vector3& translate);
 Matrix4x4 MakeScaleMatrix(const Vector3& scale);
 Matrix4x4 MakeRotateXMatrix(float radian);
-Matrix4x4 MakeRotateYMatrix(float radian);
+KUJAKU_API Matrix4x4 MakeRotateYMatrix(float radian);
 Matrix4x4 MakeRotateZMatrix(float radian);
 
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);

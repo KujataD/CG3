@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujakuApi.h"
 #include "GameObject.h"
 #include <memory>
 #include <string>
@@ -14,37 +15,37 @@ class Camera;
 /// </summary>
 class Scene {
 public:
-	virtual ~Scene();
+	KUJAKU_API virtual ~Scene();
 
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	virtual void Initialize();
+	KUJAKU_API virtual void Initialize();
 
 	/// <summary>
 	/// Scene内ObjectのUpdateを実行する
 	/// </summary>
-	virtual void Update();
+	KUJAKU_API virtual void Update();
 
 	/// <summary>
 	/// Scene内ObjectのDrawを実行する
 	/// </summary>
-	virtual void Draw();
+	KUJAKU_API virtual void Draw();
 
 	/// <summary>
 	/// 終了処理
 	/// </summary>
-	virtual void Finalize();
+	KUJAKU_API virtual void Finalize();
 
 	/// <summary>
 	/// EditからPlayへ入る直前の処理
 	/// </summary>
-	virtual void OnPlayStart();
+	KUJAKU_API virtual void OnPlayStart();
 
 	/// <summary>
 	/// PlayからEditへ戻る時の処理
 	/// </summary>
-	virtual void OnPlayStop();
+	KUJAKU_API virtual void OnPlayStop();
 
 	/// <summary>
 	/// Editor保存時に使うScene名を取得
@@ -59,32 +60,32 @@ public:
 	/// <summary>
 	/// GameObjectを作成し、所有権をSceneへ持たせる
 	/// </summary>
-	GameObject* CreateGameObject(const std::string& name = "GameObject");
+	KUJAKU_API GameObject* CreateGameObject(const std::string& name = "GameObject");
 
 	/// <summary>
 	/// EditorのHierarchyから空Objectを作成する
 	/// </summary>
-	virtual GameObject* CreateEditorEntity();
+	KUJAKU_API virtual GameObject* CreateEditorEntity();
 
 	/// <summary>
 	/// EditorのHierarchyからCubeを作成する
 	/// </summary>
-	virtual GameObject* CreateEditorCube();
+	KUJAKU_API virtual GameObject* CreateEditorCube();
 
 	/// <summary>
 	/// EditorのHierarchyからSphereを作成する
 	/// </summary>
-	virtual GameObject* CreateEditorSphere();
+	KUJAKU_API virtual GameObject* CreateEditorSphere();
 
 	/// <summary>
 	/// Editor上でComponent追加後にScene固有の依存を補完する
 	/// </summary>
-	virtual void OnEditorComponentAdded(GameObject* gameObject, Component* component);
+	KUJAKU_API virtual void OnEditorComponentAdded(GameObject* gameObject, Component* component);
 
 	/// <summary>
 	/// SceneへGameObjectを追加し、所有権をSceneへ移す
 	/// </summary>
-	GameObject* AddGameObject(std::unique_ptr<GameObject> gameObject);
+	KUJAKU_API GameObject* AddGameObject(std::unique_ptr<GameObject> gameObject);
 
 	/// <summary>
 	/// GameObject一覧を取得
@@ -99,7 +100,7 @@ public:
 	/// <summary>
 	/// Scene内のGameObject / Component情報をJSON形式で取得
 	/// </summary>
-	std::string ToJson() const;
+	KUJAKU_API std::string ToJson() const;
 
 protected:
 	/// <summary>

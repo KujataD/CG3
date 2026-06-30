@@ -27,7 +27,7 @@ void RotatorComponent::Update() {
 		return;
 	}
 
-	owner->GetTransform().rotation_.x += speed_;
+	owner->GetTransform().rotation_.y += speed_;
 }
 
 void RotatorComponent::DrawInspector() {

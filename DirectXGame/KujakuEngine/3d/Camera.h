@@ -5,6 +5,7 @@
 #include <wrl.h>
 
 #include "../base/WinApp.h"
+#include "../runtime/KujakuApi.h"
 #include <math/MathUtil.h>
 #include "../shapes/Rect.h"
 
@@ -49,12 +50,12 @@ public:
 	/// <summary>
 	/// 初期化（定数バッファの生成・マッピング）
 	/// </summary>
-	void Initialize();
+	KUJAKU_API void Initialize();
 
 	/// <summary>
 	/// 行列を更新
 	/// </summary>
-	void UpdateMatrix();
+	KUJAKU_API void UpdateMatrix();
 
 	/// <summary>
 	/// 定数バッファの取得

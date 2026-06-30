@@ -2,7 +2,6 @@
 #include "../3d/Camera.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
-#include "../components/ModelRendererComponent.h"
 #include "../math/MathUtil.h"
 #include "Component.h"
 #include "GameObject.h"
@@ -79,21 +78,17 @@ bool UpdateRayAabbSlab(float origin, float direction, float minValue, float maxV
 	return true;
 }
 
-bool FindPickableRenderer(GameObject& gameObject, ModelRendererComponent*& outRenderer) {
+bool FindPickableRenderer(GameObject& gameObject, Component*& outRenderer) {
 	for (const std::unique_ptr<Component>& component : gameObject.GetComponents()) {
 		if (!component || !component->IsEnabled()) {
 			continue;
 		}
 
-		ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component.get());
-		if (!renderer) {
-			continue;
-		}
-		if (!renderer->GetModel()) {
+		if (!component->GetRayCastModel()) {
 			continue;
 		}
 
-		outRenderer = renderer;
+		outRenderer = component.get();
 		return true;
 	}
 
@@ -151,7 +146,7 @@ bool RayCast::Cast(const Scene& scene, const Ray& ray, RayCastHit& outHit) {
 	worldRay.diff = Normalize(worldRay.diff);
 
 	GameObject* nearestObject = nullptr;
-	ModelRendererComponent* nearestRenderer = nullptr;
+	Component* nearestRenderer = nullptr;
 	Vector3 nearestPoint{};
 	float nearestDistance = (std::numeric_limits<float>::max)();
 
@@ -160,19 +155,24 @@ bool RayCast::Cast(const Scene& scene, const Ray& ray, RayCastHit& outHit) {
 			continue;
 		}
 
-		ModelRendererComponent* renderer = nullptr;
+		Component* renderer = nullptr;
 		if (!FindPickableRenderer(*gameObject, renderer)) {
+			continue;
+		}
+
+		const Model* model = renderer->GetRayCastModel();
+		if (!model) {
 			continue;
 		}
 
 		Vector3 localMin{};
 		Vector3 localMax{};
-		if (!GetModelLocalBounds(*renderer->GetModel(), localMin, localMax)) {
+		if (!GetModelLocalBounds(*model, localMin, localMax)) {
 			continue;
 		}
 
 		const WorldTransform& transform = gameObject->GetTransform();
-		Matrix4x4 worldMatrix = renderer->GetModel()->GetRootLocalMatrix() * MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
+		Matrix4x4 worldMatrix = model->GetRootLocalMatrix() * MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
 		Matrix4x4 inverseWorld = Inverse(worldMatrix);
 
 		Ray localRay{};

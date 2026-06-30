@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../base/DirectXCommon.h"
+#include "../runtime/KujakuApi.h"
 #include "../math/Vector3.h"
 #include "../math/Vector4.h"
 #include <array>
@@ -28,14 +29,14 @@ struct SpotLightData {
 
 class SpotLight {
 public:
-	static SpotLight* GetInstance();
+	static KUJAKU_API SpotLight* GetInstance();
 
 	void Initialize();
-	void Reset();
+	KUJAKU_API void Reset();
 
 	void AddLight(const SpotLightData& light);
 	void SetLight(uint32_t index, const SpotLightData& light);
-	void SetLight(SpotLightData* light);
+	KUJAKU_API void SetLight(SpotLightData* light);
 
 	ID3D12Resource* GetResource() const { return resource_.Get(); }
 	const SpotLightData& GetData() const { return *map_; }

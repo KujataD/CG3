@@ -5,7 +5,6 @@
 #include "../Editor/EditorSelection.h"
 #include "../Editor/SceneJsonExporter.h"
 #include "../3d/Camera.h"
-#include "../components/TransformComponent.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
@@ -62,8 +61,8 @@ void ApplyCinderImGuiDarkStyle() {
 	style.Alpha = 0.95f;						// UI全体の透明度 
 	style.WindowRounding = 4.0f;				// ウィンドウ角の丸み 
 	style.FrameRounding = 2.0f;					// ボタンや入力欄などの角の丸み 
-	style.ChildRounding = 5.0f;				// 子ウィンドウ角の丸み 
-	style.PopupRounding = 5.0f;				// ポップアップウィンドウ角の丸み 
+	style.ChildRounding = 5.0f;					// 子ウィンドウ角の丸み 
+	style.PopupRounding = 5.0f;					// ポップアップウィンドウ角の丸み 
 	style.IndentSpacing = 6.0f;					// ツリーなどでインデントする幅 
 	style.ColumnsMinSpacing = 50.0f;			// カラム同士の最小間隔 
 	style.GrabMinSize = 14.0f;					// スライダーやスクロールバーのつまみの最小サイズ 
@@ -71,6 +70,7 @@ void ApplyCinderImGuiDarkStyle() {
 	style.ScrollbarSize = 12.0f;				// スクロールバーの太さ 
 	style.ScrollbarRounding = 16.0f;			// スクロールバー角の丸み 
 	style.TabRounding = 5.0f;					// タブ角の丸み 
+	
 	ImVec4* colors = style.Colors;
 
 	const ImVec4 textColor = ImVec4(0.86f, 0.93f, 0.89f, 0.78f);
@@ -264,6 +264,10 @@ void ImGuiManager::DrawDockSpace() {
 			EditorApplication::GetInstance()->Stop();
 		}
 		ImGui::SameLine();
+		if (ImGui::Button("Reload DLL")) {
+			EditorApplication::GetInstance()->ReloadGameModule();
+		}
+		ImGui::SameLine();
 
 		// 現在のモードをメニューバー上にも出して、Start/Stopの結果をすぐ確認できるようにする。
 		if (EditorApplication::GetInstance()->IsPlaying()) {
@@ -408,12 +412,7 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 		return;
 	}
 
-	TransformComponent* transformComponent = selectedObject->GetTransformComponent();
-	if (!transformComponent) {
-		return;
-	}
-
-	WorldTransform& transform = transformComponent->GetTransform();
+	WorldTransform& transform = selectedObject->GetTransform();
 	Matrix4x4 gizmoMatrix = MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
 
 	ImGuizmo::SetOrthographic(false);
@@ -769,6 +768,9 @@ void ImGuiManager::HandleEditorShortcuts() {
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false)) {
 		ExportCurrentSceneJson();
+	}
+	if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_R, false)) {
+		EditorApplication::GetInstance()->ReloadGameModule();
 	}
 #endif // USE_IMGUI
 }

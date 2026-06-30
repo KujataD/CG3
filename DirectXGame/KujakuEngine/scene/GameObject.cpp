@@ -1,4 +1,5 @@
 #include "GameObject.h"
+#include "ComponentFactory.h"
 #include <algorithm>
 
 namespace KujakuEngine {
@@ -15,6 +16,10 @@ void GameObject::Initialize() {
 	}
 
 	EnsureTransformComponent();
+	if (!transformInitialized_) {
+		transform_.Initialize();
+		transformInitialized_ = true;
+	}
 
 	for (const std::unique_ptr<Component>& component : components_) {
 		if (component) {
@@ -78,12 +83,12 @@ void GameObject::OnPlayStop() {
 
 WorldTransform& GameObject::GetTransform() {
 	EnsureTransformComponent();
-	return transformComponent_->GetTransform();
+	return transform_;
 }
 
 const WorldTransform& GameObject::GetTransform() const {
 	const_cast<GameObject*>(this)->EnsureTransformComponent();
-	return transformComponent_->GetTransform();
+	return transform_;
 }
 
 Component* GameObject::AddComponent(std::unique_ptr<Component> component) {
@@ -104,9 +109,8 @@ Component* GameObject::AddComponent(std::unique_ptr<Component> component) {
 	raw->SetOwner(this);
 	components_.push_back(std::move(component));
 
-	TransformComponent* transformComponent = dynamic_cast<TransformComponent*>(raw);
-	if (transformComponent) {
-		transformComponent_ = transformComponent;
+	if (raw->IsTransformComponent()) {
+		transformComponent_ = raw;
 	}
 
 	if (initialized_) {
@@ -150,12 +154,32 @@ void GameObject::RemoveComponentAt(size_t index) {
 	components_.erase(components_.begin() + index);
 }
 
-void GameObject::EnsureTransformComponent() {
+Component* GameObject::EnsureTransformComponent() {
 	if (transformComponent_) {
-		return;
+		return transformComponent_;
 	}
 
-	transformComponent_ = AddComponent<TransformComponent>();
+	for (const std::unique_ptr<Component>& component : components_) {
+		if (!component) {
+			continue;
+		}
+		if (component->IsTransformComponent()) {
+			transformComponent_ = component.get();
+			return transformComponent_;
+		}
+	}
+
+	std::unique_ptr<Component> transformComponent = ComponentFactory::GetInstance().Create("Transform");
+	if (!transformComponent) {
+		transformComponent = ComponentFactory::GetInstance().Create("TransformComponent");
+	}
+
+	Component* added = AddComponent(std::move(transformComponent));
+	if (added && added->IsTransformComponent()) {
+		transformComponent_ = added;
+	}
+
+	return transformComponent_;
 }
 
 } // namespace KujakuEngine

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../runtime/KujakuApi.h"
 #include "Component.h"
 #include "../3d/WorldTransform.h"
-#include "../components/TransformComponent.h"
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -17,38 +17,38 @@ namespace KujakuEngine {
 /// </summary>
 class GameObject {
 public:
-	explicit GameObject(const std::string& name = "GameObject");
-	~GameObject();
+	KUJAKU_API explicit GameObject(const std::string& name = "GameObject");
+	KUJAKU_API ~GameObject();
 
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize();
+	KUJAKU_API void Initialize();
 
 	/// <summary>
 	/// ComponentのUpdateを実行する
 	/// </summary>
-	void Update();
+	KUJAKU_API void Update();
 
 	/// <summary>
 	/// ComponentのDrawを実行する
 	/// </summary>
-	void Draw();
+	KUJAKU_API void Draw();
 
 	/// <summary>
 	/// 終了処理
 	/// </summary>
-	void Finalize();
+	KUJAKU_API void Finalize();
 
 	/// <summary>
 	/// EditからPlayへ入る直前の処理
 	/// </summary>
-	void OnPlayStart();
+	KUJAKU_API void OnPlayStart();
 
 	/// <summary>
 	/// PlayからEditへ戻る時の処理
 	/// </summary>
-	void OnPlayStop();
+	KUJAKU_API void OnPlayStop();
 
 	/// <summary>
 	/// 名前を取得
@@ -73,32 +73,37 @@ public:
 	/// <summary>
 	/// Transformを取得
 	/// </summary>
-	WorldTransform& GetTransform();
+	KUJAKU_API WorldTransform& GetTransform();
 
 	/// <summary>
 	/// Transformを取得
 	/// </summary>
-	const WorldTransform& GetTransform() const;
+	KUJAKU_API const WorldTransform& GetTransform() const;
 
 	/// <summary>
 	/// 必須Transform Componentを取得
 	/// </summary>
-	TransformComponent* GetTransformComponent() const { return transformComponent_; }
+	Component* GetTransformComponent() const { return transformComponent_; }
+
+	/// <summary>
+	/// 必須Transform Componentを保証
+	/// </summary>
+	KUJAKU_API Component* EnsureTransformComponent();
 
 	/// <summary>
 	/// Componentを追加
 	/// </summary>
-	Component* AddComponent(std::unique_ptr<Component> component);
+	KUJAKU_API Component* AddComponent(std::unique_ptr<Component> component);
 
 	/// <summary>
 	/// Componentを削除
 	/// </summary>
-	void RemoveComponent(Component* component);
+	KUJAKU_API void RemoveComponent(Component* component);
 
 	/// <summary>
 	/// Componentを削除
 	/// </summary>
-	void RemoveComponentAt(size_t index);
+	KUJAKU_API void RemoveComponentAt(size_t index);
 
 	/// <summary>
 	/// Componentを追加
@@ -123,12 +128,12 @@ public:
 	const std::vector<std::unique_ptr<Component>>& GetComponents() const { return components_; }
 
 private:
-	void EnsureTransformComponent();
-
 	std::string name_ = "GameObject";
 	bool active_ = true;
 	bool initialized_ = false;
-	TransformComponent* transformComponent_ = nullptr;
+	bool transformInitialized_ = false;
+	WorldTransform transform_;
+	Component* transformComponent_ = nullptr;
 	std::vector<std::unique_ptr<Component>> components_;
 };
 

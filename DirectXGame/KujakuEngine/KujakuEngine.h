@@ -30,16 +30,6 @@
 #include "Editor/SceneJsonExporter.h"
 #include "Editor/SceneJsonImporter.h"
 
-#include "components/BuiltinComponents.h"
-#include "components/CameraComponent.h"
-#include "components/DebugCameraComponent.h"
-#include "components/DirectionalLightComponent.h"
-#include "components/ModelRendererComponent.h"
-#include "components/PointLightComponent.h"
-#include "components/RotatorComponent.h"
-#include "components/TransformComponent.h"
-#include "components/TransformSnapshotComponent.h"
-
 #include "3d/Camera.h"
 #include "3d/FollowCamera.h"
 #include "3d/AxisIndicator.h"
@@ -78,12 +68,14 @@
 #include "vfx/ParticleField.h"
 #include "vfx/ParticleModel.h"
 
+#include "runtime/GameModule.h"
+#include "runtime/GameModuleLoader.h"
+
 #include "scene/Component.h"
 #include "scene/ComponentFactory.h"
 #include "scene/GameObject.h"
 #include "scene/RayCast.h"
 #include "scene/Scene.h"
-#include "scene/SampleScene.h"
 
 namespace KujakuEngine {
 

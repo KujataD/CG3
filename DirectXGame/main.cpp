@@ -14,7 +14,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	EditorApplication* editorApplication = EditorApplication::GetInstance();
 	editorApplication->Initialize();
-	editorApplication->SetCurrentScene(std::make_unique<SampleScene>());
 
 	// ゲームループ
 	while (KujakuEngine::Update()) {

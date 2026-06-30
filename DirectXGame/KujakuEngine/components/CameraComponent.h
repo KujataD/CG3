@@ -59,9 +59,19 @@ public:
 	Camera& GetCamera() { return camera_; }
 
 	/// <summary>
+	/// Scene表示に使えるCameraを取得
+	/// </summary>
+	Camera* GetSceneCamera() override { return &camera_; }
+
+	/// <summary>
 	/// Cameraを取得
 	/// </summary>
 	const Camera& GetCamera() const { return camera_; }
+
+	/// <summary>
+	/// Scene表示に使えるCameraを取得
+	/// </summary>
+	const Camera* GetSceneCamera() const override { return &camera_; }
 
 private:
 	Camera camera_;

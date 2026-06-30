@@ -1,4 +1,5 @@
 #pragma once
+#include "../runtime/KujakuApi.h"
 #include <cmath>
 #include <math.h>
 
@@ -6,7 +7,7 @@ namespace KujakuEngine{
 
 class Matrix3x3;
 
-class Vector2 {
+class KUJAKU_API Vector2 {
 public:
 	float x;
 	float y;

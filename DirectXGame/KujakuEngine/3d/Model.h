@@ -8,6 +8,7 @@
 #include "../3d/Camera.h"
 #include "../3d/GraphicsPipeline.h"
 #include "../3d/WorldTransform.h"
+#include "../runtime/KujakuApi.h"
 #include "../math/Matrix4x4.h"
 #include "../math/Vector2.h"
 #include "../math/Vector3.h"
@@ -30,36 +31,36 @@ public:
 	/// <summary>
 	/// OBJファイルからモデルを生成する(省略版)
 	/// </summary>
-	static Model* CreateFromOBJ(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
-	static Model* CreateFromGlTF(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
-	static Model* TryCreateFromFile(const std::string& filePath, ShaderModel shaderModel = ShaderModel::kNone);
+	static KUJAKU_API Model* CreateFromOBJ(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
+	static KUJAKU_API Model* CreateFromGlTF(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
+	static KUJAKU_API Model* TryCreateFromFile(const std::string& filePath, ShaderModel shaderModel = ShaderModel::kNone);
 
-	static Model* CreateSphere(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone, uint32_t subdivision = 16);
+	static KUJAKU_API Model* CreateSphere(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone, uint32_t subdivision = 16);
 
-	static Model* CreateCube(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
+	static KUJAKU_API Model* CreateCube(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
-	static Model* CreatePlane(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
+	static KUJAKU_API Model* CreatePlane(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
-	static Model* CreateTriangle(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
+	static KUJAKU_API Model* CreateTriangle(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
-	static Model* CreateTetrahedron(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
+	static KUJAKU_API Model* CreateTetrahedron(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
 	/// <summary>
 	/// 描画前処理（全モデル共通・フレームに1回）
 	/// RootSignature / PSO / Viewport / ScissorRect / PrimitiveTopology をセットする
 	/// main.cpp のループ内「描画用設定」に対応
 	/// </summary>
-	static void PreDraw();
+	static KUJAKU_API void PreDraw();
 
 	/// <summary>
 	/// 描画後処理（将来の拡張のために用意）
 	/// </summary>
-	static void PostDraw();
+	static KUJAKU_API void PostDraw();
 
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）
 	/// </summary>
-	void Draw(const WorldTransform& worldTransform, const Camera& camera, FillMode fillMode = kFillModeSolid);
+	KUJAKU_API void Draw(const WorldTransform& worldTransform, const Camera& camera, FillMode fillMode = kFillModeSolid);
 
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }

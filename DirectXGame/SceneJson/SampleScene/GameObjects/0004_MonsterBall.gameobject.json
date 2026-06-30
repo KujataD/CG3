@@ -62,6 +62,13 @@
         "texture": "Resources/uvChecker.png"
       },
       "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "speed": 0.029999999329447746
+      },
+      "type": "MoveForwardComponent"
     }
   ]
 }

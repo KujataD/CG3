@@ -1,16 +1,19 @@
 #pragma once
 
+#include "../runtime/KujakuApi.h"
 #include "../../externals/nlohmann/json.hpp"
 #include <iosfwd>
 
 namespace KujakuEngine {
 
+class Camera;
 class GameObject;
+class Model;
 
 /// <summary>
 /// GameObjectに追加するComponentの基底クラス
 /// </summary>
-class Component {
+class KUJAKU_API Component {
 public:
 	virtual ~Component();
 
@@ -98,6 +101,26 @@ public:
 	/// Componentが有効かどうか
 	/// </summary>
 	bool IsEnabled() const { return enabled_; }
+
+	/// <summary>
+	/// 必須Transform Componentかどうか
+	/// </summary>
+	virtual bool IsTransformComponent() const { return false; }
+
+	/// <summary>
+	/// Scene表示に使えるCameraを取得
+	/// </summary>
+	virtual Camera* GetSceneCamera() { return nullptr; }
+
+	/// <summary>
+	/// Scene表示に使えるCameraを取得
+	/// </summary>
+	virtual const Camera* GetSceneCamera() const { return nullptr; }
+
+	/// <summary>
+	/// RayCast対象にできるModelを取得
+	/// </summary>
+	virtual const Model* GetRayCastModel() const { return nullptr; }
 
 protected:
 	GameObject* owner_ = nullptr;

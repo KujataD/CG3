@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../base/DirectXCommon.h"
+#include "../runtime/KujakuApi.h"
 #include "../math/Vector3.h"
 #include "../math/Vector4.h"
 #include <array>
@@ -25,12 +26,12 @@ struct PointLightForGPU {
 
 class PointLight {
 public:
-	static PointLight* GetInstance();
+	static KUJAKU_API PointLight* GetInstance();
 
 	void Initialize();
-	void Reset();
+	KUJAKU_API void Reset();
 
-	void AddLight(const PointLightData& light);
+	KUJAKU_API void AddLight(const PointLightData& light);
 	void SetLight(uint32_t index, const PointLightData& light);
 
 	ID3D12Resource* GetResource() const { return resource_.Get(); }

@@ -60,6 +60,11 @@ public:
 	const Model* GetModel() const { return model_.get(); }
 
 	/// <summary>
+	/// RayCast対象にできるModelを取得
+	/// </summary>
+	const Model* GetRayCastModel() const override { return model_.get(); }
+
+	/// <summary>
 	/// Model描画
 	/// </summary>
 	void Draw() override;

@@ -61,6 +61,9 @@
     <Filter Include="KujakuEngine\components">
       <UniqueIdentifier>{a2868ec1-0c72-4d5d-8b0f-e5503cc1603f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="KujakuEngine\runtime">
+      <UniqueIdentifier>{034d85de-0d5f-4a2e-b90b-76fd6ee7e5f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -131,33 +134,6 @@
     </ClCompile>
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp">
       <Filter>KujakuEngine\2d</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\BuiltinComponents.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\CameraComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\DebugCameraComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\DirectionalLightComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\PointLightComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\TransformComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\TransformSnapshotComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp">
       <Filter>KujakuEngine\Editor</Filter>
@@ -318,6 +294,9 @@
     <ClCompile Include="KujakuEngine\scene\Component.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\GameModuleLoader.cpp">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
@@ -325,9 +304,6 @@
       <Filter>KujakuEngine</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\scene\RayCast.cpp">
-      <Filter>KujakuEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\scene\SampleScene.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\scene\Scene.cpp">
@@ -619,6 +595,15 @@
     </ClInclude>
     <ClInclude Include="KujakuEngine\scene\Component.h">
       <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\GameModule.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\GameModuleLoader.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\KujakuApi.h">
+      <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\scene\ComponentFactory.h">
       <Filter>KujakuEngine</Filter>

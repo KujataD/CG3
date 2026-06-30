@@ -17,19 +17,20 @@ public:
 	void ReadJson(const nlohmann::json& json) override;
 	bool CanRemove() const override { return false; }
 	bool AllowMultiple() const override { return false; }
+	bool IsTransformComponent() const override { return true; }
 
 	/// <summary>
 	/// WorldTransformを取得
 	/// </summary>
-	WorldTransform& GetTransform() { return transform_; }
+	WorldTransform& GetTransform();
 
 	/// <summary>
 	/// WorldTransformを取得
 	/// </summary>
-	const WorldTransform& GetTransform() const { return transform_; }
+	const WorldTransform& GetTransform() const;
 
 private:
-	WorldTransform transform_;
+	WorldTransform fallbackTransform_;
 	bool initialized_ = false;
 };
 

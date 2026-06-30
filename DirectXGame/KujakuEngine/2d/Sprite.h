@@ -7,6 +7,7 @@
 
 #include <3d/GraphicsPipeline.h>
 #include <3d/Model.h>
+#include "../runtime/KujakuApi.h"
 
 #include "../../externals/DirectXTex/DirectXTex.h"
 #include <math/MathUtil.h>
@@ -31,12 +32,12 @@ public:
 	/// <summary>
 	/// 描画前処理
 	/// </summary>
-	static void PreDraw();
+	static KUJAKU_API void PreDraw();
 
 	/// <summary>
 	/// 描画後処理
 	/// </summary>
-	static void PostDraw();
+	static KUJAKU_API void PostDraw();
 
 	/// <summary>
 	/// 描画

@@ -1,4 +1,5 @@
 #pragma once
+#include "../runtime/KujakuApi.h"
 #include <math/MathUtil.h>
 #include <Windows.h>
 
@@ -7,7 +8,7 @@ namespace KujakuEngine{
 /// <summary>
 /// デバッグカメラ
 /// </summary>
-class DebugCamera {
+class KUJAKU_API DebugCamera {
 public:
 	
 	/// <summary>

@@ -1,4 +1,5 @@
 #include "TransformComponent.h"
+#include "../scene/GameObject.h"
 
 #ifdef USE_IMGUI
 #include "../../externals/imgui/imgui.h"
@@ -29,52 +30,70 @@ Vector3 ReadVector3(const nlohmann::json& json, const char* key, const Vector3& 
 
 } // namespace
 
+WorldTransform& TransformComponent::GetTransform() {
+	GameObject* owner = GetOwner();
+	if (owner) {
+		return owner->GetTransform();
+	}
+	return fallbackTransform_;
+}
+
+const WorldTransform& TransformComponent::GetTransform() const {
+	const GameObject* owner = GetOwner();
+	if (owner) {
+		return owner->GetTransform();
+	}
+	return fallbackTransform_;
+}
+
 void TransformComponent::Initialize() {
 	if (initialized_) {
 		return;
 	}
 
-	transform_.Initialize();
 	initialized_ = true;
 }
 
 void TransformComponent::DrawInspector() {
 #ifdef USE_IMGUI
-	ImGui::DragFloat3("Translation", &transform_.translation_.x, 0.01f);
-	ImGui::DragFloat3("Rotation", &transform_.rotation_.x, 0.01f);
-	ImGui::DragFloat3("Scale", &transform_.scale_.x, 0.01f);
+	WorldTransform& transform = GetTransform();
+	ImGui::DragFloat3("Translation", &transform.translation_.x, 0.01f);
+	ImGui::DragFloat3("Rotation", &transform.rotation_.x, 0.01f);
+	ImGui::DragFloat3("Scale", &transform.scale_.x, 0.01f);
 
-	if (transform_.scale_.x < 0.001f) {
-		transform_.scale_.x = 0.001f;
+	if (transform.scale_.x < 0.001f) {
+		transform.scale_.x = 0.001f;
 	}
-	if (transform_.scale_.y < 0.001f) {
-		transform_.scale_.y = 0.001f;
+	if (transform.scale_.y < 0.001f) {
+		transform.scale_.y = 0.001f;
 	}
-	if (transform_.scale_.z < 0.001f) {
-		transform_.scale_.z = 0.001f;
+	if (transform.scale_.z < 0.001f) {
+		transform.scale_.z = 0.001f;
 	}
 #endif
 }
 
 void TransformComponent::WriteJson(nlohmann::json& json) const {
-	json["translation"] = {transform_.translation_.x, transform_.translation_.y, transform_.translation_.z};
-	json["rotation"] = {transform_.rotation_.x, transform_.rotation_.y, transform_.rotation_.z};
-	json["scale"] = {transform_.scale_.x, transform_.scale_.y, transform_.scale_.z};
+	const WorldTransform& transform = GetTransform();
+	json["translation"] = {transform.translation_.x, transform.translation_.y, transform.translation_.z};
+	json["rotation"] = {transform.rotation_.x, transform.rotation_.y, transform.rotation_.z};
+	json["scale"] = {transform.scale_.x, transform.scale_.y, transform.scale_.z};
 }
 
 void TransformComponent::ReadJson(const nlohmann::json& json) {
-	transform_.translation_ = ReadVector3(json, "translation", transform_.translation_);
-	transform_.rotation_ = ReadVector3(json, "rotation", transform_.rotation_);
-	transform_.scale_ = ReadVector3(json, "scale", transform_.scale_);
+	WorldTransform& transform = GetTransform();
+	transform.translation_ = ReadVector3(json, "translation", transform.translation_);
+	transform.rotation_ = ReadVector3(json, "rotation", transform.rotation_);
+	transform.scale_ = ReadVector3(json, "scale", transform.scale_);
 
-	if (transform_.scale_.x < 0.001f) {
-		transform_.scale_.x = 0.001f;
+	if (transform.scale_.x < 0.001f) {
+		transform.scale_.x = 0.001f;
 	}
-	if (transform_.scale_.y < 0.001f) {
-		transform_.scale_.y = 0.001f;
+	if (transform.scale_.y < 0.001f) {
+		transform.scale_.y = 0.001f;
 	}
-	if (transform_.scale_.z < 0.001f) {
-		transform_.scale_.z = 0.001f;
+	if (transform.scale_.z < 0.001f) {
+		transform.scale_.z = 0.001f;
 	}
 }
 

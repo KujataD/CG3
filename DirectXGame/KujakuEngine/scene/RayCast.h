@@ -7,8 +7,8 @@
 namespace KujakuEngine {
 
 class Camera;
+class Component;
 class GameObject;
-class ModelRendererComponent;
 class Scene;
 
 /// <summary>
@@ -16,7 +16,7 @@ class Scene;
 /// </summary>
 struct RayCastHit {
 	GameObject* gameObject = nullptr;
-	ModelRendererComponent* renderer = nullptr;
+	Component* renderer = nullptr;
 	Vector3 point = {};
 	float distance = 0.0f;
 };
@@ -37,7 +37,7 @@ public:
 	    Ray& outRay);
 
 	/// <summary>
-	/// Scene内のModelRendererComponentにRayを当てる
+	/// Scene内のRayCast対象ComponentにRayを当てる
 	/// </summary>
 	static bool Cast(const Scene& scene, const Ray& ray, RayCastHit& outHit);
 

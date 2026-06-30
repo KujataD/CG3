@@ -169,7 +169,7 @@ void NotifyComponentsAfterReadJson(GameObject& gameObject) {
 size_t ApplyComponents(Scene& scene, GameObject& gameObject, const json& gameObjectJson) {
 	std::vector<Component*> importedComponents;
 
-	TransformComponent* transformComponent = gameObject.GetTransformComponent();
+	Component* transformComponent = gameObject.EnsureTransformComponent();
 	if (transformComponent) {
 		importedComponents.push_back(transformComponent);
 	}
@@ -191,7 +191,7 @@ size_t ApplyComponents(Scene& scene, GameObject& gameObject, const json& gameObj
 
 		Component* component = nullptr;
 		if (IsTransformTypeName(typeName)) {
-			component = gameObject.GetTransformComponent();
+			component = gameObject.EnsureTransformComponent();
 		} else {
 			component = FindExistingComponent(gameObject, typeName, importedComponents);
 			if (!component) {

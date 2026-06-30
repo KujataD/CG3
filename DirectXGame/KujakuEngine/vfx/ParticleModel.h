@@ -3,6 +3,7 @@
 #include "../3d/Camera.h"
 #include "../3d/GraphicsPipeline.h"
 #include "../3d/WorldTransform.h"
+#include "../runtime/KujakuApi.h"
 #include "../math/Matrix4x4.h"
 #include "../math/Vector2.h"
 #include "../math/Vector3.h"
@@ -49,12 +50,12 @@ public:
 	/// RootSignature / PSO / Viewport / ScissorRect / PrimitiveTopology をセットする
 	/// main.cpp のループ内「描画用設定」に対応
 	/// </summary>
-	static void PreDraw();
+	static KUJAKU_API void PreDraw();
 
 	/// <summary>
 	/// 描画後処理（将来の拡張のために用意）
 	/// </summary>
-	static void PostDraw();
+	static KUJAKU_API void PostDraw();
 
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）

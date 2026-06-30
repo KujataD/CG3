@@ -5,6 +5,7 @@
 #include <wrl.h>
 
 #include <math/MathUtil.h>
+#include "../runtime/KujakuApi.h"
 
 namespace KujakuEngine {
 
@@ -45,7 +46,7 @@ public:
 	/// ワールド行列を更新してGPUに転送する
 	/// </summary>
 	/// <param name="camera">カメラ（ビュー・プロジェクション行列を取得）</param>
-	void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
+	KUJAKU_API void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
 
 	void TransferMatrix(const Camera& camera) const;
 	void TransferMatrix(const Camera& camera, const Matrix4x4& worldMatrix) const;
