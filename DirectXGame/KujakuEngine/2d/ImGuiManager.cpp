@@ -490,6 +490,10 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 		return;
 	}
 
+	if (EditorApplication::GetInstance()->IsPlaying()) {
+		return;
+	}
+
 	WorldTransform& transform = selectedObject->GetTransform();
 	selectedObject->UpdateWorldTransformSelfAndAncestors();
 	Matrix4x4 gizmoMatrix = transform.matWorld_;
@@ -505,6 +509,7 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 		operation = ImGuizmo::SCALE;
 	}
 
+	// ギズモのサイズ変更
 	ImGuizmo::SetGizmoSizeClipSpace(0.2f);
 
 	if (!ImGuizmo::Manipulate(MatrixData(camera->matView), MatrixData(camera->matProjection), operation, ImGuizmo::LOCAL, MatrixData(gizmoMatrix))) {
