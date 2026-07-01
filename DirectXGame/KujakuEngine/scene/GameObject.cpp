@@ -124,6 +124,20 @@ void GameObject::SetInstanceId(const std::string& instanceId) {
 	instanceId_ = instanceId;
 }
 
+void GameObject::SetPrefabLink(const std::string& assetPath, const std::string& objectId, const std::string& rootInstanceId, bool isRoot) {
+	prefabAssetPath_ = assetPath;
+	prefabObjectId_ = objectId;
+	prefabInstanceRootId_ = rootInstanceId;
+	isPrefabInstanceRoot_ = isRoot;
+}
+
+void GameObject::ClearPrefabLink() {
+	prefabAssetPath_.clear();
+	prefabObjectId_.clear();
+	prefabInstanceRootId_.clear();
+	isPrefabInstanceRoot_ = false;
+}
+
 void GameObject::Initialize() {
 	if (initialized_) {
 		return;

@@ -92,6 +92,16 @@ public:
 	KUJAKU_API GameObject* AddGameObject(std::unique_ptr<GameObject> gameObject);
 
 	/// <summary>
+	/// GameObject階層をSceneから削除する
+	/// </summary>
+	KUJAKU_API void RemoveGameObjectHierarchy(GameObject* gameObject);
+
+	/// <summary>
+	/// instanceIdからGameObjectを検索する
+	/// </summary>
+	KUJAKU_API GameObject* FindGameObjectByInstanceId(const std::string& instanceId) const;
+
+	/// <summary>
 	/// PrefabファイルからGameObject階層を生成する
 	/// </summary>
 	KUJAKU_API GameObject* InstantiatePrefab(const std::filesystem::path& prefabPath);

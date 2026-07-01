@@ -4,6 +4,7 @@
 #include "../3d/WorldTransform.h"
 #include "../Editor/EditorApplication.h"
 #include "../Editor/PrefabAsset.h"
+#include <algorithm>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -287,6 +288,57 @@ GameObject* Scene::AddGameObject(std::unique_ptr<GameObject> gameObject) {
 	}
 
 	return raw;
+}
+
+void Scene::RemoveGameObjectHierarchy(GameObject* gameObject) {
+	if (!gameObject) {
+		return;
+	}
+
+	std::vector<GameObject*> removeTargets;
+	removeTargets.push_back(gameObject);
+	for (size_t index = 0; index < removeTargets.size(); ++index) {
+		GameObject* current = removeTargets[index];
+		if (!current) {
+			continue;
+		}
+		for (GameObject* child : current->GetChildren()) {
+			if (child) {
+				removeTargets.push_back(child);
+			}
+		}
+	}
+
+	for (GameObject* target : removeTargets) {
+		if (target) {
+			target->Finalize();
+		}
+	}
+
+	auto shouldRemove = [&removeTargets](const std::unique_ptr<GameObject>& current) {
+		if (!current) {
+			return false;
+		}
+		return std::find(removeTargets.begin(), removeTargets.end(), current.get()) != removeTargets.end();
+	};
+	gameObjects_.erase(std::remove_if(gameObjects_.begin(), gameObjects_.end(), shouldRemove), gameObjects_.end());
+}
+
+GameObject* Scene::FindGameObjectByInstanceId(const std::string& instanceId) const {
+	if (instanceId.empty()) {
+		return nullptr;
+	}
+
+	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
+		if (!gameObject) {
+			continue;
+		}
+		if (gameObject->GetInstanceId() == instanceId) {
+			return gameObject.get();
+		}
+	}
+
+	return nullptr;
 }
 
 GameObject* Scene::InstantiatePrefab(const std::filesystem::path& prefabPath) {

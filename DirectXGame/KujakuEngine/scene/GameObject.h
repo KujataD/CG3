@@ -112,6 +112,41 @@ public:
 	KUJAKU_API void SetInstanceId(const std::string& instanceId);
 
 	/// <summary>
+	/// Prefab Instanceとしての参照情報を設定
+	/// </summary>
+	KUJAKU_API void SetPrefabLink(const std::string& assetPath, const std::string& objectId, const std::string& rootInstanceId, bool isRoot);
+
+	/// <summary>
+	/// Prefab Instanceとしての参照情報を解除
+	/// </summary>
+	KUJAKU_API void ClearPrefabLink();
+
+	/// <summary>
+	/// Prefab Instanceかどうか
+	/// </summary>
+	bool IsPrefabInstance() const { return !prefabAssetPath_.empty() && !prefabObjectId_.empty(); }
+
+	/// <summary>
+	/// Prefab InstanceのルートObjectかどうか
+	/// </summary>
+	bool IsPrefabInstanceRoot() const { return IsPrefabInstance() && isPrefabInstanceRoot_; }
+
+	/// <summary>
+	/// 参照元Prefabのパスを取得
+	/// </summary>
+	const std::string& GetPrefabAssetPath() const { return prefabAssetPath_; }
+
+	/// <summary>
+	/// Prefab内Object IDを取得
+	/// </summary>
+	const std::string& GetPrefabObjectId() const { return prefabObjectId_; }
+
+	/// <summary>
+	/// Prefab InstanceルートのinstanceIdを取得
+	/// </summary>
+	const std::string& GetPrefabInstanceRootId() const { return prefabInstanceRootId_; }
+
+	/// <summary>
 	/// 名前を取得
 	/// </summary>
 	const std::string& GetName() const { return name_; }
@@ -198,6 +233,10 @@ private:
 	std::vector<std::unique_ptr<Component>> components_;
 	GameObject* parent_ = nullptr;
 	std::vector<GameObject*> children_;
+	std::string prefabAssetPath_;
+	std::string prefabObjectId_;
+	std::string prefabInstanceRootId_;
+	bool isPrefabInstanceRoot_ = false;
 };
 
 template <class T, class... Args>

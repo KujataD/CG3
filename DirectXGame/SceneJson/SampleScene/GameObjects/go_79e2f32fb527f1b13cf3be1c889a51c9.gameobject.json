@@ -2,6 +2,10 @@
   "assetType": "GameObject",
   "instanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
   "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
   "name": "MonsterBall",
   "active": true,
   "components": [

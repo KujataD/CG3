@@ -1,4 +1,5 @@
 #include "PrefabAsset.h"
+#include "EditorProjectPath.h"
 #include "../scene/Component.h"
 #include "../scene/ComponentFactory.h"
 #include "../scene/GameObject.h"
@@ -93,6 +94,26 @@ std::filesystem::path NormalizePath(const std::filesystem::path& path) {
 		return path.lexically_normal();
 	}
 	return normalized.lexically_normal();
+}
+
+std::filesystem::path ResolvePrefabPath(const std::filesystem::path& prefabPath) {
+	if (prefabPath.is_absolute()) {
+		return NormalizePath(prefabPath);
+	}
+	return NormalizePath(DetectEditorProjectRoot() / prefabPath);
+}
+
+std::string MakeStoredPrefabPath(const std::filesystem::path& prefabPath) {
+	std::filesystem::path normalizedPrefabPath = ResolvePrefabPath(prefabPath);
+	std::filesystem::path projectRoot = DetectEditorProjectRoot();
+
+	std::error_code error;
+	std::filesystem::path relative = std::filesystem::relative(normalizedPrefabPath, projectRoot, error);
+	if (!error && !relative.empty()) {
+		return relative.generic_string();
+	}
+
+	return normalizedPrefabPath.generic_string();
 }
 
 std::filesystem::path MakeUniquePrefabPath(const std::filesystem::path& prefabDirectory, const std::string& objectName) {
@@ -285,17 +306,37 @@ void NotifyComponentsAfterReadJson(GameObject& gameObject) {
 	}
 }
 
+bool ContainsComponentPointer(const std::vector<Component*>& components, Component* target) {
+	return std::find(components.begin(), components.end(), target) != components.end();
+}
+
+Component* FindExistingComponent(GameObject& gameObject, const std::string& typeName, const std::vector<Component*>& importedComponents) {
+	for (const std::unique_ptr<Component>& component : gameObject.GetComponents()) {
+		if (!component) {
+			continue;
+		}
+		if (ContainsComponentPointer(importedComponents, component.get())) {
+			continue;
+		}
+		if (component->GetTypeName() == typeName) {
+			return component.get();
+		}
+	}
+
+	return nullptr;
+}
+
 size_t ApplyPrefabComponents(Scene& scene, GameObject& gameObject, const json& gameObjectJson) {
-	size_t componentCount = 0;
+	std::vector<Component*> importedComponents;
 
 	Component* transformComponent = gameObject.EnsureTransformComponent();
 	if (transformComponent) {
-		++componentCount;
+		importedComponents.push_back(transformComponent);
 	}
 
 	if (!gameObjectJson.contains("components") || !gameObjectJson.at("components").is_array()) {
 		NotifyComponentsAfterReadJson(gameObject);
-		return componentCount;
+		return importedComponents.size();
 	}
 
 	for (const json& componentJson : gameObjectJson.at("components")) {
@@ -312,10 +353,13 @@ size_t ApplyPrefabComponents(Scene& scene, GameObject& gameObject, const json& g
 		if (IsTransformTypeName(typeName)) {
 			component = gameObject.EnsureTransformComponent();
 		} else {
-			std::unique_ptr<Component> createdComponent = ComponentFactory::GetInstance().Create(typeName);
-			component = gameObject.AddComponent(std::move(createdComponent));
-			if (component) {
-				scene.OnEditorComponentAdded(&gameObject, component);
+			component = FindExistingComponent(gameObject, typeName, importedComponents);
+			if (!component) {
+				std::unique_ptr<Component> createdComponent = ComponentFactory::GetInstance().Create(typeName);
+				component = gameObject.AddComponent(std::move(createdComponent));
+				if (component) {
+					scene.OnEditorComponentAdded(&gameObject, component);
+				}
 			}
 		}
 
@@ -323,17 +367,135 @@ size_t ApplyPrefabComponents(Scene& scene, GameObject& gameObject, const json& g
 			continue;
 		}
 
+		if (!ContainsComponentPointer(importedComponents, component)) {
+			importedComponents.push_back(component);
+		}
 		ApplyComponent(*component, componentJson);
-		++componentCount;
+	}
+
+	std::vector<Component*> removeTargets;
+	for (const std::unique_ptr<Component>& component : gameObject.GetComponents()) {
+		if (!component) {
+			continue;
+		}
+		if (!component->CanRemove()) {
+			continue;
+		}
+		if (ContainsComponentPointer(importedComponents, component.get())) {
+			continue;
+		}
+		removeTargets.push_back(component.get());
+	}
+
+	for (Component* component : removeTargets) {
+		gameObject.RemoveComponent(component);
 	}
 
 	NotifyComponentsAfterReadJson(gameObject);
-	return componentCount;
+	return importedComponents.size();
 }
 
 GameObject* FindInstantiatedObject(
     const std::unordered_map<std::string, GameObject*>& objectsByPrefabId,
     const std::string& prefabObjectId) {
+	auto found = objectsByPrefabId.find(prefabObjectId);
+	if (found == objectsByPrefabId.end()) {
+		return nullptr;
+	}
+	return found->second;
+}
+
+void CollectGameObjectHierarchy(GameObject& gameObject, std::vector<GameObject*>& outObjects) {
+	outObjects.push_back(&gameObject);
+	for (GameObject* child : gameObject.GetChildren()) {
+		if (child) {
+			CollectGameObjectHierarchy(*child, outObjects);
+		}
+	}
+}
+
+void BindHierarchyToPrefabInternal(GameObject& rootObject, const std::filesystem::path& prefabPath) {
+	std::vector<GameObject*> objects;
+	CollectGameObjectHierarchy(rootObject, objects);
+
+	std::string storedPrefabPath = MakeStoredPrefabPath(prefabPath);
+	std::string rootInstanceId = rootObject.GetInstanceId();
+	for (size_t objectIndex = 0; objectIndex < objects.size(); ++objectIndex) {
+		GameObject* object = objects[objectIndex];
+		if (!object) {
+			continue;
+		}
+
+		std::string prefabObjectId = "object_" + std::to_string(objectIndex);
+		object->SetPrefabLink(storedPrefabPath, prefabObjectId, rootInstanceId, object == &rootObject);
+	}
+}
+
+void ClearPrefabLinkHierarchy(GameObject& rootObject) {
+	std::vector<GameObject*> objects;
+	CollectGameObjectHierarchy(rootObject, objects);
+	for (GameObject* object : objects) {
+		if (object) {
+			object->ClearPrefabLink();
+		}
+	}
+}
+
+bool LoadPrefabObjectEntries(
+    const std::filesystem::path& prefabPath,
+    std::vector<json>& outObjectEntries,
+    std::string& outRootObjectId,
+    std::string& message) {
+	json prefabJson;
+	if (!LoadJsonFile(ResolvePrefabPath(prefabPath), prefabJson, message)) {
+		return false;
+	}
+
+	std::string assetType = ReadString(prefabJson, "assetType", "");
+	if (!assetType.empty() && assetType != "Prefab") {
+		message = "JSON is not a Prefab: " + prefabPath.string();
+		return false;
+	}
+
+	outObjectEntries.clear();
+	if (prefabJson.contains("objects") && prefabJson.at("objects").is_array()) {
+		for (const json& objectEntry : prefabJson.at("objects")) {
+			if (objectEntry.is_object()) {
+				outObjectEntries.push_back(objectEntry);
+			}
+		}
+	} else {
+		outObjectEntries.push_back(prefabJson);
+	}
+
+	outRootObjectId = ReadString(prefabJson, "rootObjectId", "object_0");
+	if (outObjectEntries.empty()) {
+		message = "Prefab does not contain GameObject entries: " + prefabPath.string();
+		return false;
+	}
+
+	return true;
+}
+
+std::unordered_map<std::string, GameObject*> BuildExistingPrefabObjectMap(GameObject& rootObject) {
+	std::vector<GameObject*> hierarchyObjects;
+	CollectGameObjectHierarchy(rootObject, hierarchyObjects);
+
+	std::unordered_map<std::string, GameObject*> objectsByPrefabId;
+	for (GameObject* object : hierarchyObjects) {
+		if (!object) {
+			continue;
+		}
+		if (object->GetPrefabObjectId().empty()) {
+			continue;
+		}
+		objectsByPrefabId[object->GetPrefabObjectId()] = object;
+	}
+
+	return objectsByPrefabId;
+}
+
+GameObject* FindObjectByPrefabId(const std::unordered_map<std::string, GameObject*>& objectsByPrefabId, const std::string& prefabObjectId) {
 	auto found = objectsByPrefabId.find(prefabObjectId);
 	if (found == objectsByPrefabId.end()) {
 		return nullptr;
@@ -362,6 +524,26 @@ PrefabAsset::SaveResult PrefabAsset::SaveAsPrefab(const GameObject& rootObject, 
 	}
 
 	result.outputPath = MakeUniquePrefabPath(prefabDirectory, rootObject.GetName());
+	return SaveToPath(rootObject, result.outputPath);
+}
+
+PrefabAsset::SaveResult PrefabAsset::SaveToPath(const GameObject& rootObject, const std::filesystem::path& prefabPath) {
+	SaveResult result{};
+
+	if (prefabPath.empty()) {
+		result.message = "Prefab path is empty.";
+		return result;
+	}
+
+	std::filesystem::path normalizedPrefabPath = ResolvePrefabPath(prefabPath);
+	std::error_code error;
+	std::filesystem::create_directories(normalizedPrefabPath.parent_path(), error);
+	if (error) {
+		result.message = "Failed to create Prefab directory: " + error.message();
+		return result;
+	}
+
+	result.outputPath = normalizedPrefabPath;
 	std::string prefabJson = BuildPrefabJson(rootObject, result.gameObjectCount, result.componentCount);
 	if (!WriteTextFile(result.outputPath, prefabJson, result.message)) {
 		return result;
@@ -372,39 +554,17 @@ PrefabAsset::SaveResult PrefabAsset::SaveAsPrefab(const GameObject& rootObject, 
 	return result;
 }
 
-PrefabAsset::InstantiateResult PrefabAsset::Instantiate(Scene& scene, const std::filesystem::path& prefabPath) {
+PrefabAsset::InstantiateResult PrefabAsset::Instantiate(Scene& scene, const std::filesystem::path& prefabPath, bool linkInstance) {
 	InstantiateResult result{};
 
-	json prefabJson;
-	if (!LoadJsonFile(prefabPath, prefabJson, result.message)) {
-		return result;
-	}
-
-	std::string assetType = ReadString(prefabJson, "assetType", "");
-	if (!assetType.empty() && assetType != "Prefab") {
-		result.message = "JSON is not a Prefab: " + prefabPath.string();
-		return result;
-	}
-
 	std::vector<json> objectEntries;
-	if (prefabJson.contains("objects") && prefabJson.at("objects").is_array()) {
-		for (const json& objectEntry : prefabJson.at("objects")) {
-			if (objectEntry.is_object()) {
-				objectEntries.push_back(objectEntry);
-			}
-		}
-	} else {
-		objectEntries.push_back(prefabJson);
-	}
-
-	if (objectEntries.empty()) {
-		result.message = "Prefab does not contain GameObject entries: " + prefabPath.string();
+	std::string rootObjectId;
+	if (!LoadPrefabObjectEntries(prefabPath, objectEntries, rootObjectId, result.message)) {
 		return result;
 	}
 
 	std::unordered_map<std::string, GameObject*> objectsByPrefabId;
 	std::vector<PendingParentLink> parentLinks;
-	std::string rootObjectId = ReadString(prefabJson, "rootObjectId", "object_0");
 
 	for (size_t objectIndex = 0; objectIndex < objectEntries.size(); ++objectIndex) {
 		const json& objectJson = objectEntries[objectIndex];
@@ -440,6 +600,17 @@ PrefabAsset::InstantiateResult PrefabAsset::Instantiate(Scene& scene, const std:
 		link.gameObject->SetParent(parent);
 	}
 
+	if (linkInstance && result.rootObject) {
+		std::string storedPrefabPath = MakeStoredPrefabPath(prefabPath);
+		std::string rootInstanceId = result.rootObject->GetInstanceId();
+		for (const auto& [prefabObjectId, gameObject] : objectsByPrefabId) {
+			if (!gameObject) {
+				continue;
+			}
+			gameObject->SetPrefabLink(storedPrefabPath, prefabObjectId, rootInstanceId, gameObject == result.rootObject);
+		}
+	}
+
 	result.succeeded = result.rootObject != nullptr;
 	if (result.succeeded) {
 		result.message = "Instantiated Prefab.";
@@ -448,6 +619,220 @@ PrefabAsset::InstantiateResult PrefabAsset::Instantiate(Scene& scene, const std:
 	}
 
 	return result;
+}
+
+void PrefabAsset::BindHierarchyToPrefab(GameObject& rootObject, const std::filesystem::path& prefabPath) {
+	BindHierarchyToPrefabInternal(rootObject, prefabPath);
+}
+
+GameObject* PrefabAsset::FindPrefabInstanceRoot(Scene& scene, GameObject& object) {
+	if (!object.IsPrefabInstance()) {
+		return nullptr;
+	}
+	if (object.IsPrefabInstanceRoot()) {
+		return &object;
+	}
+
+	GameObject* root = scene.FindGameObjectByInstanceId(object.GetPrefabInstanceRootId());
+	if (root && root->IsPrefabInstanceRoot()) {
+		return root;
+	}
+
+	GameObject* current = &object;
+	while (current) {
+		if (current->IsPrefabInstanceRoot()) {
+			return current;
+		}
+		current = current->GetParent();
+	}
+
+	return nullptr;
+}
+
+PrefabAsset::InstantiateResult PrefabAsset::RevertPrefabInstance(Scene& scene, GameObject& instanceObject) {
+	InstantiateResult result{};
+	GameObject* rootObject = FindPrefabInstanceRoot(scene, instanceObject);
+	if (!rootObject) {
+		result.message = "Selected GameObject is not a Prefab Instance.";
+		return result;
+	}
+
+	std::filesystem::path prefabPath(rootObject->GetPrefabAssetPath());
+	std::vector<json> objectEntries;
+	std::string rootObjectId;
+	if (!LoadPrefabObjectEntries(prefabPath, objectEntries, rootObjectId, result.message)) {
+		return result;
+	}
+
+	GameObject* originalParent = rootObject->GetParent();
+	std::unordered_map<std::string, GameObject*> objectsByPrefabId = BuildExistingPrefabObjectMap(*rootObject);
+	std::vector<PendingParentLink> parentLinks;
+	std::vector<std::string> importedPrefabObjectIds;
+
+	for (size_t objectIndex = 0; objectIndex < objectEntries.size(); ++objectIndex) {
+		const json& objectJson = objectEntries[objectIndex];
+		std::string defaultPrefabObjectId = "object_" + std::to_string(objectIndex);
+		std::string prefabObjectId = ReadString(objectJson, "prefabObjectId", defaultPrefabObjectId);
+		std::string parentPrefabObjectId = ReadString(objectJson, "parentPrefabObjectId", "");
+		std::string objectName = ReadString(objectJson, "name", "PrefabObject");
+
+		GameObject* gameObject = FindObjectByPrefabId(objectsByPrefabId, prefabObjectId);
+		if (!gameObject) {
+			gameObject = scene.CreateGameObject(objectName);
+			objectsByPrefabId[prefabObjectId] = gameObject;
+		}
+		if (!gameObject) {
+			continue;
+		}
+
+		gameObject->SetName(objectName);
+		gameObject->SetActive(ReadBool(objectJson, "active", gameObject->IsActive()));
+		result.componentCount += ApplyPrefabComponents(scene, *gameObject, objectJson);
+		importedPrefabObjectIds.push_back(prefabObjectId);
+		parentLinks.push_back({gameObject, parentPrefabObjectId});
+		++result.gameObjectCount;
+
+		if (prefabObjectId == rootObjectId || !result.rootObject) {
+			result.rootObject = gameObject;
+		}
+	}
+
+	if (!result.rootObject) {
+		result.message = "Failed to find Prefab root while reverting.";
+		return result;
+	}
+
+	std::string storedPrefabPath = MakeStoredPrefabPath(prefabPath);
+	std::string rootInstanceId = result.rootObject->GetInstanceId();
+	for (const auto& [prefabObjectId, gameObject] : objectsByPrefabId) {
+		if (!gameObject) {
+			continue;
+		}
+		if (std::find(importedPrefabObjectIds.begin(), importedPrefabObjectIds.end(), prefabObjectId) == importedPrefabObjectIds.end()) {
+			continue;
+		}
+		gameObject->SetPrefabLink(storedPrefabPath, prefabObjectId, rootInstanceId, gameObject == result.rootObject);
+	}
+
+	for (const PendingParentLink& link : parentLinks) {
+		if (!link.gameObject) {
+			continue;
+		}
+
+		GameObject* parent = FindObjectByPrefabId(objectsByPrefabId, link.parentPrefabObjectId);
+		if (!parent && link.parentPrefabObjectId.empty()) {
+			parent = originalParent;
+		}
+		link.gameObject->SetParent(parent);
+	}
+
+	std::vector<GameObject*> hierarchyObjects;
+	CollectGameObjectHierarchy(*result.rootObject, hierarchyObjects);
+	std::vector<GameObject*> removeCandidates;
+	for (GameObject* object : hierarchyObjects) {
+		if (!object) {
+			continue;
+		}
+		if (object->GetPrefabInstanceRootId() != rootInstanceId) {
+			continue;
+		}
+		if (std::find(importedPrefabObjectIds.begin(), importedPrefabObjectIds.end(), object->GetPrefabObjectId()) != importedPrefabObjectIds.end()) {
+			continue;
+		}
+		removeCandidates.push_back(object);
+	}
+
+	std::vector<GameObject*> removeRoots;
+	for (GameObject* candidate : removeCandidates) {
+		if (!candidate) {
+			continue;
+		}
+
+		bool ancestorWillBeRemoved = false;
+		GameObject* parent = candidate->GetParent();
+		while (parent) {
+			if (std::find(removeCandidates.begin(), removeCandidates.end(), parent) != removeCandidates.end()) {
+				ancestorWillBeRemoved = true;
+				break;
+			}
+			parent = parent->GetParent();
+		}
+
+		if (!ancestorWillBeRemoved) {
+			removeRoots.push_back(candidate);
+		}
+	}
+
+	for (GameObject* removeRoot : removeRoots) {
+		scene.RemoveGameObjectHierarchy(removeRoot);
+	}
+
+	result.succeeded = true;
+	result.message = "Reverted Prefab Instance.";
+	return result;
+}
+
+PrefabAsset::SaveResult PrefabAsset::ApplyPrefabInstance(Scene& scene, GameObject& instanceObject) {
+	SaveResult result{};
+	GameObject* rootObject = FindPrefabInstanceRoot(scene, instanceObject);
+	if (!rootObject) {
+		result.message = "Selected GameObject is not a Prefab Instance.";
+		return result;
+	}
+
+	std::filesystem::path prefabPath(rootObject->GetPrefabAssetPath());
+	result = SaveToPath(*rootObject, prefabPath);
+	if (!result.succeeded) {
+		return result;
+	}
+
+	BindHierarchyToPrefabInternal(*rootObject, prefabPath);
+	RefreshInstancesFromPrefab(scene, prefabPath, rootObject);
+	result.message = "Applied Prefab Instance.";
+	return result;
+}
+
+bool PrefabAsset::UnpackPrefabInstance(Scene& scene, GameObject& instanceObject) {
+	GameObject* rootObject = FindPrefabInstanceRoot(scene, instanceObject);
+	if (!rootObject) {
+		return false;
+	}
+
+	ClearPrefabLinkHierarchy(*rootObject);
+	return true;
+}
+
+size_t PrefabAsset::RefreshInstancesFromPrefab(Scene& scene, const std::filesystem::path& prefabPath, GameObject* ignoreRoot) {
+	std::string storedPrefabPath = MakeStoredPrefabPath(prefabPath);
+	std::vector<GameObject*> updateTargets;
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (!gameObject) {
+			continue;
+		}
+		if (!gameObject->IsPrefabInstanceRoot()) {
+			continue;
+		}
+		if (gameObject.get() == ignoreRoot) {
+			continue;
+		}
+		if (gameObject->GetPrefabAssetPath() != storedPrefabPath) {
+			continue;
+		}
+		updateTargets.push_back(gameObject.get());
+	}
+
+	size_t updatedCount = 0;
+	for (GameObject* target : updateTargets) {
+		if (!target) {
+			continue;
+		}
+		InstantiateResult result = RevertPrefabInstance(scene, *target);
+		if (result.succeeded) {
+			++updatedCount;
+		}
+	}
+
+	return updatedCount;
 }
 
 } // namespace KujakuEngine

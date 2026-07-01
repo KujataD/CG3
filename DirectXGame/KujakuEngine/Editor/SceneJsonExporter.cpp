@@ -94,6 +94,15 @@ std::string BuildGameObjectJson(const GameObject& gameObject) {
 		parentInstanceId = parent->GetInstanceId();
 	}
 	os << "  \"parentInstanceId\": \"" << EscapeJsonString(parentInstanceId) << "\",\n";
+	os << "  \"prefabAssetPath\": \"" << EscapeJsonString(gameObject.GetPrefabAssetPath()) << "\",\n";
+	os << "  \"prefabObjectId\": \"" << EscapeJsonString(gameObject.GetPrefabObjectId()) << "\",\n";
+	os << "  \"prefabInstanceRootId\": \"" << EscapeJsonString(gameObject.GetPrefabInstanceRootId()) << "\",\n";
+	os << "  \"prefabInstanceRoot\": ";
+	if (gameObject.IsPrefabInstanceRoot()) {
+		os << "true,\n";
+	} else {
+		os << "false,\n";
+	}
 	os << "  \"name\": \"" << EscapeJsonString(gameObject.GetName()) << "\",\n";
 	os << "  \"active\": ";
 	if (gameObject.IsActive()) {
@@ -148,6 +157,15 @@ std::string BuildSceneJson(
 			parentInstanceId = parent->GetInstanceId();
 		}
 		os << "      \"parentInstanceId\": \"" << EscapeJsonString(parentInstanceId) << "\",\n";
+		os << "      \"prefabAssetPath\": \"" << EscapeJsonString(gameObject->GetPrefabAssetPath()) << "\",\n";
+		os << "      \"prefabObjectId\": \"" << EscapeJsonString(gameObject->GetPrefabObjectId()) << "\",\n";
+		os << "      \"prefabInstanceRootId\": \"" << EscapeJsonString(gameObject->GetPrefabInstanceRootId()) << "\",\n";
+		os << "      \"prefabInstanceRoot\": ";
+		if (gameObject->IsPrefabInstanceRoot()) {
+			os << "true,\n";
+		} else {
+			os << "false,\n";
+		}
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
 		os << "      \"assetPath\": \"" << EscapeJsonString(MakeRelativeAssetPath(projectRoot, gameObjectPaths[objectIndex])) << "\"\n";
 		os << "    }";

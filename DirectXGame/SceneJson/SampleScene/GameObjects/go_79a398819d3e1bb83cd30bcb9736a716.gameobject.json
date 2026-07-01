@@ -2,6 +2,10 @@
   "assetType": "GameObject",
   "instanceId": "go_79a398819d3e1bb83cd30bcb9736a716",
   "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
   "name": "Entity",
   "active": true,
   "components": [

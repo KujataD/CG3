@@ -18,6 +18,7 @@ namespace KujakuEngine {
 enum class EditorMode {
 	Edit,
 	Play,
+	PrefabEdit,
 };
 
 /// <summary>
@@ -74,6 +75,31 @@ public:
 	/// ゲーム再生中かどうか
 	/// </summary>
 	KUJAKU_API bool IsPlaying() const;
+
+	/// <summary>
+	/// Prefab Edit Mode中かどうか
+	/// </summary>
+	bool IsPrefabEditing() const;
+
+	/// <summary>
+	/// Prefab Edit Modeを開始する
+	/// </summary>
+	bool OpenPrefabEditMode(const std::filesystem::path& prefabPath);
+
+	/// <summary>
+	/// Prefab Edit Modeの内容を保存する
+	/// </summary>
+	bool SavePrefabEditMode();
+
+	/// <summary>
+	/// Prefab Edit Modeを終了する
+	/// </summary>
+	void ClosePrefabEditMode(bool saveChanges);
+
+	/// <summary>
+	/// 編集中Prefabのパスを取得する
+	/// </summary>
+	const std::filesystem::path& GetPrefabEditPath() const;
 
 	/// <summary>
 	/// Editorの現在モードを取得
@@ -179,6 +205,10 @@ private:
 	Scene* currentScene_ = nullptr;
 	GameModuleApi::DestroySceneFunc destroyCurrentSceneFunc_ = nullptr;
 	GameModuleLoader gameModuleLoader_;
+	Scene* sceneBeforePrefabEdit_ = nullptr;
+	GameModuleApi::DestroySceneFunc destroySceneBeforePrefabEditFunc_ = nullptr;
+	std::unique_ptr<Scene> prefabEditScene_;
+	std::filesystem::path prefabEditPath_;
 };
 
 } // namespace KujakuEngine

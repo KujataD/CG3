@@ -2,6 +2,10 @@
   "assetType": "GameObject",
   "instanceId": "go_40a7b1b0788dc6c920511f5365d92e47",
   "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
   "name": "Sphere",
   "active": true,
   "components": [

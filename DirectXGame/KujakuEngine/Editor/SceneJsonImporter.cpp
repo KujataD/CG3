@@ -314,6 +314,16 @@ void ApplyGameObject(Scene& scene, GameObject& gameObject, const json& gameObjec
 		gameObject.SetInstanceId(instanceId);
 	}
 
+	std::string prefabAssetPath = ReadString(gameObjectJson, "prefabAssetPath", "");
+	std::string prefabObjectId = ReadString(gameObjectJson, "prefabObjectId", "");
+	std::string prefabInstanceRootId = ReadString(gameObjectJson, "prefabInstanceRootId", "");
+	bool prefabInstanceRoot = ReadBool(gameObjectJson, "prefabInstanceRoot", false);
+	if (!prefabAssetPath.empty() && !prefabObjectId.empty()) {
+		gameObject.SetPrefabLink(prefabAssetPath, prefabObjectId, prefabInstanceRootId, prefabInstanceRoot);
+	} else {
+		gameObject.ClearPrefabLink();
+	}
+
 	gameObject.SetName(ReadString(gameObjectJson, "name", gameObject.GetName()));
 	gameObject.SetActive(ReadBool(gameObjectJson, "active", gameObject.IsActive()));
 	componentCount += ApplyComponents(scene, gameObject, gameObjectJson);

@@ -2,6 +2,10 @@
   "assetType": "GameObject",
   "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
   "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
   "name": "Editor Debug Camera",
   "active": true,
   "components": [
@@ -9,8 +13,8 @@
       "enabled": true,
       "properties": {
         "rotation": [
-          0.03399655967950821,
-          16.63994026184082,
+          0.003996534273028374,
+          16.415950775146484,
           0.0
         ],
         "scale": [
@@ -19,9 +23,9 @@
           1.0
         ],
         "translation": [
-          9.81553840637207,
-          -0.09999986737966537,
-          20.528173446655273
+          14.547830581665039,
+          2.999999523162842,
+          17.29383087158203
         ]
       },
       "type": "Transform"

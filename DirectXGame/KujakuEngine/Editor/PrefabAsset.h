@@ -43,9 +43,44 @@ public:
 	KUJAKU_API static SaveResult SaveAsPrefab(const GameObject& rootObject, const std::filesystem::path& projectRoot);
 
 	/// <summary>
+	/// GameObjectと子階層を指定Prefabファイルへ保存する
+	/// </summary>
+	KUJAKU_API static SaveResult SaveToPath(const GameObject& rootObject, const std::filesystem::path& prefabPath);
+
+	/// <summary>
 	/// Prefabファイルから新しいGameObject階層をSceneへ生成する
 	/// </summary>
-	KUJAKU_API static InstantiateResult Instantiate(Scene& scene, const std::filesystem::path& prefabPath);
+	KUJAKU_API static InstantiateResult Instantiate(Scene& scene, const std::filesystem::path& prefabPath, bool linkInstance = true);
+
+	/// <summary>
+	/// 既存GameObject階層をPrefab Instanceとして関連付ける
+	/// </summary>
+	KUJAKU_API static void BindHierarchyToPrefab(GameObject& rootObject, const std::filesystem::path& prefabPath);
+
+	/// <summary>
+	/// Prefab Instanceを参照元Prefabの内容へ戻す
+	/// </summary>
+	KUJAKU_API static InstantiateResult RevertPrefabInstance(Scene& scene, GameObject& instanceObject);
+
+	/// <summary>
+	/// Prefab Instanceの変更をPrefabファイルへ適用する
+	/// </summary>
+	KUJAKU_API static SaveResult ApplyPrefabInstance(Scene& scene, GameObject& instanceObject);
+
+	/// <summary>
+	/// Prefab Instanceの関連付けを解除する
+	/// </summary>
+	KUJAKU_API static bool UnpackPrefabInstance(Scene& scene, GameObject& instanceObject);
+
+	/// <summary>
+	/// 選択ObjectからPrefab Instanceルートを取得する
+	/// </summary>
+	KUJAKU_API static GameObject* FindPrefabInstanceRoot(Scene& scene, GameObject& object);
+
+	/// <summary>
+	/// Scene内の同じPrefab InstanceをPrefabファイルから更新する
+	/// </summary>
+	KUJAKU_API static size_t RefreshInstancesFromPrefab(Scene& scene, const std::filesystem::path& prefabPath, GameObject* ignoreRoot = nullptr);
 };
 
 } // namespace KujakuEngine

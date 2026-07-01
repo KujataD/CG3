@@ -2,6 +2,10 @@
   "assetType": "GameObject",
   "instanceId": "go_0028e633fb05a08c0016b492af8aebe2",
   "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
   "name": "Cubsse",
   "active": true,
   "components": [

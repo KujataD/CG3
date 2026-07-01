@@ -17,6 +17,12 @@
 
 namespace KujakuEngine {
 
+namespace {
+
+constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
+
+} // namespace
+
 void ProjectWindow::Initialize() {
 	// Project Windowの基準になるディレクトリを決める。
 	// ここでは実行時カレントから上方向へ探索し、KujakuEngine.vcxprojがあるDirectXGameをProjectDirとして扱う。
@@ -282,8 +288,18 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 		ImGui::PopStyleColor();
 	}
 
+	if (isPrefabFile && ImGui::BeginDragDropSource()) {
+		std::string pathText = item.absolutePath.generic_string();
+		ImGui::SetDragDropPayload(kProjectPrefabDragPayloadType, pathText.c_str(), pathText.size() + 1);
+		ImGui::TextUnformatted(displayName.c_str());
+		ImGui::EndDragDropSource();
+	}
+
 	if (ImGui::BeginPopupContextItem("ProjectItemContext")) {
 		if (isPrefabFile) {
+			if (ImGui::MenuItem("Open Prefab Edit Mode")) {
+				EditorApplication::GetInstance()->OpenPrefabEditMode(item.absolutePath);
+			}
 			if (ImGui::MenuItem("Instantiate Prefab")) {
 				InstantiatePrefabItem(item.absolutePath);
 			}
@@ -319,7 +335,7 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 		if (item.isDirectory) {
 			MoveToDirectory(item.absolutePath);
 		} else if (isPrefabFile) {
-			InstantiatePrefabItem(item.absolutePath);
+			EditorApplication::GetInstance()->OpenPrefabEditMode(item.absolutePath);
 		} else {
 			OpenFileInExplorer(item.absolutePath);
 		}

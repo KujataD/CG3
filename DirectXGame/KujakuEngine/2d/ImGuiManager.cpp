@@ -27,6 +27,7 @@ namespace {
 
 constexpr float kDegreesToRadians = 0.017453292519943295f;
 constexpr const char* kHierarchyDragPayloadType = "KujakuHierarchyGameObject";
+constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
 
 void AllocateImGuiSrvDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle) {
 	// ImGui 1.92系のDX12バックエンドは、フォントや追加テクスチャ用のSRVをバックエンド側へ要求してくる。
@@ -99,6 +100,7 @@ void SaveHierarchyObjectAsPrefab(GameObject* gameObject) {
 
 	PrefabAsset::SaveResult result = PrefabAsset::SaveAsPrefab(*gameObject, DetectEditorProjectRoot());
 	if (result.succeeded) {
+		PrefabAsset::BindHierarchyToPrefab(*gameObject, result.outputPath);
 		ImGuiManager::GetInstance()->AddConsoleLog("[Prefab] Saved: " + result.outputPath.string());
 	} else {
 		ImGuiManager::GetInstance()->AddConsoleLog("[Prefab] Save failed: " + result.message);
@@ -122,7 +124,34 @@ bool CanDropHierarchyObject(GameObject* dragged, GameObject* targetParent) {
 	return true;
 }
 
-void AcceptHierarchyObjectDrop(GameObject* targetParent) {
+bool SceneContainsGameObject(Scene& scene, GameObject* target) {
+	if (!target) {
+		return false;
+	}
+
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (gameObject.get() == target) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void DeleteSelectedHierarchyObject(Scene& scene) {
+	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	if (!SceneContainsGameObject(scene, selectedObject)) {
+		EditorSelection::GetInstance()->Clear();
+		return;
+	}
+
+	std::string objectName = selectedObject->GetName();
+	EditorSelection::GetInstance()->Clear();
+	scene.RemoveGameObjectHierarchy(selectedObject);
+	ImGuiManager::GetInstance()->AddConsoleLog("[Hierarchy] Deleted: " + objectName);
+}
+
+void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 	if (!ImGui::BeginDragDropTarget()) {
 		return;
 	}
@@ -133,6 +162,18 @@ void AcceptHierarchyObjectDrop(GameObject* targetParent) {
 		if (CanDropHierarchyObject(dragged, targetParent)) {
 			dragged->SetParent(targetParent, true);
 			EditorSelection::GetInstance()->SetSelectedGameObject(dragged);
+		}
+	}
+
+	const ImGuiPayload* prefabPayload = ImGui::AcceptDragDropPayload(kProjectPrefabDragPayloadType);
+	if (prefabPayload && prefabPayload->DataSize > 0) {
+		const char* prefabPathText = static_cast<const char*>(prefabPayload->Data);
+		GameObject* created = scene.InstantiatePrefab(std::filesystem::path(prefabPathText));
+		if (created) {
+			if (targetParent) {
+				created->SetParent(targetParent);
+			}
+			EditorSelection::GetInstance()->SetSelectedGameObject(created);
 		}
 	}
 
@@ -356,8 +397,21 @@ void ImGuiManager::DrawDockSpace() {
 		}
 		ImGui::SameLine();
 
+		if (EditorApplication::GetInstance()->IsPrefabEditing()) {
+			if (ImGui::Button("Save Prefab")) {
+				EditorApplication::GetInstance()->SavePrefabEditMode();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Back")) {
+				EditorApplication::GetInstance()->ClosePrefabEditMode(false);
+			}
+			ImGui::SameLine();
+		}
+
 		// 現在のモードをメニューバー上にも出して、Start/Stopの結果をすぐ確認できるようにする。
-		if (EditorApplication::GetInstance()->IsPlaying()) {
+		if (EditorApplication::GetInstance()->IsPrefabEditing()) {
+			ImGui::Text("Mode: PrefabEdit (%s)", EditorApplication::GetInstance()->GetPrefabEditPath().filename().string().c_str());
+		} else if (EditorApplication::GetInstance()->IsPlaying()) {
 			ImGui::TextUnformatted("Mode: Play");
 		} else {
 			ImGui::TextUnformatted("Mode: Edit");
@@ -528,14 +582,14 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 	float translation[3]{};
 	float rotationDegrees[3]{};
 	float scale[3]{};
-	ImGuizmo::DecomposeMatrixToComponents(MatrixData(gizmoMatrix), translation, rotationDegrees, scale);
-
-	Vector3 worldTranslation = {translation[0], translation[1], translation[2]};
+	Matrix4x4 localGizmoMatrix = gizmoMatrix;
 	if (transform.parent_) {
-		transform.SetWorldPosition(worldTranslation);
-	} else {
-		transform.translation_ = worldTranslation;
+		localGizmoMatrix = gizmoMatrix * Inverse(transform.parent_->matWorld_);
 	}
+
+	ImGuizmo::DecomposeMatrixToComponents(MatrixData(localGizmoMatrix), translation, rotationDegrees, scale);
+
+	transform.translation_ = {translation[0], translation[1], translation[2]};
 	transform.rotation_ = {
 	    rotationDegrees[0] * kDegreesToRadians,
 	    rotationDegrees[1] * kDegreesToRadians,
@@ -702,7 +756,7 @@ void ImGuiManager::DrawHierarchyWindow() {
 	ImVec2 remainingRegion = ImGui::GetContentRegionAvail();
 	if (remainingRegion.x > 0.0f && remainingRegion.y > 0.0f) {
 		ImGui::InvisibleButton("##HierarchyRootDropArea", remainingRegion);
-		AcceptHierarchyObjectDrop(nullptr);
+		AcceptHierarchyObjectDrop(*scene, nullptr);
 		if (ImGui::BeginPopupContextItem("HierarchyRootDropAreaMenu", ImGuiPopupFlags_MouseButtonRight)) {
 			DrawHierarchyCreateMenu(*scene, nullptr);
 			ImGui::EndPopup();
@@ -716,6 +770,13 @@ void ImGuiManager::DrawHierarchyWindow() {
 
 	if (selectedObject && !selectedObjectExists) {
 		EditorSelection::GetInstance()->Clear();
+	}
+
+	ImGuiIO& io = ImGui::GetIO();
+	bool hierarchyFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+	bool deletePressed = ImGui::IsKeyPressed(ImGuiKey_Delete, false) || ImGui::IsKeyPressed(ImGuiKey_Backspace, false);
+	if (hierarchyFocused && deletePressed && !io.WantTextInput) {
+		DeleteSelectedHierarchyObject(*scene);
 	}
 
 	ImGui::End();
@@ -752,8 +813,13 @@ void ImGuiManager::DrawHierarchyObject(Scene& scene, GameObject* gameObject, Gam
 	}
 
 	ImGui::PushID(gameObject);
+	int pushedTextColorCount = 0;
 	if (!gameObject->IsActive()) {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+		++pushedTextColorCount;
+	} else if (gameObject->IsPrefabInstance()) {
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.47f, 0.74f, 0.68f, 1.0f));
+		++pushedTextColorCount;
 	}
 
 	bool opened = ImGui::TreeNodeEx(displayName.c_str(), flags);
@@ -768,10 +834,10 @@ void ImGuiManager::DrawHierarchyObject(Scene& scene, GameObject* gameObject, Gam
 		ImGui::EndDragDropSource();
 	}
 
-	AcceptHierarchyObjectDrop(gameObject);
+	AcceptHierarchyObjectDrop(scene, gameObject);
 
-	if (!gameObject->IsActive()) {
-		ImGui::PopStyleColor();
+	if (pushedTextColorCount > 0) {
+		ImGui::PopStyleColor(pushedTextColorCount);
 	}
 
 	if (ImGui::BeginPopupContextItem("HierarchyObjectContext")) {
@@ -846,6 +912,53 @@ void ImGuiManager::DrawInspectorWindow() {
 	bool active = selected->IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
 		selected->SetActive(active);
+	}
+
+	if (selected->IsPrefabInstance()) {
+		ImGui::Separator();
+		GameObject* prefabRoot = PrefabAsset::FindPrefabInstanceRoot(*scene, *selected);
+		ImGui::TextColored(ImVec4(0.47f, 0.74f, 0.68f, 1.0f), "Prefab Instance");
+		ImGui::TextWrapped("%s", selected->GetPrefabAssetPath().c_str());
+
+		if (prefabRoot && prefabRoot != selected) {
+			if (ImGui::Button("Select Prefab Root")) {
+				EditorSelection::GetInstance()->SetSelectedGameObject(prefabRoot);
+			}
+		}
+
+		if (ImGui::Button("Open Prefab")) {
+			GameObject* openRoot = prefabRoot;
+			if (!openRoot) {
+				openRoot = selected;
+			}
+			EditorApplication::GetInstance()->OpenPrefabEditMode(openRoot->GetPrefabAssetPath());
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Apply")) {
+			PrefabAsset::SaveResult result = PrefabAsset::ApplyPrefabInstance(*scene, *selected);
+			if (result.succeeded) {
+				AddConsoleLog("[Prefab] Applied: " + result.outputPath.string());
+				projectWindow_.Refresh();
+			} else {
+				AddConsoleLog("[Prefab] Apply failed: " + result.message);
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Revert")) {
+			PrefabAsset::InstantiateResult result = PrefabAsset::RevertPrefabInstance(*scene, *selected);
+			if (result.succeeded) {
+				EditorSelection::GetInstance()->SetSelectedGameObject(result.rootObject);
+				AddConsoleLog("[Prefab] Reverted.");
+			} else {
+				AddConsoleLog("[Prefab] Revert failed: " + result.message);
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Unpack")) {
+			if (PrefabAsset::UnpackPrefabInstance(*scene, *selected)) {
+				AddConsoleLog("[Prefab] Unpacked.");
+			}
+		}
 	}
 
 	ImGui::Separator();
@@ -941,6 +1054,10 @@ void ImGuiManager::HandleEditorShortcuts() {
 #ifdef USE_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+		if (EditorApplication::GetInstance()->IsPrefabEditing()) {
+			EditorApplication::GetInstance()->SavePrefabEditMode();
+			return;
+		}
 		ExportCurrentSceneJson();
 	}
 	if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_R, false)) {

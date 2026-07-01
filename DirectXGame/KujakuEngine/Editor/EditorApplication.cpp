@@ -4,7 +4,13 @@
 #include "SceneJsonExporter.h"
 #include "EditorProjectPath.h"
 #include "EditorSelection.h"
+#include "PrefabAsset.h"
 #include "SceneJsonImporter.h"
+#include "../3d/Camera.h"
+#include "../3d/DirectionalLight.h"
+#include "../3d/Model.h"
+#include "../3d/PointLight.h"
+#include "../3d/SpotLight.h"
 #include "../base/DirectXCommon.h"
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -175,6 +181,69 @@ bool RunProcessAndWait(
 	return true;
 }
 
+class PrefabEditScene : public Scene {
+public:
+	void Initialize() override {
+		camera_.Initialize();
+		camera_.translation_ = {0.0f, 0.0f, -20.0f};
+		camera_.rotation_ = {0.0f, 0.0f, 0.0f};
+		camera_.UpdateMatrix();
+
+		Scene::Initialize();
+	}
+
+	void Draw() override {
+		camera_.UpdateMatrix();
+
+		DirectionalLight::GetInstance()->Reset();
+		PointLight::GetInstance()->Reset();
+		SpotLight::GetInstance()->Reset();
+
+		Model::PreDraw();
+		DrawPrefabModels();
+		Model::PostDraw();
+	}
+
+	Camera* GetEditorCamera() override {
+		return &camera_;
+	}
+
+	void OnEditorComponentAdded(GameObject* gameObject, Component* component) override {
+		Scene::OnEditorComponentAdded(gameObject, component);
+		(void)gameObject;
+		(void)component;
+	}
+
+private:
+	void DrawPrefabModels() {
+		UpdateWorldTransforms();
+
+		for (const std::unique_ptr<GameObject>& gameObject : GetGameObjects()) {
+			if (!gameObject || !gameObject->IsActiveInHierarchy()) {
+				continue;
+			}
+
+			for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+				if (!component || !component->IsEnabled()) {
+					continue;
+				}
+
+				const Model* model = component->GetRayCastModel();
+				if (!model) {
+					continue;
+				}
+
+				gameObject->UpdateWorldTransformSelfAndAncestors();
+				WorldTransform& transform = gameObject->GetTransform();
+				transform.UpdateMatrix(camera_);
+				const_cast<Model*>(model)->Draw(transform, camera_);
+			}
+		}
+	}
+
+	Camera camera_;
+};
+
 } // namespace
 
 EditorApplication* EditorApplication::GetInstance() {
@@ -250,6 +319,9 @@ void EditorApplication::EndFrame() {
 }
 
 void EditorApplication::Finalize() {
+	if (editorMode_ == EditorMode::PrefabEdit) {
+		ClosePrefabEditMode(false);
+	}
 	EditorSelection::GetInstance()->Clear();
 	DestroyCurrentScene();
 	UnregisterAndUnloadGameModule();
@@ -258,6 +330,10 @@ void EditorApplication::Finalize() {
 
 void EditorApplication::Start() {
 	if (editorMode_ == EditorMode::Play) {
+		return;
+	}
+	if (editorMode_ == EditorMode::PrefabEdit) {
+		AddConsoleLog("[Prefab] Close Prefab Edit Mode before Play.");
 		return;
 	}
 
@@ -278,6 +354,9 @@ void EditorApplication::Stop() {
 	if (editorMode_ == EditorMode::Edit) {
 		return;
 	}
+	if (editorMode_ == EditorMode::PrefabEdit) {
+		return;
+	}
 
 	editorMode_ = EditorMode::Edit;
 
@@ -291,6 +370,109 @@ void EditorApplication::Stop() {
 
 bool EditorApplication::IsPlaying() const {
 	return editorMode_ == EditorMode::Play;
+}
+
+bool EditorApplication::IsPrefabEditing() const {
+	return editorMode_ == EditorMode::PrefabEdit;
+}
+
+bool EditorApplication::OpenPrefabEditMode(const std::filesystem::path& prefabPath) {
+	if (prefabPath.empty()) {
+		return false;
+	}
+	if (editorMode_ == EditorMode::Play) {
+		Stop();
+	}
+	if (editorMode_ == EditorMode::PrefabEdit) {
+		ClosePrefabEditMode(false);
+	}
+	if (!currentScene_) {
+		return false;
+	}
+
+	sceneBeforePrefabEdit_ = currentScene_;
+	destroySceneBeforePrefabEditFunc_ = destroyCurrentSceneFunc_;
+	prefabEditPath_ = prefabPath;
+
+	prefabEditScene_ = std::make_unique<PrefabEditScene>();
+	prefabEditScene_->Initialize();
+	PrefabAsset::InstantiateResult instantiateResult = PrefabAsset::Instantiate(*prefabEditScene_, prefabEditPath_, false);
+	if (!instantiateResult.succeeded || !instantiateResult.rootObject) {
+		prefabEditScene_.reset();
+		prefabEditPath_.clear();
+		sceneBeforePrefabEdit_ = nullptr;
+		destroySceneBeforePrefabEditFunc_ = nullptr;
+		AddConsoleLog("[Prefab] Open failed: " + instantiateResult.message);
+		return false;
+	}
+
+	EditorSelection::GetInstance()->SetSelectedGameObject(instantiateResult.rootObject);
+	currentScene_ = prefabEditScene_.get();
+	destroyCurrentSceneFunc_ = nullptr;
+	editorMode_ = EditorMode::PrefabEdit;
+	AddConsoleLog("[Prefab] Edit Mode: " + prefabEditPath_.string());
+	return true;
+}
+
+bool EditorApplication::SavePrefabEditMode() {
+	if (editorMode_ != EditorMode::PrefabEdit || !prefabEditScene_) {
+		return false;
+	}
+
+	GameObject* rootObject = nullptr;
+	for (const std::unique_ptr<GameObject>& gameObject : prefabEditScene_->GetGameObjects()) {
+		if (gameObject && gameObject->IsRoot()) {
+			rootObject = gameObject.get();
+			break;
+		}
+	}
+
+	if (!rootObject) {
+		AddConsoleLog("[Prefab] Save failed: No root GameObject.");
+		return false;
+	}
+
+	PrefabAsset::SaveResult saveResult = PrefabAsset::SaveToPath(*rootObject, prefabEditPath_);
+	if (!saveResult.succeeded) {
+		AddConsoleLog("[Prefab] Save failed: " + saveResult.message);
+		return false;
+	}
+
+	if (sceneBeforePrefabEdit_) {
+		size_t refreshedCount = PrefabAsset::RefreshInstancesFromPrefab(*sceneBeforePrefabEdit_, prefabEditPath_);
+		AddConsoleLog("[Prefab] Refreshed instances: " + std::to_string(refreshedCount));
+	}
+
+	AddConsoleLog("[Prefab] Saved: " + saveResult.outputPath.string());
+	return true;
+}
+
+void EditorApplication::ClosePrefabEditMode(bool saveChanges) {
+	if (editorMode_ != EditorMode::PrefabEdit) {
+		return;
+	}
+
+	if (saveChanges) {
+		SavePrefabEditMode();
+	}
+
+	EditorSelection::GetInstance()->Clear();
+	if (prefabEditScene_) {
+		prefabEditScene_->Finalize();
+	}
+	prefabEditScene_.reset();
+	prefabEditPath_.clear();
+
+	currentScene_ = sceneBeforePrefabEdit_;
+	destroyCurrentSceneFunc_ = destroySceneBeforePrefabEditFunc_;
+	sceneBeforePrefabEdit_ = nullptr;
+	destroySceneBeforePrefabEditFunc_ = nullptr;
+	editorMode_ = EditorMode::Edit;
+	AddConsoleLog("[Prefab] Back to Scene.");
+}
+
+const std::filesystem::path& EditorApplication::GetPrefabEditPath() const {
+	return prefabEditPath_;
 }
 
 EditorMode EditorApplication::GetEditorMode() const {
@@ -307,6 +489,10 @@ void EditorApplication::SetCurrentScene(std::unique_ptr<Scene> scene) {
 }
 
 bool EditorApplication::ReloadGameModule() {
+	if (editorMode_ == EditorMode::PrefabEdit) {
+		AddConsoleLog("[HotReload] Close Prefab Edit Mode before reload.");
+		return false;
+	}
 	if (IsPlaying()) {
 		// 実行中のSceneを破棄してDLLを解放するため、Reload前に必ずEditへ戻す。
 		AddConsoleLog("[HotReload] Stop play mode before reload.");
