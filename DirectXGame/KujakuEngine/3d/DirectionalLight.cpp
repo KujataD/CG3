@@ -13,9 +13,18 @@ void DirectionalLight::Initialize() {
 	lightResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(DirectionalLightData));
 
 	lightResource_->Map(0, nullptr, reinterpret_cast<void**>(&lightMap_));
+	Reset();
+}
 
-	// デフォルト値を書き込む
-	*lightMap_ = DirectionalLightData{};
+void DirectionalLight::Reset() {
+	if (!lightMap_) {
+		return;
+	}
+
+	// DirectionalLightDataの既定値はintensityが1なので、消灯用の値を明示してGPU側へ書き込む。
+	DirectionalLightData data{};
+	data.intensity = 0.0f;
+	*lightMap_ = data;
 }
 
 void DirectionalLight::Update() {

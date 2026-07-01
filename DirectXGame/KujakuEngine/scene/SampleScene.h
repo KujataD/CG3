@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Scene.h"
-#include "../3d/SpotLight.h"
 #include <string>
 
 namespace KujakuEngine {
@@ -68,7 +67,6 @@ private:
 	CameraComponent* editorCameraComponent_ = nullptr;
 	DebugCameraComponent* editorDebugCameraComponent_ = nullptr;
 	CameraComponent* currentViewCameraComponent_ = nullptr;
-	SpotLightData spotLight_{};
 };
 
 } // namespace KujakuEngine

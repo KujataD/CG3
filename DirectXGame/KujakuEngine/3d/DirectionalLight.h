@@ -18,6 +18,7 @@ public:
 	static KUJAKU_API DirectionalLight* GetInstance();
 
 	void Initialize();
+	KUJAKU_API void Reset();
 	KUJAKU_API void Update(); // ImGuiでの編集後にGPUへ反映
 
 	// Drawから呼ぶ用

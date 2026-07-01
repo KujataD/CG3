@@ -218,6 +218,10 @@ bool CastInternal(const Scene& scene, const Ray& ray, bool includeEditorBillboar
 			if (!IntersectRaySphere(worldRay, gameObject->GetTransform().translation_, radius, distance)) {
 				continue;
 			}
+			if (distance <= kRayEpsilon) {
+				// Rayの始点を包むEditorアイコンは、視点自身のCameraアイコンなどが常に最前面ヒットになるため除外する。
+				continue;
+			}
 
 			Vector3 hitPoint = worldRay.origin + worldRay.diff * distance;
 			UpdateNearestHit(gameObject.get(), component.get(), hitPoint, distance, nearestObject, nearestComponent, nearestPoint, nearestDistance);

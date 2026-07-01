@@ -11,14 +11,16 @@ SpotLight* SpotLight::GetInstance() {
 void SpotLight::Initialize() {
 	resource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(SpotLightData));
 	resource_->Map(0, nullptr, reinterpret_cast<void**>(&map_));
+	Reset();
 }
 
 void SpotLight::Reset() {
-	//map_->count = 0;
-	//// arrayの中を空のSpotLightで埋める
-	//for (auto& light : map_->lights) {
-	//	light = SpotLightData{};
-	//}
+	if (!map_) {
+		return;
+	}
+
+	// Hierarchyに存在しないSpotLightがGPU側へ残らないよう、毎フレーム既定値へ戻す。
+	*map_ = SpotLightData{};
 }
 
 void SpotLight::AddLight(const SpotLightData& light) {

@@ -4,6 +4,7 @@
 #include "../3d/DirectionalLight.h"
 #include "../3d/Model.h"
 #include "../3d/PointLight.h"
+#include "../3d/SpotLight.h"
 #include "../Editor/EditorApplication.h"
 #include "../components/CameraComponent.h"
 #include "../components/DebugCameraComponent.h"
@@ -14,7 +15,6 @@
 #include "../components/TransformSnapshotComponent.h"
 #include "../math/MathUtil.h"
 #include "../vfx/ParticleModel.h"
-#include <cmath>
 #include <memory>
 #include <numbers>
 
@@ -34,14 +34,6 @@ void SampleScene::Initialize() {
 
 	PointLight::GetInstance()->Reset();
 	SpotLight::GetInstance()->Reset();
-
-	spotLight_.position = {0.0f, 5.0f, 0.0f};
-	spotLight_.distance = 50.0f;
-	spotLight_.direction = Normalize({0.0f, -1.0f, 0.0f});
-	spotLight_.intensity = 1.0f;
-	spotLight_.decay = 1.0f;
-	spotLight_.cosAngle = std::cos(std::numbers::pi_v<float> / 2.0f);
-	spotLight_.cosFalloffStart = std::cos(std::numbers::pi_v<float> / 3.0f);
 
 	Camera* renderCamera = GetCurrentViewCamera();
 
@@ -99,9 +91,6 @@ void SampleScene::UpdateSceneView() {
 	if (currentViewCameraComponent_) {
 		currentViewCameraComponent_->SyncFromOwnerTransform();
 	}
-
-	spotLight_.direction = Normalize(spotLight_.direction);
-	SpotLight::GetInstance()->SetLight(&spotLight_);
 }
 
 void SampleScene::EnsureSceneServiceObjects() {
@@ -182,11 +171,9 @@ Camera* SampleScene::GetCurrentViewCamera() {
 }
 
 void SampleScene::ApplySceneLights() {
-	DirectionalLightData directionalLightData{};
-	directionalLightData.intensity = 0.0f;
-	DirectionalLight::GetInstance()->GetData() = directionalLightData;
-
+	DirectionalLight::GetInstance()->Reset();
 	PointLight::GetInstance()->Reset();
+	SpotLight::GetInstance()->Reset();
 
 	for (const std::unique_ptr<GameObject>& gameObject : GetGameObjects()) {
 		if (!gameObject || !gameObject->IsActive()) {
