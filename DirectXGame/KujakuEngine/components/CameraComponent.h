@@ -10,9 +10,21 @@ namespace KujakuEngine {
 /// </summary>
 class CameraComponent : public Component {
 public:
+	/// <summary>
+	/// TypeNameを取得します。
+	/// </summary>
 	const char* GetTypeName() const override { return "CameraComponent"; }
+	/// <summary>
+	/// AllowMultipleを実行します。
+	/// </summary>
 	bool AllowMultiple() const override { return false; }
+	/// <summary>
+	/// EditorBillboardを持つかどうかを返します。
+	/// </summary>
 	bool HasEditorBillboard() const override { return true; }
+	/// <summary>
+	/// EditorBillboardPickRadiusを取得します。
+	/// </summary>
 	float GetEditorBillboardPickRadius() const override { return 0.65f; }
 
 	/// <summary>

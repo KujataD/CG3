@@ -10,15 +10,24 @@ namespace SteeringBehaviors {
 /// </summary>
 class CohesionBehavior : public ISteeringBehavior {
 public:
+	/// <summary>
+	/// CohesionContext構造体を表します。
+	/// </summary>
 	struct CohesionContext {
 		std::span<const Vector3> neighbors;
 	};
 
 public:
+	/// <summary>
+	/// Contextを設定します。
+	/// </summary>
 	void SetContext(std::span<const Vector3> neighbors) {
 		cohesionContext_.neighbors = neighbors;
 	}
 
+	/// <summary>
+	/// ulateを計算します。
+	/// </summary>
 	Vector3 Calculate(const SteeringContext& context) const override;
 
 private:

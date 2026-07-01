@@ -4,51 +4,61 @@
   "gameObjects": [
     {
       "instanceId": "go_3b8c537eb6b19afa1dc4ee34095ef002",
+      "parentInstanceId": "",
       "name": "Player",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_3b8c537eb6b19afa1dc4ee34095ef002.gameobject.json"
     },
     {
       "instanceId": "go_0028e633fb05a08c0016b492af8aebe2",
+      "parentInstanceId": "",
       "name": "Cubsse",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_0028e633fb05a08c0016b492af8aebe2.gameobject.json"
     },
     {
       "instanceId": "go_20bf9823fb61c498105d0b9aafb8922d",
+      "parentInstanceId": "",
       "name": "Directional Light",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_20bf9823fb61c498105d0b9aafb8922d.gameobject.json"
     },
     {
       "instanceId": "go_0b3976b031f89672059e7cd34af4cc9d",
+      "parentInstanceId": "",
       "name": "Point Light",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_0b3976b031f89672059e7cd34af4cc9d.gameobject.json"
     },
     {
       "instanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
+      "parentInstanceId": "",
       "name": "MonsterBall",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_79e2f32fb527f1b13cf3be1c889a51c9.gameobject.json"
     },
     {
       "instanceId": "go_ebb9b52e9bae0c3875de1d1c18c6b11a",
+      "parentInstanceId": "",
       "name": "Terrain",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_ebb9b52e9bae0c3875de1d1c18c6b11a.gameobject.json"
     },
     {
       "instanceId": "go_54bb2aec2d051fe82a5f52fd4139f659",
+      "parentInstanceId": "",
       "name": "Main Camera",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_54bb2aec2d051fe82a5f52fd4139f659.gameobject.json"
     },
     {
       "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
+      "parentInstanceId": "",
       "name": "Editor Debug Camera",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_974b53e590e9d7314ba76e7990287e96.gameobject.json"
     },
     {
       "instanceId": "go_40a7b1b0788dc6c920511f5365d92e47",
+      "parentInstanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
       "name": "Sphere",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_40a7b1b0788dc6c920511f5365d92e47.gameobject.json"
     },
     {
       "instanceId": "go_79a398819d3e1bb83cd30bcb9736a716",
+      "parentInstanceId": "",
       "name": "Entity",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_79a398819d3e1bb83cd30bcb9736a716.gameobject.json"
     }

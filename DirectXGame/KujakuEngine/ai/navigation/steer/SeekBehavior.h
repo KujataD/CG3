@@ -12,6 +12,9 @@ class SeekBehavior : public ISteeringBehavior {
 public:
 	void SetTarget(Vector3 target) { target_ = target; }
 
+	/// <summary>
+	/// ulateを計算します。
+	/// </summary>
 	Vector3 Calculate(const SteeringContext& context) const override;
 
 private:

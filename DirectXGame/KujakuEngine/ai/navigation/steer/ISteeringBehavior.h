@@ -21,10 +21,19 @@ struct SteeringContext {
 /// </summary>
 class ISteeringBehavior {
 public:
+	/// <summary>
+	/// ISteeringBehaviorを実行します。
+	/// </summary>
 	virtual ~ISteeringBehavior() = default;
 
+	/// <summary>
+	/// ulateを計算します。
+	/// </summary>
 	virtual Vector3 Calculate(const SteeringContext& context) const = 0;
 
+	/// <summary>
+	/// operatorを実行します。
+	/// </summary>
 	Vector3 operator()(const SteeringContext& context) const { return Calculate(context); }
 };
 

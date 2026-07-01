@@ -25,21 +25,15 @@ class Model;
 /// </summary>
 class KUJAKU_API Component {
 public:
+	/// <summary>
+	/// Componentを実行します。
+	/// </summary>
 	virtual ~Component();
 
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	virtual void Initialize() {}
 
-	/// <summary>
-	/// 更新処理
-	/// </summary>
 	virtual void Update() {}
 
-	/// <summary>
-	/// 描画処理
-	/// </summary>
 	virtual void Draw() {}
 
 	/// <summary>
@@ -47,24 +41,12 @@ public:
 	/// </summary>
 	virtual const char* GetTypeName() const { return "Component"; }
 
-	/// <summary>
-	/// Inspector上のComponent固有UIを描画
-	/// </summary>
 	virtual void DrawInspector() {}
 
-	/// <summary>
-	/// Component固有の保存情報をJSONへ書き出す
-	/// </summary>
 	virtual void WriteJson(nlohmann::json& json) const { (void)json; }
 
-	/// <summary>
-	/// Component固有の保存情報をJSONから読み込む
-	/// </summary>
 	virtual void ReadJson(const nlohmann::json& json) { (void)json; }
 
-	/// <summary>
-	/// JSON読み込み後、他Componentの復元結果を参照して整えるための後処理
-	/// </summary>
 	virtual void OnAfterReadJson() {}
 
 	/// <summary>
@@ -82,19 +64,10 @@ public:
 	/// </summary>
 	virtual bool AllowMultiple() const { return true; }
 
-	/// <summary>
-	/// EditからPlayへ入る直前の処理
-	/// </summary>
 	virtual void OnPlayStart() {}
 
-	/// <summary>
-	/// PlayからEditへ戻る時の処理
-	/// </summary>
 	virtual void OnPlayStop() {}
 
-	/// <summary>
-	/// 所有GameObjectを設定
-	/// </summary>
 	void SetOwner(GameObject* owner) { owner_ = owner; }
 
 	/// <summary>
@@ -102,9 +75,6 @@ public:
 	/// </summary>
 	GameObject* GetOwner() const { return owner_; }
 
-	/// <summary>
-	/// Componentの有効状態を設定
-	/// </summary>
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
 
 	/// <summary>

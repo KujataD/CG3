@@ -1,6 +1,7 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_0b3976b031f89672059e7cd34af4cc9d",
+  "parentInstanceId": "",
   "name": "Point Light",
   "active": true,
   "components": [
@@ -18,9 +19,9 @@
           0.9999995827674866
         ],
         "translation": [
-          2.0948476791381836,
-          1.6337976455688477,
-          -2.3751108646392822
+          0.4115194082260132,
+          1.6745660305023193,
+          -2.163130521774292
         ]
       },
       "type": "Transform"

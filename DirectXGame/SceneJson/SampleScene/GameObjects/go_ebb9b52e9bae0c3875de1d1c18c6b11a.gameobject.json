@@ -1,6 +1,7 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_ebb9b52e9bae0c3875de1d1c18c6b11a",
+  "parentInstanceId": "",
   "name": "Terrain",
   "active": true,
   "components": [

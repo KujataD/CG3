@@ -26,9 +26,6 @@ struct RayCastHit {
 /// </summary>
 class RayCast {
 public:
-	/// <summary>
-	/// Viewport上の座標からCamera基準のRayを作成する
-	/// </summary>
 	static bool CreateRayFromViewportPoint(
 	    const Vector2& point,
 	    const Vector2& viewportPosition,

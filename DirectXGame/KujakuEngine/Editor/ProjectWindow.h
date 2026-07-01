@@ -18,16 +18,40 @@
 namespace KujakuEngine {
 
 // UnityのProject Windowに近い、ProjectDir以下のファイル閲覧用ウィンドウ。
+/// <summary>
+/// ProjectWindowクラスを表します。
+/// </summary>
 class ProjectWindow {
 public:
+	/// <summary>
+	/// 初期化します。
+	/// </summary>
 	void Initialize();
+	/// <summary>
+	/// EnsureInitializedを実行します。
+	/// </summary>
 	void EnsureInitialized();
+	/// <summary>
+	/// 描画処理を行います。
+	/// </summary>
 	void Draw();
+	/// <summary>
+	/// RenderModelPreviewsを実行します。
+	/// </summary>
 	void RenderModelPreviews();
+	/// <summary>
+	/// 表示内容を更新します。
+	/// </summary>
 	void Refresh();
+	/// <summary>
+	/// ProjectRootを取得します。
+	/// </summary>
 	const std::filesystem::path& GetProjectRoot();
 
 private:
+	/// <summary>
+	/// ProjectItem構造体を表します。
+	/// </summary>
 	struct ProjectItem {
 
 		std::filesystem::path absolutePath; // <! 実ファイル操作に使う絶対パス。
@@ -38,6 +62,9 @@ private:
 		bool hasTexture = false;			// trueならtextureIndexをImGui::Imageで表示できる。
 	};
 
+	/// <summary>
+	/// ModelPreview構造体を表します。
+	/// </summary>
 	struct ModelPreview {
 		// 読み込んだモデル本体。ProjectWindowではファイルごとに一度だけ読み込み、以後は再利用する。
 		std::unique_ptr<Model> model;
@@ -59,24 +86,69 @@ private:
 
 private:
 	// 実行時カレントからProjectDirを探す。
+	/// <summary>
+	/// DetectProjectRootを実行します。
+	/// </summary>
 	std::filesystem::path DetectProjectRoot() const;
 	// パス比較前に表記揺れを減らす。
+	/// <summary>
+	/// NormalizePathを実行します。
+	/// </summary>
 	std::filesystem::path NormalizePath(const std::filesystem::path& path) const;
 	// ProjectDir外へ移動しないためのガード。
+	/// <summary>
+	/// InsideProjectRootかどうかを返します。
+	/// </summary>
 	bool IsInsideProjectRoot(const std::filesystem::path& path) const;
 	// UIに出す相対パス文字列を作る。
+	/// <summary>
+	/// CurrentRelativePathTextを取得します。
+	/// </summary>
 	std::string GetCurrentRelativePathText() const;
 
+	/// <summary>
+	/// MoveToDirectoryを実行します。
+	/// </summary>
 	void MoveToDirectory(const std::filesystem::path& directory);
+	/// <summary>
+	/// MoveToParentを実行します。
+	/// </summary>
 	void MoveToParent();
+	/// <summary>
+	/// OpenFileInExplorerを実行します。
+	/// </summary>
 	void OpenFileInExplorer(const std::filesystem::path& filePath) const;
+	/// <summary>
+	/// Toolbarを描画します。
+	/// </summary>
 	void DrawToolbar();
+	/// <summary>
+	/// Itemを描画します。
+	/// </summary>
 	void DrawItem(ProjectItem& item, int itemIndex);
+	/// <summary>
+	/// ResolveTextureを試行します。
+	/// </summary>
 	bool TryResolveTexture(ProjectItem& item);
+	/// <summary>
+	/// ResolveModelPreviewを試行します。
+	/// </summary>
 	bool TryResolveModelPreview(ProjectItem& item);
+	/// <summary>
+	/// OrCreateModelPreviewを取得します。
+	/// </summary>
 	ModelPreview* GetOrCreateModelPreview(const std::filesystem::path& path);
+	/// <summary>
+	/// ModelPreviewResourcesオブジェクトを作成します。
+	/// </summary>
 	bool CreateModelPreviewResources(ModelPreview& preview);
+	/// <summary>
+	/// upModelPreviewTransformを設定します。
+	/// </summary>
 	void SetupModelPreviewTransform(ModelPreview& preview);
+	/// <summary>
+	/// RenderModelPreviewを実行します。
+	/// </summary>
 	void RenderModelPreview(ModelPreview& preview);
 
 private:

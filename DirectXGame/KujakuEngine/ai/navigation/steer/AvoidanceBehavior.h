@@ -13,6 +13,9 @@ namespace SteeringBehaviors {
 class AvoidanceBehavior : public ISteeringBehavior {
 public:
 	
+	/// <summary>
+	/// AvoidanceContext構造体を表します。
+	/// </summary>
 	struct AvoidanceContext {
 		Vector3 rotation;
 
@@ -30,6 +33,9 @@ public:
 
 	void SetContext(const AvoidanceContext& param) { context_ = param; }
 
+	/// <summary>
+	/// ulateを計算します。
+	/// </summary>
 	Vector3 Calculate(const SteeringContext& context) const override;
 
 private:

@@ -12,23 +12,26 @@ namespace SteeringBehaviors {
 /// </summary>
 class SeparationBehavior : public ISteeringBehavior {
 public:
+	/// <summary>
+	/// SeparationContext構造体を表します。
+	/// </summary>
 	struct SeparationContext {
 		std::span<const Vector3> neighbors;
 		float separationRange = 1.0f;
 	};
 
 public:
-	/// <summary>
-	/// 計算
-	/// </summary>
 	/// <param name="context"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// ulateを計算します。
+	/// </summary>
 	Vector3 Calculate(const SteeringContext& context) const override;
 
-	/// <summary>
-	/// メンバーを追加
-	/// </summary>
 	/// <param name="member"></param>
+	/// <summary>
+	/// Contextを設定します。
+	/// </summary>
 	void SetContext(const std::span<const Vector3> neighbors, float range) {
 		separationContext_.neighbors = neighbors;
 		separationContext_.separationRange = range;

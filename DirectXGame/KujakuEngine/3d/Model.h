@@ -18,6 +18,9 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// FillModeの種類を表します。
+/// </summary>
 enum FillMode { kFillModeSolid, kFillModeWireframe };
 
 /// <summary>
@@ -25,24 +28,51 @@ enum FillMode { kFillModeSolid, kFillModeWireframe };
 /// </summary>
 class Model {
 public:
+	/// <summary>
+	/// Modelを実行します。
+	/// </summary>
 	Model() = default;
+	/// <summary>
+	/// Modelを実行します。
+	/// </summary>
 	~Model() = default;
 
 	/// <summary>
 	/// OBJファイルからモデルを生成する(省略版)
 	/// </summary>
 	static KUJAKU_API Model* CreateFromOBJ(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
+	/// <summary>
+	/// FromGlTFオブジェクトを作成します。
+	/// </summary>
 	static KUJAKU_API Model* CreateFromGlTF(const std::string& objname, ShaderModel shaderModel = ShaderModel::kNone);
+	/// <summary>
+	/// CreateFromFileを試行します。
+	/// </summary>
 	static KUJAKU_API Model* TryCreateFromFile(const std::string& filePath, ShaderModel shaderModel = ShaderModel::kNone);
 
+	/// <summary>
+	/// Sphereオブジェクトを作成します。
+	/// </summary>
 	static KUJAKU_API Model* CreateSphere(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone, uint32_t subdivision = 16);
 
+	/// <summary>
+	/// Cubeオブジェクトを作成します。
+	/// </summary>
 	static KUJAKU_API Model* CreateCube(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
+	/// <summary>
+	/// Planeオブジェクトを作成します。
+	/// </summary>
 	static KUJAKU_API Model* CreatePlane(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
+	/// <summary>
+	/// Triangleオブジェクトを作成します。
+	/// </summary>
 	static KUJAKU_API Model* CreateTriangle(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
+	/// <summary>
+	/// Tetrahedronオブジェクトを作成します。
+	/// </summary>
 	static KUJAKU_API Model* CreateTetrahedron(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
 	/// <summary>
@@ -69,10 +99,10 @@ public:
 
 	// --- get ---
 	
-	/// <summary>
-	/// 頂点の取得
-	/// </summary>
 	/// <returns></returns>
+	/// <summary>
+	/// Verticesを取得します。
+	/// </summary>
 	const std::vector<VertexData>& GetVertices() const { return vertices_; }
 
 	/// <summary>
@@ -81,7 +111,13 @@ public:
 	const Matrix4x4& GetRootLocalMatrix() const { return rootLocalMatrix_; }
 
 private:
+	/// <summary>
+	/// Modelを実行します。
+	/// </summary>
 	Model(const Model&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	Model& operator=(const Model&) = delete;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
@@ -100,7 +136,13 @@ private:
 	Matrix4x4 rootLocalMatrix_ = MakeIdentity();
 
 	uint32_t textureIndex_;
+	/// <summary>
+	/// VertexBufferオブジェクトを作成します。
+	/// </summary>
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
+	/// <summary>
+	/// MaterialBufferオブジェクトを作成します。
+	/// </summary>
 	void CreateMaterialBuffer(const MaterialData& material);
 
 	BlendMode blendMode_ = BlendMode::kNormal;

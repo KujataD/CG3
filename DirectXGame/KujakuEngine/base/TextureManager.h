@@ -19,14 +19,23 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// TextureManagerクラスを表します。
+/// </summary>
 class TextureManager {
 public:
+	/// <summary>
+	/// TextureLoadEvent構造体を表します。
+	/// </summary>
 	struct TextureLoadEvent {
 		std::string filePath;
 		float loadMs = 0.0f;
 		bool cacheHit = false;
 	};
 
+	/// <summary>
+	/// TextureData構造体を表します。
+	/// </summary>
 	struct TextureData {
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
 		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
@@ -34,14 +43,20 @@ public:
 		uint32_t index;
 	};
 
+	/// <summary>
+	/// 初期化します。
+	/// </summary>
 	void Initialize();
 
+	/// <summary>
+	/// Instanceを取得します。
+	/// </summary>
 	static TextureManager* GetInstance();
 
-	/// <summary>
-	/// テクスチャを読み込む
-	/// </summary>
 	/// <param name="filePath"></param>
+	/// <summary>
+	/// LoadTextureを実行します。
+	/// </summary>
 	uint32_t LoadTexture(const std::string& filePath);
 
 	/// <summary>
@@ -49,26 +64,53 @@ public:
 	/// </summary>
 	bool TryLoadTexture(const std::string& filePath, uint32_t& outIndex);
 
-	/// <summary>
-	/// シェーダーリソースビューハンドル取得
-	/// </summary>
 	/// <param name="index"></param>
+	/// <summary>
+	/// SrvHandleを取得します。
+	/// </summary>
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandle(uint32_t index);
+	/// <summary>
+	/// RecentLoadEventsを取得します。
+	/// </summary>
 	const std::deque<TextureLoadEvent>& GetRecentLoadEvents() const { return recentLoadEvents_; }
 
+	/// <summary>
+	/// DefaultWhiteTextureを取得します。
+	/// </summary>
 	uint32_t GetDefaultWhiteTexture() const { return defaultWhiteTextureIndex_; }
 
 private:
+	/// <summary>
+	/// TextureManagerを実行します。
+	/// </summary>
 	TextureManager() = default;
+	/// <summary>
+	/// TextureManagerを実行します。
+	/// </summary>
 	~TextureManager() = default;
+	/// <summary>
+	/// TextureManagerを実行します。
+	/// </summary>
 	TextureManager(const TextureManager&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	const TextureManager& operator=(const TextureManager&) = delete;
 
+	/// <summary>
+	/// LoadTextureInternalを実行します。
+	/// </summary>
 	bool LoadTextureInternal(const std::string& filePath, uint32_t& outIndex, bool assertOnFailure);
+	/// <summary>
+	/// TextureResourceオブジェクトを作成します。
+	/// </summary>
 	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
 	
 	// nodiscard : 戻り値を破棄してはいけない（破棄でエラー）
 	[[nodiscard]]
+	/// <summary>
+	/// UploadTextureDataを実行します。
+	/// </summary>
 	ID3D12Resource* UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages, ID3D12GraphicsCommandList* commandList);
 
 private:

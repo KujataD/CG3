@@ -6,6 +6,9 @@ namespace KujakuEngine {
 
 // Project Window上で表示するアセット種別。
 // 種別を増やす場合は、ここに追加してProjectAssetClassifier::Classifyで判定する。
+/// <summary>
+/// ProjectItemTypeの種類を表します。
+/// </summary>
 enum class ProjectItemType {
 	FolderEmpty,
 	FolderFilled,
@@ -15,6 +18,9 @@ enum class ProjectItemType {
 	OtherFile,
 };
 
+/// <summary>
+/// ProjectItemViewInfo構造体を表します。
+/// </summary>
 struct ProjectItemViewInfo {
 	// 表示対象の分類結果。
 	ProjectItemType type = ProjectItemType::OtherFile;
@@ -34,20 +40,23 @@ struct ProjectItemViewInfo {
 /// </summary>
 class ProjectAssetClassifier {
 public:
+	/// <summary>
+	/// ProjectAssetClassifierを実行します。
+	/// </summary>
 	explicit ProjectAssetClassifier(const std::filesystem::path& projectRoot);
 
-	/// <summary>
-	/// パスからProject Windowでの見た目情報を決める。
-	/// </summary>
 	/// <param name="path"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// Classifyを実行します。
+	/// </summary>
 	ProjectItemViewInfo Classify(const std::filesystem::path& path) const;
 	
-	/// <summary>
-	/// 画像プレビュー対象かどうかを拡張子で判定する。
-	/// </summary>
 	/// <param name="path"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// ImageFileかどうかを返します。
+	/// </summary>
 	bool IsImageFile(const std::filesystem::path& path) const;
 
 	/// <summary>
@@ -55,27 +64,27 @@ public:
 	/// </summary>
 	bool IsModelFile(const std::filesystem::path& path) const;
 	
-	/// <summary>
-	/// 音楽ファイルかどうか
-	/// </summary>
 	/// <param name="path"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// AudioFileかどうかを返します。
+	/// </summary>
 	bool IsAudioFile(const std::filesystem::path& path) const;
 
 private:
 
-	/// <summary>
-	/// 空フォルダかどうか
-	/// </summary>
 	/// <param name="path"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// FolderEmptyかどうかを返します。
+	/// </summary>
 	bool IsFolderEmpty(const std::filesystem::path& path) const;
 
-	/// <summary>
-	/// ファイル・フォルダのアイコン取得
-	/// </summary>
 	/// <param name="type"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// IconPathを取得します。
+	/// </summary>
 	std::filesystem::path GetIconPath(ProjectItemType type) const;
 
 private:

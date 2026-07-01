@@ -21,8 +21,14 @@ public:
 	/// </summary>
 	void Update();
 
+	/// <summary>
+	/// ViewMatrix更新処理を行います。
+	/// </summary>
 	void UpdateViewMatrix();
 
+	/// <summary>
+	/// ViewMatrixを取得します。
+	/// </summary>
 	Matrix4x4 GetViewMatrix() { return matView_; }
 
 	// ローカル回転軸

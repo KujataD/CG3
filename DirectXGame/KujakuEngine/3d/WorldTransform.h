@@ -34,7 +34,13 @@ public:
 	// 親となるワールド変換へのポインタ（階層構造用）
 	const WorldTransform* parent_ = nullptr;
 
+	/// <summary>
+	/// WorldTransformを実行します。
+	/// </summary>
 	WorldTransform() = default;
+	/// <summary>
+	/// WorldTransformを実行します。
+	/// </summary>
 	~WorldTransform() = default;
 
 	/// <summary>
@@ -42,10 +48,10 @@ public:
 	/// </summary>
 	void Initialize();
 
-	/// <summary>
-	/// ワールド行列を更新してGPUに転送する
-	/// </summary>
 	/// <param name="camera">カメラ（ビュー・プロジェクション行列を取得）</param>
+	/// <summary>
+	/// Matrix更新処理を行います。
+	/// </summary>
 	KUJAKU_API void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
 
 	/// <summary>
@@ -53,12 +59,27 @@ public:
 	/// </summary>
 	KUJAKU_API void UpdateWorldMatrix();
 
+	/// <summary>
+	/// TransferMatrixを実行します。
+	/// </summary>
 	void TransferMatrix(const Camera& camera) const;
+	/// <summary>
+	/// TransferMatrixを実行します。
+	/// </summary>
 	void TransferMatrix(const Camera& camera, const Matrix4x4& worldMatrix) const;
 
+	/// <summary>
+	/// MatrixDataを取得します。
+	/// </summary>
 	TransformationMatrix GetMatrixData(const Camera& camera) const;
+	/// <summary>
+	/// BillboardMatrixDataを取得します。
+	/// </summary>
 	TransformationMatrix GetBillboardMatrixData(const Camera& camera) const;
 
+	/// <summary>
+	/// RotationOfVelocityを計算します。
+	/// </summary>
 	void CalcRotationOfVelocity(const Vector3& velocity, const Vector3& deltaAngle = {0, 0, 0}, float maxRotationSpeed = 1.0f);
 
 
@@ -67,7 +88,13 @@ public:
 	/// </summary>
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return transformationMatrixResource_; }
 
+	/// <summary>
+	/// WorldPositionを取得します。
+	/// </summary>
 	Vector3 GetWorldPosition() const { return {matWorld_.m[3][0], matWorld_.m[3][1], matWorld_.m[3][2]}; }
+	/// <summary>
+	/// WorldPositionを設定します。
+	/// </summary>
 	void SetWorldPosition(Vector3 worldPos) {
 		if (parent_) {
 			Matrix4x4 inverseParent = Inverse(parent_->matWorld_);
@@ -86,7 +113,13 @@ private:
 	mutable TransformationMatrix* constMap_ = nullptr;
 
 	// コピー禁止
+	/// <summary>
+	/// WorldTransformを実行します。
+	/// </summary>
 	WorldTransform(const WorldTransform&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	WorldTransform& operator=(const WorldTransform&) = delete;
 };
 

@@ -24,9 +24,6 @@ public:
 	/// </summary>
 	static DirectXCommon* GetInstance();
 
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	/// <param name="winApp">ウィンドウ管理クラスのポインタ</param>
 	/// <param name="backBufferWidth">バックバッファ幅</param>
 	/// <param name="backBufferHeight">バックバッファ高さ</param>
@@ -71,11 +68,11 @@ public:
 	/// </summary>
 	void ClearDepthBuffer();
 
-	/// <summary>
-	/// リソース作成
-	/// </summary>
 	/// <param name="sizeInBytes"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// BufferResourceオブジェクトを作成します。
+	/// </summary>
 	ID3D12Resource* CreateBufferResource(size_t sizeInBytes);
 
 	/// <summary>
@@ -90,31 +87,94 @@ public:
 
 	// SRV番号をDirectXCommonで一元管理する。
 	// 通常テクスチャ、Gameウィンドウ用RenderTarget、ImGuiフォントが同じSRVヒープを共有するため。
+	/// <summary>
+	/// AllocateSrvIndexを実行します。
+	/// </summary>
 	uint32_t AllocateSrvIndex() { return srvIndexCounter_++; }
+	/// <summary>
+	/// AllocateRtvIndexを実行します。
+	/// </summary>
 	uint32_t AllocateRtvIndex() { return rtvIndexCounter_++; }
+	/// <summary>
+	/// AllocateDsvIndexを実行します。
+	/// </summary>
 	uint32_t AllocateDsvIndex() { return dsvIndexCounter_++; }
 
 	// --- get ---
+	/// <summary>
+	/// Deviceを取得します。
+	/// </summary>
 	ID3D12Device* GetDevice() const { return device_.Get(); }
+	/// <summary>
+	/// CommandListを取得します。
+	/// </summary>
 	ID3D12GraphicsCommandList* GetCommandList() const { return commandList_.Get(); }
+	/// <summary>
+	/// CommandQueueを取得します。
+	/// </summary>
 	ID3D12CommandQueue* GetCommandQueue() const { return commandQueue_.Get(); }
+	/// <summary>
+	/// SrvDescriptorHeapを取得します。
+	/// </summary>
 	ID3D12DescriptorHeap* GetSrvDescriptorHeap() const { return srvDescriptorHeap_.Get(); }
+	/// <summary>
+	/// RtvDescriptorHeapを取得します。
+	/// </summary>
 	ID3D12DescriptorHeap* GetRtvDescriptorHeap() const { return rtvDescriptorHeap_.Get(); }
+	/// <summary>
+	/// DsvDescriptorHeapを取得します。
+	/// </summary>
 	ID3D12DescriptorHeap* GetDsvDescriptorHeap() const { return dsvDescriptorHeap_.Get(); }
 	// ImGui::Imageへ渡すGame用RenderTargetのGPU側SRVハンドル。
+	/// <summary>
+	/// GameRenderSrvHandleを取得します。
+	/// </summary>
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGameRenderSrvHandle() const { return gameRenderSrvHandleGPU_; }
+	/// <summary>
+	/// GameRenderDsvHandleを取得します。
+	/// </summary>
 	D3D12_CPU_DESCRIPTOR_HANDLE GetGameRenderDsvHandle() const { return gameRenderDsvHandle_; }
+	/// <summary>
+	/// DescriptorSizeRTVを取得します。
+	/// </summary>
 	uint32_t GetDescriptorSizeRTV() const { return descriptorSizeRTV_; }
+	/// <summary>
+	/// DescriptorSizeSRVを取得します。
+	/// </summary>
 	uint32_t GetDescriptorSizeSRV() const { return descriptorSizeSRV_; }
+	/// <summary>
+	/// DescriptorSizeDSVを取得します。
+	/// </summary>
 	uint32_t GetDescriptorSizeDSV() const { return descriptorSizeDSV_; }
+	/// <summary>
+	/// BackBufferWidthを取得します。
+	/// </summary>
 	int32_t GetBackBufferWidth() const { return backBufferWidth_; }
+	/// <summary>
+	/// BackBufferHeightを取得します。
+	/// </summary>
 	int32_t GetBackBufferHeight() const { return backBufferHeight_; }
+	/// <summary>
+	/// GameRenderWidthを取得します。
+	/// </summary>
 	int32_t GetGameRenderWidth() const { return gameRenderWidth_; }
+	/// <summary>
+	/// GameRenderHeightを取得します。
+	/// </summary>
 	int32_t GetGameRenderHeight() const { return gameRenderHeight_; }
+	/// <summary>
+	/// SwapChainBufferCountを取得します。
+	/// </summary>
 	uint32_t GetSwapChainBufferCount() const { return kSwapChainBufferCount; }
+	/// <summary>
+	/// BackBufferRenderTargetを設定します。
+	/// </summary>
 	void SetBackBufferRenderTarget();
 
 	// --- set ---
+	/// <summary>
+	/// ClearColorを設定します。
+	/// </summary>
 	void SetClearColor(Vector4 color) {
 		clearColor_[0] = color.x;
 		clearColor_[1] = color.y;
@@ -123,9 +183,21 @@ public:
 	}
 
 private:
+	/// <summary>
+	/// DirectXCommonを実行します。
+	/// </summary>
 	DirectXCommon() = default;
+	/// <summary>
+	/// DirectXCommonを実行します。
+	/// </summary>
 	~DirectXCommon() = default;
+	/// <summary>
+	/// DirectXCommonを実行します。
+	/// </summary>
 	DirectXCommon(const DirectXCommon&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	const DirectXCommon& operator=(const DirectXCommon&) = delete;
 
 	// --- 初期化フロー ---
@@ -140,6 +212,9 @@ private:
 	/// )
 	/// </summary>
 	/// <param name="enableDebugLayer">デバッグレイヤーの有効化</param>
+	/// <summary>
+	/// InitializeDXGIDeviceを実行します。
+	/// </summary>
 	void InitializeDXGIDevice(bool enableDebugLayer);
 
 	/// <summary>
@@ -148,6 +223,9 @@ private:
 	/// / コマンドアロケータ
 	/// / コマンドリスト
 	/// )
+	/// </summary>
+	/// <summary>
+	/// InitializeCommandを実行します。
 	/// </summary>
 	void InitializeCommand();
 
@@ -165,15 +243,36 @@ private:
 	///
 	/// </summary>
 	void CreateFinalRenderTargets();
+	/// <summary>
+	/// SwapChainRenderTargetViewsオブジェクトを作成します。
+	/// </summary>
 	void CreateSwapChainRenderTargetViews();
 
+	/// <summary>
+	/// DepthBufferオブジェクトを作成します。
+	/// </summary>
 	void CreateDepthBuffer();
 	// Gameウィンドウに表示するためのOffscreen RenderTargetを作成する。
+	/// <summary>
+	/// GameRenderTargetオブジェクトを作成します。
+	/// </summary>
 	void CreateGameRenderTarget();
+	/// <summary>
+	/// GameDepthBufferオブジェクトを作成します。
+	/// </summary>
 	void CreateGameDepthBuffer();
+	/// <summary>
+	/// Fenceオブジェクトを作成します。
+	/// </summary>
 	void CreateFence();
+	/// <summary>
+	/// WaitForGpuを実行します。
+	/// </summary>
 	void WaitForGpu();
 	// 現在のバックバッファに対応するRTVを取得する。
+	/// <summary>
+	/// BackBufferRtvHandleを取得します。
+	/// </summary>
 	D3D12_CPU_DESCRIPTOR_HANDLE GetBackBufferRtvHandle() const;
 
 private:

@@ -1,6 +1,7 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
+  "parentInstanceId": "",
   "name": "Editor Debug Camera",
   "active": true,
   "components": [
@@ -8,8 +9,8 @@
       "enabled": true,
       "properties": {
         "rotation": [
-          0.4559985399246216,
-          14.726005554199219,
+          0.14999786019325256,
+          15.703991889953613,
           0.0
         ],
         "scale": [
@@ -18,9 +19,9 @@
           1.0
         ],
         "translation": [
-          -16.975263595581055,
-          9.19999885559082,
-          9.207698822021484
+          -3.534478187561035,
+          1.4000003337860107,
+          21.318883895874023
         ]
       },
       "type": "Transform"

@@ -3,6 +3,9 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// Particle構造体を表します。
+/// </summary>
 struct Particle {
 	Vector3 translation;
 	Vector3 velocity;
@@ -13,8 +16,14 @@ struct Particle {
 	float lifeTime = 1.0f;
 	float currentTime = 0.0f;
 
+	/// <summary>
+	/// Deadかどうかを返します。
+	/// </summary>
 	bool IsDead() const { return currentTime >= lifeTime; }
 
+	/// <summary>
+	/// 更新処理を行います。
+	/// </summary>
 	void Update(float deltaTime) {
 		currentTime += deltaTime;
 		translation += velocity * deltaTime;

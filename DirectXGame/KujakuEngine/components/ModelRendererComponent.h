@@ -14,6 +14,9 @@ class Model;
 /// </summary>
 class ModelRendererComponent : public Component {
 public:
+	/// <summary>
+	/// PrimitiveTypeの種類を表します。
+	/// </summary>
 	enum class PrimitiveType {
 		Custom,
 		Cube,
@@ -21,12 +24,30 @@ public:
 		Model,
 	};
 
+	/// <summary>
+	/// ModelRendererComponentを実行します。
+	/// </summary>
 	ModelRendererComponent();
+	/// <summary>
+	/// ModelRendererComponentを実行します。
+	/// </summary>
 	explicit ModelRendererComponent(const Camera* camera);
+	/// <summary>
+	/// ModelRendererComponentを実行します。
+	/// </summary>
 	ModelRendererComponent(std::unique_ptr<Model> model, const Camera* camera);
+	/// <summary>
+	/// ModelRendererComponentを実行します。
+	/// </summary>
 	~ModelRendererComponent() override;
 
+	/// <summary>
+	/// TypeNameを取得します。
+	/// </summary>
 	const char* GetTypeName() const override { return "ModelRendererComponent"; }
+	/// <summary>
+	/// AllowMultipleを実行します。
+	/// </summary>
 	bool AllowMultiple() const override { return false; }
 
 	/// <summary>
@@ -85,7 +106,13 @@ public:
 	void ReadJson(const nlohmann::json& json) override;
 
 private:
+	/// <summary>
+	/// RebuildPrimitiveModelを実行します。
+	/// </summary>
 	void RebuildPrimitiveModel();
+	/// <summary>
+	/// PrimitiveNameを取得します。
+	/// </summary>
 	const char* GetPrimitiveName() const;
 
 	std::unique_ptr<Model> model_;

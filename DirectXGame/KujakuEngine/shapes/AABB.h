@@ -3,10 +3,16 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// AABB構造体を表します。
+/// </summary>
 struct AABB {
 	Vector3 min;
 	Vector3 max;
 
+	/// <summary>
+	/// SwapMinMaxを実行します。
+	/// </summary>
 	void SwapMinMax() {
 		if (min.x > max.x) {
 			std::swap(min.x, max.x);
@@ -20,12 +26,21 @@ struct AABB {
 	}
 };
 
+/// <summary>
+/// OBB構造体を表します。
+/// </summary>
 struct OBB {
 	Vector3 center;
 	Vector3 orientations[3];
 	Vector3 size;
 
+	/// <summary>
+	/// WorldMatrixを取得します。
+	/// </summary>
 	Matrix4x4 GetWorldMatrix() const { return MakeAffineMatrixOrientations(orientations, center); }
+	/// <summary>
+	/// OBBOrientations更新処理を行います。
+	/// </summary>
 	void UpdateOBBOrientations(const Vector3& rotate) {
 		// 回転行列を生成
 		Matrix4x4 rotateMatrix = MakeRotateZMatrix(rotate.z) * MakeRotateYMatrix(rotate.y) * MakeRotateXMatrix(rotate.x);

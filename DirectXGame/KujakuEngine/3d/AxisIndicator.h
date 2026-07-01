@@ -9,6 +9,9 @@
 namespace KujakuEngine {
 
 // 軸方向表示
+/// <summary>
+/// AxisIndicatorクラスを表します。
+/// </summary>
 class AxisIndicator {
 public:
 	// ビューポート矩形範囲
@@ -21,22 +24,22 @@ public:
 	// モデル名
 	static const std::string kModelName;
 
-	/// <summary>
-	/// シングルトンインスタンスの取得
-	/// </summary>
 	/// <returns>シングルトンインスタンス</returns>
+	/// <summary>
+	/// Instanceを取得します。
+	/// </summary>
 	static AxisIndicator* GetInstance();
 
-	/// <summary>
-	/// トレースするカメラのセット
-	/// </summary>
 	/// <param name="targetCamera">トレースするカメラ</param>
+	/// <summary>
+	/// TargetCameraを設定します。
+	/// </summary>
 	static void SetTargetCamera(const Camera* targetCamera);
 
-	/// <summary>
-	/// 表示フラグのセット
-	/// </summary>
 	/// <param name="isVisible">表示フラグ</param>
+	/// <summary>
+	/// Visibleを設定します。
+	/// </summary>
 	static void SetVisible(bool isVisible);
 
 	/// <summary>
@@ -55,9 +58,21 @@ public:
 	void Draw();
 
 private:
+	/// <summary>
+	/// AxisIndicatorを実行します。
+	/// </summary>
 	AxisIndicator() = default;
+	/// <summary>
+	/// AxisIndicatorを実行します。
+	/// </summary>
 	~AxisIndicator() = default;
+	/// <summary>
+	/// AxisIndicatorを実行します。
+	/// </summary>
 	AxisIndicator(const AxisIndicator&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	AxisIndicator& operator=(const AxisIndicator&) = delete;
 
 	// モデル

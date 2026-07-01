@@ -10,6 +10,9 @@ namespace KujakuEngine {
 /// </summary>
 class TransformSnapshotComponent : public Component {
 public:
+	/// <summary>
+	/// TypeNameを取得します。
+	/// </summary>
 	const char* GetTypeName() const override { return "TransformSnapshotComponent"; }
 
 	/// <summary>
@@ -48,6 +51,9 @@ public:
 	void Save();
 
 private:
+	/// <summary>
+	/// TransformSnapshot構造体を表します。
+	/// </summary>
 	struct TransformSnapshot {
 		Vector3 scale;
 		Vector3 rotation;

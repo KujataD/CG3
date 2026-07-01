@@ -12,6 +12,9 @@ public:
 	void SetTarget(Vector3 target) { target_ = target; }
 	void SetSlowRadius(float slowRadius) { slowRadius_ = slowRadius; }
 
+	/// <summary>
+	/// ulateを計算します。
+	/// </summary>
 	Vector3 Calculate(const SteeringContext& context) const override;
 
 private:

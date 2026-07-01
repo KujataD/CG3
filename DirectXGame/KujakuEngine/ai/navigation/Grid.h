@@ -7,12 +7,18 @@
 namespace KujakuEngine {
 
 	// インデックス
+	/// <summary>
+	/// GridIndex構造体を表します。
+	/// </summary>
 	struct GridIndex {
 		uint32_t x, y;
 		bool operator==(const GridIndex& idx) const { return x == idx.x && y == idx.y; }
 	};
 
 	// セルの情報
+	/// <summary>
+	/// GridCell構造体を表します。
+	/// </summary>
 	struct GridCell {
 		bool walkable = true;               // 歩けるかどうか
 		float additionalCost = 0.0f; // 追加コスト（毒沼など）
@@ -25,6 +31,9 @@ namespace KujakuEngine {
 		uint32_t width, height;
 		std::vector<std::vector<GridCell>> cells;
 
+		/// <summary>
+		/// ResizeGridCellsを実行します。
+		/// </summary>
 		void ResizeGridCells(uint32_t w, uint32_t h) {
 			width = w;
 			height = h;
@@ -36,10 +45,16 @@ namespace KujakuEngine {
 			}
 		}
 
+		/// <summary>
+		/// Insideかどうかを返します。
+		/// </summary>
 		bool IsInside(uint32_t x, uint32_t y) const {
 			return (x < width) && (y < height);
 		}
 
+		/// <summary>
+		/// Walkableかどうかを返します。
+		/// </summary>
 		bool IsWalkable(uint32_t x, uint32_t y) const {
 			if (x < 0 || y < 0) {
 				return false;

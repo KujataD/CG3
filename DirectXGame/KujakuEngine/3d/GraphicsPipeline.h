@@ -16,12 +16,18 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// VertexData構造体を表します。
+/// </summary>
 struct VertexData {
 	Vector4 position;
 	Vector2 texcoord;
 	Vector3 normal;
 };
 
+/// <summary>
+/// MaterialData構造体を表します。
+/// </summary>
 struct MaterialData {
 	Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f};
 	int32_t enableLighting = 0;
@@ -32,18 +38,27 @@ struct MaterialData {
 	uint32_t textureIndex;
 };
 
+/// <summary>
+/// Node構造体を表します。
+/// </summary>
 struct Node {
 	Matrix4x4 localMatrix = {{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}};
 	std::string name;
 	std::vector<Node> children;
 };
 
+/// <summary>
+/// ModelData構造体を表します。
+/// </summary>
 struct ModelData {
 	std::vector<VertexData> vertices;
 	MaterialData material;
 	Node rootNode;
 };
 
+/// <summary>
+/// BlendModeの種類を表します。
+/// </summary>
 enum class BlendMode {
 	kNone,      // ブレンドなし
 	kNormal,    // αブレンド	: Src * SrcA + Dest * (1 - SrcA)
@@ -56,6 +71,9 @@ enum class BlendMode {
 	kCountOfBlendMode, //!< ブレンドモード数。指定はしない
 };
 
+/// <summary>
+/// PipelineTypeの種類を表します。
+/// </summary>
 enum class PipelineType {
 	kObject3d,
 	kParticle,
@@ -64,6 +82,9 @@ enum class PipelineType {
 	kCountOfPipeLineType,
 };
 
+/// <summary>
+/// ShaderModelの種類を表します。
+/// </summary>
 enum class ShaderModel {
 	kNone,                 // シェーダーなし
 	kLambert,              // ランバート
@@ -104,9 +125,21 @@ public:
 	void Finalize();
 
 private:
+	/// <summary>
+	/// GraphicsPipelineを実行します。
+	/// </summary>
 	GraphicsPipeline() = default;
+	/// <summary>
+	/// GraphicsPipelineを実行します。
+	/// </summary>
 	~GraphicsPipeline() = default;
+	/// <summary>
+	/// GraphicsPipelineを実行します。
+	/// </summary>
 	GraphicsPipeline(const GraphicsPipeline&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
 
 	/// <summary>

@@ -7,33 +7,39 @@
 
 namespace KujakuEngine{
 
+/// <summary>
+/// AStarクラスを表します。
+/// </summary>
 class AStar {
 public:
+	/// <summary>
+	/// HeuristicAlgorithmの種類を表します。
+	/// </summary>
 	enum class HeuristicAlgorithm {
 		kManhattan,
 		kEuclidean,
 	};
 
 public:
+	/// <summary>
+	/// AStarを実行します。
+	/// </summary>
 	AStar() = default;
 
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	/// <param name="mapChipField"></param>
+	/// <summary>
+	/// Initを実行します。
+	/// </summary>
 	void Init(const Grid* mapChipField);
 
-	/// <summary>
-	/// 探索関数
-	/// </summary>
 	/// <param name="start"></param>
 	/// <param name="goal"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// Pathを検索します。
+	/// </summary>
 	std::vector<GridIndex> FindPath(GridIndex start, GridIndex goal);
 
-	/// <summary>
-	/// ヒューリスティックの距離アルゴリズムを変更する
-	/// </summary>
 	/// <param name="heuristicAlgorithm"></param>
 	void SetHeuristicAlgorithm(HeuristicAlgorithm heuristicAlgorithm) { heuristicAlgorithm_ = heuristicAlgorithm; }
 
@@ -42,12 +48,12 @@ private:
 	HeuristicAlgorithm heuristicAlgorithm_ = HeuristicAlgorithm::kEuclidean;
 
 private:
-	/// <summary>
-	/// 歩ける場所の設定
-	/// </summary>
 	/// <param name="x"></param>
 	/// <param name="z"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// Walkableかどうかを返します。
+	/// </summary>
 	bool IsWalkable(uint32_t x, uint32_t y) const { return grid_->IsWalkable(x, y); }
 
 };

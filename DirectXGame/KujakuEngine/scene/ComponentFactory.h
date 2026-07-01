@@ -53,12 +53,27 @@ public:
 	KUJAKU_API const std::vector<std::string>& GetRegisteredTypeNames() const;
 
 private:
+	/// <summary>
+	/// ComponentFactoryを実行します。
+	/// </summary>
 	ComponentFactory() = default;
+	/// <summary>
+	/// ComponentFactoryを実行します。
+	/// </summary>
 	~ComponentFactory() = default;
+	/// <summary>
+	/// ComponentFactoryを実行します。
+	/// </summary>
 	ComponentFactory(const ComponentFactory&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	ComponentFactory& operator=(const ComponentFactory&) = delete;
 
 private:
+	/// <summary>
+	/// Entry構造体を表します。
+	/// </summary>
 	struct Entry {
 		CreateFunc createFunc;
 		std::string moduleName;

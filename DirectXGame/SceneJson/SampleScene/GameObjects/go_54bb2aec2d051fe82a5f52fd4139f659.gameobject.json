@@ -1,6 +1,7 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_54bb2aec2d051fe82a5f52fd4139f659",
+  "parentInstanceId": "",
   "name": "Main Camera",
   "active": true,
   "components": [

@@ -13,10 +13,22 @@ namespace KujakuEngine {
 /// </summary>
 class GameModuleLoader {
 public:
+	/// <summary>
+	/// GameModuleLoaderを実行します。
+	/// </summary>
 	GameModuleLoader() = default;
+	/// <summary>
+	/// GameModuleLoaderを実行します。
+	/// </summary>
 	~GameModuleLoader();
 
+	/// <summary>
+	/// GameModuleLoaderを実行します。
+	/// </summary>
 	GameModuleLoader(const GameModuleLoader&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	GameModuleLoader& operator=(const GameModuleLoader&) = delete;
 
 	/// <summary>
@@ -45,10 +57,19 @@ public:
 	const std::filesystem::path& GetLoadedCopiedDllPath() const { return loadedCopiedDllPath_; }
 
 private:
+	/// <summary>
+	/// LoadExportを実行します。
+	/// </summary>
 	template <class T>
 	bool LoadExport(const char* name, T& outFunc, std::string& message) const;
 
+	/// <summary>
+	/// LastWin32ErrorMessageを取得します。
+	/// </summary>
 	static std::string GetLastWin32ErrorMessage(const std::string& prefix);
+	/// <summary>
+	/// ToWideStringを実行します。
+	/// </summary>
 	static std::wstring ToWideString(const std::filesystem::path& path);
 
 private:

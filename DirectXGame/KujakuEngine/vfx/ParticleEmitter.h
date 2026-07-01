@@ -10,9 +10,15 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// ParticleEmitterクラスを表します。
+/// </summary>
 class ParticleEmitter {
 public:
 	// 生成図形タイプ
+	/// <summary>
+	/// EmitShapeの種類を表します。
+	/// </summary>
 	enum EmitShape {
 		kEmitShapeBox,       // !< 従来の直方体からランダム生成する。
 		kEmitShapeModelEdge, // !< モデルの辺からランダム生成する。（SetSourceModel必要）
@@ -20,16 +26,31 @@ public:
 	};
 
 public:
+	/// <summary>
+	/// 初期化します。
+	/// </summary>
 	void Initialize(ParticleModel* model);
 
+	/// <summary>
+	/// 更新処理を行います。
+	/// </summary>
 	void Update(float deltaTime, const Camera& camera);
+	/// <summary>
+	/// 描画処理を行います。
+	/// </summary>
 	void Draw();
 
+	/// <summary>
+	/// Emitを実行します。
+	/// </summary>
 	void Emit();
 
 	// --- set ---
 	void AddField(AccelerationField& field) { accelerationFields_.push_back(field); }
 	void SetIsActiveField(bool isActive) { isActiveField_ = isActive; }
+	/// <summary>
+	/// SourceVerticesを設定します。
+	/// </summary>
 	void SetSourceVertices(const std::vector<VertexData>& vertices, WorldTransform* sourceWorldTransform) {
 		vertices_ = vertices;
 		sourceWorldTransform_ = sourceWorldTransform;
@@ -42,9 +63,15 @@ public:
 	/// ソースモデルの辺のランダムな座標を取得します。
 	/// </summary>
 	Vector3 GetRandomPosModelEdge();
+	/// <summary>
+	/// RandomPosSegmentsEdgeを取得します。
+	/// </summary>
 	Vector3 GetRandomPosSegmentsEdge();
 
 private:
+	/// <summary>
+	/// Particleを生成します。
+	/// </summary>
 	Particle MakeParticle();
 
 public:

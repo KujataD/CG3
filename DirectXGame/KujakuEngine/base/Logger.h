@@ -10,7 +10,13 @@ namespace KujakuEngine {
 /// </summary>
 class Logger {
 public: 
+    /// <summary>
+    /// 初期化します。
+    /// </summary>
     static void Initialize();
+    /// <summary>
+    /// Logを実行します。
+    /// </summary>
     static void Log(const std::string& message);
 
 private:

@@ -6,8 +6,14 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// Randomクラスを表します。
+/// </summary>
 class Random {
 public:
+	/// <summary>
+	/// 初期化します。
+	/// </summary>
 	static void Initialize() {
 		// 乱数生成エンジン
 		std::random_device seedGenerator;
@@ -16,7 +22,7 @@ public:
 	}
 
 	/// <summary>
-	/// 値の取得
+	/// Randomを取得します。
 	/// </summary>
 	template<typename T> static T GetRandom(T min, T max) {
 		// スワップ
@@ -26,9 +32,18 @@ public:
 
 		// 整数型か少数型かどうか
 		if constexpr (std::is_integral_v<T>) {
+			/// <summary>
+			/// distributionを実行します。
+			/// </summary>
 			std::uniform_int_distribution<T> distribution(min, max);
 			return distribution(randomEngine);
+		/// <summary>
+		/// constexprを実行します。
+		/// </summary>
 		} else if constexpr (std::is_floating_point_v<T>) {
+			/// <summary>
+			/// distributionを実行します。
+			/// </summary>
 			std::uniform_real_distribution<T> distribution(min, max);
 			return distribution(randomEngine);
 		} else {

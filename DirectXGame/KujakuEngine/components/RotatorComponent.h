@@ -9,6 +9,9 @@ namespace KujakuEngine {
 /// </summary>
 class RotatorComponent : public Component {
 public:
+	/// <summary>
+	/// TypeNameを取得します。
+	/// </summary>
 	const char* GetTypeName() const override { return "RotatorComponent"; }
 
 	/// <summary>
@@ -31,9 +34,6 @@ public:
 	/// </summary>
 	void ReadJson(const nlohmann::json& json) override;
 
-	/// <summary>
-	/// 回転速度を設定
-	/// </summary>
 	void SetSpeed(float speed) { speed_ = speed; }
 
 	/// <summary>

@@ -12,6 +12,9 @@ namespace KujakuEngine {
 
 // エディタ全体の実行状態。
 // 将来Scene Cloneを入れる場合も、このモードを見てEditScene/PlaySceneを切り替える想定。
+/// <summary>
+/// EditorModeの種類を表します。
+/// </summary>
 enum class EditorMode {
 	Edit,
 	Play,
@@ -98,14 +101,38 @@ public:
 	Scene* GetCurrentScene() const;
 
 private:
+	/// <summary>
+	/// EditorApplicationを実行します。
+	/// </summary>
 	EditorApplication() = default;
+	/// <summary>
+	/// EditorApplicationを実行します。
+	/// </summary>
 	~EditorApplication() = default;
+	/// <summary>
+	/// EditorApplicationを実行します。
+	/// </summary>
 	EditorApplication(const EditorApplication&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	EditorApplication& operator=(const EditorApplication&) = delete;
 
+	/// <summary>
+	/// ConsoleLogを追加します。
+	/// </summary>
 	void AddConsoleLog(const std::string& message);
+	/// <summary>
+	/// DestroyCurrentSceneを実行します。
+	/// </summary>
 	void DestroyCurrentScene();
+	/// <summary>
+	/// CurrentSceneRawを設定します。
+	/// </summary>
 	void SetCurrentSceneRaw(Scene* scene, GameModuleApi::DestroySceneFunc destroySceneFunc);
+	/// <summary>
+	/// InitializeCurrentSceneAndImportJsonを実行します。
+	/// </summary>
 	void InitializeCurrentSceneAndImportJson();
 	/// <summary>
 	/// HotReload用の世代別一時ディレクトリへGameModuleをビルドする
@@ -123,13 +150,25 @@ private:
 	/// GameModule由来のComponent登録を解除し、読み込み済みDLLを解放する
 	/// </summary>
 	void UnregisterAndUnloadGameModule();
+	/// <summary>
+	/// GameModuleProjectPathを取得します。
+	/// </summary>
 	std::filesystem::path GetGameModuleProjectPath() const;
+	/// <summary>
+	/// GameModuleDllPathを取得します。
+	/// </summary>
 	std::filesystem::path GetGameModuleDllPath() const;
 	/// <summary>
 	/// HotReload世代別ビルドのルートディレクトリを取得する
 	/// </summary>
 	std::filesystem::path GetGameModuleHotReloadBuildRoot() const;
+	/// <summary>
+	/// GameModuleCopyDirectoryを取得します。
+	/// </summary>
 	std::filesystem::path GetGameModuleCopyDirectory() const;
+	/// <summary>
+	/// RestoreFallbackSceneAfterHotReloadFailureを実行します。
+	/// </summary>
 	void RestoreFallbackSceneAfterHotReloadFailure();
 
 private:

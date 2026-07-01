@@ -10,15 +10,24 @@ namespace SteeringBehaviors {
 /// </summary>
 class AligmentBehavior : public ISteeringBehavior {
 public:
+	/// <summary>
+	/// AligmentContext構造体を表します。
+	/// </summary>
 	struct AligmentContext {
 		std::span<const Vector3> neighborVelocities;
 	};
 
 public:
+	/// <summary>
+	/// Contextを設定します。
+	/// </summary>
 	void SetContext(std::span<const Vector3> neighborVelocities) {
 		aligmentContext_.neighborVelocities = neighborVelocities;
 	}
 
+	/// <summary>
+	/// ulateを計算します。
+	/// </summary>
 	Vector3 Calculate(const SteeringContext& context) const override;
 
 private:

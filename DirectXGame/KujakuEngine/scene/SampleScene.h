@@ -55,11 +55,29 @@ public:
 	void OnEditorComponentAdded(GameObject* gameObject, Component* component) override;
 
 private:
+	/// <summary>
+	/// SceneView更新処理を行います。
+	/// </summary>
 	void UpdateSceneView();
+	/// <summary>
+	/// EnsureSceneServiceObjectsを実行します。
+	/// </summary>
 	void EnsureSceneServiceObjects();
+	/// <summary>
+	/// GameObjectByNameを検索します。
+	/// </summary>
 	GameObject* FindGameObjectByName(const std::string& name);
+	/// <summary>
+	/// CurrentViewCameraを取得します。
+	/// </summary>
 	Camera* GetCurrentViewCamera();
+	/// <summary>
+	/// ApplySceneLightsを実行します。
+	/// </summary>
 	void ApplySceneLights();
+	/// <summary>
+	/// ApplyRenderCameraToModelRenderersを実行します。
+	/// </summary>
 	void ApplyRenderCameraToModelRenderers(const Camera* camera);
 
 private:

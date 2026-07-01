@@ -11,7 +11,13 @@ namespace KujakuEngine {
 /// </summary>
 class DebugCameraComponent : public Component {
 public:
+	/// <summary>
+	/// TypeNameを取得します。
+	/// </summary>
 	const char* GetTypeName() const override { return "DebugCameraComponent"; }
+	/// <summary>
+	/// AllowMultipleを実行します。
+	/// </summary>
 	bool AllowMultiple() const override { return false; }
 
 	/// <summary>
@@ -35,9 +41,21 @@ public:
 	void OnAfterReadJson() override;
 
 private:
+	/// <summary>
+	/// InitializeFromOwnerTransformを実行します。
+	/// </summary>
 	void InitializeFromOwnerTransform();
+	/// <summary>
+	/// SyncDebugCameraFromExternalTransformを実行します。
+	/// </summary>
 	void SyncDebugCameraFromExternalTransform();
+	/// <summary>
+	/// SyncOwnerTransformFromDebugCameraを実行します。
+	/// </summary>
 	void SyncOwnerTransformFromDebugCamera();
+	/// <summary>
+	/// TransformChangedExternallyを持つかどうかを返します。
+	/// </summary>
 	bool HasTransformChangedExternally(const Vector3& translation, const Vector3& rotation) const;
 
 private:

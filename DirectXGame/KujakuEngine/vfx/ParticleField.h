@@ -4,6 +4,9 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// AccelerationField構造体を表します。
+/// </summary>
 struct AccelerationField {
 	Vector3 acceleration; // !< 加速度
 	AABB area;            // !< 範囲

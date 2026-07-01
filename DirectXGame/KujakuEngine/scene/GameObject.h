@@ -17,7 +17,13 @@ namespace KujakuEngine {
 /// </summary>
 class GameObject {
 public:
+	/// <summary>
+	/// GameObjectを実行します。
+	/// </summary>
 	KUJAKU_API explicit GameObject(const std::string& name = "GameObject");
+	/// <summary>
+	/// GameObjectを実行します。
+	/// </summary>
 	KUJAKU_API ~GameObject();
 
 	/// <summary>
@@ -110,9 +116,6 @@ public:
 	/// </summary>
 	const std::string& GetName() const { return name_; }
 
-	/// <summary>
-	/// 名前を設定
-	/// </summary>
 	void SetName(const std::string& name) { name_ = name; }
 
 	/// <summary>
@@ -125,9 +128,6 @@ public:
 	/// </summary>
 	KUJAKU_API bool IsActiveInHierarchy() const;
 
-	/// <summary>
-	/// 有効状態を設定
-	/// </summary>
 	void SetActive(bool active) { active_ = active; }
 
 	/// <summary>

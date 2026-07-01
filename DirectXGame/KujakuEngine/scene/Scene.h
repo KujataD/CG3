@@ -15,6 +15,9 @@ class Camera;
 /// </summary>
 class Scene {
 public:
+	/// <summary>
+	/// Sceneを実行します。
+	/// </summary>
 	KUJAKU_API virtual ~Scene();
 
 	/// <summary>

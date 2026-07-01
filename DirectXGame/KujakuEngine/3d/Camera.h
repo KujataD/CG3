@@ -21,6 +21,9 @@ struct ConstBufferDataCamera {
 	float pad;            // パディング
 };
 
+/// <summary>
+/// CameraForGPU構造体を表します。
+/// </summary>
 struct CameraForGPU {
 	Vector3 worldPosition;
 };
@@ -44,7 +47,13 @@ public:
 	Matrix4x4 matView; // ワールドからカメラへの変換行列
 	Matrix4x4 matProjection; // カメラから画面への変換行列
 
+	/// <summary>
+	/// Cameraを実行します。
+	/// </summary>
 	Camera() = default;
+	/// <summary>
+	/// Cameraを実行します。
+	/// </summary>
 	~Camera() = default;
 
 	/// <summary>
@@ -62,10 +71,10 @@ public:
 	/// </summary>
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return constBuffer_; }
 
-	/// <summary>
-	///
-	/// </summary>
 	/// <returns></returns>
+	/// <summary>
+	/// CameraForGPUResourceを取得します。
+	/// </summary>
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetCameraForGPUResource() const { return cameraForGPUResource_; }
 
 	/// <summary>
@@ -73,6 +82,9 @@ public:
 	/// </summary>
 	void UpdateProjectionMatrix();
 
+	/// <summary>
+	/// TransferConstBufferを実行します。
+	/// </summary>
 	void TransferConstBuffer();
 
 	/// <summary>
@@ -96,7 +108,13 @@ private:
 	CameraForGPU* cameraForGPUData_ = nullptr;
 
 	// コピー禁止
+	/// <summary>
+	/// Cameraを実行します。
+	/// </summary>
 	Camera(const Camera&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	Camera& operator=(const Camera&) = delete;
 
 	/// <summary>

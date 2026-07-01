@@ -6,13 +6,22 @@
 
 namespace KujakuEngine {
 
+/// <summary>
+/// StateMachineクラスを表します。
+/// </summary>
 template <class TStateId, class TOwner>
 class StateMachine {
 public:
+	/// <summary>
+	/// Stateを追加します。
+	/// </summary>
 	void AddState(TStateId id, std::unique_ptr<IState<TOwner>> state) {
 		states_[id] = std::move(state);
 	}
 
+	/// <summary>
+	/// ChangeStateを実行します。
+	/// </summary>
 	void ChangeState(TStateId nextId, TOwner& owner) {
 		if (currentState_ && currentId_ == nextId) {
 			return;
@@ -32,12 +41,18 @@ public:
 		}
 	}
 
+	/// <summary>
+	/// 更新処理を行います。
+	/// </summary>
 	void Update(TOwner& owner) {
 		if (currentState_) {
 			currentState_->Update(owner);
 		}
 	}
 
+	/// <summary>
+	/// CurrentIdを取得します。
+	/// </summary>
 	TStateId GetCurrentId() const { return currentId_; }
 
 private:

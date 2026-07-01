@@ -30,9 +30,21 @@ public:
 	void Clear();
 
 private:
+	/// <summary>
+	/// EditorSelectionを実行します。
+	/// </summary>
 	EditorSelection() = default;
+	/// <summary>
+	/// EditorSelectionを実行します。
+	/// </summary>
 	~EditorSelection() = default;
+	/// <summary>
+	/// EditorSelectionを実行します。
+	/// </summary>
 	EditorSelection(const EditorSelection&) = delete;
+	/// <summary>
+	/// operator=を実行します。
+	/// </summary>
 	EditorSelection& operator=(const EditorSelection&) = delete;
 
 private:
