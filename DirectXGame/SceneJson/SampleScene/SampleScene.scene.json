@@ -4,7 +4,7 @@
   "gameObjects": [
     {
       "instanceId": "go_3b8c537eb6b19afa1dc4ee34095ef002",
-      "parentInstanceId": "",
+      "parentInstanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
       "name": "Player",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_3b8c537eb6b19afa1dc4ee34095ef002.gameobject.json"
     },
@@ -52,7 +52,7 @@
     },
     {
       "instanceId": "go_40a7b1b0788dc6c920511f5365d92e47",
-      "parentInstanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
+      "parentInstanceId": "",
       "name": "Sphere",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_40a7b1b0788dc6c920511f5365d92e47.gameobject.json"
     },
@@ -61,6 +61,192 @@
       "parentInstanceId": "",
       "name": "Entity",
       "assetPath": "SceneJson/SampleScene/GameObjects/go_79a398819d3e1bb83cd30bcb9736a716.gameobject.json"
+    },
+    {
+      "instanceId": "go_56c42115dc0d012f2b621250f07062ca",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_56c42115dc0d012f2b621250f07062ca.gameobject.json"
+    },
+    {
+      "instanceId": "go_d4917b871296afd66a48bf1997ee4895",
+      "parentInstanceId": "go_56c42115dc0d012f2b621250f07062ca",
+      "name": "Sphere",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_d4917b871296afd66a48bf1997ee4895.gameobject.json"
+    },
+    {
+      "instanceId": "go_486bedaedac595cc2435f409583e1397",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_486bedaedac595cc2435f409583e1397.gameobject.json"
+    },
+    {
+      "instanceId": "go_ffb6ebbbf2e76c887fdb7703ccfa7aa2",
+      "parentInstanceId": "go_486bedaedac595cc2435f409583e1397",
+      "name": "Sphere",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_ffb6ebbbf2e76c887fdb7703ccfa7aa2.gameobject.json"
+    },
+    {
+      "instanceId": "go_cde300e6a04be61066f182922d8c293f",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_cde300e6a04be61066f182922d8c293f.gameobject.json"
+    },
+    {
+      "instanceId": "go_d5adf77a5806e9286ad6f95c51db3c3a",
+      "parentInstanceId": "go_cde300e6a04be61066f182922d8c293f",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_d5adf77a5806e9286ad6f95c51db3c3a.gameobject.json"
+    },
+    {
+      "instanceId": "go_da6b3104cc3910006d359a611db632ed",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_da6b3104cc3910006d359a611db632ed.gameobject.json"
+    },
+    {
+      "instanceId": "go_c83b84a72836fdcd641dc0b0efc814cc",
+      "parentInstanceId": "go_da6b3104cc3910006d359a611db632ed",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_c83b84a72836fdcd641dc0b0efc814cc.gameobject.json"
+    },
+    {
+      "instanceId": "go_506e3361035dc4e228371b5a31fdf5a2",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_506e3361035dc4e228371b5a31fdf5a2.gameobject.json"
+    },
+    {
+      "instanceId": "go_f6e16ed5a4652e357b70b580624c0e4e",
+      "parentInstanceId": "go_506e3361035dc4e228371b5a31fdf5a2",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_f6e16ed5a4652e357b70b580624c0e4e.gameobject.json"
+    },
+    {
+      "instanceId": "go_dd1366e0866d987e6e89b19a91ddc62e",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_dd1366e0866d987e6e89b19a91ddc62e.gameobject.json"
+    },
+    {
+      "instanceId": "go_6bc2c95eda4a234635e16645be32e26b",
+      "parentInstanceId": "go_dd1366e0866d987e6e89b19a91ddc62e",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_6bc2c95eda4a234635e16645be32e26b.gameobject.json"
+    },
+    {
+      "instanceId": "go_940f29bf2a98745a4a0796357bf706d0",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_940f29bf2a98745a4a0796357bf706d0.gameobject.json"
+    },
+    {
+      "instanceId": "go_41284c8251cddce0209424abc6027964",
+      "parentInstanceId": "go_940f29bf2a98745a4a0796357bf706d0",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_41284c8251cddce0209424abc6027964.gameobject.json"
+    },
+    {
+      "instanceId": "go_7bc763a061c24f933de3b33b1a30752a",
+      "parentInstanceId": "",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_7bc763a061c24f933de3b33b1a30752a.gameobject.json"
+    },
+    {
+      "instanceId": "go_345197d964ca4b621a28c907995b5231",
+      "parentInstanceId": "go_7bc763a061c24f933de3b33b1a30752a",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_345197d964ca4b621a28c907995b5231.gameobject.json"
+    },
+    {
+      "instanceId": "go_107ede116d291644083f6de38eafe503",
+      "parentInstanceId": "go_a7ee998b5826f16353f74e339b0f8eda",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_107ede116d291644083f6de38eafe503.gameobject.json"
+    },
+    {
+      "instanceId": "go_e057480e5c673afe702ba6ec16543c15",
+      "parentInstanceId": "go_107ede116d291644083f6de38eafe503",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_e057480e5c673afe702ba6ec16543c15.gameobject.json"
+    },
+    {
+      "instanceId": "go_a7ee998b5826f16353f74e339b0f8eda",
+      "parentInstanceId": "",
+      "name": "Player2",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_a7ee998b5826f16353f74e339b0f8eda.gameobject.json"
+    },
+    {
+      "instanceId": "go_5fbd71727b8dafdb2fdeba44b62334a3",
+      "parentInstanceId": "",
+      "name": "Player2",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_5fbd71727b8dafdb2fdeba44b62334a3.gameobject.json"
+    },
+    {
+      "instanceId": "go_193638f56fc5165d0c9b1e873ba337a9",
+      "parentInstanceId": "go_5fbd71727b8dafdb2fdeba44b62334a3",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_193638f56fc5165d0c9b1e873ba337a9.gameobject.json"
+    },
+    {
+      "instanceId": "go_ffd91278912839637fec8bc1c4ddd451",
+      "parentInstanceId": "go_193638f56fc5165d0c9b1e873ba337a9",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_ffd91278912839637fec8bc1c4ddd451.gameobject.json"
+    },
+    {
+      "instanceId": "go_ef1d476734a7d64a778ea14d8d21f43c",
+      "parentInstanceId": "",
+      "name": "Player2",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_ef1d476734a7d64a778ea14d8d21f43c.gameobject.json"
+    },
+    {
+      "instanceId": "go_90cd224b23609f16486693db867dde3b",
+      "parentInstanceId": "go_ef1d476734a7d64a778ea14d8d21f43c",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_90cd224b23609f16486693db867dde3b.gameobject.json"
+    },
+    {
+      "instanceId": "go_fce755338e27e64a7e73a867d0c6b848",
+      "parentInstanceId": "go_90cd224b23609f16486693db867dde3b",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_fce755338e27e64a7e73a867d0c6b848.gameobject.json"
+    },
+    {
+      "instanceId": "go_f6f99f61aeeb9b4f7b7ccd4e8879ac37",
+      "parentInstanceId": "",
+      "name": "Player2",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_f6f99f61aeeb9b4f7b7ccd4e8879ac37.gameobject.json"
+    },
+    {
+      "instanceId": "go_343400296c1bf3271a1a02eae96fb26e",
+      "parentInstanceId": "go_f6f99f61aeeb9b4f7b7ccd4e8879ac37",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_343400296c1bf3271a1a02eae96fb26e.gameobject.json"
+    },
+    {
+      "instanceId": "go_86b4a3b3caeaee97435a5327ba1921d3",
+      "parentInstanceId": "go_343400296c1bf3271a1a02eae96fb26e",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_86b4a3b3caeaee97435a5327ba1921d3.gameobject.json"
+    },
+    {
+      "instanceId": "go_d8123a0c3e9e18e86c091ff8b122f737",
+      "parentInstanceId": "",
+      "name": "Player2",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_d8123a0c3e9e18e86c091ff8b122f737.gameobject.json"
+    },
+    {
+      "instanceId": "go_36fa118d29ef3f231b7d0a383a3bf571",
+      "parentInstanceId": "go_d8123a0c3e9e18e86c091ff8b122f737",
+      "name": "MonsterBall",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_36fa118d29ef3f231b7d0a383a3bf571.gameobject.json"
+    },
+    {
+      "instanceId": "go_9d1886b3bda7bbff4e8c41a77006bd80",
+      "parentInstanceId": "go_36fa118d29ef3f231b7d0a383a3bf571",
+      "name": "Player",
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_9d1886b3bda7bbff4e8c41a77006bd80.gameobject.json"
     }
   ]
 }

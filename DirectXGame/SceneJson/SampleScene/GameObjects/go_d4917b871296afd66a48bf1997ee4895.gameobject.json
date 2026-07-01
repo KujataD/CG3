@@ -1,27 +1,27 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_3b8c537eb6b19afa1dc4ee34095ef002",
-  "parentInstanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
-  "name": "Player",
+  "instanceId": "go_d4917b871296afd66a48bf1997ee4895",
+  "parentInstanceId": "go_56c42115dc0d012f2b621250f07062ca",
+  "name": "Sphere",
   "active": true,
   "components": [
     {
       "enabled": true,
       "properties": {
         "rotation": [
-          0.0,
-          -0.0,
-          0.0
+          1.5703288316726685,
+          4.132059257244691e-05,
+          0.08999983221292496
         ],
         "scale": [
-          1.0,
-          1.0,
-          1.0
+          0.9999961256980896,
+          0.9999985694885254,
+          0.9999967813491821
         ],
         "translation": [
-          3.4766221046447754,
-          -0.8676427602767944,
-          -1.415343999862671
+          -7.199999809265137,
+          0.0,
+          0.32374489307403564
         ]
       },
       "type": "Transform"
@@ -30,7 +30,7 @@
       "enabled": true,
       "properties": {
         "modelPath": "player",
-        "primitive": "Cube",
+        "primitive": "Sphere",
         "texture": "resources/monsterBall.png"
       },
       "type": "ModelRendererComponent"

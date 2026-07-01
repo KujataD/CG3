@@ -3,7 +3,9 @@
 #include "../../externals/imgui/imgui_internal.h"
 #include "../3d/Camera.h"
 #include "../Editor/EditorApplication.h"
+#include "../Editor/EditorProjectPath.h"
 #include "../Editor/EditorSelection.h"
+#include "../Editor/PrefabAsset.h"
 #include "../Editor/SceneJsonExporter.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
@@ -88,6 +90,19 @@ void DrawHierarchyCreateMenu(Scene& scene, GameObject* parent) {
 	}
 
 	ImGui::EndMenu();
+}
+
+void SaveHierarchyObjectAsPrefab(GameObject* gameObject) {
+	if (!gameObject) {
+		return;
+	}
+
+	PrefabAsset::SaveResult result = PrefabAsset::SaveAsPrefab(*gameObject, DetectEditorProjectRoot());
+	if (result.succeeded) {
+		ImGuiManager::GetInstance()->AddConsoleLog("[Prefab] Saved: " + result.outputPath.string());
+	} else {
+		ImGuiManager::GetInstance()->AddConsoleLog("[Prefab] Save failed: " + result.message);
+	}
 }
 
 bool CanDropHierarchyObject(GameObject* dragged, GameObject* targetParent) {
@@ -762,6 +777,13 @@ void ImGuiManager::DrawHierarchyObject(Scene& scene, GameObject* gameObject, Gam
 	if (ImGui::BeginPopupContextItem("HierarchyObjectContext")) {
 		EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
 		DrawHierarchyCreateMenu(scene, gameObject);
+
+		if (ImGui::BeginMenu("Prefab")) {
+			if (ImGui::MenuItem("Create Prefab")) {
+				SaveHierarchyObjectAsPrefab(gameObject);
+			}
+			ImGui::EndMenu();
+		}
 
 		if (ImGui::BeginMenu("Hierarchy")) {
 			if (gameObject->GetParent()) {

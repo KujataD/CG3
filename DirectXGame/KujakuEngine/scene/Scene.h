@@ -2,6 +2,7 @@
 
 #include "../runtime/KujakuApi.h"
 #include "GameObject.h"
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -89,6 +90,11 @@ public:
 	/// SceneへGameObjectを追加し、所有権をSceneへ移す
 	/// </summary>
 	KUJAKU_API GameObject* AddGameObject(std::unique_ptr<GameObject> gameObject);
+
+	/// <summary>
+	/// PrefabファイルからGameObject階層を生成する
+	/// </summary>
+	KUJAKU_API GameObject* InstantiatePrefab(const std::filesystem::path& prefabPath);
 
 	/// <summary>
 	/// Scene内GameObjectのワールド行列を親子順に更新

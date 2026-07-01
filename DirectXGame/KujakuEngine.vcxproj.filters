@@ -147,6 +147,9 @@
     <ClCompile Include="KujakuEngine\Editor\InspectorUI.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\PrefabAsset.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
@@ -429,6 +432,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\InspectorUI.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\PrefabAsset.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h">

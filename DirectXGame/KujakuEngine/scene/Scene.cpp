@@ -3,6 +3,7 @@
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
 #include "../Editor/EditorApplication.h"
+#include "../Editor/PrefabAsset.h"
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -286,6 +287,11 @@ GameObject* Scene::AddGameObject(std::unique_ptr<GameObject> gameObject) {
 	}
 
 	return raw;
+}
+
+GameObject* Scene::InstantiatePrefab(const std::filesystem::path& prefabPath) {
+	PrefabAsset::InstantiateResult result = PrefabAsset::Instantiate(*this, prefabPath);
+	return result.rootObject;
 }
 
 void Scene::UpdateWorldTransforms() {

@@ -1,7 +1,7 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_40a7b1b0788dc6c920511f5365d92e47",
-  "parentInstanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
+  "parentInstanceId": "",
   "name": "Sphere",
   "active": true,
   "components": [
@@ -19,9 +19,9 @@
           0.9999967813491821
         ],
         "translation": [
-          -7.199999809265137,
-          0.0,
-          0.32374489307403564
+          -9.473515510559082,
+          -1.6147420406341553,
+          0.30139118432998657
         ]
       },
       "type": "Transform"

@@ -1,7 +1,7 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_3b8c537eb6b19afa1dc4ee34095ef002",
-  "parentInstanceId": "go_79e2f32fb527f1b13cf3be1c889a51c9",
+  "instanceId": "go_6bc2c95eda4a234635e16645be32e26b",
+  "parentInstanceId": "go_dd1366e0866d987e6e89b19a91ddc62e",
   "name": "Player",
   "active": true,
   "components": [

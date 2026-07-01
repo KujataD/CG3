@@ -119,6 +119,10 @@ private:
 	/// </summary>
 	void OpenFileInExplorer(const std::filesystem::path& filePath) const;
 	/// <summary>
+	/// Prefabを現在のSceneへ生成します。
+	/// </summary>
+	bool InstantiatePrefabItem(const std::filesystem::path& prefabPath);
+	/// <summary>
 	/// Toolbarを描画します。
 	/// </summary>
 	void DrawToolbar();

@@ -12,6 +12,7 @@ namespace KujakuEngine {
 enum class ProjectItemType {
 	FolderEmpty,
 	FolderFilled,
+	PrefabFile,
 	ImageFile,
 	ModelFile,
 	AudioFile,
@@ -54,6 +55,11 @@ public:
 	
 	/// <param name="path"></param>
 	/// <returns></returns>
+	/// <summary>
+	/// PrefabFileかどうかを返します。
+	/// </summary>
+	bool IsPrefabFile(const std::filesystem::path& path) const;
+
 	/// <summary>
 	/// ImageFileかどうかを返します。
 	/// </summary>

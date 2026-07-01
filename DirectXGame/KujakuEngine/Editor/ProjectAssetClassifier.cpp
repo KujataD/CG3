@@ -24,6 +24,12 @@ ProjectItemViewInfo ProjectAssetClassifier::Classify(const std::filesystem::path
 		return viewInfo;
 	}
 
+	if (IsPrefabFile(path)) {
+		viewInfo.type = ProjectItemType::PrefabFile;
+		viewInfo.iconPath = GetIconPath(viewInfo.type);
+		return viewInfo;
+	}
+
 	// 画像ファイルは固定アイコンではなく、実画像をProject Window上のプレビューとして使う。
 	if (IsImageFile(path)) {
 		viewInfo.type = ProjectItemType::ImageFile;
@@ -49,6 +55,13 @@ ProjectItemViewInfo ProjectAssetClassifier::Classify(const std::filesystem::path
 	viewInfo.type = ProjectItemType::OtherFile;
 	viewInfo.iconPath = GetIconPath(viewInfo.type);
 	return viewInfo;
+}
+
+bool ProjectAssetClassifier::IsPrefabFile(const std::filesystem::path& path) const {
+	std::string fileName = path.filename().string();
+	std::transform(fileName.begin(), fileName.end(), fileName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	return fileName.ends_with(".prefab.json");
 }
 
 bool ProjectAssetClassifier::IsImageFile(const std::filesystem::path& path) const {
@@ -126,6 +139,9 @@ std::filesystem::path ProjectAssetClassifier::GetIconPath(ProjectItemType type) 
 	}
 	if (type == ProjectItemType::AudioFile) {
 		return iconDirectory / "icon_file_audio.png";
+	}
+	if (type == ProjectItemType::PrefabFile) {
+		return iconDirectory / "icon_prefab.png";
 	}
 
 	return iconDirectory / "icon_file.png";

@@ -27,6 +27,7 @@
 #include "Editor/EditorApplication.h"
 #include "Editor/EditorProjectPath.h"
 #include "Editor/EditorSelection.h"
+#include "Editor/PrefabAsset.h"
 #include "Editor/SceneJsonExporter.h"
 #include "Editor/SceneJsonImporter.h"
 

@@ -1,8 +1,12 @@
 #include "ProjectWindow.h"
 
+#include "EditorApplication.h"
 #include "EditorProjectPath.h"
+#include "EditorSelection.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
+#include "../scene/GameObject.h"
+#include "../scene/Scene.h"
 #include "../../externals/imgui/imgui.h"
 
 #include <Windows.h>
@@ -205,6 +209,21 @@ void ProjectWindow::OpenFileInExplorer(const std::filesystem::path& filePath) co
 	ShellExecuteW(nullptr, L"open", L"explorer.exe", parameters.c_str(), nullptr, SW_SHOWNORMAL);
 }
 
+bool ProjectWindow::InstantiatePrefabItem(const std::filesystem::path& prefabPath) {
+	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
+	if (!scene) {
+		return false;
+	}
+
+	GameObject* rootObject = scene->InstantiatePrefab(prefabPath);
+	if (!rootObject) {
+		return false;
+	}
+
+	EditorSelection::GetInstance()->SetSelectedGameObject(rootObject);
+	return true;
+}
+
 void ProjectWindow::DrawToolbar() {
 	// 現在見ている場所をProjectDirからの相対パスで表示する。
 	ImGui::Text("Path: %s", GetCurrentRelativePathText().c_str());
@@ -254,9 +273,23 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 		displayName = "(unnamed)";
 	}
 	// ラベルが空になるとImGuiのID assertにつながるため、空名は"(unnamed)"として表示する。
+	bool isPrefabFile = item.viewInfo.type == ProjectItemType::PrefabFile;
+	if (isPrefabFile) {
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.47f, 0.74f, 0.68f, 1.0f));
+	}
 	ImGui::Selectable(displayName.c_str(), false, flags, ImVec2(0.0f, iconSize_));
+	if (isPrefabFile) {
+		ImGui::PopStyleColor();
+	}
 
 	if (ImGui::BeginPopupContextItem("ProjectItemContext")) {
+		if (isPrefabFile) {
+			if (ImGui::MenuItem("Instantiate Prefab")) {
+				InstantiatePrefabItem(item.absolutePath);
+			}
+			ImGui::Separator();
+		}
+
 		if (ImGui::MenuItem("Copy File Path")) {
 			std::error_code error;
 			std::filesystem::path relativePath = std::filesystem::relative(item.absolutePath, projectRoot_, error);
@@ -281,12 +314,13 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 		ImGui::EndPopup();
 	}
 
-	// フォルダは中へ移動、ファイルはExplorerで選択する。
+	// フォルダは中へ移動、PrefabはSceneへ生成し、それ以外のファイルはExplorerで選択する。
 	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 		if (item.isDirectory) {
 			MoveToDirectory(item.absolutePath);
-		}
-		else {
+		} else if (isPrefabFile) {
+			InstantiatePrefabItem(item.absolutePath);
+		} else {
 			OpenFileInExplorer(item.absolutePath);
 		}
 	}
