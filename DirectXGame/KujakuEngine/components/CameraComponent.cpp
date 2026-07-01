@@ -100,7 +100,8 @@ void CameraComponent::SyncFromOwnerTransform() {
 	}
 
 	const WorldTransform& transform = owner->GetTransform();
-	camera_.translation_ = transform.translation_;
+	owner->UpdateWorldTransformSelfAndAncestors();
+	camera_.translation_ = transform.GetWorldPosition();
 	camera_.rotation_ = transform.rotation_;
 	camera_.UpdateMatrix();
 }

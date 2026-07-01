@@ -27,6 +27,11 @@ namespace {
 
 using json = nlohmann::json;
 
+struct PendingParentLink {
+	GameObject* gameObject = nullptr;
+	std::string parentInstanceId;
+};
+
 std::string SanitizeFileName(const std::string& name) {
 	std::string sanitized;
 	sanitized.reserve(name.size());
@@ -184,6 +189,23 @@ Component* FindExistingComponent(GameObject& gameObject, const std::string& type
 	return nullptr;
 }
 
+GameObject* FindImportedGameObjectByInstanceId(const std::vector<GameObject*>& importedObjects, const std::string& instanceId) {
+	if (instanceId.empty()) {
+		return nullptr;
+	}
+
+	for (GameObject* gameObject : importedObjects) {
+		if (!gameObject) {
+			continue;
+		}
+		if (gameObject->GetInstanceId() == instanceId) {
+			return gameObject;
+		}
+	}
+
+	return nullptr;
+}
+
 bool IsTransformTypeName(const std::string& typeName) {
 	if (typeName == "Transform") {
 		return true;
@@ -312,6 +334,23 @@ void RemoveUnimportedGameObjects(Scene& scene, const std::vector<GameObject*>& i
 	}
 }
 
+void RestoreHierarchy(const std::vector<GameObject*>& importedObjects, const std::vector<PendingParentLink>& parentLinks) {
+	for (GameObject* gameObject : importedObjects) {
+		if (gameObject) {
+			gameObject->SetParent(nullptr);
+		}
+	}
+
+	for (const PendingParentLink& link : parentLinks) {
+		if (!link.gameObject) {
+			continue;
+		}
+
+		GameObject* parent = FindImportedGameObjectByInstanceId(importedObjects, link.parentInstanceId);
+		link.gameObject->SetParent(parent);
+	}
+}
+
 } // namespace
 
 SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, const std::filesystem::path& projectRoot) {
@@ -348,6 +387,7 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 	}
 
 	std::vector<GameObject*> importedObjects;
+	std::vector<PendingParentLink> parentLinks;
 	const json& gameObjectEntries = sceneJson.at("gameObjects");
 	for (size_t objectIndex = 0; objectIndex < gameObjectEntries.size(); ++objectIndex) {
 		const json& objectEntry = gameObjectEntries[objectIndex];
@@ -371,6 +411,7 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 
 		std::string savedObjectName = ReadString(gameObjectJson, "name", objectName);
 		std::string savedInstanceId = ReadString(gameObjectJson, "instanceId", objectEntryInstanceId);
+		std::string parentInstanceId = ReadString(gameObjectJson, "parentInstanceId", ReadString(objectEntry, "parentInstanceId", ""));
 		GameObject* gameObject = FindExistingGameObject(scene, savedInstanceId, objectIndex, savedObjectName, importedObjects);
 		if (!gameObject) {
 			gameObject = scene.CreateGameObject(savedObjectName);
@@ -381,10 +422,12 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 
 		ApplyGameObject(scene, *gameObject, gameObjectJson, savedInstanceId, result.componentCount);
 		importedObjects.push_back(gameObject);
+		parentLinks.push_back({gameObject, parentInstanceId});
 		++result.gameObjectCount;
 	}
 
 	RemoveUnimportedGameObjects(scene, importedObjects);
+	RestoreHierarchy(importedObjects, parentLinks);
 
 	result.succeeded = true;
 	result.imported = true;

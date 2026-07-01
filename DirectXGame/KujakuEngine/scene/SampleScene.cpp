@@ -176,7 +176,7 @@ void SampleScene::ApplySceneLights() {
 	SpotLight::GetInstance()->Reset();
 
 	for (const std::unique_ptr<GameObject>& gameObject : GetGameObjects()) {
-		if (!gameObject || !gameObject->IsActive()) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
 			continue;
 		}
 

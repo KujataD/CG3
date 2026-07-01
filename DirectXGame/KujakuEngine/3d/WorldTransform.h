@@ -48,6 +48,11 @@ public:
 	/// <param name="camera">カメラ（ビュー・プロジェクション行列を取得）</param>
 	KUJAKU_API void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
 
+	/// <summary>
+	/// ワールド行列だけを更新する
+	/// </summary>
+	KUJAKU_API void UpdateWorldMatrix();
+
 	void TransferMatrix(const Camera& camera) const;
 	void TransferMatrix(const Camera& camera, const Matrix4x4& worldMatrix) const;
 

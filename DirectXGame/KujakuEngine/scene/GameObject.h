@@ -51,6 +51,51 @@ public:
 	KUJAKU_API void OnPlayStop();
 
 	/// <summary>
+	/// 親GameObjectを設定
+	/// </summary>
+	KUJAKU_API bool SetParent(GameObject* parent, bool keepWorldPosition = false);
+
+	/// <summary>
+	/// 親GameObjectを取得
+	/// </summary>
+	GameObject* GetParent() const { return parent_; }
+
+	/// <summary>
+	/// 子GameObject一覧を取得
+	/// </summary>
+	const std::vector<GameObject*>& GetChildren() const { return children_; }
+
+	/// <summary>
+	/// ルートGameObjectかどうか
+	/// </summary>
+	bool IsRoot() const { return parent_ == nullptr; }
+
+	/// <summary>
+	/// 指定Objectの子孫かどうか
+	/// </summary>
+	KUJAKU_API bool IsDescendantOf(const GameObject* ancestor) const;
+
+	/// <summary>
+	/// 親子階層をたどってUpdateを実行
+	/// </summary>
+	KUJAKU_API void UpdateHierarchy();
+
+	/// <summary>
+	/// 親子階層をたどってDrawを実行
+	/// </summary>
+	KUJAKU_API void DrawHierarchy();
+
+	/// <summary>
+	/// 親から子へワールド行列を更新
+	/// </summary>
+	KUJAKU_API void UpdateWorldTransformHierarchy();
+
+	/// <summary>
+	/// 親を先に更新して自身のワールド行列を更新
+	/// </summary>
+	KUJAKU_API void UpdateWorldTransformSelfAndAncestors();
+
+	/// <summary>
 	/// Scene保存/復元で使う安定IDを取得
 	/// </summary>
 	const std::string& GetInstanceId() const { return instanceId_; }
@@ -74,6 +119,11 @@ public:
 	/// 有効状態を取得
 	/// </summary>
 	bool IsActive() const { return active_; }
+
+	/// <summary>
+	/// 親階層を含めた有効状態を取得
+	/// </summary>
+	KUJAKU_API bool IsActiveInHierarchy() const;
 
 	/// <summary>
 	/// 有効状態を設定
@@ -146,6 +196,8 @@ private:
 	WorldTransform transform_;
 	Component* transformComponent_ = nullptr;
 	std::vector<std::unique_ptr<Component>> components_;
+	GameObject* parent_ = nullptr;
+	std::vector<GameObject*> children_;
 };
 
 template <class T, class... Args>

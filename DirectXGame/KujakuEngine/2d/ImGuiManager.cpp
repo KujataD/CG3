@@ -17,12 +17,14 @@
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 
 namespace KujakuEngine {
 namespace {
 
 constexpr float kDegreesToRadians = 0.017453292519943295f;
+constexpr const char* kHierarchyDragPayloadType = "KujakuHierarchyGameObject";
 
 void AllocateImGuiSrvDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle) {
 	// ImGui 1.92系のDX12バックエンドは、フォントや追加テクスチャ用のSRVをバックエンド側へ要求してくる。
@@ -51,6 +53,79 @@ float* MatrixData(Matrix4x4& matrix) {
 
 const float* MatrixData(const Matrix4x4& matrix) {
 	return &matrix.m[0][0];
+}
+
+GameObject* CreateHierarchyObject(Scene& scene, const char* typeName, GameObject* parent) {
+	GameObject* created = nullptr;
+	if (std::strcmp(typeName, "Entity") == 0) {
+		created = scene.CreateEditorEntity();
+	} else if (std::strcmp(typeName, "Cube") == 0) {
+		created = scene.CreateEditorCube();
+	} else if (std::strcmp(typeName, "Sphere") == 0) {
+		created = scene.CreateEditorSphere();
+	}
+
+	if (!created) {
+		return nullptr;
+	}
+
+	if (parent) {
+		created->SetParent(parent);
+	}
+	EditorSelection::GetInstance()->SetSelectedGameObject(created);
+	return created;
+}
+
+void DrawHierarchyCreateMenu(Scene& scene, GameObject* parent) {
+	if (!ImGui::BeginMenu("Create")) {
+		return;
+	}
+
+	if (ImGui::MenuItem("Entity")) {
+		CreateHierarchyObject(scene, "Entity", parent);
+	}
+	if (ImGui::MenuItem("Cube")) {
+		CreateHierarchyObject(scene, "Cube", parent);
+	}
+	if (ImGui::MenuItem("Sphere")) {
+		CreateHierarchyObject(scene, "Sphere", parent);
+	}
+
+	ImGui::EndMenu();
+}
+
+bool CanDropHierarchyObject(GameObject* dragged, GameObject* targetParent) {
+	if (!dragged) {
+		return false;
+	}
+	if (dragged == targetParent) {
+		return false;
+	}
+	if (targetParent && targetParent->IsDescendantOf(dragged)) {
+		return false;
+	}
+	if (dragged->GetParent() == targetParent) {
+		return false;
+	}
+
+	return true;
+}
+
+void AcceptHierarchyObjectDrop(GameObject* targetParent) {
+	if (!ImGui::BeginDragDropTarget()) {
+		return;
+	}
+
+	const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kHierarchyDragPayloadType);
+	if (payload && payload->DataSize == sizeof(GameObject*)) {
+		GameObject* dragged = *static_cast<GameObject**>(payload->Data);
+		if (CanDropHierarchyObject(dragged, targetParent)) {
+			dragged->SetParent(targetParent, true);
+			EditorSelection::GetInstance()->SetSelectedGameObject(dragged);
+		}
+	}
+
+	ImGui::EndDragDropTarget();
 }
 
 void ApplyCinderImGuiDarkStyle() {
@@ -416,7 +491,8 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 	}
 
 	WorldTransform& transform = selectedObject->GetTransform();
-	Matrix4x4 gizmoMatrix = MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
+	selectedObject->UpdateWorldTransformSelfAndAncestors();
+	Matrix4x4 gizmoMatrix = transform.matWorld_;
 
 	ImGuizmo::SetOrthographic(false);
 	ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
@@ -440,7 +516,12 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 	float scale[3]{};
 	ImGuizmo::DecomposeMatrixToComponents(MatrixData(gizmoMatrix), translation, rotationDegrees, scale);
 
-	transform.translation_ = {translation[0], translation[1], translation[2]};
+	Vector3 worldTranslation = {translation[0], translation[1], translation[2]};
+	if (transform.parent_) {
+		transform.SetWorldPosition(worldTranslation);
+	} else {
+		transform.translation_ = worldTranslation;
+	}
 	transform.rotation_ = {
 	    rotationDegrees[0] * kDegreesToRadians,
 	    rotationDegrees[1] * kDegreesToRadians,
@@ -593,49 +674,25 @@ void ImGuiManager::DrawHierarchyWindow() {
 		if (!object) {
 			continue;
 		}
-
-		GameObject* raw = object.get();
-		if (raw == selectedObject) {
-			selectedObjectExists = true;
+		if (!object->IsRoot()) {
+			continue;
 		}
 
-		std::string displayName = raw->GetName();
-		if (!raw->IsActive()) {
-			displayName = "[Inactive] " + displayName;
-		}
-
-		ImGui::PushID(raw);
-		if (!raw->IsActive()) {
-			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-		}
-
-		bool isSelected = selectedObject == raw;
-		if (ImGui::Selectable(displayName.c_str(), isSelected)) {
-			EditorSelection::GetInstance()->SetSelectedGameObject(raw);
-		}
-
-		if (!raw->IsActive()) {
-			ImGui::PopStyleColor();
-		}
-		ImGui::PopID();
+		DrawHierarchyObject(*scene, object.get(), selectedObject, selectedObjectExists);
 	}
 
-	if (ImGui::BeginPopupContextWindow("HierarchyCreateMenu", ImGuiPopupFlags_MouseButtonRight)) {
-		if (ImGui::MenuItem("Entity")) {
-			GameObject* created = scene->CreateEditorEntity();
-			EditorSelection::GetInstance()->SetSelectedGameObject(created);
+	ImVec2 remainingRegion = ImGui::GetContentRegionAvail();
+	if (remainingRegion.x > 0.0f && remainingRegion.y > 0.0f) {
+		ImGui::InvisibleButton("##HierarchyRootDropArea", remainingRegion);
+		AcceptHierarchyObjectDrop(nullptr);
+		if (ImGui::BeginPopupContextItem("HierarchyRootDropAreaMenu", ImGuiPopupFlags_MouseButtonRight)) {
+			DrawHierarchyCreateMenu(*scene, nullptr);
+			ImGui::EndPopup();
 		}
+	}
 
-		if (ImGui::MenuItem("Cube")) {
-			GameObject* created = scene->CreateEditorCube();
-			EditorSelection::GetInstance()->SetSelectedGameObject(created);
-		}
-
-		if (ImGui::MenuItem("Sphere")) {
-			GameObject* created = scene->CreateEditorSphere();
-			EditorSelection::GetInstance()->SetSelectedGameObject(created);
-		}
-
+	if (ImGui::BeginPopupContextWindow("HierarchyCreateMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems)) {
+		DrawHierarchyCreateMenu(*scene, nullptr);
 		ImGui::EndPopup();
 	}
 
@@ -644,6 +701,95 @@ void ImGuiManager::DrawHierarchyWindow() {
 	}
 
 	ImGui::End();
+#endif // USE_IMGUI
+}
+
+void ImGuiManager::DrawHierarchyObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists) {
+#ifdef USE_IMGUI
+	if (!gameObject) {
+		return;
+	}
+
+	if (gameObject == selectedObject) {
+		selectedObjectExists = true;
+	}
+
+	std::string displayName = gameObject->GetName();
+	if (displayName.empty()) {
+		displayName = "(unnamed)";
+	}
+	if (!gameObject->IsActive()) {
+		displayName = "[Inactive] " + displayName;
+	}
+
+	const std::vector<GameObject*>& childRefs = gameObject->GetChildren();
+	bool hasChildren = !childRefs.empty();
+
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+	if (selectedObject == gameObject) {
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
+	if (!hasChildren) {
+		flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+	}
+
+	ImGui::PushID(gameObject);
+	if (!gameObject->IsActive()) {
+		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+	}
+
+	bool opened = ImGui::TreeNodeEx(displayName.c_str(), flags);
+	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+		EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
+	}
+
+	if (ImGui::BeginDragDropSource()) {
+		GameObject* payloadObject = gameObject;
+		ImGui::SetDragDropPayload(kHierarchyDragPayloadType, &payloadObject, sizeof(payloadObject));
+		ImGui::TextUnformatted(displayName.c_str());
+		ImGui::EndDragDropSource();
+	}
+
+	AcceptHierarchyObjectDrop(gameObject);
+
+	if (!gameObject->IsActive()) {
+		ImGui::PopStyleColor();
+	}
+
+	if (ImGui::BeginPopupContextItem("HierarchyObjectContext")) {
+		EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
+		DrawHierarchyCreateMenu(scene, gameObject);
+
+		if (ImGui::BeginMenu("Hierarchy")) {
+			if (gameObject->GetParent()) {
+				if (ImGui::MenuItem("Unparent")) {
+					gameObject->SetParent(nullptr, true);
+				}
+			} else {
+				ImGui::BeginDisabled();
+				ImGui::MenuItem("Unparent");
+				ImGui::EndDisabled();
+			}
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (hasChildren && opened) {
+		std::vector<GameObject*> children = childRefs;
+		for (GameObject* child : children) {
+			DrawHierarchyObject(scene, child, selectedObject, selectedObjectExists);
+		}
+		ImGui::TreePop();
+	}
+
+	ImGui::PopID();
+#else
+	(void)scene;
+	(void)gameObject;
+	(void)selectedObject;
+	(void)selectedObjectExists;
 #endif // USE_IMGUI
 }
 

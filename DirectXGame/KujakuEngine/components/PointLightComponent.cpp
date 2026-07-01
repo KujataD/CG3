@@ -64,7 +64,8 @@ void PointLightComponent::Apply() {
 		return;
 	}
 
-	data_.position = owner->GetTransform().translation_;
+	owner->UpdateWorldTransformSelfAndAncestors();
+	data_.position = owner->GetTransform().GetWorldPosition();
 	PointLight::GetInstance()->AddLight(data_);
 }
 

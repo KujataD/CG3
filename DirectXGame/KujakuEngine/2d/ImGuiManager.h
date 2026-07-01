@@ -11,6 +11,7 @@ namespace KujakuEngine {
 
 class Camera;
 class GameObject;
+class Scene;
 
 /// <summary>
 /// ImGui管理クラス
@@ -74,6 +75,7 @@ private:
 	void SetupInitialLayout(ImGuiID dockspaceId);
 	void DrawGameWindow();
 	void DrawHierarchyWindow();
+	void DrawHierarchyObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists);
 	void DrawInspectorWindow();
 	void DrawConsoleWindow();
 	void DrawProjectWindow();

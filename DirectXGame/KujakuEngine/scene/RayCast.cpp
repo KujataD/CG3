@@ -149,7 +149,8 @@ bool TryCastModel(GameObject& gameObject, Component& renderer, const Ray& worldR
 	}
 
 	const WorldTransform& transform = gameObject.GetTransform();
-	Matrix4x4 worldMatrix = model->GetRootLocalMatrix() * MakeAffineMatrix(transform.scale_, transform.rotation_, transform.translation_);
+	gameObject.UpdateWorldTransformSelfAndAncestors();
+	Matrix4x4 worldMatrix = model->GetRootLocalMatrix() * transform.matWorld_;
 	Matrix4x4 inverseWorld = Inverse(worldMatrix);
 
 	Ray localRay{};
@@ -184,7 +185,7 @@ bool CastInternal(const Scene& scene, const Ray& ray, bool includeEditorBillboar
 	float nearestDistance = (std::numeric_limits<float>::max)();
 
 	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
-		if (!gameObject || !gameObject->IsActive()) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
 			continue;
 		}
 
@@ -214,8 +215,9 @@ bool CastInternal(const Scene& scene, const Ray& ray, bool includeEditorBillboar
 				continue;
 			}
 
+			gameObject->UpdateWorldTransformSelfAndAncestors();
 			float distance = 0.0f;
-			if (!IntersectRaySphere(worldRay, gameObject->GetTransform().translation_, radius, distance)) {
+			if (!IntersectRaySphere(worldRay, gameObject->GetTransform().GetWorldPosition(), radius, distance)) {
 				continue;
 			}
 			if (distance <= kRayEpsilon) {

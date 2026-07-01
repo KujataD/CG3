@@ -139,7 +139,7 @@ void DrawEditorBillboards(Scene& scene) {
 
 	std::unordered_set<const Component*> activeBillboardComponents;
 	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
-		if (!gameObject || !gameObject->IsActive()) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
 			continue;
 		}
 
@@ -160,8 +160,8 @@ void DrawEditorBillboards(Scene& scene) {
 
 			activeBillboardComponents.insert(component.get());
 
-			// GameObjectの位置へPlaneを置き、WorldTransform側のBillboard行列で常にEditorCameraへ向ける。
-			transform->translation_ = gameObject->GetTransform().translation_;
+			// GameObjectのワールド位置へPlaneを置き、WorldTransform側のBillboard行列で常にEditorCameraへ向ける。
+			transform->translation_ = gameObject->GetTransform().GetWorldPosition();
 			transform->rotation_ = {0.0f, 0.0f, 0.0f};
 			transform->scale_ = {kEditorBillboardScale, kEditorBillboardScale, kEditorBillboardScale};
 			transform->UpdateMatrix(*camera, true);
@@ -206,16 +206,20 @@ void Scene::Initialize() {
 
 void Scene::Update() {
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
-		if (gameObject) {
-			gameObject->Update();
+		if (gameObject && gameObject->IsRoot()) {
+			gameObject->UpdateHierarchy();
 		}
 	}
+
+	UpdateWorldTransforms();
 }
 
 void Scene::Draw() {
+	UpdateWorldTransforms();
+
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
-		if (gameObject) {
-			gameObject->Draw();
+		if (gameObject && gameObject->IsRoot()) {
+			gameObject->DrawHierarchy();
 		}
 	}
 
@@ -284,6 +288,14 @@ GameObject* Scene::AddGameObject(std::unique_ptr<GameObject> gameObject) {
 	return raw;
 }
 
+void Scene::UpdateWorldTransforms() {
+	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
+		if (gameObject && gameObject->IsRoot()) {
+			gameObject->UpdateWorldTransformHierarchy();
+		}
+	}
+}
+
 std::string Scene::ToJson() const {
 	std::ostringstream os;
 	os << "{\n";
@@ -297,6 +309,12 @@ std::string Scene::ToJson() const {
 
 		os << "    {\n";
 		os << "      \"instanceId\": \"" << EscapeJsonString(gameObject->GetInstanceId()) << "\",\n";
+		GameObject* parent = gameObject->GetParent();
+		std::string parentInstanceId;
+		if (parent) {
+			parentInstanceId = parent->GetInstanceId();
+		}
+		os << "      \"parentInstanceId\": \"" << EscapeJsonString(parentInstanceId) << "\",\n";
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
 		os << "      \"active\": ";
 		if (gameObject->IsActive()) {

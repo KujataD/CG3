@@ -36,6 +36,85 @@ GameObject::GameObject(const std::string& name) : instanceId_(GenerateInstanceId
 
 GameObject::~GameObject() = default;
 
+bool GameObject::SetParent(GameObject* parent, bool keepWorldPosition) {
+	if (parent == this) {
+		return false;
+	}
+	if (parent && parent->IsDescendantOf(this)) {
+		return false;
+	}
+
+	Vector3 worldPosition = transform_.translation_;
+	if (keepWorldPosition) {
+		UpdateWorldTransformSelfAndAncestors();
+		worldPosition = transform_.GetWorldPosition();
+	}
+
+	if (parent_ == parent) {
+		if (parent) {
+			transform_.parent_ = &parent->GetTransform();
+		} else {
+			transform_.parent_ = nullptr;
+		}
+		if (keepWorldPosition) {
+			transform_.SetWorldPosition(worldPosition);
+		}
+		return true;
+	}
+
+	if (parent_) {
+		std::vector<GameObject*>& siblings = parent_->children_;
+		siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+	}
+
+	parent_ = parent;
+	if (parent_) {
+		std::vector<GameObject*>& siblings = parent_->children_;
+		if (std::find(siblings.begin(), siblings.end(), this) == siblings.end()) {
+			siblings.push_back(this);
+		}
+		transform_.parent_ = &parent_->GetTransform();
+	} else {
+		transform_.parent_ = nullptr;
+	}
+
+	if (keepWorldPosition) {
+		if (parent_) {
+			parent_->UpdateWorldTransformSelfAndAncestors();
+		}
+		transform_.SetWorldPosition(worldPosition);
+	}
+
+	return true;
+}
+
+bool GameObject::IsDescendantOf(const GameObject* ancestor) const {
+	if (!ancestor) {
+		return false;
+	}
+
+	const GameObject* current = parent_;
+	while (current) {
+		if (current == ancestor) {
+			return true;
+		}
+		current = current->parent_;
+	}
+
+	return false;
+}
+
+bool GameObject::IsActiveInHierarchy() const {
+	if (!active_) {
+		return false;
+	}
+	if (parent_) {
+		return parent_->IsActiveInHierarchy();
+	}
+
+	return true;
+}
+
 void GameObject::SetInstanceId(const std::string& instanceId) {
 	// 既存JSONにIDがない場合や壊れている場合は、生成済みIDを維持する。
 	if (instanceId.empty()) {
@@ -77,6 +156,19 @@ void GameObject::Update() {
 	}
 }
 
+void GameObject::UpdateHierarchy() {
+	if (!active_) {
+		return;
+	}
+
+	Update();
+	for (GameObject* child : children_) {
+		if (child) {
+			child->UpdateHierarchy();
+		}
+	}
+}
+
 void GameObject::Draw() {
 	if (!active_) {
 		return;
@@ -89,7 +181,48 @@ void GameObject::Draw() {
 	}
 }
 
+void GameObject::DrawHierarchy() {
+	if (!active_) {
+		return;
+	}
+
+	Draw();
+	for (GameObject* child : children_) {
+		if (child) {
+			child->DrawHierarchy();
+		}
+	}
+}
+
+void GameObject::UpdateWorldTransformHierarchy() {
+	EnsureTransformComponent();
+	transform_.UpdateWorldMatrix();
+
+	for (GameObject* child : children_) {
+		if (child) {
+			child->UpdateWorldTransformHierarchy();
+		}
+	}
+}
+
+void GameObject::UpdateWorldTransformSelfAndAncestors() {
+	if (parent_) {
+		parent_->UpdateWorldTransformSelfAndAncestors();
+	}
+
+	EnsureTransformComponent();
+	transform_.UpdateWorldMatrix();
+}
+
 void GameObject::Finalize() {
+	std::vector<GameObject*> children = children_;
+	for (GameObject* child : children) {
+		if (child) {
+			child->SetParent(nullptr);
+		}
+	}
+	SetParent(nullptr);
+
 	for (const std::unique_ptr<Component>& component : components_) {
 		if (component) {
 			component->SetOwner(nullptr);

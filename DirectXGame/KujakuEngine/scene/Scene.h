@@ -88,6 +88,11 @@ public:
 	KUJAKU_API GameObject* AddGameObject(std::unique_ptr<GameObject> gameObject);
 
 	/// <summary>
+	/// Scene内GameObjectのワールド行列を親子順に更新
+	/// </summary>
+	KUJAKU_API void UpdateWorldTransforms();
+
+	/// <summary>
 	/// GameObject一覧を取得
 	/// </summary>
 	std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return gameObjects_; }

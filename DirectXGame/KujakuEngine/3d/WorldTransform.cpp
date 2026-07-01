@@ -15,6 +15,7 @@ void WorldTransform::Initialize() {
 	assert(SUCCEEDED(hr));
 
 	// 単位行列で初期化
+	matWorld_ = MakeIdentity();
 	constMap_->WVP = MakeIdentity();
 	constMap_->World = MakeIdentity();
 	constMap_->WorldInverseTranspose = MakeIdentity();
@@ -29,15 +30,16 @@ void WorldTransform::UpdateMatrix(const Camera& camera, bool isBillboard) {
 		return;
 	}
 
-	// ワールド行列の生成
-	matWorld_ = MakeAffineMatrix(scale_, rotation_, translation_);
+	UpdateWorldMatrix();
+	TransferMatrix(camera);
+}
 
-	// 親がいれば親のワールド行列を掛ける（階層構造）
+void WorldTransform::UpdateWorldMatrix() {
+	// ローカルTransformからワールド行列を作り、親がある場合は親のワールド行列を合成する。
+	matWorld_ = MakeAffineMatrix(scale_, rotation_, translation_);
 	if (parent_) {
 		matWorld_ = matWorld_ * parent_->matWorld_;
 	}
-
-	TransferMatrix(camera);
 }
 
 void WorldTransform::TransferMatrix(const Camera& camera) const { TransferMatrix(camera, matWorld_); }

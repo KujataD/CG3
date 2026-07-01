@@ -88,6 +88,12 @@ std::string BuildGameObjectJson(const GameObject& gameObject) {
 	os << "  \"assetType\": \"GameObject\",\n";
 	// 個別ファイルにもinstanceIdを持たせ、Scene側の参照情報が壊れてもObject単体から復元できるようにする。
 	os << "  \"instanceId\": \"" << EscapeJsonString(gameObject.GetInstanceId()) << "\",\n";
+	const GameObject* parent = gameObject.GetParent();
+	std::string parentInstanceId;
+	if (parent) {
+		parentInstanceId = parent->GetInstanceId();
+	}
+	os << "  \"parentInstanceId\": \"" << EscapeJsonString(parentInstanceId) << "\",\n";
 	os << "  \"name\": \"" << EscapeJsonString(gameObject.GetName()) << "\",\n";
 	os << "  \"active\": ";
 	if (gameObject.IsActive()) {
@@ -136,6 +142,12 @@ std::string BuildSceneJson(
 		os << "    {\n";
 		// Scene側の一覧にもinstanceIdを置き、Import時は名前や並び順ではなくIDでObjectを探す。
 		os << "      \"instanceId\": \"" << EscapeJsonString(gameObject->GetInstanceId()) << "\",\n";
+		GameObject* parent = gameObject->GetParent();
+		std::string parentInstanceId;
+		if (parent) {
+			parentInstanceId = parent->GetInstanceId();
+		}
+		os << "      \"parentInstanceId\": \"" << EscapeJsonString(parentInstanceId) << "\",\n";
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
 		os << "      \"assetPath\": \"" << EscapeJsonString(MakeRelativeAssetPath(projectRoot, gameObjectPaths[objectIndex])) << "\"\n";
 		os << "    }";
