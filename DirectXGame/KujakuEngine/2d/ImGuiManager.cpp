@@ -1138,6 +1138,23 @@ void ImGuiManager::DrawInspectorWindow() {
 		selected->SetName(nameBuffer.data());
 	}
 
+	std::array<char, 128> tagBuffer{};
+	std::snprintf(tagBuffer.data(), tagBuffer.size(), "%s", selected->GetTag().c_str());
+	if (ImGui::InputText("Tag", tagBuffer.data(), tagBuffer.size())) {
+		selected->SetTag(tagBuffer.data());
+	}
+
+	int layer = static_cast<int>(selected->GetLayer());
+	if (ImGui::DragInt("Layer", &layer, 1.0f, 0, 31)) {
+		if (layer < 0) {
+			layer = 0;
+		}
+		if (layer > 31) {
+			layer = 31;
+		}
+		selected->SetLayer(static_cast<uint32_t>(layer));
+	}
+
 	bool active = selected->IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
 		selected->SetActive(active);

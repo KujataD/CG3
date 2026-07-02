@@ -104,6 +104,8 @@ std::string BuildGameObjectJson(const GameObject& gameObject) {
 		os << "false,\n";
 	}
 	os << "  \"name\": \"" << EscapeJsonString(gameObject.GetName()) << "\",\n";
+	os << "  \"tag\": \"" << EscapeJsonString(gameObject.GetTag()) << "\",\n";
+	os << "  \"layer\": " << gameObject.GetLayer() << ",\n";
 	os << "  \"active\": ";
 	if (gameObject.IsActive()) {
 		os << "true,\n";
@@ -167,6 +169,8 @@ std::string BuildSceneJson(
 			os << "false,\n";
 		}
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
+		os << "      \"tag\": \"" << EscapeJsonString(gameObject->GetTag()) << "\",\n";
+		os << "      \"layer\": " << gameObject->GetLayer() << ",\n";
 		os << "      \"assetPath\": \"" << EscapeJsonString(MakeRelativeAssetPath(projectRoot, gameObjectPaths[objectIndex])) << "\"\n";
 		os << "    }";
 		if (objectIndex + 1 < gameObjects.size()) {

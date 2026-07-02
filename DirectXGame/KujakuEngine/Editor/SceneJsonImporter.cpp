@@ -98,6 +98,22 @@ bool ReadBool(const json& value, const std::string& key, bool defaultValue) {
 	return value.at(key).get<bool>();
 }
 
+uint32_t ReadUint32(const json& value, const std::string& key, uint32_t defaultValue) {
+	if (!value.contains(key)) {
+		return defaultValue;
+	}
+	if (!value.at(key).is_number_integer() && !value.at(key).is_number_unsigned()) {
+		return defaultValue;
+	}
+
+	int64_t rawValue = value.at(key).get<int64_t>();
+	if (rawValue < 0) {
+		return defaultValue;
+	}
+
+	return static_cast<uint32_t>(rawValue);
+}
+
 bool ContainsPointer(const std::vector<GameObject*>& objects, GameObject* target) {
 	return std::find(objects.begin(), objects.end(), target) != objects.end();
 }
@@ -325,6 +341,8 @@ void ApplyGameObject(Scene& scene, GameObject& gameObject, const json& gameObjec
 	}
 
 	gameObject.SetName(ReadString(gameObjectJson, "name", gameObject.GetName()));
+	gameObject.SetTag(ReadString(gameObjectJson, "tag", gameObject.GetTag()));
+	gameObject.SetLayer(ReadUint32(gameObjectJson, "layer", gameObject.GetLayer()));
 	gameObject.SetActive(ReadBool(gameObjectJson, "active", gameObject.IsActive()));
 	componentCount += ApplyComponents(scene, gameObject, gameObjectJson);
 }

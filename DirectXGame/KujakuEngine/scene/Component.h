@@ -18,8 +18,10 @@
 namespace KujakuEngine {
 
 class Camera;
+class ColliderComponent;
 class GameObject;
 class Model;
+struct Collision;
 
 /// <summary>
 /// GameObjectに追加するComponentの基底クラス
@@ -68,6 +70,36 @@ public:
 	virtual void OnPlayStart() {}
 
 	virtual void OnPlayStop() {}
+
+	/// <summary>
+	/// 通常Collider同士が接触開始した時に呼ばれます。
+	/// </summary>
+	virtual void OnCollisionEnter(const Collision& collision) { (void)collision; }
+
+	/// <summary>
+	/// 通常Collider同士が接触中の時に呼ばれます。
+	/// </summary>
+	virtual void OnCollisionStay(const Collision& collision) { (void)collision; }
+
+	/// <summary>
+	/// 通常Collider同士が接触終了した時に呼ばれます。
+	/// </summary>
+	virtual void OnCollisionExit(const Collision& collision) { (void)collision; }
+
+	/// <summary>
+	/// Trigger Colliderとの接触開始時に呼ばれます。
+	/// </summary>
+	virtual void OnTriggerEnter(ColliderComponent* other) { (void)other; }
+
+	/// <summary>
+	/// Trigger Colliderとの接触中に呼ばれます。
+	/// </summary>
+	virtual void OnTriggerStay(ColliderComponent* other) { (void)other; }
+
+	/// <summary>
+	/// Trigger Colliderとの接触終了時に呼ばれます。
+	/// </summary>
+	virtual void OnTriggerExit(ColliderComponent* other) { (void)other; }
 
 	void SetOwner(GameObject* owner) { owner_ = owner; }
 

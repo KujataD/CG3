@@ -147,6 +147,9 @@
     <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp">
       <Filter>KujakuEngine\assets</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
@@ -420,6 +423,9 @@
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\CameraComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\ColliderComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\DebugCameraComponent.h">

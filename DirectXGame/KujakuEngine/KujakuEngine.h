@@ -26,6 +26,8 @@
 
 #include "assets/MaterialAsset.h"
 
+#include "components/ColliderComponent.h"
+
 #include "Editor/AssetDatabase.h"
 #include "Editor/EditorApplication.h"
 #include "Editor/EditorProjectPath.h"

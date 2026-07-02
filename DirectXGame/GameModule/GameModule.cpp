@@ -1,5 +1,6 @@
 #include "../KujakuEngine/KujakuEngine.h"
 #include "../KujakuEngine/components/CameraComponent.h"
+#include "../KujakuEngine/components/ColliderComponent.h"
 #include "../KujakuEngine/components/DebugCameraComponent.h"
 #include "../KujakuEngine/components/DirectionalLightComponent.h"
 #include "../KujakuEngine/components/ModelRendererComponent.h"
@@ -185,6 +186,14 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 
 	factory.Register("PointLightComponent", kGameModuleName, []() {
 		return std::make_unique<KujakuEngine::PointLightComponent>();
+	});
+
+	factory.Register("SphereColliderComponent", kGameModuleName, []() {
+		return std::make_unique<KujakuEngine::SphereColliderComponent>();
+	});
+
+	factory.Register("BoxColliderComponent", kGameModuleName, []() {
+		return std::make_unique<KujakuEngine::BoxColliderComponent>();
 	});
 
 	factory.Register("MoveForwardComponent", kGameModuleName, []() {

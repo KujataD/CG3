@@ -2,6 +2,7 @@
 #include "../3d/Camera.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
+#include "../components/ColliderComponent.h"
 #include "../Editor/EditorApplication.h"
 #include "../Editor/PrefabAsset.h"
 #include <algorithm>
@@ -25,6 +26,92 @@ struct EditorBillboardDrawCache {
 EditorBillboardDrawCache& GetEditorBillboardDrawCache() {
 	static EditorBillboardDrawCache cache;
 	return cache;
+}
+
+enum class CollisionEventPhase {
+	Enter,
+	Stay,
+	Exit,
+};
+
+std::string MakeCollisionPairKey(const ColliderComponent& colliderA, const ColliderComponent& colliderB) {
+	uint64_t idA = colliderA.GetRuntimeId();
+	uint64_t idB = colliderB.GetRuntimeId();
+	if (idA > idB) {
+		std::swap(idA, idB);
+	}
+
+	return std::to_string(idA) + ":" + std::to_string(idB);
+}
+
+void NotifyCollisionToComponents(GameObject* owner, ColliderComponent* self, ColliderComponent* other, bool isTrigger, CollisionEventPhase phase) {
+	if (!owner || !self || !other) {
+		return;
+	}
+
+	for (const std::unique_ptr<Component>& component : owner->GetComponents()) {
+		if (!component || !component->IsEnabled()) {
+			continue;
+		}
+
+		if (isTrigger) {
+			if (phase == CollisionEventPhase::Enter) {
+				component->OnTriggerEnter(other);
+			} else if (phase == CollisionEventPhase::Stay) {
+				component->OnTriggerStay(other);
+			} else if (phase == CollisionEventPhase::Exit) {
+				component->OnTriggerExit(other);
+			}
+			continue;
+		}
+
+		Collision collision{};
+		collision.self = self;
+		collision.other = other;
+		collision.selfObject = owner;
+		collision.otherObject = other->GetOwner();
+		collision.point = self->GetWorldCenter();
+
+		if (phase == CollisionEventPhase::Enter) {
+			component->OnCollisionEnter(collision);
+		} else if (phase == CollisionEventPhase::Stay) {
+			component->OnCollisionStay(collision);
+		} else if (phase == CollisionEventPhase::Exit) {
+			component->OnCollisionExit(collision);
+		}
+	}
+}
+
+void NotifyCollisionPair(ColliderComponent* colliderA, ColliderComponent* colliderB, bool isTrigger, CollisionEventPhase phase) {
+	if (!colliderA || !colliderB) {
+		return;
+	}
+
+	NotifyCollisionToComponents(colliderA->GetOwner(), colliderA, colliderB, isTrigger, phase);
+	NotifyCollisionToComponents(colliderB->GetOwner(), colliderB, colliderA, isTrigger, phase);
+}
+
+void CollectSceneColliders(Scene& scene, std::vector<ColliderComponent*>& outColliders) {
+	outColliders.clear();
+
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
+			continue;
+		}
+
+		for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+			if (!component || !component->IsEnabled()) {
+				continue;
+			}
+
+			ColliderComponent* collider = dynamic_cast<ColliderComponent*>(component.get());
+			if (!collider) {
+				continue;
+			}
+
+			outColliders.push_back(collider);
+		}
+	}
 }
 
 std::string EscapeJsonString(const std::string& text) {
@@ -218,6 +305,7 @@ void Scene::Update() {
 	}
 
 	UpdateWorldTransforms();
+	UpdateCollisions();
 }
 
 void Scene::Draw() {
@@ -240,6 +328,7 @@ void Scene::Finalize() {
 	}
 	gameObjects_.clear();
 	ClearEditorBillboardDrawCache();
+	collisionPairStates_.clear();
 	initialized_ = false;
 }
 
@@ -257,6 +346,69 @@ void Scene::OnPlayStop() {
 			gameObject->OnPlayStop();
 		}
 	}
+	collisionPairStates_.clear();
+}
+
+void Scene::UpdateCollisions() {
+	std::vector<ColliderComponent*> colliders;
+	CollectSceneColliders(*this, colliders);
+
+	std::unordered_set<ColliderComponent*> activeColliders;
+	for (ColliderComponent* collider : colliders) {
+		activeColliders.insert(collider);
+	}
+
+	std::unordered_map<std::string, CollisionPairState> currentPairStates;
+	for (size_t indexA = 0; indexA < colliders.size(); ++indexA) {
+		ColliderComponent* colliderA = colliders[indexA];
+		if (!colliderA) {
+			continue;
+		}
+
+		for (size_t indexB = indexA + 1; indexB < colliders.size(); ++indexB) {
+			ColliderComponent* colliderB = colliders[indexB];
+			if (!colliderB) {
+				continue;
+			}
+			if (colliderA->GetOwner() == colliderB->GetOwner()) {
+				continue;
+			}
+			if (!colliderA->Intersects(*colliderB)) {
+				continue;
+			}
+
+			bool isTrigger = colliderA->IsTrigger() || colliderB->IsTrigger();
+			std::string pairKey = MakeCollisionPairKey(*colliderA, *colliderB);
+			currentPairStates[pairKey] = {colliderA, colliderB, isTrigger};
+
+			auto previous = collisionPairStates_.find(pairKey);
+			if (previous == collisionPairStates_.end()) {
+				NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Enter);
+				continue;
+			}
+
+			if (previous->second.isTrigger != isTrigger) {
+				NotifyCollisionPair(previous->second.colliderA, previous->second.colliderB, previous->second.isTrigger, CollisionEventPhase::Exit);
+				NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Enter);
+				continue;
+			}
+
+			NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Stay);
+		}
+	}
+
+	for (const auto& [pairKey, previousState] : collisionPairStates_) {
+		if (currentPairStates.contains(pairKey)) {
+			continue;
+		}
+		if (!activeColliders.contains(previousState.colliderA) || !activeColliders.contains(previousState.colliderB)) {
+			continue;
+		}
+
+		NotifyCollisionPair(previousState.colliderA, previousState.colliderB, previousState.isTrigger, CollisionEventPhase::Exit);
+	}
+
+	collisionPairStates_ = std::move(currentPairStates);
 }
 
 GameObject* Scene::CreateGameObject(const std::string& name) {
@@ -378,6 +530,8 @@ std::string Scene::ToJson() const {
 		}
 		os << "      \"parentInstanceId\": \"" << EscapeJsonString(parentInstanceId) << "\",\n";
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
+		os << "      \"tag\": \"" << EscapeJsonString(gameObject->GetTag()) << "\",\n";
+		os << "      \"layer\": " << gameObject->GetLayer() << ",\n";
 		os << "      \"active\": ";
 		if (gameObject->IsActive()) {
 			os << "true,\n";

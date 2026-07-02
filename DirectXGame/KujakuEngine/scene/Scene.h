@@ -5,11 +5,13 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace KujakuEngine {
 
 class Camera;
+class ColliderComponent;
 
 /// <summary>
 /// Scene基底クラス
@@ -134,7 +136,19 @@ protected:
 	std::vector<std::unique_ptr<GameObject>> gameObjects_;
 
 private:
+	struct CollisionPairState {
+		ColliderComponent* colliderA = nullptr;
+		ColliderComponent* colliderB = nullptr;
+		bool isTrigger = false;
+	};
+
+	/// <summary>
+	/// Scene内ColliderComponentの接触イベントを更新します。
+	/// </summary>
+	void UpdateCollisions();
+
 	bool initialized_ = false;
+	std::unordered_map<std::string, CollisionPairState> collisionPairStates_;
 };
 
 } // namespace KujakuEngine

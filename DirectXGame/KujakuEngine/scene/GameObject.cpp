@@ -124,6 +124,14 @@ void GameObject::SetInstanceId(const std::string& instanceId) {
 	instanceId_ = instanceId;
 }
 
+void GameObject::SetLayer(uint32_t layer) {
+	if (layer > 31) {
+		layer = 31;
+	}
+
+	layer_ = layer;
+}
+
 void GameObject::SetPrefabLink(const std::string& assetPath, const std::string& objectId, const std::string& rootInstanceId, bool isRoot) {
 	prefabAssetPath_ = assetPath;
 	prefabObjectId_ = objectId;

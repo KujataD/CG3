@@ -154,6 +154,26 @@ public:
 	void SetName(const std::string& name) { name_ = name; }
 
 	/// <summary>
+	/// ゲームロジック分類用Tagを取得
+	/// </summary>
+	const std::string& GetTag() const { return tag_; }
+
+	/// <summary>
+	/// ゲームロジック分類用Tagを設定
+	/// </summary>
+	void SetTag(const std::string& tag) { tag_ = tag; }
+
+	/// <summary>
+	/// 衝突フィルタなどに使うLayerを取得
+	/// </summary>
+	uint32_t GetLayer() const { return layer_; }
+
+	/// <summary>
+	/// 衝突フィルタなどに使うLayerを設定
+	/// </summary>
+	KUJAKU_API void SetLayer(uint32_t layer);
+
+	/// <summary>
 	/// 有効状態を取得
 	/// </summary>
 	bool IsActive() const { return active_; }
@@ -225,6 +245,8 @@ public:
 private:
 	std::string instanceId_;
 	std::string name_ = "GameObject";
+	std::string tag_ = "Untagged";
+	uint32_t layer_ = 0;
 	bool active_ = true;
 	bool initialized_ = false;
 	bool transformInitialized_ = false;

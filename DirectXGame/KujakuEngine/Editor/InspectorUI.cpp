@@ -34,6 +34,29 @@ bool DragFloat3(const char* label, float* values, float speed, float minValue, f
 #endif
 }
 
+bool DragInt(const char* label, int* value, float speed, int minValue, int maxValue) {
+#ifdef USE_IMGUI
+	return ImGui::DragInt(label, value, speed, minValue, maxValue);
+#else
+	(void)label;
+	(void)value;
+	(void)speed;
+	(void)minValue;
+	(void)maxValue;
+	return false;
+#endif
+}
+
+bool Checkbox(const char* label, bool* value) {
+#ifdef USE_IMGUI
+	return ImGui::Checkbox(label, value);
+#else
+	(void)label;
+	(void)value;
+	return false;
+#endif
+}
+
 bool ColorEdit4(const char* label, float* values) {
 #ifdef USE_IMGUI
 	return ImGui::ColorEdit4(label, values);

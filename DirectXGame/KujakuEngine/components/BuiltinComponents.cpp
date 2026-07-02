@@ -1,5 +1,6 @@
 #include "BuiltinComponents.h"
 #include "CameraComponent.h"
+#include "ColliderComponent.h"
 #include "DebugCameraComponent.h"
 #include "DirectionalLightComponent.h"
 #include "ModelRendererComponent.h"
@@ -43,6 +44,14 @@ void RegisterBuiltinComponents() {
 
 	ComponentFactory::GetInstance().Register("PointLightComponent", []() {
 		return std::make_unique<PointLightComponent>();
+	});
+
+	ComponentFactory::GetInstance().Register("SphereColliderComponent", []() {
+		return std::make_unique<SphereColliderComponent>();
+	});
+
+	ComponentFactory::GetInstance().Register("BoxColliderComponent", []() {
+		return std::make_unique<BoxColliderComponent>();
 	});
 
 	registered = true;
