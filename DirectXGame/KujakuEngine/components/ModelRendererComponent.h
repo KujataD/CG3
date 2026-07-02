@@ -83,6 +83,11 @@ public:
 	bool ApplyMaterialAsset(const std::string& materialPath) override;
 
 	/// <summary>
+	/// 指定Material Assetを参照しているかどうか。
+	/// </summary>
+	bool UsesMaterialAsset(const std::string& materialPath) const override;
+
+	/// <summary>
 	/// 現在のBuiltin形状を取得
 	/// </summary>
 	PrimitiveType GetPrimitive() const { return primitive_; }

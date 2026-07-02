@@ -126,6 +126,14 @@ public:
 		return false;
 	}
 
+	/// <summary>
+	/// 指定Material Assetを参照しているかどうか。
+	/// </summary>
+	virtual bool UsesMaterialAsset(const std::string& materialPath) const {
+		(void)materialPath;
+		return false;
+	}
+
 protected:
 	GameObject* owner_ = nullptr;
 	bool enabled_ = true;

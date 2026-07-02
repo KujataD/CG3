@@ -28,51 +28,6 @@ constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
 constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
 constexpr const char* kRenameMaterialPopupName = "Rename Material";
 
-std::string GetMaterialNameFromPath(const std::filesystem::path& path) {
-	std::string fileName = path.filename().string();
-	const std::string suffix = ".material.json";
-	if (fileName.ends_with(suffix)) {
-		fileName.erase(fileName.size() - suffix.size());
-	}
-	if (fileName.empty()) {
-		return "New Material";
-	}
-	return fileName;
-}
-
-std::string SanitizeMaterialName(const std::string& name) {
-	std::string sanitized;
-	sanitized.reserve(name.size());
-
-	for (char character : name) {
-		bool invalid = character == '<' || character == '>' || character == ':' || character == '"' || character == '/' ||
-		               character == '\\' || character == '|' || character == '?' || character == '*';
-		if (invalid) {
-			sanitized += '_';
-		} else {
-			sanitized += character;
-		}
-	}
-
-	while (!sanitized.empty() && sanitized.front() == ' ') {
-		sanitized.erase(sanitized.begin());
-	}
-	while (!sanitized.empty() && sanitized.back() == ' ') {
-		sanitized.pop_back();
-	}
-
-	if (sanitized.empty()) {
-		return "New Material";
-	}
-	return sanitized;
-}
-
-std::filesystem::path GetMetaPath(const std::filesystem::path& assetPath) {
-	std::filesystem::path metaPath = assetPath;
-	metaPath += ".meta";
-	return metaPath;
-}
-
 } // namespace
 
 void ProjectWindow::Initialize() {
@@ -331,7 +286,7 @@ std::filesystem::path ProjectWindow::MakeUniqueMaterialPath() const {
 
 void ProjectWindow::BeginRenameMaterial(const ProjectItem& item) {
 	renameMaterialTargetPath_ = item.absolutePath;
-	std::string materialName = GetMaterialNameFromPath(item.absolutePath);
+	std::string materialName = MaterialAsset::GetDisplayName(item.absolutePath);
 	std::memset(renameMaterialBuffer_.data(), 0, renameMaterialBuffer_.size());
 	strncpy_s(renameMaterialBuffer_.data(), renameMaterialBuffer_.size(), materialName.c_str(), _TRUNCATE);
 	renameMaterialErrorMessage_.clear();
@@ -383,59 +338,15 @@ bool ProjectWindow::CommitRenameMaterial() {
 		return false;
 	}
 
-	std::filesystem::path oldPath = NormalizePath(renameMaterialTargetPath_);
-	if (!std::filesystem::exists(oldPath)) {
-		renameMaterialErrorMessage_ = "Material file was not found.";
-		return false;
-	}
-	if (!MaterialAsset::IsMaterialFile(oldPath)) {
-		renameMaterialErrorMessage_ = "Selected file is not Material.";
-		return false;
-	}
-
-	std::string newName = SanitizeMaterialName(renameMaterialBuffer_.data());
-	std::filesystem::path newPath = oldPath.parent_path() / (newName + ".material.json");
-	newPath = NormalizePath(newPath);
-
-	std::error_code error;
-	if (newPath != oldPath && std::filesystem::exists(newPath, error)) {
-		renameMaterialErrorMessage_ = "Same name Material already exists.";
-		return false;
-	}
-
-	std::filesystem::path oldMetaPath = GetMetaPath(oldPath);
-	std::filesystem::path newMetaPath = GetMetaPath(newPath);
-	if (newMetaPath != oldMetaPath && std::filesystem::exists(newMetaPath, error)) {
-		renameMaterialErrorMessage_ = "Same name meta already exists.";
-		return false;
-	}
-
-	if (newPath != oldPath) {
-		std::filesystem::rename(oldPath, newPath, error);
-		if (error) {
-			renameMaterialErrorMessage_ = "Failed to rename Material: " + error.message();
-			return false;
-		}
-
-		if (std::filesystem::exists(oldMetaPath, error)) {
-			std::filesystem::rename(oldMetaPath, newMetaPath, error);
-			if (error) {
-				renameMaterialErrorMessage_ = "Failed to rename Material meta: " + error.message();
-				return false;
-			}
-		}
-	}
-
-	MaterialAssetData material = MaterialAsset::CreateDefault();
+	std::filesystem::path newPath;
 	std::string message;
-	MaterialAsset::Load(newPath, material, message);
-	material.name = newName;
-	if (!MaterialAsset::Save(newPath, material, message)) {
+	if (!MaterialAsset::Rename(renameMaterialTargetPath_, renameMaterialBuffer_.data(), newPath, message)) {
 		renameMaterialErrorMessage_ = message;
 		return false;
 	}
 
 	AssetDatabase::GetInstance().GetOrCreateAssetId(newPath);
+	EditorSelection::GetInstance()->SetSelectedAsset(newPath, AssetType::Material);
 	renameMaterialTargetPath_.clear();
 	renameMaterialErrorMessage_.clear();
 	Refresh();
@@ -493,12 +404,20 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 	// ラベルが空になるとImGuiのID assertにつながるため、空名は"(unnamed)"として表示する。
 	bool isPrefabFile = item.viewInfo.type == ProjectItemType::PrefabFile;
 	bool isMaterialFile = item.viewInfo.type == ProjectItemType::MaterialFile;
+	bool isSelectedProjectAsset = false;
+	if (isMaterialFile && EditorSelection::GetInstance()->GetSelectedAssetType() == AssetType::Material) {
+		isSelectedProjectAsset = NormalizePath(EditorSelection::GetInstance()->GetSelectedAssetPath()) == item.absolutePath;
+	}
 	if (isPrefabFile) {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.47f, 0.74f, 0.68f, 1.0f));
 	} else if (isMaterialFile) {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.86f, 0.80f, 0.48f, 1.0f));
 	}
-	ImGui::Selectable(displayName.c_str(), false, flags, ImVec2(0.0f, iconSize_));
+	if (ImGui::Selectable(displayName.c_str(), isSelectedProjectAsset, flags, ImVec2(0.0f, iconSize_))) {
+		if (isMaterialFile) {
+			EditorSelection::GetInstance()->SetSelectedAsset(item.absolutePath, AssetType::Material);
+		}
+	}
 	if (isPrefabFile || isMaterialFile) {
 		ImGui::PopStyleColor();
 	}
@@ -518,6 +437,10 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 	}
 
 	if (ImGui::BeginPopupContextItem("ProjectItemContext")) {
+		if (isMaterialFile) {
+			EditorSelection::GetInstance()->SetSelectedAsset(item.absolutePath, AssetType::Material);
+		}
+
 		if (isPrefabFile) {
 			if (ImGui::MenuItem("Open Prefab Edit Mode")) {
 				EditorApplication::GetInstance()->OpenPrefabEditMode(item.absolutePath);

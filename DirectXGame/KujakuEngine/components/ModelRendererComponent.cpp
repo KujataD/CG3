@@ -41,6 +41,14 @@ ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primi
 	return ModelRendererComponent::PrimitiveType::Custom;
 }
 
+std::string GetBaseColorTexturePath(const MaterialAssetData& material) {
+	return MaterialAsset::GetTexturePath(material, MaterialTextureSlot::BaseColor);
+}
+
+void SetBaseColorTexturePath(MaterialAssetData& material, const std::string& texturePath) {
+	MaterialAsset::SetTexture(material, MaterialTextureSlot::BaseColor, "", texturePath);
+}
+
 } // namespace
 
 ModelRendererComponent::ModelRendererComponent() = default;
@@ -66,8 +74,7 @@ void ModelRendererComponent::SetPrimitive(PrimitiveType primitive, const std::st
 	if (!textureFilePath.empty()) {
 		textureFilePath_ = textureFilePath;
 		if (materialAssetId_.empty() && materialPath_.empty()) {
-			material_.texturePath = textureFilePath;
-			material_.textureAssetId.clear();
+			SetBaseColorTexturePath(material_, textureFilePath);
 		}
 	}
 	RebuildPrimitiveModel();
@@ -83,7 +90,7 @@ void ModelRendererComponent::SetMaterialAsset(const std::string& materialAssetId
 		MaterialAssetData loadedMaterial{};
 		if (MaterialAsset::Load(resolvedPath, loadedMaterial, message)) {
 			material_ = loadedMaterial;
-			textureFilePath_ = material_.texturePath;
+			textureFilePath_ = GetBaseColorTexturePath(material_);
 		}
 	}
 
@@ -105,6 +112,21 @@ void ModelRendererComponent::SetMaterialPath(const std::string& materialPath) {
 bool ModelRendererComponent::ApplyMaterialAsset(const std::string& materialPath) {
 	SetMaterialPath(materialPath);
 	return true;
+}
+
+bool ModelRendererComponent::UsesMaterialAsset(const std::string& materialPath) const {
+	if (materialAssetId_.empty() && materialPath_.empty()) {
+		return false;
+	}
+
+	AssetDatabase& assetDatabase = AssetDatabase::GetInstance();
+	std::filesystem::path targetPath = assetDatabase.ResolveAssetPath("", materialPath);
+	std::filesystem::path currentPath = ResolveMaterialPath();
+	if (targetPath.empty() || currentPath.empty()) {
+		return false;
+	}
+
+	return targetPath.lexically_normal() == currentPath.lexically_normal();
 }
 
 void ModelRendererComponent::Draw() {
@@ -151,15 +173,15 @@ void ModelRendererComponent::DrawInspector() {
 	}
 
 	std::array<char, 256> textureBuffer{};
-	strncpy_s(textureBuffer.data(), textureBuffer.size(), material_.texturePath.c_str(), _TRUNCATE);
+	std::string baseColorTexturePath = GetBaseColorTexturePath(material_);
+	strncpy_s(textureBuffer.data(), textureBuffer.size(), baseColorTexturePath.c_str(), _TRUNCATE);
 	if (InspectorUI::InputText("Texture", textureBuffer.data(), textureBuffer.size())) {
-		material_.texturePath = textureBuffer.data();
-		material_.textureAssetId.clear();
-		textureFilePath_ = material_.texturePath;
+		SetBaseColorTexturePath(material_, textureBuffer.data());
+		textureFilePath_ = GetBaseColorTexturePath(material_);
 		ApplyMaterialToModel();
 	}
 
-	if (InspectorUI::ColorEdit4("Color", &material_.color.x)) {
+	if (InspectorUI::ColorEdit4("Color", &material_.baseColor.x)) {
 		ApplyMaterialToModel();
 	}
 
@@ -222,19 +244,19 @@ void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 	if (json.contains("material") && json.at("material").is_object()) {
 		material_ = MaterialAsset::ReadJsonObject(json.at("material"), material_);
 	} else {
-		material_.texturePath = ReadString(json, "texture", material_.texturePath);
-		material_.textureAssetId.clear();
+		std::string texturePath = ReadString(json, "texture", GetBaseColorTexturePath(material_));
+		SetBaseColorTexturePath(material_, texturePath);
 	}
 
-	textureFilePath_ = material_.texturePath;
+	textureFilePath_ = GetBaseColorTexturePath(material_);
 	SetPrimitive(ReadPrimitiveType(primitiveName), textureFilePath_);
 }
 
 void ModelRendererComponent::RebuildPrimitiveModel() {
 	MaterialAssetData activeMaterial = GetActiveMaterial();
 	material_ = activeMaterial;
-	textureFilePath_ = activeMaterial.texturePath;
-	std::string texturePath = MaterialAsset::ResolveTexturePath(activeMaterial).string();
+	textureFilePath_ = GetBaseColorTexturePath(activeMaterial);
+	std::string texturePath = MaterialAsset::ResolveTexturePath(activeMaterial, MaterialTextureSlot::BaseColor).string();
 
 	if (primitive_ == PrimitiveType::Cube) {
 		model_.reset(Model::CreateCube(texturePath, ShaderModel::kBlingPhongReflection));
@@ -259,9 +281,9 @@ void ModelRendererComponent::ApplyMaterialToModel() {
 		return;
 	}
 
-	textureFilePath_ = material_.texturePath;
-	model_->SetColor(material_.color);
-	model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_));
+	textureFilePath_ = GetBaseColorTexturePath(material_);
+	model_->SetColor(material_.baseColor);
+	model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_, MaterialTextureSlot::BaseColor));
 }
 
 MaterialAssetData ModelRendererComponent::GetActiveMaterial() const {
