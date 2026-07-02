@@ -17,8 +17,10 @@ void GraphicsPipeline::Initialize() {
 	InitializeDXC();
 	CreateObject3dRootSignature();
 	CreateInstancingRootSignature();
+	CreateLineRootSignature();
 	CreateObject3dPipelineStateObject();
 	CreateInstancingPipelineStateObject();
+	CreateLinePipelineStateObject();
 }
 
 void GraphicsPipeline::InitializeDXC() {
@@ -262,6 +264,39 @@ void GraphicsPipeline::CreateInstancingRootSignature() {
 	}
 }
 
+void GraphicsPipeline::CreateLineRootSignature() {
+	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
+	HRESULT hr;
+
+	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
+	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	D3D12_ROOT_PARAMETER rootParameters[1] = {};
+	// b0 WVP。Lineは頂点色だけで描くため、TextureやLight用RootParameterは持たない。
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	rootParameters[0].Descriptor.ShaderRegister = 0;
+
+	descriptionRootSignature.pParameters = rootParameters;
+	descriptionRootSignature.NumParameters = _countof(rootParameters);
+
+	ID3DBlob* signatureBlob = nullptr;
+	ID3DBlob* errorBlob = nullptr;
+	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
+	if (FAILED(hr)) {
+		OutputDebugStringA(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		assert(false);
+	}
+
+	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kLine)]));
+	assert(SUCCEEDED(hr));
+
+	signatureBlob->Release();
+	if (errorBlob) {
+		errorBlob->Release();
+	}
+}
+
 void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
@@ -418,6 +453,109 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 
 		graphicsPipelineStateDescWireframe.BlendState = blendDesc;
 		hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDescWireframe, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3dWireframe)][i]));
+		assert(SUCCEEDED(hr));
+	}
+
+	vertexShaderBlob->Release();
+	pixelShaderBlob->Release();
+}
+
+void GraphicsPipeline::CreateLinePipelineStateObject() {
+	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
+
+	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/Line.VS.hlsl", L"vs_6_0");
+	assert(vertexShaderBlob != nullptr);
+
+	IDxcBlob* pixelShaderBlob = CompileShader(L"Resources/shader/Line.PS.hlsl", L"ps_6_0");
+	assert(pixelShaderBlob != nullptr);
+
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[2] = {};
+	inputElementDescs[0].SemanticName = "POSITION";
+	inputElementDescs[0].SemanticIndex = 0;
+	inputElementDescs[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	inputElementDescs[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+
+	inputElementDescs[1].SemanticName = "COLOR";
+	inputElementDescs[1].SemanticIndex = 0;
+	inputElementDescs[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	inputElementDescs[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+
+	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc{};
+	inputLayoutDesc.pInputElementDescs = inputElementDescs;
+	inputLayoutDesc.NumElements = _countof(inputElementDescs);
+
+	D3D12_RASTERIZER_DESC rasterizerDesc{};
+	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
+	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
+	rasterizerDesc.DepthClipEnable = true;
+
+	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
+	depthStencilDesc.DepthEnable = true;
+	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
+	graphicsPipelineStateDesc.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kLine)].Get();
+	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
+	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
+	graphicsPipelineStateDesc.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDesc.PS = {pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize()};
+	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
+	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	graphicsPipelineStateDesc.NumRenderTargets = 1;
+	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	graphicsPipelineStateDesc.SampleDesc.Count = 1;
+	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+
+	for (int32_t i = 0; i < static_cast<int32_t>(BlendMode::kCountOfBlendMode); i++) {
+		D3D12_BLEND_DESC blendDesc{};
+		auto& renderTarget = blendDesc.RenderTarget[0];
+
+		renderTarget.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		renderTarget.BlendEnable = TRUE;
+		renderTarget.SrcBlend = D3D12_BLEND_ONE;
+		renderTarget.DestBlend = D3D12_BLEND_ZERO;
+		renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
+		renderTarget.SrcBlendAlpha = D3D12_BLEND_ONE;
+		renderTarget.DestBlendAlpha = D3D12_BLEND_ZERO;
+		renderTarget.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+
+		switch (static_cast<BlendMode>(i)) {
+		case BlendMode::kNone:
+			renderTarget.BlendEnable = FALSE;
+			break;
+		case BlendMode::kNormal:
+			renderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			renderTarget.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+			break;
+		case BlendMode::kAdd:
+			renderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			renderTarget.DestBlend = D3D12_BLEND_ONE;
+			break;
+		case BlendMode::kSubtract:
+			renderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			renderTarget.DestBlend = D3D12_BLEND_ONE;
+			renderTarget.BlendOp = D3D12_BLEND_OP_REV_SUBTRACT;
+			break;
+		case BlendMode::kMultiply:
+			renderTarget.SrcBlend = D3D12_BLEND_ZERO;
+			renderTarget.DestBlend = D3D12_BLEND_SRC_COLOR;
+			break;
+		case BlendMode::kScreen:
+			renderTarget.SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
+			renderTarget.DestBlend = D3D12_BLEND_ONE;
+			break;
+		case BlendMode::kExclusion:
+			renderTarget.SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
+			renderTarget.DestBlend = D3D12_BLEND_INV_SRC_COLOR;
+			break;
+		default:
+			break;
+		}
+
+		graphicsPipelineStateDesc.BlendState = blendDesc;
+		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kLine)][i]));
 		assert(SUCCEEDED(hr));
 	}
 

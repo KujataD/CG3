@@ -79,6 +79,7 @@ enum class PipelineType {
 	kParticle,
 	kInstancingObject3d,
 	kObject3dWireframe,
+	kLine,
 	kCountOfPipeLineType,
 };
 
@@ -163,6 +164,11 @@ private:
 	void CreateInstancingRootSignature();
 
 	/// <summary>
+	/// Line描画用RootSignatureを生成する
+	/// </summary>
+	void CreateLineRootSignature();
+
+	/// <summary>
 	/// Object3d用PSOを生成する
 	/// </summary>
 	void CreateObject3dPipelineStateObject();
@@ -171,6 +177,11 @@ private:
 	/// Sprite用PSOを生成する
 	/// </summary>
 	void CreateInstancingPipelineStateObject();
+
+	/// <summary>
+	/// Line描画用PSOを生成する
+	/// </summary>
+	void CreateLinePipelineStateObject();
 
 private:
 	// DXCコンパイラ関連

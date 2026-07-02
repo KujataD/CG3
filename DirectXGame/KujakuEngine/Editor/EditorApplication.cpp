@@ -8,6 +8,7 @@
 #include "SceneJsonImporter.h"
 #include "../3d/Camera.h"
 #include "../3d/DirectionalLight.h"
+#include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
 #include "../3d/PointLight.h"
 #include "../3d/SpotLight.h"
@@ -302,6 +303,15 @@ void EditorApplication::Draw() {
 
 	if (currentScene_) {
 		currentScene_->Draw();
+		Camera* renderCamera = currentScene_->GetEditorCamera();
+		if (renderCamera) {
+			LineRenderer::GetInstance()->Render(*renderCamera);
+		} else {
+			LineRenderer::GetInstance()->Clear();
+		}
+	}
+	else {
+		LineRenderer::GetInstance()->Clear();
 	}
 
 #ifdef USE_IMGUI
