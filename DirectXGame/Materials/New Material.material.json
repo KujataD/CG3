@@ -1,0 +1,12 @@
+{
+  "assetType": "Material",
+  "color": [
+    0.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "textureAssetId": "",
+  "texturePath": "resources/uvChecker.png",
+  "version": 1
+}

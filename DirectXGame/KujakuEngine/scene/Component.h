@@ -13,6 +13,7 @@
 #endif
 
 #include <iosfwd>
+#include <string>
 
 namespace KujakuEngine {
 
@@ -116,6 +117,14 @@ public:
 	/// Editor用ビルボードをRayCastで選択するためのワールド半径。
 	/// </summary>
 	virtual float GetEditorBillboardPickRadius() const;
+
+	/// <summary>
+	/// ProjectWindowからMaterial Assetをドロップされた時に受け取れるかどうか。
+	/// </summary>
+	virtual bool ApplyMaterialAsset(const std::string& materialPath) {
+		(void)materialPath;
+		return false;
+	}
 
 protected:
 	GameObject* owner_ = nullptr;

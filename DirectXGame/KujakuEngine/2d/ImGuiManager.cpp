@@ -28,6 +28,7 @@ namespace {
 constexpr float kDegreesToRadians = 0.017453292519943295f;
 constexpr const char* kHierarchyDragPayloadType = "KujakuHierarchyGameObject";
 constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
+constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
 
 void AllocateImGuiSrvDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle) {
 	// ImGui 1.92系のDX12バックエンドは、フォントや追加テクスチャ用のSRVをバックエンド側へ要求してくる。
@@ -138,6 +139,54 @@ bool SceneContainsGameObject(Scene& scene, GameObject* target) {
 	return false;
 }
 
+bool ApplyMaterialToGameObject(GameObject* gameObject, const std::filesystem::path& materialPath) {
+	if (!gameObject) {
+		return false;
+	}
+
+	bool applied = false;
+	for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+		if (!component) {
+			continue;
+		}
+		if (component->ApplyMaterialAsset(materialPath.generic_string())) {
+			applied = true;
+			break;
+		}
+	}
+
+	if (!applied) {
+		ImGuiManager::GetInstance()->AddConsoleLog("[Material] Target has no ModelRendererComponent: " + gameObject->GetName());
+		return false;
+	}
+
+	EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
+	ImGuiManager::GetInstance()->AddConsoleLog("[Material] Assigned: " + materialPath.string());
+	return true;
+}
+
+void AcceptMaterialDropForComponent(Component* component, GameObject* owner) {
+	if (!component) {
+		return;
+	}
+	if (!ImGui::BeginDragDropTarget()) {
+		return;
+	}
+
+	const ImGuiPayload* materialPayload = ImGui::AcceptDragDropPayload(kProjectMaterialDragPayloadType);
+	if (materialPayload && materialPayload->DataSize > 0) {
+		const char* materialPathText = static_cast<const char*>(materialPayload->Data);
+		if (component->ApplyMaterialAsset(materialPathText)) {
+			if (owner) {
+				EditorSelection::GetInstance()->SetSelectedGameObject(owner);
+			}
+			ImGuiManager::GetInstance()->AddConsoleLog("[Material] Assigned: " + std::string(materialPathText));
+		}
+	}
+
+	ImGui::EndDragDropTarget();
+}
+
 void DeleteSelectedHierarchyObject(Scene& scene) {
 	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
 	if (!SceneContainsGameObject(scene, selectedObject)) {
@@ -175,6 +224,12 @@ void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 			}
 			EditorSelection::GetInstance()->SetSelectedGameObject(created);
 		}
+	}
+
+	const ImGuiPayload* materialPayload = ImGui::AcceptDragDropPayload(kProjectMaterialDragPayloadType);
+	if (materialPayload && materialPayload->DataSize > 0) {
+		const char* materialPathText = static_cast<const char*>(materialPayload->Data);
+		ApplyMaterialToGameObject(targetParent, std::filesystem::path(materialPathText));
 	}
 
 	ImGui::EndDragDropTarget();
@@ -223,11 +278,11 @@ void ApplyCinderImGuiDarkStyle() {
 	const ImVec4 accentSelectedBgColor = ImVec4(0.92f, 0.18f, 0.29f, 0.43f);
 	const ImVec4 accentDropTargetColor = ImVec4(0.92f, 0.18f, 0.29f, 0.90f);
 
-	const ImVec4 cyanColor = ImVec4(0.47f, 0.77f, 0.83f, 0.78f);
-	const ImVec4 cyanWeakColor = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
-	const ImVec4 cyanVeryWeakColor = ImVec4(0.47f, 0.77f, 0.83f, 0.04f);
-	const ImVec4 cyanLineColor = ImVec4(0.47f, 0.77f, 0.83f, 0.80f);
-	const ImVec4 cyanLineDimmedColor = ImVec4(0.47f, 0.77f, 0.83f, 0.40f);
+	const ImVec4 cyanColor = ImVec4(0.27f, 0.9f, 1.0f, 0.78f);
+	const ImVec4 cyanWeakColor = ImVec4(0.27f, 0.9f, 1.0f, 0.14f);
+	const ImVec4 cyanVeryWeakColor = ImVec4(0.27f, 0.9f, 1.0f, 0.04f);
+	const ImVec4 cyanLineColor = ImVec4(0.27f, 0.9f, 1.0f, 0.80f);
+	const ImVec4 cyanLineDimmedColor = ImVec4(0.27f, 0.9f, 1.0f, 0.40f);
 
 	const ImVec4 borderColor = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
 	const ImVec4 borderShadowColor = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -981,6 +1036,7 @@ void ImGuiManager::DrawInspectorWindow() {
 			}
 
 			component->DrawInspector();
+			AcceptMaterialDropForComponent(component.get(), selected);
 
 			if (component->CanRemove()) {
 				if (ImGui::Button("Remove Component")) {

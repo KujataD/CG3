@@ -64,6 +64,9 @@
     <Filter Include="KujakuEngine\runtime">
       <UniqueIdentifier>{034d85de-0d5f-4a2e-b90b-76fd6ee7e5f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="KujakuEngine\assets">
+      <UniqueIdentifier>{b1819ac8-7f61-43e1-a565-df0cb53a59d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -134,6 +137,12 @@
     </ClCompile>
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp">
       <Filter>KujakuEngine\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp">
+      <Filter>KujakuEngine\assets</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp">
       <Filter>KujakuEngine\Editor</Filter>
@@ -395,6 +404,9 @@
     <ClInclude Include="KujakuEngine\2d\Sprite.h">
       <Filter>KujakuEngine\2d</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\assets\MaterialAsset.h">
+      <Filter>KujakuEngine\assets</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\components\BuiltinComponents.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
@@ -421,6 +433,9 @@
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\TransformSnapshotComponent.h">
       <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h">
+      <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\EditorApplication.h">
       <Filter>KujakuEngine\Editor</Filter>

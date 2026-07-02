@@ -24,6 +24,9 @@
 #include "2d/ImGuiManager.h"
 #include "2d/Sprite.h"
 
+#include "assets/MaterialAsset.h"
+
+#include "Editor/AssetDatabase.h"
 #include "Editor/EditorApplication.h"
 #include "Editor/EditorProjectPath.h"
 #include "Editor/EditorSelection.h"

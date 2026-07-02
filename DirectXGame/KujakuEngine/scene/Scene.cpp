@@ -152,6 +152,10 @@ void DrawEditorBillboards(Scene& scene) {
 			if (!component->HasEditorBillboard()) {
 				continue;
 			}
+			if (component->GetSceneCamera() == camera) {
+				// 表示に使っているCamera自身のアイコンを描くと、視点原点のPlaneが目前でちらつくため描画しない。
+				continue;
+			}
 
 			// Draw中にテクスチャロードが走るとCommandListの状態が壊れるため、準備済みのPlaneだけ描画する。
 			Model* model = FindEditorBillboardModel(component->GetEditorBillboardIconName());

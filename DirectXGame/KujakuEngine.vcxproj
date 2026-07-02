@@ -111,6 +111,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\ImGuizmo-1.9\src\ImGuizmo.cpp" />
     <ClCompile Include="KujakuEngine\2d\ImGuiManager.cpp" />
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
+    <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorSelection.cpp" />
@@ -198,6 +200,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="KujakuEngine\2d\ImGuiManager.h" />
     <ClInclude Include="KujakuEngine\2d\Sprite.h" />
+    <ClInclude Include="KujakuEngine\assets\MaterialAsset.h" />
     <ClInclude Include="KujakuEngine\components\BuiltinComponents.h" />
     <ClInclude Include="KujakuEngine\components\CameraComponent.h" />
     <ClInclude Include="KujakuEngine\components\DebugCameraComponent.h" />
@@ -207,6 +210,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h" />
     <ClInclude Include="KujakuEngine\components\TransformComponent.h" />
     <ClInclude Include="KujakuEngine\components\TransformSnapshotComponent.h" />
+    <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorApplication.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorProjectPath.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorSelection.h" />

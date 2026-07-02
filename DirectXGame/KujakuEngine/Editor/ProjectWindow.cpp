@@ -1,8 +1,10 @@
 #include "ProjectWindow.h"
 
+#include "AssetDatabase.h"
 #include "EditorApplication.h"
 #include "EditorProjectPath.h"
 #include "EditorSelection.h"
+#include "../assets/MaterialAsset.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
 #include "../scene/GameObject.h"
@@ -11,15 +13,65 @@
 
 #include <Windows.h>
 #include <algorithm>
+#include <cstring>
 #include <cmath>
 #include <limits>
 #include <shellapi.h>
+#include <string>
+#include <system_error>
 
 namespace KujakuEngine {
 
 namespace {
 
 constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
+constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
+constexpr const char* kRenameMaterialPopupName = "Rename Material";
+
+std::string GetMaterialNameFromPath(const std::filesystem::path& path) {
+	std::string fileName = path.filename().string();
+	const std::string suffix = ".material.json";
+	if (fileName.ends_with(suffix)) {
+		fileName.erase(fileName.size() - suffix.size());
+	}
+	if (fileName.empty()) {
+		return "New Material";
+	}
+	return fileName;
+}
+
+std::string SanitizeMaterialName(const std::string& name) {
+	std::string sanitized;
+	sanitized.reserve(name.size());
+
+	for (char character : name) {
+		bool invalid = character == '<' || character == '>' || character == ':' || character == '"' || character == '/' ||
+		               character == '\\' || character == '|' || character == '?' || character == '*';
+		if (invalid) {
+			sanitized += '_';
+		} else {
+			sanitized += character;
+		}
+	}
+
+	while (!sanitized.empty() && sanitized.front() == ' ') {
+		sanitized.erase(sanitized.begin());
+	}
+	while (!sanitized.empty() && sanitized.back() == ' ') {
+		sanitized.pop_back();
+	}
+
+	if (sanitized.empty()) {
+		return "New Material";
+	}
+	return sanitized;
+}
+
+std::filesystem::path GetMetaPath(const std::filesystem::path& assetPath) {
+	std::filesystem::path metaPath = assetPath;
+	metaPath += ".meta";
+	return metaPath;
+}
 
 } // namespace
 
@@ -27,6 +79,7 @@ void ProjectWindow::Initialize() {
 	// Project Windowの基準になるディレクトリを決める。
 	// ここでは実行時カレントから上方向へ探索し、KujakuEngine.vcxprojがあるDirectXGameをProjectDirとして扱う。
 	projectRoot_ = DetectProjectRoot();
+	AssetDatabase::GetInstance().Initialize(projectRoot_);
 	// 起動時はProjectDir直下を表示する。
 	currentDirectory_ = projectRoot_;
 	// ファイル種別の判定はProjectAssetClassifierに寄せ、UI描画側へ拡張子判定を散らさない。
@@ -69,6 +122,18 @@ void ProjectWindow::Draw() {
 	for (int itemIndex = 0; itemIndex < static_cast<int>(items_.size()); ++itemIndex) {
 		DrawItem(items_[itemIndex], itemIndex);
 	}
+
+	if (ImGui::BeginPopupContextWindow("ProjectWindowContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems)) {
+		if (ImGui::BeginMenu("Create")) {
+			if (ImGui::MenuItem("Material")) {
+				CreateMaterialInCurrentDirectory();
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndPopup();
+	}
+
+	DrawRenameMaterialPopup();
 
 	ImGui::End();
 }
@@ -136,6 +201,7 @@ void ProjectWindow::Refresh() {
 	}
 
 	// Refreshでは現在ディレクトリを再スキャンし、ファイル追加/削除を反映する。
+	AssetDatabase::GetInstance().Refresh();
 	items_.clear();
 	std::error_code error;
 	std::filesystem::directory_iterator iterator(currentDirectory_, error);
@@ -144,6 +210,10 @@ void ProjectWindow::Refresh() {
 	}
 
 	for (const std::filesystem::directory_entry& entry : iterator) {
+		if (AssetDatabase::GetInstance().IsMetaFile(entry.path())) {
+			continue;
+		}
+
 		ProjectItem item{};
 		// 実ファイル操作やExplorer起動には絶対パスを使う。
 		item.absolutePath = NormalizePath(entry.path());
@@ -152,6 +222,9 @@ void ProjectWindow::Refresh() {
 		item.isDirectory = entry.is_directory(error);
 		// フォルダ/画像/通常ファイルの分類と、使用するアイコン方針を取得する。
 		item.viewInfo = classifier_->Classify(item.absolutePath);
+		if (AssetDatabase::GetInstance().IsAssetFile(item.absolutePath)) {
+			item.assetId = AssetDatabase::GetInstance().GetOrCreateAssetId(item.absolutePath);
+		}
 		// アイコンや画像プレビューのSRV番号を解決する。失敗してもクラッシュさせない。
 		TryResolveTexture(item);
 		items_.push_back(item);
@@ -230,6 +303,145 @@ bool ProjectWindow::InstantiatePrefabItem(const std::filesystem::path& prefabPat
 	return true;
 }
 
+void ProjectWindow::CreateMaterialInCurrentDirectory() {
+	std::filesystem::path materialPath = MakeUniqueMaterialPath();
+	std::string message;
+	if (MaterialAsset::CreateDefaultFile(materialPath, message)) {
+		AssetDatabase::GetInstance().GetOrCreateAssetId(materialPath);
+		Refresh();
+	}
+}
+
+std::filesystem::path ProjectWindow::MakeUniqueMaterialPath() const {
+	std::filesystem::path candidate = currentDirectory_ / "New Material.material.json";
+	if (!std::filesystem::exists(candidate)) {
+		return candidate;
+	}
+
+	for (int index = 1; index < 10000; ++index) {
+		std::string fileName = "New Material " + std::to_string(index) + ".material.json";
+		candidate = currentDirectory_ / fileName;
+		if (!std::filesystem::exists(candidate)) {
+			return candidate;
+		}
+	}
+
+	return currentDirectory_ / "New Material 9999.material.json";
+}
+
+void ProjectWindow::BeginRenameMaterial(const ProjectItem& item) {
+	renameMaterialTargetPath_ = item.absolutePath;
+	std::string materialName = GetMaterialNameFromPath(item.absolutePath);
+	std::memset(renameMaterialBuffer_.data(), 0, renameMaterialBuffer_.size());
+	strncpy_s(renameMaterialBuffer_.data(), renameMaterialBuffer_.size(), materialName.c_str(), _TRUNCATE);
+	renameMaterialErrorMessage_.clear();
+	requestOpenRenameMaterialPopup_ = true;
+}
+
+void ProjectWindow::DrawRenameMaterialPopup() {
+	if (requestOpenRenameMaterialPopup_) {
+		ImGui::OpenPopup(kRenameMaterialPopupName);
+		requestOpenRenameMaterialPopup_ = false;
+	}
+
+	if (!ImGui::BeginPopupModal(kRenameMaterialPopupName, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+		return;
+	}
+
+	ImGui::TextUnformatted("Material Name");
+	ImGui::SetNextItemWidth(260.0f);
+	bool enterPressed = ImGui::InputText("##MaterialName", renameMaterialBuffer_.data(), renameMaterialBuffer_.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+	if (!renameMaterialErrorMessage_.empty()) {
+		ImGui::TextDisabled("%s", renameMaterialErrorMessage_.c_str());
+	}
+
+	if (enterPressed) {
+		if (CommitRenameMaterial()) {
+			ImGui::CloseCurrentPopup();
+		}
+	}
+
+	if (ImGui::Button("OK")) {
+		if (CommitRenameMaterial()) {
+			ImGui::CloseCurrentPopup();
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Cancel")) {
+		renameMaterialTargetPath_.clear();
+		renameMaterialErrorMessage_.clear();
+		ImGui::CloseCurrentPopup();
+	}
+
+	ImGui::EndPopup();
+}
+
+bool ProjectWindow::CommitRenameMaterial() {
+	if (renameMaterialTargetPath_.empty()) {
+		renameMaterialErrorMessage_ = "Rename target is empty.";
+		return false;
+	}
+
+	std::filesystem::path oldPath = NormalizePath(renameMaterialTargetPath_);
+	if (!std::filesystem::exists(oldPath)) {
+		renameMaterialErrorMessage_ = "Material file was not found.";
+		return false;
+	}
+	if (!MaterialAsset::IsMaterialFile(oldPath)) {
+		renameMaterialErrorMessage_ = "Selected file is not Material.";
+		return false;
+	}
+
+	std::string newName = SanitizeMaterialName(renameMaterialBuffer_.data());
+	std::filesystem::path newPath = oldPath.parent_path() / (newName + ".material.json");
+	newPath = NormalizePath(newPath);
+
+	std::error_code error;
+	if (newPath != oldPath && std::filesystem::exists(newPath, error)) {
+		renameMaterialErrorMessage_ = "Same name Material already exists.";
+		return false;
+	}
+
+	std::filesystem::path oldMetaPath = GetMetaPath(oldPath);
+	std::filesystem::path newMetaPath = GetMetaPath(newPath);
+	if (newMetaPath != oldMetaPath && std::filesystem::exists(newMetaPath, error)) {
+		renameMaterialErrorMessage_ = "Same name meta already exists.";
+		return false;
+	}
+
+	if (newPath != oldPath) {
+		std::filesystem::rename(oldPath, newPath, error);
+		if (error) {
+			renameMaterialErrorMessage_ = "Failed to rename Material: " + error.message();
+			return false;
+		}
+
+		if (std::filesystem::exists(oldMetaPath, error)) {
+			std::filesystem::rename(oldMetaPath, newMetaPath, error);
+			if (error) {
+				renameMaterialErrorMessage_ = "Failed to rename Material meta: " + error.message();
+				return false;
+			}
+		}
+	}
+
+	MaterialAssetData material = MaterialAsset::CreateDefault();
+	std::string message;
+	MaterialAsset::Load(newPath, material, message);
+	material.name = newName;
+	if (!MaterialAsset::Save(newPath, material, message)) {
+		renameMaterialErrorMessage_ = message;
+		return false;
+	}
+
+	AssetDatabase::GetInstance().GetOrCreateAssetId(newPath);
+	renameMaterialTargetPath_.clear();
+	renameMaterialErrorMessage_.clear();
+	Refresh();
+	return true;
+}
+
 void ProjectWindow::DrawToolbar() {
 	// 現在見ている場所をProjectDirからの相対パスで表示する。
 	ImGui::Text("Path: %s", GetCurrentRelativePathText().c_str());
@@ -280,17 +492,27 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 	}
 	// ラベルが空になるとImGuiのID assertにつながるため、空名は"(unnamed)"として表示する。
 	bool isPrefabFile = item.viewInfo.type == ProjectItemType::PrefabFile;
+	bool isMaterialFile = item.viewInfo.type == ProjectItemType::MaterialFile;
 	if (isPrefabFile) {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.47f, 0.74f, 0.68f, 1.0f));
+	} else if (isMaterialFile) {
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.86f, 0.80f, 0.48f, 1.0f));
 	}
 	ImGui::Selectable(displayName.c_str(), false, flags, ImVec2(0.0f, iconSize_));
-	if (isPrefabFile) {
+	if (isPrefabFile || isMaterialFile) {
 		ImGui::PopStyleColor();
 	}
 
 	if (isPrefabFile && ImGui::BeginDragDropSource()) {
 		std::string pathText = item.absolutePath.generic_string();
 		ImGui::SetDragDropPayload(kProjectPrefabDragPayloadType, pathText.c_str(), pathText.size() + 1);
+		ImGui::TextUnformatted(displayName.c_str());
+		ImGui::EndDragDropSource();
+	}
+
+	if (isMaterialFile && ImGui::BeginDragDropSource()) {
+		std::string pathText = item.absolutePath.generic_string();
+		ImGui::SetDragDropPayload(kProjectMaterialDragPayloadType, pathText.c_str(), pathText.size() + 1);
 		ImGui::TextUnformatted(displayName.c_str());
 		ImGui::EndDragDropSource();
 	}
@@ -304,6 +526,19 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 				InstantiatePrefabItem(item.absolutePath);
 			}
 			ImGui::Separator();
+		}
+
+		if (isMaterialFile) {
+			if (ImGui::MenuItem("Rename Material")) {
+				BeginRenameMaterial(item);
+			}
+			ImGui::Separator();
+		}
+
+		if (!item.assetId.empty()) {
+			if (ImGui::MenuItem("Copy Asset ID")) {
+				ImGui::SetClipboardText(item.assetId.c_str());
+			}
 		}
 
 		if (ImGui::MenuItem("Copy File Path")) {

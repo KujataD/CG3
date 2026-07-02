@@ -93,7 +93,11 @@ public:
 	KUJAKU_API void Draw(const WorldTransform& worldTransform, const Camera& camera, FillMode fillMode = kFillModeSolid);
 
 	// --- set ---
-	void SetColor(const Vector4& color) { materialMap_->color = color; }
+	void SetColor(const Vector4& color) {
+		if (materialMap_) {
+			materialMap_->color = color;
+		}
+	}
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
 	void SetTexture(uint32_t textureIndex) { textureIndex_ = textureIndex; }
 
@@ -135,7 +139,7 @@ private:
 	std::vector<VertexData> vertices_;
 	Matrix4x4 rootLocalMatrix_ = MakeIdentity();
 
-	uint32_t textureIndex_;
+	uint32_t textureIndex_ = 0;
 	/// <summary>
 	/// VertexBufferオブジェクトを作成します。
 	/// </summary>

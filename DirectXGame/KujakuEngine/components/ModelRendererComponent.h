@@ -1,6 +1,8 @@
 #pragma once
 
+#include "../assets/MaterialAsset.h"
 #include "../scene/Component.h"
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -66,6 +68,21 @@ public:
 	void SetPrimitive(PrimitiveType primitive, const std::string& textureFilePath);
 
 	/// <summary>
+	/// Project管理Materialを設定
+	/// </summary>
+	void SetMaterialAsset(const std::string& materialAssetId, const std::string& materialPath);
+
+	/// <summary>
+	/// Project管理Materialをファイルパスから設定
+	/// </summary>
+	void SetMaterialPath(const std::string& materialPath);
+
+	/// <summary>
+	/// ProjectWindowからドロップされたMaterial Assetを適用します。
+	/// </summary>
+	bool ApplyMaterialAsset(const std::string& materialPath) override;
+
+	/// <summary>
 	/// 現在のBuiltin形状を取得
 	/// </summary>
 	PrimitiveType GetPrimitive() const { return primitive_; }
@@ -74,6 +91,16 @@ public:
 	/// Textureファイルパスを取得
 	/// </summary>
 	const std::string& GetTextureFilePath() const { return textureFilePath_; }
+
+	/// <summary>
+	/// 参照中Material Asset IDを取得
+	/// </summary>
+	const std::string& GetMaterialAssetId() const { return materialAssetId_; }
+
+	/// <summary>
+	/// 参照中Materialファイルパスを取得
+	/// </summary>
+	const std::string& GetMaterialPath() const { return materialPath_; }
 
 	/// <summary>
 	/// 描画に使用するModelを取得
@@ -111,6 +138,18 @@ private:
 	/// </summary>
 	void RebuildPrimitiveModel();
 	/// <summary>
+	/// 現在のMaterial設定をModelへ反映します。
+	/// </summary>
+	void ApplyMaterialToModel();
+	/// <summary>
+	/// 参照中のMaterial Assetを読み込み、失敗時はComponent内Materialを返します。
+	/// </summary>
+	MaterialAssetData GetActiveMaterial() const;
+	/// <summary>
+	/// Material Assetのパスを解決します。
+	/// </summary>
+	std::filesystem::path ResolveMaterialPath() const;
+	/// <summary>
 	/// PrimitiveNameを取得します。
 	/// </summary>
 	const char* GetPrimitiveName() const;
@@ -120,6 +159,9 @@ private:
 	PrimitiveType primitive_ = PrimitiveType::Custom;
 	std::string textureFilePath_ = "resources/white1x1.png";
 	std::string modelFolderPath_ = "player";
+	std::string materialAssetId_;
+	std::string materialPath_;
+	MaterialAssetData material_ = MaterialAsset::CreateDefault();
 };
 
 } // namespace KujakuEngine

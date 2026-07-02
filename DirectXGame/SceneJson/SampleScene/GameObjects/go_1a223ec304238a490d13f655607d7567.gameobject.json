@@ -1,10 +1,10 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_0028e633fb05a08c0016b492af8aebe2",
+  "instanceId": "go_1a223ec304238a490d13f655607d7567",
   "parentInstanceId": "",
   "prefabAssetPath": "Prefabs/Cubsse.prefab.json",
   "prefabObjectId": "object_0",
-  "prefabInstanceRootId": "go_0028e633fb05a08c0016b492af8aebe2",
+  "prefabInstanceRootId": "go_1a223ec304238a490d13f655607d7567",
   "prefabInstanceRoot": true,
   "name": "Cubsse",
   "active": true,
@@ -23,9 +23,9 @@
           2.6757900714874268
         ],
         "translation": [
-          3.39673113822937,
-          -4.778668403625488,
-          -10.28068733215332
+          2.1319096088409424,
+          0.098479263484478,
+          -1.8534820079803467
         ]
       },
       "type": "Transform"

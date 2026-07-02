@@ -33,9 +33,21 @@
     {
       "enabled": true,
       "properties": {
+        "material": {
+          "color": [
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "textureAssetId": "",
+          "texturePath": "resources/white1x1.png"
+        },
+        "materialAssetId": "asset_61a67d3b9848aaa230d03a29fbfaa95e",
+        "materialPath": "Materials/New Material.material.json",
         "modelPath": "player",
         "primitive": "Custom",
-        "texture": "resources/monsterBall.png"
+        "texture": "resources/white1x1.png"
       },
       "type": "ModelRendererComponent"
     }

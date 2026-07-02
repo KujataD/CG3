@@ -7,6 +7,7 @@
 #include "../3d/WorldTransform.h"
 
 #include <d3d12.h>
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -56,6 +57,7 @@ private:
 
 		std::filesystem::path absolutePath; // <! 実ファイル操作に使う絶対パス。
 		std::string displayName;            // <! UI表示用のファイル名。
+		std::string assetId;                // <! .metaで管理されるProject内Asset ID。
 		ProjectItemViewInfo viewInfo;       // <! 分類結果とアイコン/プレビュー方針。
 		uint32_t textureIndex = 0;          // <! TextureManager上のSRVインデックス。
 		bool isDirectory = false;
@@ -123,6 +125,26 @@ private:
 	/// </summary>
 	bool InstantiatePrefabItem(const std::filesystem::path& prefabPath);
 	/// <summary>
+	/// 現在のProject WindowディレクトリにMaterialを作成します。
+	/// </summary>
+	void CreateMaterialInCurrentDirectory();
+	/// <summary>
+	/// Material用の重複しないファイルパスを作成します。
+	/// </summary>
+	std::filesystem::path MakeUniqueMaterialPath() const;
+	/// <summary>
+	/// Material名変更Popupを開く準備をします。
+	/// </summary>
+	void BeginRenameMaterial(const ProjectItem& item);
+	/// <summary>
+	/// Material名変更Popupを描画します。
+	/// </summary>
+	void DrawRenameMaterialPopup();
+	/// <summary>
+	/// 入力されたMaterial名をファイル名とJSONへ反映します。
+	/// </summary>
+	bool CommitRenameMaterial();
+	/// <summary>
 	/// Toolbarを描画します。
 	/// </summary>
 	void DrawToolbar();
@@ -171,9 +193,13 @@ private:
 	std::unordered_map<std::string, std::unique_ptr<ModelPreview>> modelPreviewCache_;
 	// 今フレームProject Window上に見えているモデルだけをOffscreen描画する。
 	std::vector<ModelPreview*> modelPreviewsToRender_;
+	std::filesystem::path renameMaterialTargetPath_;
+	std::array<char, 256> renameMaterialBuffer_{};
+	std::string renameMaterialErrorMessage_;
 	float iconSize_ = 32.0f;
 	uint32_t modelPreviewSize_ = 96;
 	bool initialized_ = false;
+	bool requestOpenRenameMaterialPopup_ = false;
 };
 
 } // namespace KujakuEngine

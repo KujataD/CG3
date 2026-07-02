@@ -30,6 +30,12 @@ ProjectItemViewInfo ProjectAssetClassifier::Classify(const std::filesystem::path
 		return viewInfo;
 	}
 
+	if (IsMaterialFile(path)) {
+		viewInfo.type = ProjectItemType::MaterialFile;
+		viewInfo.iconPath = GetIconPath(viewInfo.type);
+		return viewInfo;
+	}
+
 	// 画像ファイルは固定アイコンではなく、実画像をProject Window上のプレビューとして使う。
 	if (IsImageFile(path)) {
 		viewInfo.type = ProjectItemType::ImageFile;
@@ -64,6 +70,13 @@ bool ProjectAssetClassifier::IsPrefabFile(const std::filesystem::path& path) con
 	return fileName.ends_with(".prefab.json");
 }
 
+bool ProjectAssetClassifier::IsMaterialFile(const std::filesystem::path& path) const {
+	std::string fileName = path.filename().string();
+	std::transform(fileName.begin(), fileName.end(), fileName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	return fileName.ends_with(".material.json");
+}
+
 bool ProjectAssetClassifier::IsImageFile(const std::filesystem::path& path) const {
 	std::string extension = path.extension().string();
 	// 拡張子は大文字小文字が混ざることがあるため、小文字にそろえて比較する。
@@ -92,6 +105,9 @@ bool ProjectAssetClassifier::IsModelFile(const std::filesystem::path& path) cons
 		return true;
 	}
 	if (extension == ".gltf") {
+		return true;
+	}
+	if (extension == ".glb") {
 		return true;
 	}
 
@@ -142,6 +158,9 @@ std::filesystem::path ProjectAssetClassifier::GetIconPath(ProjectItemType type) 
 	}
 	if (type == ProjectItemType::PrefabFile) {
 		return iconDirectory / "icon_prefab.png";
+	}
+	if (type == ProjectItemType::MaterialFile) {
+		return iconDirectory / "icon_file.png";
 	}
 
 	return iconDirectory / "icon_file.png";

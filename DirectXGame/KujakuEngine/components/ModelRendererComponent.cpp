@@ -1,10 +1,12 @@
 #include "ModelRendererComponent.h"
 #include "../3d/Camera.h"
 #include "../3d/Model.h"
+#include "../Editor/AssetDatabase.h"
 #include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
 #include <array>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <utility>
 
@@ -52,6 +54,7 @@ ModelRendererComponent::~ModelRendererComponent() = default;
 void ModelRendererComponent::SetModel(std::unique_ptr<Model> model) {
 	model_ = std::move(model);
 	primitive_ = PrimitiveType::Custom;
+	ApplyMaterialToModel();
 }
 
 void ModelRendererComponent::SetCamera(const Camera* camera) {
@@ -60,8 +63,48 @@ void ModelRendererComponent::SetCamera(const Camera* camera) {
 
 void ModelRendererComponent::SetPrimitive(PrimitiveType primitive, const std::string& textureFilePath) {
 	primitive_ = primitive;
-	textureFilePath_ = textureFilePath;
+	if (!textureFilePath.empty()) {
+		textureFilePath_ = textureFilePath;
+		if (materialAssetId_.empty() && materialPath_.empty()) {
+			material_.texturePath = textureFilePath;
+			material_.textureAssetId.clear();
+		}
+	}
 	RebuildPrimitiveModel();
+}
+
+void ModelRendererComponent::SetMaterialAsset(const std::string& materialAssetId, const std::string& materialPath) {
+	materialAssetId_ = materialAssetId;
+	materialPath_ = materialPath;
+
+	std::filesystem::path resolvedPath = ResolveMaterialPath();
+	if (!resolvedPath.empty()) {
+		std::string message;
+		MaterialAssetData loadedMaterial{};
+		if (MaterialAsset::Load(resolvedPath, loadedMaterial, message)) {
+			material_ = loadedMaterial;
+			textureFilePath_ = material_.texturePath;
+		}
+	}
+
+	ApplyMaterialToModel();
+}
+
+void ModelRendererComponent::SetMaterialPath(const std::string& materialPath) {
+	if (materialPath.empty()) {
+		return;
+	}
+
+	AssetDatabase& assetDatabase = AssetDatabase::GetInstance();
+	std::filesystem::path resolvedPath = assetDatabase.ResolveAssetPath("", materialPath);
+	std::string assetId = assetDatabase.GetOrCreateAssetId(resolvedPath);
+	std::string storedPath = assetDatabase.MakeProjectRelativePath(resolvedPath);
+	SetMaterialAsset(assetId, storedPath);
+}
+
+bool ModelRendererComponent::ApplyMaterialAsset(const std::string& materialPath) {
+	SetMaterialPath(materialPath);
+	return true;
 }
 
 void ModelRendererComponent::Draw() {
@@ -108,9 +151,16 @@ void ModelRendererComponent::DrawInspector() {
 	}
 
 	std::array<char, 256> textureBuffer{};
-	strncpy_s(textureBuffer.data(), textureBuffer.size(), textureFilePath_.c_str(), _TRUNCATE);
+	strncpy_s(textureBuffer.data(), textureBuffer.size(), material_.texturePath.c_str(), _TRUNCATE);
 	if (InspectorUI::InputText("Texture", textureBuffer.data(), textureBuffer.size())) {
-		textureFilePath_ = textureBuffer.data();
+		material_.texturePath = textureBuffer.data();
+		material_.textureAssetId.clear();
+		textureFilePath_ = material_.texturePath;
+		ApplyMaterialToModel();
+	}
+
+	if (InspectorUI::ColorEdit4("Color", &material_.color.x)) {
+		ApplyMaterialToModel();
 	}
 
 	std::array<char, 256> modelBuffer{};
@@ -119,8 +169,22 @@ void ModelRendererComponent::DrawInspector() {
 		modelFolderPath_ = modelBuffer.data();
 	}
 
+	InspectorUI::TextUnformatted("Material");
+	if (materialPath_.empty()) {
+		InspectorUI::TextDisabled("Embedded Material");
+	} else {
+		InspectorUI::TextUnformatted(materialPath_.c_str());
+	}
+
 	if (InspectorUI::Button("Apply")) {
 		RebuildPrimitiveModel();
+	}
+
+	if (!materialPath_.empty()) {
+		if (InspectorUI::Button("Save Material")) {
+			std::string message;
+			MaterialAsset::Save(ResolveMaterialPath(), material_, message);
+		}
 	}
 
 	if (model_) {
@@ -141,28 +205,85 @@ void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	json["primitive"] = GetPrimitiveName();
 	json["texture"] = textureFilePath_;
 	json["modelPath"] = modelFolderPath_;
+	json["materialAssetId"] = materialAssetId_;
+	json["materialPath"] = materialPath_;
+
+	nlohmann::json materialJson;
+	MaterialAsset::WriteJsonObject(materialJson, material_);
+	json["material"] = materialJson;
 }
 
 void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 	std::string primitiveName = ReadString(json, "primitive", GetPrimitiveName());
-	std::string textureFilePath = ReadString(json, "texture", textureFilePath_);
-	SetPrimitive(ReadPrimitiveType(primitiveName), textureFilePath);
+	modelFolderPath_ = ReadString(json, "modelPath", modelFolderPath_);
+	materialAssetId_ = ReadString(json, "materialAssetId", materialAssetId_);
+	materialPath_ = ReadString(json, "materialPath", materialPath_);
+
+	if (json.contains("material") && json.at("material").is_object()) {
+		material_ = MaterialAsset::ReadJsonObject(json.at("material"), material_);
+	} else {
+		material_.texturePath = ReadString(json, "texture", material_.texturePath);
+		material_.textureAssetId.clear();
+	}
+
+	textureFilePath_ = material_.texturePath;
+	SetPrimitive(ReadPrimitiveType(primitiveName), textureFilePath_);
 }
 
 void ModelRendererComponent::RebuildPrimitiveModel() {
+	MaterialAssetData activeMaterial = GetActiveMaterial();
+	material_ = activeMaterial;
+	textureFilePath_ = activeMaterial.texturePath;
+	std::string texturePath = MaterialAsset::ResolveTexturePath(activeMaterial).string();
+
 	if (primitive_ == PrimitiveType::Cube) {
-		model_.reset(Model::CreateCube(textureFilePath_, ShaderModel::kBlingPhongReflection));
+		model_.reset(Model::CreateCube(texturePath, ShaderModel::kBlingPhongReflection));
+		ApplyMaterialToModel();
 		return;
 	}
 
 	if (primitive_ == PrimitiveType::Sphere) {
-		model_.reset(Model::CreateSphere(textureFilePath_, ShaderModel::kBlingPhongReflection));
+		model_.reset(Model::CreateSphere(texturePath, ShaderModel::kBlingPhongReflection));
+		ApplyMaterialToModel();
 		return;
 	}
 
 	if (primitive_ == PrimitiveType::Model) {
 		model_.reset(Model::CreateFromOBJ(modelFolderPath_, ShaderModel::kBlingPhongReflection));
+		ApplyMaterialToModel();
 	}
+}
+
+void ModelRendererComponent::ApplyMaterialToModel() {
+	if (!model_) {
+		return;
+	}
+
+	textureFilePath_ = material_.texturePath;
+	model_->SetColor(material_.color);
+	model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_));
+}
+
+MaterialAssetData ModelRendererComponent::GetActiveMaterial() const {
+	std::filesystem::path resolvedPath = ResolveMaterialPath();
+	if (!resolvedPath.empty()) {
+		std::string message;
+		MaterialAssetData loadedMaterial{};
+		if (MaterialAsset::Load(resolvedPath, loadedMaterial, message)) {
+			return loadedMaterial;
+		}
+	}
+
+	return material_;
+}
+
+std::filesystem::path ModelRendererComponent::ResolveMaterialPath() const {
+	if (materialAssetId_.empty() && materialPath_.empty()) {
+		return {};
+	}
+
+	AssetDatabase& assetDatabase = AssetDatabase::GetInstance();
+	return assetDatabase.ResolveAssetPath(materialAssetId_, materialPath_);
 }
 
 const char* ModelRendererComponent::GetPrimitiveName() const {

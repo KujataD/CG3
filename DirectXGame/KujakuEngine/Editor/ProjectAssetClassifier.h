@@ -13,6 +13,7 @@ enum class ProjectItemType {
 	FolderEmpty,
 	FolderFilled,
 	PrefabFile,
+	MaterialFile,
 	ImageFile,
 	ModelFile,
 	AudioFile,
@@ -59,6 +60,11 @@ public:
 	/// PrefabFileかどうかを返します。
 	/// </summary>
 	bool IsPrefabFile(const std::filesystem::path& path) const;
+
+	/// <summary>
+	/// MaterialFileかどうかを返します。
+	/// </summary>
+	bool IsMaterialFile(const std::filesystem::path& path) const;
 
 	/// <summary>
 	/// ImageFileかどうかを返します。
