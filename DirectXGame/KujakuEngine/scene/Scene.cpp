@@ -251,25 +251,19 @@ void DrawColliderDebugLines(Scene& scene) {
 	}
 }
 
-void DrawGrid(Scene& scene){
-	const float kGridHalfWidth = 2.0f;
-	const uint32_t kSubdivision = 10;
+void DrawGrid(Scene& scene, const Vector4& color){
+	const float kGridHalfWidth = 100.0f;
+	const uint32_t kSubdivision = 100;
 	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);
 
 	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
 		Vector3 lineStart = {-kGridHalfWidth + xIndex * kGridEvery, 0.0f, -kGridHalfWidth};
 		Vector3 lineEnd = {-kGridHalfWidth + xIndex * kGridEvery, 0.0f, kGridHalfWidth};
 
-		lineStart = Transform(lineStart, scene.GetEditorCamera()->matProjection);
-		//lineEnd = Vector3::Transform(lineEnd, viewProjectionMatrix);
-
-		//lineStart = Vector3::Transform(lineStart, viewportMatrix);
-		//lineEnd = Vector3::Transform(lineEnd, viewportMatrix);
-
 		if (xIndex == static_cast<int>(kSubdivision / 2.0f)) {
-			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), BLACK);
+			LineRenderer::DrawLine(lineStart, lineEnd, color);
 		} else {
-			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), 0xAAAAAAFF);
+			LineRenderer::DrawLine(lineStart, lineEnd, color);
 		}
 	}
 
@@ -277,16 +271,10 @@ void DrawGrid(Scene& scene){
 		Vector3 lineStart = {-kGridHalfWidth, 0.0f, -kGridHalfWidth + zIndex * kGridEvery};
 		Vector3 lineEnd = {kGridHalfWidth, 0.0f, -kGridHalfWidth + zIndex * kGridEvery};
 
-		//lineStart = Vector3::Transform(lineStart, viewProjectionMatrix);
-		//lineEnd = Vector3::Transform(lineEnd, viewProjectionMatrix);
-
-		//lineStart = Vector3::Transform(lineStart, viewportMatrix);
-		//lineEnd = Vector3::Transform(lineEnd, viewportMatrix);
-
 		if (zIndex == static_cast<int>(kSubdivision / 2.0f)) {
-			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), BLACK);
+			LineRenderer::DrawLine(lineStart, lineEnd, color);
 		} else {
-			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), 0xAAAAAAFF);
+			LineRenderer::DrawLine(lineStart, lineEnd, color);
 		}
 	}
 }
@@ -497,6 +485,7 @@ void Scene::Draw() {
 
 	DrawEditorBillboards(*this);
 	DrawColliderDebugLines(*this);
+	DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
 }
 
 void Scene::Finalize() {
