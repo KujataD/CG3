@@ -65,6 +65,24 @@
         "texture": "resources/monsterBall.png"
       },
       "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": false,
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "BoxColliderComponent"
     }
   ]
 }

@@ -1348,6 +1348,15 @@ void ImGuiManager::DrawProjectWindow() {
 void ImGuiManager::HandleEditorShortcuts() {
 #ifdef USE_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
+	//io.Fonts->AddFontFromFileTTF(
+	//	"C:/Windows/Fonts/Arial.ttf", 
+	//	24.0f, 
+	//	nullptr, 
+	//	io.Fonts->GetGlyphRangesJapanese()
+	//);
+
+	io.FontGlobalScale = 1.0f;
+
 	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
 	if (scene && !io.WantTextInput && io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
 		bool redo = io.KeyShift;
