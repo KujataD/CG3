@@ -7,6 +7,7 @@
 #include "../Editor/EditorApplication.h"
 #include "../Editor/EditorProjectPath.h"
 #include "../Editor/EditorSelection.h"
+#include "../Editor/EditorUndoManager.h"
 #include "../Editor/PrefabAsset.h"
 #include "../Editor/SceneJsonExporter.h"
 #include "../base/DirectXCommon.h"
@@ -31,6 +32,14 @@ constexpr float kDegreesToRadians = 0.017453292519943295f;
 constexpr const char* kHierarchyDragPayloadType = "KujakuHierarchyGameObject";
 constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
 constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
+
+void CaptureUndo(Scene& scene, const std::string& label) {
+	EditorUndoManager::GetInstance()->Capture(scene, label);
+}
+
+void CaptureUndo(Scene& scene, const std::string& label, const std::string& sceneJson) {
+	EditorUndoManager::GetInstance()->Capture(scene, label, sceneJson);
+}
 
 struct MaterialInspectorState {
 	std::filesystem::path materialPath;
@@ -223,6 +232,8 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 }
 
 GameObject* CreateHierarchyObject(Scene& scene, const char* typeName, GameObject* parent) {
+	CaptureUndo(scene, std::string("Create ") + typeName);
+
 	GameObject* created = nullptr;
 	if (std::strcmp(typeName, "Entity") == 0) {
 		created = scene.CreateEditorEntity();
@@ -362,6 +373,7 @@ void DeleteSelectedHierarchyObject(Scene& scene) {
 	}
 
 	std::string objectName = selectedObject->GetName();
+	CaptureUndo(scene, "Delete GameObject");
 	EditorSelection::GetInstance()->Clear();
 	scene.RemoveGameObjectHierarchy(selectedObject);
 	ImGuiManager::GetInstance()->AddConsoleLog("[Hierarchy] Deleted: " + objectName);
@@ -376,6 +388,7 @@ void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 	if (payload && payload->DataSize == sizeof(GameObject*)) {
 		GameObject* dragged = *static_cast<GameObject**>(payload->Data);
 		if (CanDropHierarchyObject(dragged, targetParent)) {
+			CaptureUndo(scene, "Set Parent");
 			dragged->SetParent(targetParent, true);
 			EditorSelection::GetInstance()->SetSelectedGameObject(dragged);
 		}
@@ -384,6 +397,7 @@ void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 	const ImGuiPayload* prefabPayload = ImGui::AcceptDragDropPayload(kProjectPrefabDragPayloadType);
 	if (prefabPayload && prefabPayload->DataSize > 0) {
 		const char* prefabPathText = static_cast<const char*>(prefabPayload->Data);
+		CaptureUndo(scene, "Instantiate Prefab");
 		GameObject* created = scene.InstantiatePrefab(std::filesystem::path(prefabPathText));
 		if (created) {
 			if (targetParent) {
@@ -396,6 +410,7 @@ void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 	const ImGuiPayload* materialPayload = ImGui::AcceptDragDropPayload(kProjectMaterialDragPayloadType);
 	if (materialPayload && materialPayload->DataSize > 0) {
 		const char* materialPathText = static_cast<const char*>(materialPayload->Data);
+		CaptureUndo(scene, "Assign Material");
 		ApplyMaterialToGameObject(targetParent, std::filesystem::path(materialPathText));
 	}
 
@@ -798,7 +813,15 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 	ImGuizmo::SetGizmoSizeClipSpace(0.2f);
 
 	if (!ImGuizmo::Manipulate(MatrixData(camera->matView), MatrixData(camera->matProjection), operation, ImGuizmo::LOCAL, MatrixData(gizmoMatrix))) {
+		if (!ImGuizmo::IsUsing()) {
+			transformGizmoUsing_ = false;
+		}
 		return;
+	}
+
+	if (!transformGizmoUsing_) {
+		CaptureUndo(*scene, "Transform Gizmo");
+		transformGizmoUsing_ = true;
 	}
 
 	float translation[3]{};
@@ -827,6 +850,9 @@ void ImGuiManager::DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2&
 	}
 	if (!std::isfinite(transform.scale_.z) || transform.scale_.z < 0.001f) {
 		transform.scale_.z = 0.001f;
+	}
+	if (!ImGuizmo::IsUsing()) {
+		transformGizmoUsing_ = false;
 	}
 #else
 	(void)imagePosition;
@@ -1068,6 +1094,7 @@ void ImGuiManager::DrawHierarchyObject(Scene& scene, GameObject* gameObject, Gam
 
 		if (ImGui::BeginMenu("Prefab")) {
 			if (ImGui::MenuItem("Create Prefab")) {
+				CaptureUndo(scene, "Create Prefab");
 				SaveHierarchyObjectAsPrefab(gameObject);
 			}
 			ImGui::EndMenu();
@@ -1076,6 +1103,7 @@ void ImGuiManager::DrawHierarchyObject(Scene& scene, GameObject* gameObject, Gam
 		if (ImGui::BeginMenu("Hierarchy")) {
 			if (gameObject->GetParent()) {
 				if (ImGui::MenuItem("Unparent")) {
+					CaptureUndo(scene, "Unparent");
 					gameObject->SetParent(nullptr, true);
 				}
 			} else {
@@ -1132,6 +1160,8 @@ void ImGuiManager::DrawInspectorWindow() {
 		return;
 	}
 
+	std::string inspectorBeforeJson = scene->ToJson();
+
 	std::array<char, 128> nameBuffer{};
 	std::snprintf(nameBuffer.data(), nameBuffer.size(), "%s", selected->GetName().c_str());
 	if (ImGui::InputText("Name", nameBuffer.data(), nameBuffer.size())) {
@@ -1140,13 +1170,13 @@ void ImGuiManager::DrawInspectorWindow() {
 
 	std::array<char, 128> tagBuffer{};
 	std::snprintf(tagBuffer.data(), tagBuffer.size(), "%s", selected->GetTag().c_str());
-	ImGui::SetNextItemWidth(125.0f); 
+	ImGui::SetNextItemWidth(125.0f);
 	if (ImGui::InputText("Tag", tagBuffer.data(), tagBuffer.size())) {
 		selected->SetTag(tagBuffer.data());
 	}
 	ImGui::SameLine();
 	int layer = static_cast<int>(selected->GetLayer());
-	ImGui::SetNextItemWidth(24.0f); 
+	ImGui::SetNextItemWidth(24.0f);
 	if (ImGui::DragInt("Layer", &layer, 1.0f, 0, 31)) {
 		if (layer < 0) {
 			layer = 0;
@@ -1267,6 +1297,14 @@ void ImGuiManager::DrawInspectorWindow() {
 		ImGui::EndPopup();
 	}
 
+	if (inspectorBeforeJson != scene->ToJson() && !inspectorEditing_) {
+		CaptureUndo(*scene, "Inspector", inspectorBeforeJson);
+		inspectorEditing_ = true;
+	}
+	if (!ImGui::IsAnyItemActive()) {
+		inspectorEditing_ = false;
+	}
+
 	ImGui::End();
 #endif // USE_IMGUI
 }
@@ -1279,6 +1317,14 @@ void ImGuiManager::DrawConsoleWindow() {
 		ImGui::TextUnformatted("Editor Mode: Play");
 	} else {
 		ImGui::TextUnformatted("Editor Mode: Edit");
+	}
+	int undoMaxCount = static_cast<int>(EditorUndoManager::GetInstance()->GetMaxUndoCount());
+	ImGui::SetNextItemWidth(96.0f);
+	if (ImGui::DragInt("Undo Max", &undoMaxCount, 1.0f, 1, 200)) {
+		if (undoMaxCount < 1) {
+			undoMaxCount = 1;
+		}
+		EditorUndoManager::GetInstance()->SetMaxUndoCount(static_cast<size_t>(undoMaxCount));
 	}
 	ImGui::Separator();
 	for (const std::string& log : consoleLogs_) {
@@ -1302,6 +1348,26 @@ void ImGuiManager::DrawProjectWindow() {
 void ImGuiManager::HandleEditorShortcuts() {
 #ifdef USE_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
+	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
+	if (scene && !io.WantTextInput && io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
+		bool redo = io.KeyShift;
+		if (redo) {
+			if (EditorUndoManager::GetInstance()->Redo(*scene)) {
+				AddConsoleLog("[Undo] Redo.");
+			}
+		} else {
+			if (EditorUndoManager::GetInstance()->Undo(*scene)) {
+				AddConsoleLog("[Undo] Undo.");
+			}
+		}
+		return;
+	}
+	if (scene && !io.WantTextInput && io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
+		if (EditorUndoManager::GetInstance()->Redo(*scene)) {
+			AddConsoleLog("[Undo] Redo.");
+		}
+		return;
+	}
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false)) {
 		if (EditorApplication::GetInstance()->IsPrefabEditing()) {
 			EditorApplication::GetInstance()->SavePrefabEditMode();

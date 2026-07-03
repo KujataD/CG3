@@ -28,6 +28,11 @@ public:
 	/// SceneごとのJSONとGameObjectごとのJSONを読み込み、Sceneへ反映する
 	/// </summary>
 	static ImportResult ImportScene(Scene& scene, const std::filesystem::path& projectRoot);
+
+	/// <summary>
+	/// メモリ上のScene JSON文字列をSceneへ反映する
+	/// </summary>
+	static ImportResult ApplySceneJsonString(Scene& scene, const std::string& sceneJsonText);
 };
 
 } // namespace KujakuEngine

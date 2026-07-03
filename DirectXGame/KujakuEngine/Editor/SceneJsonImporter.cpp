@@ -463,4 +463,61 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 	return result;
 }
 
+SceneJsonImporter::ImportResult SceneJsonImporter::ApplySceneJsonString(Scene& scene, const std::string& sceneJsonText) {
+	ImportResult result{};
+	result.imported = true;
+
+	json sceneJson;
+	try {
+		sceneJson = json::parse(sceneJsonText);
+	} catch (const json::exception& exception) {
+		result.message = std::string("Failed to parse memory Scene JSON: ") + exception.what();
+		return result;
+	}
+
+	const json* gameObjectEntries = nullptr;
+	if (sceneJson.contains("objects") && sceneJson.at("objects").is_array()) {
+		gameObjectEntries = &sceneJson.at("objects");
+	} else if (sceneJson.contains("gameObjects") && sceneJson.at("gameObjects").is_array()) {
+		gameObjectEntries = &sceneJson.at("gameObjects");
+	}
+
+	if (!gameObjectEntries) {
+		result.message = "Scene JSON does not contain objects array.";
+		return result;
+	}
+
+	std::vector<GameObject*> importedObjects;
+	std::vector<PendingParentLink> parentLinks;
+	for (size_t objectIndex = 0; objectIndex < gameObjectEntries->size(); ++objectIndex) {
+		const json& gameObjectJson = gameObjectEntries->at(objectIndex);
+		if (!gameObjectJson.is_object()) {
+			continue;
+		}
+
+		std::string objectName = ReadString(gameObjectJson, "name", "GameObject");
+		std::string instanceId = ReadString(gameObjectJson, "instanceId", "");
+		std::string parentInstanceId = ReadString(gameObjectJson, "parentInstanceId", "");
+		GameObject* gameObject = FindExistingGameObject(scene, instanceId, objectIndex, objectName, importedObjects);
+		if (!gameObject) {
+			gameObject = scene.CreateGameObject(objectName);
+		}
+		if (!gameObject) {
+			continue;
+		}
+
+		ApplyGameObject(scene, *gameObject, gameObjectJson, instanceId, result.componentCount);
+		importedObjects.push_back(gameObject);
+		parentLinks.push_back({gameObject, parentInstanceId});
+		++result.gameObjectCount;
+	}
+
+	RemoveUnimportedGameObjects(scene, importedObjects);
+	RestoreHierarchy(importedObjects, parentLinks);
+
+	result.succeeded = true;
+	result.message = "Applied memory Scene JSON.";
+	return result;
+}
+
 } // namespace KujakuEngine

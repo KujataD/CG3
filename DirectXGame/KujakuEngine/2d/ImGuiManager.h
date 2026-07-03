@@ -154,6 +154,8 @@ private:
 	std::vector<std::string> consoleLogs_;
 	ProjectWindow projectWindow_;
 	TransformGizmoOperation gizmoOperation_ = TransformGizmoOperation::Translate;
+	bool transformGizmoUsing_ = false;
+	bool inspectorEditing_ = false;
 	bool gizmoIconsLoaded_ = false;
 	uint32_t gizmoTranslateIconIndex_ = 0;
 	uint32_t gizmoRotateIconIndex_ = 0;

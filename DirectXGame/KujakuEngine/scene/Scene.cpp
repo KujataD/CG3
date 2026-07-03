@@ -708,6 +708,15 @@ std::string Scene::ToJson() const {
 			parentInstanceId = parent->GetInstanceId();
 		}
 		os << "      \"parentInstanceId\": \"" << EscapeJsonString(parentInstanceId) << "\",\n";
+		os << "      \"prefabAssetPath\": \"" << EscapeJsonString(gameObject->GetPrefabAssetPath()) << "\",\n";
+		os << "      \"prefabObjectId\": \"" << EscapeJsonString(gameObject->GetPrefabObjectId()) << "\",\n";
+		os << "      \"prefabInstanceRootId\": \"" << EscapeJsonString(gameObject->GetPrefabInstanceRootId()) << "\",\n";
+		os << "      \"prefabInstanceRoot\": ";
+		if (gameObject->IsPrefabInstanceRoot()) {
+			os << "true,\n";
+		} else {
+			os << "false,\n";
+		}
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
 		os << "      \"tag\": \"" << EscapeJsonString(gameObject->GetTag()) << "\",\n";
 		os << "      \"layer\": " << gameObject->GetLayer() << ",\n";

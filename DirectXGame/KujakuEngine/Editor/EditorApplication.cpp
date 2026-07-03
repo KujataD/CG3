@@ -4,6 +4,7 @@
 #include "SceneJsonExporter.h"
 #include "EditorProjectPath.h"
 #include "EditorSelection.h"
+#include "EditorUndoManager.h"
 #include "PrefabAsset.h"
 #include "SceneJsonImporter.h"
 #include "../3d/Camera.h"
@@ -597,6 +598,7 @@ void EditorApplication::DestroyCurrentScene() {
 void EditorApplication::SetCurrentSceneRaw(Scene* scene, GameModuleApi::DestroySceneFunc destroySceneFunc) {
 	// Scene差し替え時は選択中Objectが古いSceneを指さないよう、必ず選択を解除する。
 	EditorSelection::GetInstance()->Clear();
+	EditorUndoManager::GetInstance()->Clear();
 	DestroyCurrentScene();
 
 	currentScene_ = scene;
@@ -619,6 +621,7 @@ void EditorApplication::InitializeCurrentSceneAndImportJson() {
 			AddConsoleLog("[Editor] Scene JSON import failed: " + importResult.message);
 		}
 	}
+	EditorUndoManager::GetInstance()->Capture(*currentScene_, "Initial");
 }
 
 bool EditorApplication::BuildGameModuleForHotReload(std::filesystem::path& outDllPath) {
