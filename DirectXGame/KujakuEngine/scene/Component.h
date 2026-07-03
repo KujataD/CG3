@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../runtime/KujakuApi.h"
+#include "SerializedFieldRegistry.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -21,6 +22,7 @@ class Camera;
 class ColliderComponent;
 class GameObject;
 class Model;
+class SerializedFieldRegistry;
 struct Collision;
 
 /// <summary>
@@ -44,11 +46,20 @@ public:
 	/// </summary>
 	virtual const char* GetTypeName() const { return "Component"; }
 
-	virtual void DrawInspector() {}
+	/// <summary>
+	/// Inspector表示を行います。
+	/// </summary>
+	virtual void DrawInspector();
 
-	virtual void WriteJson(nlohmann::json& json) const { (void)json; }
+	/// <summary>
+	/// Component固有情報をJSONへ書き出します。
+	/// </summary>
+	virtual void WriteJson(nlohmann::json& json) const;
 
-	virtual void ReadJson(const nlohmann::json& json) { (void)json; }
+	/// <summary>
+	/// Component固有情報をJSONから読み込みます。
+	/// </summary>
+	virtual void ReadJson(const nlohmann::json& json);
 
 	virtual void OnAfterReadJson() {}
 

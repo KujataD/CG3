@@ -30,26 +30,15 @@ public:
 			return;
 		}
 
-		owner->GetTransform().translation_.z += speed_; 
+		owner->GetTransform().translation_.z += speed_;
 	}
 
-	void WriteJson(nlohmann::json& json) const override {
-		json["speed"] = speed_;
-	}
-
-	void ReadJson(const nlohmann::json& json) override {
-		if (!json.contains("speed")) {
-			return;
-		}
-		if (!json.at("speed").is_number()) {
-			return;
-		}
-
-		speed_ = json.at("speed").get<float>();
+	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
+		KUJAKU_REGISTER_FLOAT(speed_, 0.001f, 0.0f, 0.0f);
 	}
 
 private:
-	float speed_ = 0.03f;
+	KUJAKU_FIELD_FLOAT(speed_, 0.03f);
 };
 
 class BlinkComponent : public KujakuEngine::Component {
@@ -82,24 +71,11 @@ public:
 		}
 	}
 
-	void WriteJson(nlohmann::json& json) const override {
-		json["intervalFrame"] = intervalFrame_;
+	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
+		KUJAKU_REGISTER_INT(intervalFrame_, 1.0f, 1, 600);
 	}
 
-	void ReadJson(const nlohmann::json& json) override {
-		if (!json.contains("intervalFrame")) {
-			return;
-		}
-		if (!json.at("intervalFrame").is_number_integer()) {
-			return;
-		}
-
-		intervalFrame_ = json.at("intervalFrame").get<int>();
-		if (intervalFrame_ < 1) {
-			intervalFrame_ = 1;
-		}
-	}
-
+public:
 	void OnAfterReadJson() override {
 		SaveOriginalScale();
 	}
@@ -115,7 +91,7 @@ private:
 	}
 
 private:
-	int intervalFrame_ = 30;
+	KUJAKU_FIELD_INT(intervalFrame_, 30);
 	int frameCount_ = 0;
 	bool visible_ = true;
 	KujakuEngine::Vector3 originalScale_ = {1.0f, 1.0f, 1.0f};

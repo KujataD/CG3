@@ -1,23 +1,7 @@
 #include "RotatorComponent.h"
-#include "../Editor/InspectorUI.h"
 #include "../scene/GameObject.h"
 
 namespace KujakuEngine {
-
-namespace {
-
-float ReadFloat(const nlohmann::json& json, const char* key, float defaultValue) {
-	if (!json.contains(key)) {
-		return defaultValue;
-	}
-	if (!json.at(key).is_number()) {
-		return defaultValue;
-	}
-
-	return json.at(key).get<float>();
-}
-
-} // namespace
 
 void RotatorComponent::Update() {
 	GameObject* owner = GetOwner();
@@ -26,20 +10,6 @@ void RotatorComponent::Update() {
 	}
 
 	owner->GetTransform().rotation_.y += speed_;
-}
-
-void RotatorComponent::DrawInspector() {
-#ifdef USE_IMGUI
-	InspectorUI::DragFloat("Speed", &speed_, 0.001f);
-#endif // USE_IMGUI
-}
-
-void RotatorComponent::WriteJson(nlohmann::json& json) const {
-	json["speed"] = speed_;
-}
-
-void RotatorComponent::ReadJson(const nlohmann::json& json) {
-	speed_ = ReadFloat(json, "speed", speed_);
 }
 
 } // namespace KujakuEngine

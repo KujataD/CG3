@@ -109,6 +109,30 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_40c77fc3833c4a44206156d6dcaf0d7f.gameobject.json"
+    },
+    {
+      "instanceId": "go_dcf10ecb42bd7bac6e78cd5991da62b1",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Cube",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_dcf10ecb42bd7bac6e78cd5991da62b1.gameobject.json"
+    },
+    {
+      "instanceId": "go_b2fa83a5654c336a597d0bec83b24a15",
+      "parentInstanceId": "go_dcf10ecb42bd7bac6e78cd5991da62b1",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Sphere",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_b2fa83a5654c336a597d0bec83b24a15.gameobject.json"
     }
   ]
 }

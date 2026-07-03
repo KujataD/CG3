@@ -38,6 +38,17 @@ float Component::GetEditorBillboardPickRadius() const {
 	return 0.5f;
 }
 
+void Component::DrawInspector() {
+}
+
+void Component::WriteJson(nlohmann::json& json) const {
+	(void)json;
+}
+
+void Component::ReadJson(const nlohmann::json& json) {
+	(void)json;
+}
+
 void Component::WriteJson(std::ostream& os, int indent) const {
 	nlohmann::json properties = nlohmann::json::object();
 	WriteJson(properties);

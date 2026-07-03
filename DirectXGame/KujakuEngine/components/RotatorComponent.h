@@ -19,21 +19,6 @@ public:
 	/// </summary>
 	void Update() override;
 
-	/// <summary>
-	/// Inspector表示
-	/// </summary>
-	void DrawInspector() override;
-
-	/// <summary>
-	/// Component情報をJSON形式で書き出す
-	/// </summary>
-	void WriteJson(nlohmann::json& json) const override;
-
-	/// <summary>
-	/// Component情報をJSON形式で読み込む
-	/// </summary>
-	void ReadJson(const nlohmann::json& json) override;
-
 	void SetSpeed(float speed) { speed_ = speed; }
 
 	/// <summary>
@@ -42,7 +27,11 @@ public:
 	float GetSpeed() const { return speed_; }
 
 private:
-	float speed_ = 0.02f;
+	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
+		KUJAKU_REGISTER_FLOAT(speed_, 0.001f, 0.0f, 0.0f);
+	}
+
+	KUJAKU_FIELD_FLOAT(speed_, 0.02f);
 	float speed3_ = 0.02f;
 };
 
