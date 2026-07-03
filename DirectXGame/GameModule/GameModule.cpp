@@ -121,38 +121,6 @@ private:
 	KujakuEngine::Vector3 originalScale_ = {1.0f, 1.0f, 1.0f};
 };
 
-class TestHotReloadComponent : public KujakuEngine::Component {
-public:
-	const char* GetTypeName() const override { return "TestHotReloadComponent"; }
-
-	void Update() override {
-		KujakuEngine::GameObject* owner = GetOwner();
-		if (!owner) {
-			return;
-		}
-
-		owner->GetTransform().rotation_.y += rotateSpeed_;
-	}
-
-	void WriteJson(nlohmann::json& json) const override {
-		json["rotateSpeed"] = rotateSpeed_;
-	}
-
-	void ReadJson(const nlohmann::json& json) override {
-		if (!json.contains("rotateSpeed")) {
-			return;
-		}
-		if (!json.at("rotateSpeed").is_number()) {
-			return;
-		}
-
-		rotateSpeed_ = json.at("rotateSpeed").get<float>();
-	}
-
-private:
-	float rotateSpeed_ = 0.04f;
-};
-
 } // namespace
 
 extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::ComponentFactory& factory) {
@@ -202,10 +170,6 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 
 	factory.Register("BlinkComponent", kGameModuleName, []() {
 		return std::make_unique<BlinkComponent>();
-	});
-
-	factory.Register("TestHotReloadComponent", kGameModuleName, []() {
-		return std::make_unique<TestHotReloadComponent>();
 	});
 }
 

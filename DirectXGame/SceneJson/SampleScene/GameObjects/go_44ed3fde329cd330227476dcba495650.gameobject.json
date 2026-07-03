@@ -7,6 +7,8 @@
   "prefabInstanceRootId": "go_44ed3fde329cd330227476dcba495650",
   "prefabInstanceRoot": true,
   "name": "Cubsse",
+  "tag": "Untagged",
+  "layer": 0,
   "active": true,
   "components": [
     {
@@ -34,14 +36,27 @@
       "enabled": true,
       "properties": {
         "material": {
-          "color": [
+          "baseColor": [
             1.0,
             1.0,
             1.0,
             1.0
           ],
-          "textureAssetId": "",
-          "texturePath": "resources/monsterBall.png"
+          "name": "New Material",
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/monsterBall.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
         },
         "materialAssetId": "",
         "materialPath": "",

@@ -24,9 +24,9 @@
               2.6757900714874268
             ],
             "translation": [
-              0.0,
-              0.0,
-              0.0
+              -6.987181186676025,
+              -4.3455281257629395,
+              0.10227441787719727
             ]
           },
           "type": "Transform"
@@ -34,18 +34,36 @@
         {
           "enabled": true,
           "properties": {
+            "material": {
+              "baseColor": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "name": "New Material",
+              "textures": {
+                "BaseColor": {
+                  "assetId": "",
+                  "path": "resources/monsterBall.png"
+                },
+                "Environment": {
+                  "assetId": "",
+                  "path": ""
+                },
+                "Normal": {
+                  "assetId": "",
+                  "path": ""
+                }
+              }
+            },
+            "materialAssetId": "",
+            "materialPath": "",
             "modelPath": "player",
             "primitive": "Cube",
             "texture": "resources/monsterBall.png"
           },
           "type": "ModelRendererComponent"
-        },
-        {
-          "enabled": true,
-          "properties": {
-            "speed": 0.13600000739097595
-          },
-          "type": "RotatorComponent"
         }
       ]
     }

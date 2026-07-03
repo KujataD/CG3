@@ -7,6 +7,8 @@
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
   "name": "Main Camera",
+  "tag": "Untagged",
+  "layer": 0,
   "active": true,
   "components": [
     {

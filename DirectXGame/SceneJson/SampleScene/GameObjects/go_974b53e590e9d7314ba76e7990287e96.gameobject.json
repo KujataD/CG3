@@ -7,14 +7,16 @@
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
   "name": "Editor Debug Camera",
+  "tag": "Untagged",
+  "layer": 0,
   "active": true,
   "components": [
     {
       "enabled": true,
       "properties": {
         "rotation": [
-          0.7279958724975586,
-          15.699944496154785,
+          0.6039960384368896,
+          15.059945106506348,
           0.0
         ],
         "scale": [

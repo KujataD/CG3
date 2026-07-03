@@ -178,7 +178,7 @@ private:
 };
 
 /// <summary>
-/// 箱Collider。初期実装では回転を含まないAABBとして扱います。
+/// 箱Collider。WorldRotationがゼロならAABB、回転があればOBBとして扱います。
 /// </summary>
 class KUJAKU_API BoxColliderComponent : public ColliderComponent {
 public:
@@ -190,6 +190,16 @@ public:
 
 	Sphere GetWorldSphere() const override;
 	AABB GetWorldAABB() const override;
+
+	/// <summary>
+	/// WorldRotationがあるためOBBとして扱うかを返します。
+	/// </summary>
+	bool UsesWorldOBB() const;
+
+	/// <summary>
+	/// 箱ColliderをワールドOBBとして取得します。
+	/// </summary>
+	OBB GetWorldOBB() const;
 
 protected:
 	void DrawShapeInspector() override;

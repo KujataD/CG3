@@ -112,6 +112,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\2d\ImGuiManager.cpp" />
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
     <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp" />
+    <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp" />
     <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp" />
@@ -124,7 +125,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\Editor\SceneJsonImporter.cpp" />
     <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp" />
     <ClCompile Include="KujakuEngine\3d\Camera.cpp" />
-    <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp" />
     <ClCompile Include="KujakuEngine\3d\DebugCamera.cpp" />
     <ClCompile Include="KujakuEngine\3d\DirectionalLight.cpp" />
     <ClCompile Include="KujakuEngine\3d\FollowCamera.cpp" />

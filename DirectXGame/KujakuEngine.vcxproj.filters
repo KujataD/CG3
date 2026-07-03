@@ -37,9 +37,6 @@
     <Filter Include="KujakuEngine\shader">
       <UniqueIdentifier>{76e52043-7741-4d1d-9347-3e978724e376}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resources\shader">
-      <UniqueIdentifier>{23cfd18b-0ac0-4ef6-b9e1-b4a934e5c5e5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="KujakuEngine\audio">
       <UniqueIdentifier>{c9b53e20-ad3e-4fdd-b3bf-074a577782c5}</UniqueIdentifier>
     </Filter>
@@ -146,9 +143,6 @@
     </ClCompile>
     <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp">
       <Filter>KujakuEngine\assets</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp">
       <Filter>KujakuEngine\Editor</Filter>
@@ -338,6 +332,9 @@
     </ClCompile>
     <ClCompile Include="KujakuEngine\ai\navigation\steer\WanderBehavior.cpp">
       <Filter>KujakuEngine\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -675,18 +672,14 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\shader\Line.PS.hlsl">
-      <Filter>Resources\shader</Filter>
-    </None>
-    <None Include="Resources\shader\Line.VS.hlsl">
-      <Filter>Resources\shader</Filter>
-    </None>
     <None Include="KujakuEngine\shader\Object3d.hlsli">
       <Filter>KujakuEngine\shader</Filter>
     </None>
     <None Include="KujakuEngine\shader\Particle.hlsli">
       <Filter>KujakuEngine\shader</Filter>
     </None>
+    <None Include="Resources\shader\Line.PS.hlsl" />
+    <None Include="Resources\shader\Line.VS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="KujakuEngine\shader\Object3d.PS.hlsl">

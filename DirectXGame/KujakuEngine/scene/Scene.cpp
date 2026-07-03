@@ -1,11 +1,15 @@
 #include "Scene.h"
 #include "../3d/Camera.h"
+#include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
 #include "../components/ColliderComponent.h"
 #include "../Editor/EditorApplication.h"
+#include "../Editor/EditorSelection.h"
 #include "../Editor/PrefabAsset.h"
 #include <algorithm>
+#include <cmath>
+#include <cstdint>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -17,6 +21,9 @@ namespace {
 
 constexpr float kEditorBillboardScale = 0.45f;
 constexpr const char* kEditorBillboardTextureDirectory = "KujakuEngine/resources/images/";
+constexpr int32_t kColliderSphereSubdivision = 12;
+constexpr float kColliderDebugPi = 3.14159265358979323846f;
+constexpr Vector4 kColliderDebugColor = {0.1f, 1.0f, 0.35f, 1.0f};
 
 struct EditorBillboardDrawCache {
 	std::unordered_map<std::string, std::unique_ptr<Model>> models;
@@ -113,6 +120,177 @@ void CollectSceneColliders(Scene& scene, std::vector<ColliderComponent*>& outCol
 		}
 	}
 }
+
+void DrawAABB(const AABB& aabb, const Vector4& color) {
+	Vector3 corners[8] = {
+	    {aabb.min.x, aabb.min.y, aabb.min.z},
+	    {aabb.max.x, aabb.min.y, aabb.min.z},
+	    {aabb.max.x, aabb.max.y, aabb.min.z},
+	    {aabb.min.x, aabb.max.y, aabb.min.z},
+	    {aabb.min.x, aabb.min.y, aabb.max.z},
+	    {aabb.max.x, aabb.min.y, aabb.max.z},
+	    {aabb.max.x, aabb.max.y, aabb.max.z},
+	    {aabb.min.x, aabb.max.y, aabb.max.z},
+	};
+
+	LineRenderer::DrawLine(corners[0], corners[1], color);
+	LineRenderer::DrawLine(corners[1], corners[2], color);
+	LineRenderer::DrawLine(corners[2], corners[3], color);
+	LineRenderer::DrawLine(corners[3], corners[0], color);
+
+	LineRenderer::DrawLine(corners[4], corners[5], color);
+	LineRenderer::DrawLine(corners[5], corners[6], color);
+	LineRenderer::DrawLine(corners[6], corners[7], color);
+	LineRenderer::DrawLine(corners[7], corners[4], color);
+
+	LineRenderer::DrawLine(corners[0], corners[4], color);
+	LineRenderer::DrawLine(corners[1], corners[5], color);
+	LineRenderer::DrawLine(corners[2], corners[6], color);
+	LineRenderer::DrawLine(corners[3], corners[7], color);
+}
+
+void DrawOBB(const OBB& obb, const Vector4& color) {
+	Vector3 axisX = obb.orientations[0] * obb.size.x;
+	Vector3 axisY = obb.orientations[1] * obb.size.y;
+	Vector3 axisZ = obb.orientations[2] * obb.size.z;
+	Vector3 corners[8] = {
+	    obb.center - axisX - axisY - axisZ,
+	    obb.center + axisX - axisY - axisZ,
+	    obb.center + axisX + axisY - axisZ,
+	    obb.center - axisX + axisY - axisZ,
+	    obb.center - axisX - axisY + axisZ,
+	    obb.center + axisX - axisY + axisZ,
+	    obb.center + axisX + axisY + axisZ,
+	    obb.center - axisX + axisY + axisZ,
+	};
+
+	LineRenderer::DrawLine(corners[0], corners[1], color);
+	LineRenderer::DrawLine(corners[1], corners[2], color);
+	LineRenderer::DrawLine(corners[2], corners[3], color);
+	LineRenderer::DrawLine(corners[3], corners[0], color);
+
+	LineRenderer::DrawLine(corners[4], corners[5], color);
+	LineRenderer::DrawLine(corners[5], corners[6], color);
+	LineRenderer::DrawLine(corners[6], corners[7], color);
+	LineRenderer::DrawLine(corners[7], corners[4], color);
+
+	LineRenderer::DrawLine(corners[0], corners[4], color);
+	LineRenderer::DrawLine(corners[1], corners[5], color);
+	LineRenderer::DrawLine(corners[2], corners[6], color);
+	LineRenderer::DrawLine(corners[3], corners[7], color);
+}
+
+void DrawSphere(const Sphere& sphere, const Vector4& color) {
+	if (sphere.radius <= 0.0f) {
+		return;
+	}
+
+	float lonEvery = 2.0f * kColliderDebugPi / static_cast<float>(kColliderSphereSubdivision);
+	float latEvery = kColliderDebugPi / static_cast<float>(kColliderSphereSubdivision);
+
+	for (int32_t latIndex = 0; latIndex < kColliderSphereSubdivision; ++latIndex) {
+		float lat = -kColliderDebugPi / 2.0f + latEvery * static_cast<float>(latIndex);
+
+		for (int32_t lonIndex = 0; lonIndex < kColliderSphereSubdivision; ++lonIndex) {
+			float lon = lonEvery * static_cast<float>(lonIndex);
+
+			Vector3 a{};
+			Vector3 b{};
+			Vector3 c{};
+
+			a.x = sphere.radius * std::cos(lat) * std::cos(lon) + sphere.center.x;
+			a.y = sphere.radius * std::sin(lat) + sphere.center.y;
+			a.z = sphere.radius * std::cos(lat) * std::sin(lon) + sphere.center.z;
+
+			b.x = sphere.radius * std::cos(lat + latEvery) * std::cos(lon) + sphere.center.x;
+			b.y = sphere.radius * std::sin(lat + latEvery) + sphere.center.y;
+			b.z = sphere.radius * std::cos(lat + latEvery) * std::sin(lon) + sphere.center.z;
+
+			c.x = sphere.radius * std::cos(lat) * std::cos(lon + lonEvery) + sphere.center.x;
+			c.y = sphere.radius * std::sin(lat) + sphere.center.y;
+			c.z = sphere.radius * std::cos(lat) * std::sin(lon + lonEvery) + sphere.center.z;
+
+			LineRenderer::DrawLine(a, b, color);
+			LineRenderer::DrawLine(a, c, color);
+		}
+	}
+}
+
+void DrawColliderDebugLines(Scene& scene) {
+	if (EditorApplication::GetInstance()->IsPlaying()) {
+		return;
+	}
+
+	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	if (!selectedObject || !selectedObject->IsActiveInHierarchy()) {
+		return;
+	}
+	if (scene.FindGameObjectByInstanceId(selectedObject->GetInstanceId()) != selectedObject) {
+		return;
+	}
+
+	for (const std::unique_ptr<Component>& component : selectedObject->GetComponents()) {
+		if (!component || !component->IsEnabled()) {
+			continue;
+		}
+
+		ColliderComponent* collider = dynamic_cast<ColliderComponent*>(component.get());
+		if (!collider) {
+			continue;
+		}
+		if (collider->GetShapeType() == ColliderShapeType::Sphere) {
+			DrawSphere(collider->GetWorldSphere(), kColliderDebugColor);
+		} else if (collider->GetShapeType() == ColliderShapeType::Box) {
+			BoxColliderComponent* boxCollider = dynamic_cast<BoxColliderComponent*>(collider);
+			if (boxCollider && boxCollider->UsesWorldOBB()) {
+				DrawOBB(boxCollider->GetWorldOBB(), kColliderDebugColor);
+			} else {
+				DrawAABB(collider->GetWorldAABB(), kColliderDebugColor);
+			}
+		}
+	}
+}
+
+void DrawGrid(Scene& scene){
+	const float kGridHalfWidth = 2.0f;
+	const uint32_t kSubdivision = 10;
+	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);
+
+	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
+		Vector3 lineStart = {-kGridHalfWidth + xIndex * kGridEvery, 0.0f, -kGridHalfWidth};
+		Vector3 lineEnd = {-kGridHalfWidth + xIndex * kGridEvery, 0.0f, kGridHalfWidth};
+
+		lineStart = Transform(lineStart, scene.GetEditorCamera()->matProjection);
+		//lineEnd = Vector3::Transform(lineEnd, viewProjectionMatrix);
+
+		//lineStart = Vector3::Transform(lineStart, viewportMatrix);
+		//lineEnd = Vector3::Transform(lineEnd, viewportMatrix);
+
+		if (xIndex == static_cast<int>(kSubdivision / 2.0f)) {
+			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), BLACK);
+		} else {
+			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), 0xAAAAAAFF);
+		}
+	}
+
+	for (uint32_t zIndex = 0; zIndex <= kSubdivision; ++zIndex) {
+		Vector3 lineStart = {-kGridHalfWidth, 0.0f, -kGridHalfWidth + zIndex * kGridEvery};
+		Vector3 lineEnd = {kGridHalfWidth, 0.0f, -kGridHalfWidth + zIndex * kGridEvery};
+
+		//lineStart = Vector3::Transform(lineStart, viewProjectionMatrix);
+		//lineEnd = Vector3::Transform(lineEnd, viewProjectionMatrix);
+
+		//lineStart = Vector3::Transform(lineStart, viewportMatrix);
+		//lineEnd = Vector3::Transform(lineEnd, viewportMatrix);
+
+		if (zIndex == static_cast<int>(kSubdivision / 2.0f)) {
+			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), BLACK);
+		} else {
+			//Novice::DrawLine(static_cast<int>(lineStart.x), static_cast<int>(lineStart.y), static_cast<int>(lineEnd.x), static_cast<int>(lineEnd.y), 0xAAAAAAFF);
+		}
+	}
+}
+
 
 std::string EscapeJsonString(const std::string& text) {
 	std::string escaped;
@@ -318,6 +496,7 @@ void Scene::Draw() {
 	}
 
 	DrawEditorBillboards(*this);
+	DrawColliderDebugLines(*this);
 }
 
 void Scene::Finalize() {

@@ -51,23 +51,10 @@ public:
 	/// 登録済みComponent名一覧を取得
 	/// </summary>
 	KUJAKU_API const std::vector<std::string>& GetRegisteredTypeNames() const;
-
 private:
-	/// <summary>
-	/// ComponentFactoryを実行します。
-	/// </summary>
 	ComponentFactory() = default;
-	/// <summary>
-	/// ComponentFactoryを実行します。
-	/// </summary>
 	~ComponentFactory() = default;
-	/// <summary>
-	/// ComponentFactoryを実行します。
-	/// </summary>
 	ComponentFactory(const ComponentFactory&) = delete;
-	/// <summary>
-	/// operator=を実行します。
-	/// </summary>
 	ComponentFactory& operator=(const ComponentFactory&) = delete;
 
 private:

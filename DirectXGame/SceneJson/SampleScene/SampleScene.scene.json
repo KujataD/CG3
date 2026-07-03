@@ -10,6 +10,8 @@
       "prefabInstanceRootId": "go_0028e633fb05a08c0016b492af8aebe2",
       "prefabInstanceRoot": true,
       "name": "Cubsse",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_0028e633fb05a08c0016b492af8aebe2.gameobject.json"
     },
     {
@@ -20,6 +22,8 @@
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
       "name": "Editor Debug Camera",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_974b53e590e9d7314ba76e7990287e96.gameobject.json"
     },
     {
@@ -30,6 +34,8 @@
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
       "name": "Directional Light",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_20bf9823fb61c498105d0b9aafb8922d.gameobject.json"
     },
     {
@@ -40,6 +46,8 @@
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
       "name": "Point Light",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_0b3976b031f89672059e7cd34af4cc9d.gameobject.json"
     },
     {
@@ -50,6 +58,8 @@
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
       "name": "Terrain",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_ebb9b52e9bae0c3875de1d1c18c6b11a.gameobject.json"
     },
     {
@@ -60,6 +70,8 @@
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
       "name": "Main Camera",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_54bb2aec2d051fe82a5f52fd4139f659.gameobject.json"
     },
     {
@@ -70,6 +82,8 @@
       "prefabInstanceRootId": "go_44ed3fde329cd330227476dcba495650",
       "prefabInstanceRoot": true,
       "name": "Cubsse",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_44ed3fde329cd330227476dcba495650.gameobject.json"
     },
     {
@@ -80,6 +94,8 @@
       "prefabInstanceRootId": "go_1a223ec304238a490d13f655607d7567",
       "prefabInstanceRoot": true,
       "name": "Cubsse",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_1a223ec304238a490d13f655607d7567.gameobject.json"
     },
     {
@@ -90,6 +106,8 @@
       "prefabInstanceRootId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
       "prefabInstanceRoot": true,
       "name": "Cubsse",
+      "tag": "Untagged",
+      "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_40c77fc3833c4a44206156d6dcaf0d7f.gameobject.json"
     }
   ]

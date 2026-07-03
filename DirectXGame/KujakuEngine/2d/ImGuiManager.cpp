@@ -1140,11 +1140,13 @@ void ImGuiManager::DrawInspectorWindow() {
 
 	std::array<char, 128> tagBuffer{};
 	std::snprintf(tagBuffer.data(), tagBuffer.size(), "%s", selected->GetTag().c_str());
+	ImGui::SetNextItemWidth(125.0f); 
 	if (ImGui::InputText("Tag", tagBuffer.data(), tagBuffer.size())) {
 		selected->SetTag(tagBuffer.data());
 	}
-
+	ImGui::SameLine();
 	int layer = static_cast<int>(selected->GetLayer());
+	ImGui::SetNextItemWidth(24.0f); 
 	if (ImGui::DragInt("Layer", &layer, 1.0f, 0, 31)) {
 		if (layer < 0) {
 			layer = 0;

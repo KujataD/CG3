@@ -14,6 +14,7 @@ KujakuEngine は、DirectX 12 の描画基盤に、ImGui Docking を使った簡
 - [Play / Edit の仕様](#play--edit-の仕様)
 - [Scene / GameObject / Component](#scene--gameobject--component)
 - [標準 Component](#標準-component)
+- [Collider / Layer / LayerMask](#collider--layer--layermask)
 - [Scene JSON 保存と復元](#scene-json-保存と復元)
 - [Game Window 選択と Transform Gizmo](#game-window-選択と-transform-gizmo)
 - [Camera / Light の扱い](#camera--light-の扱い)
@@ -316,10 +317,68 @@ Component は次の目的を持ちます。
 | `DebugCameraComponent` | Edit 中の DebugCamera 操作を GameObject の Transform と Camera に反映します。 |
 | `DirectionalLightComponent` | DirectionalLight の GPU データを GameObject 上で管理します。 |
 | `PointLightComponent` | GameObject の Transform 位置を PointLight に反映します。 |
+| `SphereColliderComponent` | 球形の当たり判定です。GameObject の Layer と Collider の Collision Mask で接触対象を制御できます。 |
+| `BoxColliderComponent` | 箱形の当たり判定です。WorldRotation がゼロなら AABB、少しでも回転があれば OBB として判定します。 |
 | `RotatorComponent` | 所有 GameObject を回転させるサンプル Component です。 |
 | `TransformSnapshotComponent` | Play 開始時の Transform を保存し、Stop 時に戻します。 |
 
 Inspector の `Add Component` メニューには、`ComponentFactory` に登録された Component 名が表示されます。
+
+## Collider / Layer / LayerMask
+
+Collider は `SphereColliderComponent` と `BoxColliderComponent` を GameObject に追加して使います。`ColliderComponent` 自体は基底クラスなので、Inspector から追加する対象は Sphere / Box のどちらかです。
+
+### Layer
+
+`Layer` は GameObject 側にある 0 から 31 の番号です。Inspector の GameObject 情報にある `Layer` で編集できます。Collider は Owner の GameObject の Layer を、自分の所属 Layer として扱います。
+
+内部では `1u << layer` のビットとして扱います。例えば `Layer = 3` の GameObject は `0b00001000` の所属ビットになります。
+
+### Collision Mask
+
+`Collision Mask` は Collider 側にある値で、「どの Layer の相手と接触するか」をビットで指定します。
+
+| 値 | 意味 |
+| --- | --- |
+| `-1` | 全 Layer と接触します。内部値は `0xffffffff` です。 |
+| `0` | どの Layer とも接触しません。 |
+| `1 << 0` | Layer 0 の相手だけ接触します。 |
+| `1 << 3` | Layer 3 の相手だけ接触します。 |
+| `(1 << 0) | (1 << 3)` | Layer 0 と Layer 3 の相手と接触します。 |
+
+接触するには、片方だけでなく両方の Mask が相手の Layer を許可している必要があります。
+
+```cpp
+// Player を Layer 0、Enemy を Layer 1 として扱う例
+player->SetLayer(0);
+enemy->SetLayer(1);
+
+SphereColliderComponent* playerCollider = player->AddComponent<SphereColliderComponent>();
+BoxColliderComponent* enemyCollider = enemy->AddComponent<BoxColliderComponent>();
+
+playerCollider->SetCollisionMask(1u << 1); // Player は Enemy Layer と接触する
+enemyCollider->SetCollisionMask(1u << 0);  // Enemy は Player Layer と接触する
+```
+
+上の例で `enemyCollider->SetCollisionMask(0);` にすると、Player 側が Enemy を許可していても、Enemy 側が Player を許可していないため接触しません。
+
+### Trigger と Collision Event
+
+Collider の `Is Trigger` を有効にすると、接触時は `OnTriggerEnter` / `OnTriggerStay` / `OnTriggerExit` が呼ばれます。通常 Collider 同士なら `OnCollisionEnter` / `OnCollisionStay` / `OnCollisionExit` が呼ばれます。
+
+どちらの場合も Layer / Collision Mask の判定を通過した組み合わせだけが対象です。
+
+### BoxCollider の AABB / OBB
+
+`BoxColliderComponent` は、Owner の WorldRotation がすべてゼロなら AABB として判定します。少しでも回転がある場合は OBB として判定します。
+
+そのため、回転していない床や壁は軽い AABB 判定、回転した箱や斜めの障害物は OBB 判定として扱えます。
+
+### Collider のデバッグ可視化
+
+Edit 中に DebugCamera で表示しているときだけ、選択中 GameObject の Collider が `LineRenderer` で可視化されます。選択していない Object の Collider は表示されません。
+
+Sphere は緯度・経度のライン、Box は AABB または OBB のワイヤーで表示します。可視化は判定形状の確認用で、Play 中の Main Camera 表示では描画しません。
 
 ## Scene JSON 保存と復元
 

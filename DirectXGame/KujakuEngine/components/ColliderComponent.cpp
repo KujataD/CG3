@@ -11,6 +11,8 @@ namespace KujakuEngine {
 
 namespace {
 
+constexpr float kWorldRotationEpsilon = 0.0001f;
+
 uint64_t GenerateColliderRuntimeId() {
 	static std::atomic<uint64_t> counter = 0;
 	return ++counter;
@@ -87,21 +89,102 @@ Vector3 MaxVector(const Vector3& a, const Vector3& b) {
 	};
 }
 
+bool IsNearlyEqual(float a, float b) {
+	return std::fabs(a - b) <= kWorldRotationEpsilon;
+}
+
+bool IsNearlyEqual(const Vector3& a, const Vector3& b) {
+	if (!IsNearlyEqual(a.x, b.x)) {
+		return false;
+	}
+	if (!IsNearlyEqual(a.y, b.y)) {
+		return false;
+	}
+	if (!IsNearlyEqual(a.z, b.z)) {
+		return false;
+	}
+	return true;
+}
+
+Vector3 GetWorldAxis(const Matrix4x4& matrix, uint32_t axisIndex) {
+	Vector3 axis = {matrix.m[axisIndex][0], matrix.m[axisIndex][1], matrix.m[axisIndex][2]};
+	float length = Length(axis);
+	if (length <= kWorldRotationEpsilon) {
+		if (axisIndex == 0) {
+			return {1.0f, 0.0f, 0.0f};
+		}
+		if (axisIndex == 1) {
+			return {0.0f, 1.0f, 0.0f};
+		}
+		return {0.0f, 0.0f, 1.0f};
+	}
+	return axis / length;
+}
+
+float GetWorldAxisScale(const Matrix4x4& matrix, uint32_t axisIndex) {
+	Vector3 axis = {matrix.m[axisIndex][0], matrix.m[axisIndex][1], matrix.m[axisIndex][2]};
+	return Length(axis);
+}
+
+bool HasWorldRotation(const Matrix4x4& matrix) {
+	if (!IsNearlyEqual(GetWorldAxis(matrix, 0), {1.0f, 0.0f, 0.0f})) {
+		return true;
+	}
+	if (!IsNearlyEqual(GetWorldAxis(matrix, 1), {0.0f, 1.0f, 0.0f})) {
+		return true;
+	}
+	if (!IsNearlyEqual(GetWorldAxis(matrix, 2), {0.0f, 0.0f, 1.0f})) {
+		return true;
+	}
+	return false;
+}
+
+const BoxColliderComponent* AsBoxCollider(const ColliderComponent& collider) {
+	return dynamic_cast<const BoxColliderComponent*>(&collider);
+}
+
+bool IsCollisionBoxAndBox(const ColliderComponent& a, const ColliderComponent& b) {
+	const BoxColliderComponent* boxA = AsBoxCollider(a);
+	const BoxColliderComponent* boxB = AsBoxCollider(b);
+	if (!boxA || !boxB) {
+		return ShapeUtil::IsCollision(a.GetWorldAABB(), b.GetWorldAABB());
+	}
+
+	if (boxA->UsesWorldOBB() || boxB->UsesWorldOBB()) {
+		return ShapeUtil::IsCollision(boxA->GetWorldOBB(), boxB->GetWorldOBB());
+	}
+
+	return ShapeUtil::IsCollision(boxA->GetWorldAABB(), boxB->GetWorldAABB());
+}
+
+bool IsCollisionBoxAndSphere(const ColliderComponent& boxCollider, const ColliderComponent& sphereCollider) {
+	const BoxColliderComponent* box = AsBoxCollider(boxCollider);
+	if (!box) {
+		return ShapeUtil::IsCollision(boxCollider.GetWorldAABB(), sphereCollider.GetWorldSphere());
+	}
+
+	if (box->UsesWorldOBB()) {
+		return ShapeUtil::IsCollision(box->GetWorldOBB(), sphereCollider.GetWorldSphere());
+	}
+
+	return ShapeUtil::IsCollision(box->GetWorldAABB(), sphereCollider.GetWorldSphere());
+}
+
 bool IntersectsByShape(const ColliderComponent& a, const ColliderComponent& b) {
 	if (a.GetShapeType() == ColliderShapeType::Sphere && b.GetShapeType() == ColliderShapeType::Sphere) {
 		return ShapeUtil::IsCollision(a.GetWorldSphere(), b.GetWorldSphere());
 	}
 
 	if (a.GetShapeType() == ColliderShapeType::Box && b.GetShapeType() == ColliderShapeType::Box) {
-		return ShapeUtil::IsCollision(a.GetWorldAABB(), b.GetWorldAABB());
+		return IsCollisionBoxAndBox(a, b);
 	}
 
 	if (a.GetShapeType() == ColliderShapeType::Box && b.GetShapeType() == ColliderShapeType::Sphere) {
-		return ShapeUtil::IsCollision(a.GetWorldAABB(), b.GetWorldSphere());
+		return IsCollisionBoxAndSphere(a, b);
 	}
 
 	if (a.GetShapeType() == ColliderShapeType::Sphere && b.GetShapeType() == ColliderShapeType::Box) {
-		return ShapeUtil::IsCollision(b.GetWorldAABB(), a.GetWorldSphere());
+		return IsCollisionBoxAndSphere(b, a);
 	}
 
 	return false;
@@ -246,13 +329,38 @@ void BoxColliderComponent::SetSize(const Vector3& size) {
 }
 
 Sphere BoxColliderComponent::GetWorldSphere() const {
-	AABB aabb = GetWorldAABB();
-	Vector3 center = (aabb.min + aabb.max) * 0.5f;
-	float radius = Length(aabb.max - center);
+	OBB obb = GetWorldOBB();
+	float radius = Length(obb.size);
+	Vector3 center = obb.center;
 	return {center, radius};
 }
 
 AABB BoxColliderComponent::GetWorldAABB() const {
+	if (UsesWorldOBB()) {
+		OBB obb = GetWorldOBB();
+		Vector3 corners[8] = {
+		    obb.center - obb.orientations[0] * obb.size.x - obb.orientations[1] * obb.size.y - obb.orientations[2] * obb.size.z,
+		    obb.center + obb.orientations[0] * obb.size.x - obb.orientations[1] * obb.size.y - obb.orientations[2] * obb.size.z,
+		    obb.center + obb.orientations[0] * obb.size.x + obb.orientations[1] * obb.size.y - obb.orientations[2] * obb.size.z,
+		    obb.center - obb.orientations[0] * obb.size.x + obb.orientations[1] * obb.size.y - obb.orientations[2] * obb.size.z,
+		    obb.center - obb.orientations[0] * obb.size.x - obb.orientations[1] * obb.size.y + obb.orientations[2] * obb.size.z,
+		    obb.center + obb.orientations[0] * obb.size.x - obb.orientations[1] * obb.size.y + obb.orientations[2] * obb.size.z,
+		    obb.center + obb.orientations[0] * obb.size.x + obb.orientations[1] * obb.size.y + obb.orientations[2] * obb.size.z,
+		    obb.center - obb.orientations[0] * obb.size.x + obb.orientations[1] * obb.size.y + obb.orientations[2] * obb.size.z,
+		};
+
+		AABB aabb{corners[0], corners[0]};
+		for (const Vector3& corner : corners) {
+			aabb.min.x = (std::min)(aabb.min.x, corner.x);
+			aabb.min.y = (std::min)(aabb.min.y, corner.y);
+			aabb.min.z = (std::min)(aabb.min.z, corner.z);
+			aabb.max.x = (std::max)(aabb.max.x, corner.x);
+			aabb.max.y = (std::max)(aabb.max.y, corner.y);
+			aabb.max.z = (std::max)(aabb.max.z, corner.z);
+		}
+		return aabb;
+	}
+
 	Vector3 center = GetWorldCenter();
 	Vector3 size = size_;
 	GameObject* owner = GetOwner();
@@ -267,6 +375,40 @@ AABB BoxColliderComponent::GetWorldAABB() const {
 	AABB aabb{center - halfSize, center + halfSize};
 	aabb.SwapMinMax();
 	return aabb;
+}
+
+bool BoxColliderComponent::UsesWorldOBB() const {
+	GameObject* owner = GetOwner();
+	if (!owner) {
+		return false;
+	}
+
+	const_cast<GameObject*>(owner)->UpdateWorldTransformSelfAndAncestors();
+	return HasWorldRotation(owner->GetTransform().matWorld_);
+}
+
+OBB BoxColliderComponent::GetWorldOBB() const {
+	OBB obb{};
+	obb.center = GetWorldCenter();
+	obb.orientations[0] = {1.0f, 0.0f, 0.0f};
+	obb.orientations[1] = {0.0f, 1.0f, 0.0f};
+	obb.orientations[2] = {0.0f, 0.0f, 1.0f};
+	obb.size = size_ * 0.5f;
+
+	GameObject* owner = GetOwner();
+	if (!owner) {
+		return obb;
+	}
+
+	const_cast<GameObject*>(owner)->UpdateWorldTransformSelfAndAncestors();
+	const Matrix4x4& matrix = owner->GetTransform().matWorld_;
+	obb.orientations[0] = GetWorldAxis(matrix, 0);
+	obb.orientations[1] = GetWorldAxis(matrix, 1);
+	obb.orientations[2] = GetWorldAxis(matrix, 2);
+	obb.size.x *= GetWorldAxisScale(matrix, 0);
+	obb.size.y *= GetWorldAxisScale(matrix, 1);
+	obb.size.z *= GetWorldAxisScale(matrix, 2);
+	return obb;
 }
 
 void BoxColliderComponent::DrawShapeInspector() {
