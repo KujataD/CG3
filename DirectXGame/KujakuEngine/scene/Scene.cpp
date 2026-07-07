@@ -3,10 +3,10 @@
 #include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
-#include "../components/ColliderComponent.h"
 #include "../Editor/EditorApplication.h"
 #include "../Editor/EditorSelection.h"
 #include "../Editor/PrefabAsset.h"
+#include "../components/ColliderComponent.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -124,13 +124,13 @@ void CollectSceneColliders(Scene& scene, std::vector<ColliderComponent*>& outCol
 void DrawAABB(const AABB& aabb, const Vector4& color) {
 	Vector3 corners[8] = {
 	    {aabb.min.x, aabb.min.y, aabb.min.z},
-	    {aabb.max.x, aabb.min.y, aabb.min.z},
-	    {aabb.max.x, aabb.max.y, aabb.min.z},
-	    {aabb.min.x, aabb.max.y, aabb.min.z},
+        {aabb.max.x, aabb.min.y, aabb.min.z},
+        {aabb.max.x, aabb.max.y, aabb.min.z},
+        {aabb.min.x, aabb.max.y, aabb.min.z},
 	    {aabb.min.x, aabb.min.y, aabb.max.z},
-	    {aabb.max.x, aabb.min.y, aabb.max.z},
-	    {aabb.max.x, aabb.max.y, aabb.max.z},
-	    {aabb.min.x, aabb.max.y, aabb.max.z},
+        {aabb.max.x, aabb.min.y, aabb.max.z},
+        {aabb.max.x, aabb.max.y, aabb.max.z},
+        {aabb.min.x, aabb.max.y, aabb.max.z},
 	};
 
 	LineRenderer::DrawLine(corners[0], corners[1], color);
@@ -154,14 +154,8 @@ void DrawOBB(const OBB& obb, const Vector4& color) {
 	Vector3 axisY = obb.orientations[1] * obb.size.y;
 	Vector3 axisZ = obb.orientations[2] * obb.size.z;
 	Vector3 corners[8] = {
-	    obb.center - axisX - axisY - axisZ,
-	    obb.center + axisX - axisY - axisZ,
-	    obb.center + axisX + axisY - axisZ,
-	    obb.center - axisX + axisY - axisZ,
-	    obb.center - axisX - axisY + axisZ,
-	    obb.center + axisX - axisY + axisZ,
-	    obb.center + axisX + axisY + axisZ,
-	    obb.center - axisX + axisY + axisZ,
+	    obb.center - axisX - axisY - axisZ, obb.center + axisX - axisY - axisZ, obb.center + axisX + axisY - axisZ, obb.center - axisX + axisY - axisZ,
+	    obb.center - axisX - axisY + axisZ, obb.center + axisX - axisY + axisZ, obb.center + axisX + axisY + axisZ, obb.center - axisX + axisY + axisZ,
 	};
 
 	LineRenderer::DrawLine(corners[0], corners[1], color);
@@ -251,7 +245,7 @@ void DrawColliderDebugLines(Scene& scene) {
 	}
 }
 
-void DrawGrid(Scene& scene, const Vector4& color){
+void DrawGrid(Scene& scene, const Vector4& color) {
 	const float kGridHalfWidth = 100.0f;
 	const uint32_t kSubdivision = 100;
 	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);
@@ -260,25 +254,16 @@ void DrawGrid(Scene& scene, const Vector4& color){
 		Vector3 lineStart = {-kGridHalfWidth + xIndex * kGridEvery, 0.0f, -kGridHalfWidth};
 		Vector3 lineEnd = {-kGridHalfWidth + xIndex * kGridEvery, 0.0f, kGridHalfWidth};
 
-		if (xIndex == static_cast<int>(kSubdivision / 2.0f)) {
-			LineRenderer::DrawLine(lineStart, lineEnd, color);
-		} else {
-			LineRenderer::DrawLine(lineStart, lineEnd, color);
-		}
+		LineRenderer::DrawLine(lineStart, lineEnd, color);
 	}
 
 	for (uint32_t zIndex = 0; zIndex <= kSubdivision; ++zIndex) {
 		Vector3 lineStart = {-kGridHalfWidth, 0.0f, -kGridHalfWidth + zIndex * kGridEvery};
 		Vector3 lineEnd = {kGridHalfWidth, 0.0f, -kGridHalfWidth + zIndex * kGridEvery};
 
-		if (zIndex == static_cast<int>(kSubdivision / 2.0f)) {
-			LineRenderer::DrawLine(lineStart, lineEnd, color);
-		} else {
-			LineRenderer::DrawLine(lineStart, lineEnd, color);
-		}
+		LineRenderer::DrawLine(lineStart, lineEnd, color);
 	}
 }
-
 
 std::string EscapeJsonString(const std::string& text) {
 	std::string escaped;
@@ -579,21 +564,13 @@ void Scene::UpdateCollisions() {
 	collisionPairStates_ = std::move(currentPairStates);
 }
 
-GameObject* Scene::CreateGameObject(const std::string& name) {
-	return AddGameObject(std::make_unique<GameObject>(name));
-}
+GameObject* Scene::CreateGameObject(const std::string& name) { return AddGameObject(std::make_unique<GameObject>(name)); }
 
-GameObject* Scene::CreateEditorEntity() {
-	return CreateGameObject("Entity");
-}
+GameObject* Scene::CreateEditorEntity() { return CreateGameObject("Entity"); }
 
-GameObject* Scene::CreateEditorCube() {
-	return CreateGameObject("Cube");
-}
+GameObject* Scene::CreateEditorCube() { return CreateGameObject("Cube"); }
 
-GameObject* Scene::CreateEditorSphere() {
-	return CreateGameObject("Sphere");
-}
+GameObject* Scene::CreateEditorSphere() { return CreateGameObject("Sphere"); }
 
 void Scene::OnEditorComponentAdded(GameObject* gameObject, Component* component) {
 	(void)gameObject;
