@@ -10,32 +10,13 @@
     <ClCompile Include="GameModule.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\CameraComponent.cpp">
+    <ClCompile Include="..\GameComponents\*.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\DebugCameraComponent.cpp">
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\GameComponents\*.h">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\DirectionalLightComponent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\ModelRendererComponent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\PointLightComponent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\RotatorComponent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\TransformComponent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\KujakuEngine\components\TransformSnapshotComponent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\KujakuEngine\scene\SampleScene.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
+    </ClInclude>
   </ItemGroup>
 </Project>

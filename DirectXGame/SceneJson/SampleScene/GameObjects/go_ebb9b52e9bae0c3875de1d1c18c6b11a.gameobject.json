@@ -14,27 +14,6 @@
     {
       "enabled": true,
       "properties": {
-        "rotation": [
-          0.0,
-          -0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "translation": [
-          -1.8828532695770264,
-          0.0,
-          -3.7944936752319336
-        ]
-      },
-      "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
         "material": {
           "baseColor": [
             0.0,

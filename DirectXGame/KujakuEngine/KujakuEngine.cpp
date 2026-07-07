@@ -1,4 +1,5 @@
 #include "KujakuEngine.h"
+#include "components/BuiltinComponents.h"
 #include <objbase.h>
 
 namespace KujakuEngine {
@@ -44,6 +45,10 @@ void Initialize(const std::wstring& title, Vector4 color, bool enableDebugLayer)
 
 	// 時間管理の初期化
 	Time::GetInstance()->Init();
+
+	// Engine標準ComponentをComponentFactoryへ登録する。
+	// GameModule側はゲーム固有Componentだけを登録すればよい。
+	RegisterBuiltinComponents();
 }
 
 void Finalize() {

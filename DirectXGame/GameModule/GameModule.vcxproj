@@ -69,7 +69,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\x64\$(Configuration);$(ProjectDir)..\..\x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -92,22 +92,17 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\x64\$(Configuration);$(ProjectDir)..\..\x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\GameComponents\*.cpp" />
     <ClCompile Include="GameModule.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\CameraComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\DebugCameraComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\DirectionalLightComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\ModelRendererComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\PointLightComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\RotatorComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\TransformComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\components\TransformSnapshotComponent.cpp" />
-    <ClCompile Include="..\KujakuEngine\scene\SampleScene.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\GameComponents\*.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

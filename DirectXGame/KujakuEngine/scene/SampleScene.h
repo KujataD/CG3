@@ -17,17 +17,17 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize() override;
+	KUJAKU_API void Initialize() override;
 
 	/// <summary>
 	/// Play中だけ進める更新処理
 	/// </summary>
-	void Update() override;
+	KUJAKU_API void Update() override;
 
 	/// <summary>
 	/// Edit/Play共通で行う描画処理
 	/// </summary>
-	void Draw() override;
+	KUJAKU_API void Draw() override;
 
 	/// <summary>
 	/// Editor保存時に使うScene名を取得
@@ -37,22 +37,22 @@ public:
 	/// <summary>
 	/// Editor操作で使うCameraを取得
 	/// </summary>
-	Camera* GetEditorCamera() override;
+	KUJAKU_API Camera* GetEditorCamera() override;
 
 	/// <summary>
 	/// EditorのHierarchyからCubeを作成する
 	/// </summary>
-	GameObject* CreateEditorCube() override;
+	KUJAKU_API GameObject* CreateEditorCube() override;
 
 	/// <summary>
 	/// EditorのHierarchyからSphereを作成する
 	/// </summary>
-	GameObject* CreateEditorSphere() override;
+	KUJAKU_API GameObject* CreateEditorSphere() override;
 
 	/// <summary>
 	/// Editor上でComponent追加後にScene固有の依存を補完する
 	/// </summary>
-	void OnEditorComponentAdded(GameObject* gameObject, Component* component) override;
+	KUJAKU_API void OnEditorComponentAdded(GameObject* gameObject, Component* component) override;
 
 private:
 	/// <summary>

@@ -14,27 +14,6 @@
     {
       "enabled": true,
       "properties": {
-        "rotation": [
-          0.0,
-          -0.0,
-          0.0
-        ],
-        "scale": [
-          0.9999998211860657,
-          2.61527943611145,
-          2.6757900714874268
-        ],
-        "translation": [
-          4.610257625579834,
-          0.0,
-          0.0
-        ]
-      },
-      "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
         "material": {
           "baseColor": [
             1.0,
@@ -83,6 +62,13 @@
         ]
       },
       "type": "BoxColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "speed": 0.019999999552965164
+      },
+      "type": "EnemyComponent"
     }
   ]
 }

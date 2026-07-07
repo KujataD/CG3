@@ -52,9 +52,6 @@
     <Filter Include="KujakuEngine\vfx">
       <UniqueIdentifier>{ae19aad8-f3e4-4adc-83d4-4c5a704702bd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="KujakuEngine\ai">
-      <UniqueIdentifier>{75a96fe1-fa0e-4bb8-aa6f-75708d144c18}</UniqueIdentifier>
-    </Filter>
     <Filter Include="KujakuEngine\Editor">
       <UniqueIdentifier>{e7b43ca6-a8f5-4d84-a27f-a67608eb0f49}</UniqueIdentifier>
     </Filter>
@@ -225,90 +222,6 @@
     <ClCompile Include="KujakuEngine\3d\SpotLight.cpp">
       <Filter>KujakuEngine\3d</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\LeafNode.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\ActionNode.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\AligmentBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\ArriveBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\pathfinding\AStar.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\AvoidanceBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\BehaviorTree.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\Core\Blackboard.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\BTNode.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\CohesionBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\shapes\Collider.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\shapes\CollisionManager.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Composite\CompositeNode.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Decorator\Decorator.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\3d\FollowCamera.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\base\GlobalVariables.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\Grid.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\vfx\InstancingModel.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\ISteeringBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\NavigationUtil.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\3d\RailCameraController.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\SeekBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SelectorNode.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\SeparationBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SequenceNode.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\pathfinding\ThetaStar.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
-    <ClCompile Include="KujakuEngine\base\Time.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
     <ClCompile Include="KujakuEngine\scene\Component.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
@@ -327,17 +240,65 @@
     <ClCompile Include="KujakuEngine\scene\Scene.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\charactor\utility\UtilityAI.cpp">
-      <Filter>KujakuEngine\ai</Filter>
+    <ClCompile Include="KujakuEngine\components\BuiltinComponents.cpp">
+      <Filter>KujakuEngine\components</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\ai\navigation\steer\WanderBehavior.cpp">
-      <Filter>KujakuEngine\ai</Filter>
+    <ClCompile Include="KujakuEngine\components\CameraComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\components\DebugCameraComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\DirectionalLightComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\PointLightComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\TransformComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\TransformSnapshotComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\SampleScene.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\math\MathUtil.cpp">
       <Filter>KujakuEngine\math</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\shapes\Collider.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\shapes\CollisionManager.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\3d\FollowCamera.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\base\GlobalVariables.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\vfx\InstancingModel.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\3d\RailCameraController.cpp">
+      <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\base\Time.cpp">
+      <Filter>KujakuEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -530,111 +491,6 @@
     <ClInclude Include="KujakuEngine\3d\SpotLight.h">
       <Filter>KujakuEngine\3d</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\WanderBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\ActionNode.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\AI.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\Core\AIContext.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\AligmentBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\ArriveBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\pathfinding\AStar.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\AvoidanceBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\3d\AxisIndicator.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\BehaviorTree.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\Core\Blackboard.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\BTNode.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\BTStatus.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\CohesionBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\shapes\Collider.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\shapes\CollisionManager.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Composite\CompositeNode.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Decorator\Decorator.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\3d\FollowCamera.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\base\GlobalVariables.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\Grid.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\vfx\InstancingModel.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\fsm\IState.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\ISteeringBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\LeafNode.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\NavigationUtil.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\3d\RailCameraController.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\SearchNode.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\SeekBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SelectorNode.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\steer\SeparationBehavior.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Composite\SequenceNode.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\fsm\StateMachine.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\navigation\pathfinding\ThetaStar.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\base\Time.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
     <ClInclude Include="KujakuEngine\scene\Component.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
@@ -662,14 +518,35 @@
     <ClInclude Include="KujakuEngine\scene\Scene.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\ai\charactor\utility\UtilityAI.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
     <ClInclude Include="externals\ImGuizmo-1.9\src\ImGuizmo.h">
       <Filter>ImGuizmo</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\math\MathUtil.h">
       <Filter>KujakuEngine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\base\Time.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\3d\AxisIndicator.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\shapes\Collider.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\shapes\CollisionManager.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\3d\FollowCamera.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\base\GlobalVariables.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\vfx\InstancingModel.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\3d\RailCameraController.h">
+      <Filter>KujakuEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -684,8 +561,8 @@
     <None Include="KujakuEngine\shader\Particle.hlsli">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\Line.PS.hlsl" />
     <None Include="Resources\shader\Line.VS.hlsl" />
+    <None Include="Resources\shader\Line.PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="KujakuEngine\shader\Object3d.PS.hlsl">

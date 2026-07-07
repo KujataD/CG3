@@ -1,14 +1,6 @@
 #include "../KujakuEngine/KujakuEngine.h"
-#include "../KujakuEngine/components/CameraComponent.h"
-#include "../KujakuEngine/components/ColliderComponent.h"
-#include "../KujakuEngine/components/DebugCameraComponent.h"
-#include "../KujakuEngine/components/DirectionalLightComponent.h"
-#include "../KujakuEngine/components/ModelRendererComponent.h"
-#include "../KujakuEngine/components/PointLightComponent.h"
-#include "../KujakuEngine/components/RotatorComponent.h"
-#include "../KujakuEngine/components/TransformComponent.h"
-#include "../KujakuEngine/components/TransformSnapshotComponent.h"
 #include "../KujakuEngine/scene/SampleScene.h"
+#include "../GameComponents/EnemyComponent.h"
 #include <memory>
 
 namespace {
@@ -100,52 +92,18 @@ private:
 } // namespace
 
 extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::ComponentFactory& factory) {
-	factory.Register("Transform", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::TransformComponent>();
-	});
-
-	factory.Register("RotatorComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::RotatorComponent>();
-	});
-
-	factory.Register("TransformSnapshotComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::TransformSnapshotComponent>();
-	});
-
-	factory.Register("ModelRendererComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::ModelRendererComponent>();
-	});
-
-	factory.Register("CameraComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::CameraComponent>();
-	});
-
-	factory.Register("DebugCameraComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::DebugCameraComponent>();
-	});
-
-	factory.Register("DirectionalLightComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::DirectionalLightComponent>();
-	});
-
-	factory.Register("PointLightComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::PointLightComponent>();
-	});
-
-	factory.Register("SphereColliderComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::SphereColliderComponent>();
-	});
-
-	factory.Register("BoxColliderComponent", kGameModuleName, []() {
-		return std::make_unique<KujakuEngine::BoxColliderComponent>();
-	});
-
+	// GameModuleはゲーム固有Componentだけを登録する。
+	// TransformやModelRendererなどの標準ComponentはEngine初期化時に登録される。
 	factory.Register("MoveForwardComponent", kGameModuleName, []() {
 		return std::make_unique<MoveForwardComponent>();
 	});
 
 	factory.Register("BlinkComponent", kGameModuleName, []() {
 		return std::make_unique<BlinkComponent>();
+	});
+
+	factory.Register("EnemyComponent", kGameModuleName, []() {
+		return std::make_unique<EnemyComponent>();
 	});
 }
 

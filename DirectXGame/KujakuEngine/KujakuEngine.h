@@ -50,8 +50,6 @@
 #include "3d/SpotLight.h"
 #include "3d/WorldTransform.h"
 
-#include "ai/AI.h"
-
 #include "math/Easing.h"
 #include "math/MathUtil.h"
 #include "math/Matrix3x3.h"
