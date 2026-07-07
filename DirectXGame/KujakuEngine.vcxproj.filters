@@ -285,9 +285,6 @@
     <ClCompile Include="KujakuEngine\ai\navigation\steer\ISteeringBehavior.cpp">
       <Filter>KujakuEngine\ai</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\math\MathUtil.cpp">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClCompile>
     <ClCompile Include="KujakuEngine\ai\navigation\NavigationUtil.cpp">
       <Filter>KujakuEngine\ai</Filter>
     </ClCompile>
@@ -338,6 +335,9 @@
     </ClCompile>
     <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\math\MathUtil.cpp">
+      <Filter>KujakuEngine\math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -605,9 +605,6 @@
     <ClInclude Include="KujakuEngine\ai\charactor\behaviorTree\Leaf\LeafNode.h">
       <Filter>KujakuEngine\ai</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\math\MathUtil.h">
-      <Filter>KujakuEngine\ai</Filter>
-    </ClInclude>
     <ClInclude Include="KujakuEngine\ai\navigation\NavigationUtil.h">
       <Filter>KujakuEngine\ai</Filter>
     </ClInclude>
@@ -670,6 +667,9 @@
     </ClInclude>
     <ClInclude Include="externals\ImGuizmo-1.9\src\ImGuizmo.h">
       <Filter>ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\math\MathUtil.h">
+      <Filter>KujakuEngine\math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
