@@ -12,7 +12,6 @@
 #include "../components/ModelRendererComponent.h"
 #include "../components/PointLightComponent.h"
 #include "../components/RotatorComponent.h"
-#include "../components/TransformSnapshotComponent.h"
 #include "../math/MathUtil.h"
 #include "../vfx/ParticleModel.h"
 #include <memory>
@@ -40,7 +39,6 @@ void SampleScene::Initialize() {
 	GameObject* ball = CreateGameObject("MonsterBall");
 	ball->GetTransform().translation_ = {0.0f, -2.0f, 0.0f};
 	ball->GetTransform().rotation_.x = std::numbers::pi_v<float> * -0.5f;
-	ball->AddComponent<TransformSnapshotComponent>();
 	ball->AddComponent<RotatorComponent>();
 	ModelRendererComponent* ballRenderer = ball->AddComponent<ModelRendererComponent>(renderCamera);
 	ballRenderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/monsterBall.png");

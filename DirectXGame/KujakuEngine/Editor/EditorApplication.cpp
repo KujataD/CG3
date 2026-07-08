@@ -14,6 +14,7 @@
 #include "../3d/PointLight.h"
 #include "../3d/SpotLight.h"
 #include "../base/DirectXCommon.h"
+#include "../scene/GameObject.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -348,7 +349,15 @@ void EditorApplication::Start() {
 		return;
 	}
 
+	playModeSceneJson_.clear();
+	playModeSelectedObjectInstanceId_.clear();
 	if (currentScene_) {
+		// Play中の変更をEditへ持ち帰らないため、開始直前のSceneを丸ごと保持する。
+		playModeSceneJson_ = currentScene_->ToJson();
+		GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+		if (selectedObject && currentScene_->FindGameObjectByInstanceId(selectedObject->GetInstanceId()) == selectedObject) {
+			playModeSelectedObjectInstanceId_ = selectedObject->GetInstanceId();
+		}
 		currentScene_->OnPlayStart();
 	}
 
@@ -373,7 +382,28 @@ void EditorApplication::Stop() {
 
 	if (currentScene_) {
 		currentScene_->OnPlayStop();
+		if (!playModeSceneJson_.empty()) {
+			SceneJsonImporter::ImportResult importResult = SceneJsonImporter::ApplySceneJsonString(*currentScene_, playModeSceneJson_);
+			if (importResult.succeeded) {
+				currentScene_->UpdateWorldTransforms();
+				if (playModeSelectedObjectInstanceId_.empty()) {
+					EditorSelection::GetInstance()->Clear();
+				} else {
+					GameObject* selectedObject = currentScene_->FindGameObjectByInstanceId(playModeSelectedObjectInstanceId_);
+					if (selectedObject) {
+						EditorSelection::GetInstance()->SetSelectedGameObject(selectedObject);
+					} else {
+						EditorSelection::GetInstance()->Clear();
+					}
+				}
+			} else {
+				AddConsoleLog("[Editor] Failed to restore Edit snapshot: " + importResult.message);
+			}
+		}
 	}
+
+	playModeSceneJson_.clear();
+	playModeSelectedObjectInstanceId_.clear();
 
 	AddConsoleLog("[Editor] Stop");
 	AddConsoleLog("Editor Mode: Edit");
@@ -599,6 +629,8 @@ void EditorApplication::SetCurrentSceneRaw(Scene* scene, GameModuleApi::DestroyS
 	// Scene差し替え時は選択中Objectが古いSceneを指さないよう、必ず選択を解除する。
 	EditorSelection::GetInstance()->Clear();
 	EditorUndoManager::GetInstance()->Clear();
+	playModeSceneJson_.clear();
+	playModeSelectedObjectInstanceId_.clear();
 	DestroyCurrentScene();
 
 	currentScene_ = scene;

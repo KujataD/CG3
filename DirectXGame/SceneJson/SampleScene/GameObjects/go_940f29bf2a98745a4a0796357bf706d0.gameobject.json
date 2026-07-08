@@ -1,76 +1,53 @@
 {
-  "assetType": "GameObject",
-  "instanceId": "go_940f29bf2a98745a4a0796357bf706d0",
-  "parentInstanceId": "",
-  "name": "MonsterBall",
-  "active": true,
-  "components": [
-    {
-      "enabled": true,
-      "properties": {
-        "rotation": [
-          -1.5702069997787476,
-          -0.0,
-          0.0
-        ],
-        "scale": [
-          1.1899998188018799,
-          1.1899999380111694,
-          1.1899999380111694
-        ],
-        "translation": [
-          -9.249628067016602,
-          -7.449028968811035,
-          2.0985629558563232
-        ]
-      },
-      "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "snapshot": {
-          "rotation": [
-            -1.5702069997787476,
-            -0.0,
-            0.0
-          ],
-          "scale": [
-            1.1899998188018799,
-            1.1899999380111694,
-            1.1899999380111694
-          ],
-          "translation": [
-            -9.249628067016602,
-            -7.449028968811035,
-            2.0985629558563232
-          ]
-        }
-      },
-      "type": "TransformSnapshotComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "speed": 0.019999999552965164
-      },
-      "type": "RotatorComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "modelPath": "player",
-        "primitive": "Sphere",
-        "texture": "Resources/uvChecker.png"
-      },
-      "type": "ModelRendererComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "speed": 0.029999999329447746
-      },
-      "type": "MoveForwardComponent"
-    }
-  ]
+    "assetType":  "GameObject",
+    "instanceId":  "go_940f29bf2a98745a4a0796357bf706d0",
+    "parentInstanceId":  "",
+    "name":  "MonsterBall",
+    "active":  true,
+    "components":  [
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "rotation":  [
+                                                               -1.5702069997787476,
+                                                               0.0,
+                                                               0.0
+                                                           ],
+                                              "scale":  [
+                                                            1.1899998188018799,
+                                                            1.1899999380111694,
+                                                            1.1899999380111694
+                                                        ],
+                                              "translation":  [
+                                                                  -9.249628067016602,
+                                                                  -7.449028968811035,
+                                                                  2.0985629558563232
+                                                              ]
+                                          },
+                           "type":  "Transform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "speed":  0.019999999552965164
+                                          },
+                           "type":  "RotatorComponent"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "modelPath":  "player",
+                                              "primitive":  "Sphere",
+                                              "texture":  "Resources/uvChecker.png"
+                                          },
+                           "type":  "ModelRendererComponent"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "speed":  0.029999999329447746
+                                          },
+                           "type":  "MoveForwardComponent"
+                       }
+                   ]
 }

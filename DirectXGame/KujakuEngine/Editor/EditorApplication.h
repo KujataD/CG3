@@ -209,6 +209,8 @@ private:
 	GameModuleApi::DestroySceneFunc destroySceneBeforePrefabEditFunc_ = nullptr;
 	std::unique_ptr<Scene> prefabEditScene_;
 	std::filesystem::path prefabEditPath_;
+	std::string playModeSceneJson_;
+	std::string playModeSelectedObjectInstanceId_;
 };
 
 } // namespace KujakuEngine

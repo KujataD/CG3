@@ -7,7 +7,6 @@
 #include "PointLightComponent.h"
 #include "RotatorComponent.h"
 #include "TransformComponent.h"
-#include "TransformSnapshotComponent.h"
 #include "../scene/ComponentFactory.h"
 
 namespace KujakuEngine {
@@ -21,7 +20,6 @@ void RegisterBuiltinComponents() {
 	ComponentFactory& factory = ComponentFactory::GetInstance();
 	factory.RegisterComponent<TransformComponent>();
 	factory.RegisterComponent<RotatorComponent>();
-	factory.RegisterComponent<TransformSnapshotComponent>();
 	factory.RegisterComponent<ModelRendererComponent>();
 	factory.RegisterComponent<CameraComponent>();
 	factory.RegisterComponent<DebugCameraComponent>();

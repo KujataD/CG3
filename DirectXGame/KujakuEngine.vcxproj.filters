@@ -267,9 +267,6 @@
     <ClCompile Include="KujakuEngine\components\TransformComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\components\TransformSnapshotComponent.cpp">
-      <Filter>KujakuEngine\components</Filter>
-    </ClCompile>
     <ClCompile Include="KujakuEngine\scene\SampleScene.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
@@ -405,9 +402,6 @@
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\TransformComponent.h">
-      <Filter>KujakuEngine\components</Filter>
-    </ClInclude>
-    <ClInclude Include="KujakuEngine\components\TransformSnapshotComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h">
