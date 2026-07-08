@@ -62,7 +62,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\KujakuEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\KujakuEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -86,7 +86,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\KujakuEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\KujakuEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
