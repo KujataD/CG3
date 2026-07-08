@@ -94,17 +94,9 @@ private:
 extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::ComponentFactory& factory) {
 	// GameModuleはゲーム固有Componentだけを登録する。
 	// TransformやModelRendererなどの標準ComponentはEngine初期化時に登録される。
-	factory.Register("MoveForwardComponent", kGameModuleName, []() {
-		return std::make_unique<MoveForwardComponent>();
-	});
-
-	factory.Register("BlinkComponent", kGameModuleName, []() {
-		return std::make_unique<BlinkComponent>();
-	});
-
-	factory.Register("EnemyComponent", kGameModuleName, []() {
-		return std::make_unique<EnemyComponent>();
-	});
+	factory.RegisterComponent<MoveForwardComponent>(kGameModuleName);
+	factory.RegisterComponent<BlinkComponent>(kGameModuleName);
+	factory.RegisterComponent<EnemyComponent>(kGameModuleName);
 }
 
 extern "C" __declspec(dllexport) void UnregisterGameComponents(KujakuEngine::ComponentFactory& factory) {

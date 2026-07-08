@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -31,6 +32,18 @@ public:
 	/// Component生成関数を登録
 	/// </summary>
 	KUJAKU_API void Register(const std::string& typeName, const std::string& moduleName, CreateFunc createFunc);
+
+	/// <summary>
+	/// ComponentのGetTypeNameを登録名として生成関数を登録
+	/// </summary>
+	template <class T>
+	void RegisterComponent();
+
+	/// <summary>
+	/// ComponentのGetTypeNameを登録名として指定Moduleの生成関数を登録
+	/// </summary>
+	template <class T>
+	void RegisterComponent(const std::string& moduleName);
 
 	/// <summary>
 	/// Component登録を解除
@@ -69,5 +82,21 @@ private:
 	std::unordered_map<std::string, Entry> entries_;
 	std::vector<std::string> typeNames_;
 };
+
+template <class T>
+void ComponentFactory::RegisterComponent() {
+	RegisterComponent<T>("Engine");
+}
+
+template <class T>
+void ComponentFactory::RegisterComponent(const std::string& moduleName) {
+	static_assert(std::is_base_of_v<Component, T>, "T must inherit KujakuEngine::Component.");
+	static_assert(std::is_default_constructible_v<T>, "T must be default constructible.");
+
+	T component;
+	Register(component.GetTypeName(), moduleName, []() {
+		return std::make_unique<T>();
+	});
+}
 
 } // namespace KujakuEngine
