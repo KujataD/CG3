@@ -455,6 +455,13 @@ void DirectXCommon::PreDraw() {
 	// TransitionBarrier
 	commandList_->ResourceBarrier(1, &barrier);
 
+	// SRVヒープのバインドをSprite/Modelの描画側の副作用任せにすると、
+	// そのフレームに描画対象が何もない場合はヒープが一度も設定されないまま
+	// ImGuiのSetGraphicsRootDescriptorTableへ到達し、ドライバ側で不正アクセスになる。
+	// 毎フレーム必ず一度はここでバインドしておく。
+	ID3D12DescriptorHeap* descriptorHeaps[] = { srvDescriptorHeap_.Get() };
+	commandList_->SetDescriptorHeaps(1, descriptorHeaps);
+
 	ClearRenderTarget();
 	ClearDepthBuffer();
 }

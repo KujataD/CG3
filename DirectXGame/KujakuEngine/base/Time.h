@@ -1,6 +1,8 @@
 #pragma once
 #include <windows.h>
 
+#include "../runtime/KujakuApi.h"
+
 // 参考資料:
 // https://learn.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps
 // https://learn.microsoft.com/en-us/windows/win32/dxtecharts/game-timing-and-multicore-processors
@@ -9,7 +11,7 @@
 /// <summary>
 /// Timeクラスを表します。
 /// </summary>
-class Time {
+class KUJAKU_API Time {
 public:
 	
 	/// <summary>
@@ -20,6 +22,7 @@ public:
 	/// <summary>
 	/// DeltaTimeを取得します。
 	/// </summary>
+	 
 	static float GetDeltaTime() { return GetInstance()->DeltaTime(); }
 
 	/// <summary>

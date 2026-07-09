@@ -2,11 +2,11 @@
   "assetType": "GameObject",
   "instanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
   "parentInstanceId": "",
-  "prefabAssetPath": "Prefabs/Cubsse.prefab.json",
-  "prefabObjectId": "object_0",
-  "prefabInstanceRootId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
-  "prefabInstanceRoot": true,
-  "name": "Cubsse",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Enemy",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -25,9 +25,9 @@
           1.0
         ],
         "translation": [
-          -6.082515716552734,
+          -0.3416454792022705,
           0.0,
-          3.3560051918029785
+          -13.220549583435059
         ]
       },
       "type": "Transform"
@@ -37,16 +37,16 @@
       "properties": {
         "material": {
           "baseColor": [
-            1.0,
+            0.0,
             1.0,
             1.0,
             1.0
           ],
-          "name": "New Material",
+          "name": "Color",
           "textures": {
             "BaseColor": {
               "assetId": "",
-              "path": "resources/monsterBall.png"
+              "path": ""
             },
             "Environment": {
               "assetId": "",
@@ -58,11 +58,11 @@
             }
           }
         },
-        "materialAssetId": "",
-        "materialPath": "",
+        "materialAssetId": "asset_c2de0b0a46b31f30616c0cffbb5b843f",
+        "materialPath": "Materials/Color.material.json",
         "modelPath": "player",
-        "primitive": "Cube",
-        "texture": "resources/monsterBall.png"
+        "primitive": "Model",
+        "texture": ""
       },
       "type": "ModelRendererComponent"
     },
@@ -87,7 +87,7 @@
     {
       "enabled": true,
       "properties": {
-        "speed": 0.019999999552965164
+        "speed": 0.3440000116825104
       },
       "type": "EnemyComponent"
     }

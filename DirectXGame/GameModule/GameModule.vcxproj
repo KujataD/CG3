@@ -69,8 +69,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\x64\$(Configuration);$(ProjectDir)..\..\x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\x64\$(Configuration);$(ProjectDir)..\..\x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Debug;$(SolutionDir)build\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-mdd.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
@@ -92,8 +92,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\x64\$(Configuration);$(ProjectDir)..\..\x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)x64\$(Configuration);$(ProjectDir)..\x64\$(Configuration);$(ProjectDir)..\..\x64\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Release;$(SolutionDir)build\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-md.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>

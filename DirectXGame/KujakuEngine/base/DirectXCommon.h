@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <d3d12.h>
@@ -90,7 +91,12 @@ public:
 	/// <summary>
 	/// AllocateSrvIndexを実行します。
 	/// </summary>
-	uint32_t AllocateSrvIndex() { return srvIndexCounter_++; }
+	uint32_t AllocateSrvIndex() {
+		// kSrvDescriptorCountを超えるとSRVヒープの外側へ書き込むことになり、
+		// 同じヒープを共有するImGuiフォント等のメモリを破壊して無関係な箇所で落ちる。
+		assert(srvIndexCounter_ < kSrvDescriptorCount && "SRV descriptor heap overflow: increase kSrvDescriptorCount.");
+		return srvIndexCounter_++;
+	}
 	/// <summary>
 	/// AllocateRtvIndexを実行します。
 	/// </summary>
@@ -280,7 +286,9 @@ private:
 	static const uint32_t kGameRenderTargetRtvIndex = kSwapChainBufferCount;
 	static const uint32_t kGameRenderDsvIndex = 1;
 	static const uint32_t kRtvDescriptorCount = 256;
-	static const uint32_t kSrvDescriptorCount = 256;
+	// 通常テクスチャ+Project Windowのプレビュー+ImGuiフォントが同じヒープを共有するため、
+	// フォルダ数やアセット数が増えても余裕を持たせておく。
+	static const uint32_t kSrvDescriptorCount = 4096;
 	static const uint32_t kDsvDescriptorCount = 32;
 	WinApp* winApp_ = nullptr;
 	bool initialized_ = false;

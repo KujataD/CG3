@@ -1,0 +1,37 @@
+{
+  "actions": [
+    {
+      "category": "Movement",
+      "description": "前進する",
+      "kind": "action",
+      "name": "MoveForward",
+      "params": []
+    },
+    {
+      "category": "Movement",
+      "description": "後退する",
+      "kind": "action",
+      "name": "MoveBackward",
+      "params": []
+    },
+    {
+      "category": "Movement",
+      "description": "Y軸方向に回転する",
+      "kind": "action",
+      "name": "RotateY",
+      "params": []
+    },
+    {
+      "category": "Movement",
+      "description": "X軸方向に回転する",
+      "kind": "action",
+      "name": "RotateX",
+      "params": []
+    }
+  ],
+  "conditions": [],
+  "decorators": [],
+  "format": "BahamutAI.FunctionCatalog",
+  "services": [],
+  "version": 1
+}

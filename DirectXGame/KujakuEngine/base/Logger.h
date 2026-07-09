@@ -3,12 +3,14 @@
 #include <cstdint>
 #include <string>
 
+#include "../runtime/KujakuApi.h"
+
 namespace KujakuEngine {
 
 /// <summary>
 /// ログ管理クラス
 /// </summary>
-class Logger {
+class KUJAKU_API Logger {
 public: 
     /// <summary>
     /// 初期化します。

@@ -19,6 +19,7 @@ public:
 	const char* GetTypeName() const override { return "EnemyComponent"; }
 
 	void Initialize() override;
+	void OnPlayStart() override;
 	void Update() override;
 
 private:
@@ -36,4 +37,10 @@ private:
 
 	// BT作成用
 	BahamutAI::BehaviorTreeFactory btFactory_;
+
+	// BT実行本体（毎フレームTickする）
+	BahamutAI::BehaviorTreeRuntime btRuntime_;
+
+	// このEnemy固有のBlackboard（AIContextに渡す）
+	BahamutAI::Blackboard localBlackboard_;
 };

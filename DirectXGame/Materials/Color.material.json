@@ -1,13 +1,25 @@
 {
   "assetType": "Material",
-  "color": [
+  "baseColor": [
     0.0,
     1.0,
     1.0,
     1.0
   ],
   "name": "Color",
-  "textureAssetId": "",
-  "texturePath": "resources/uvChecker.png",
+  "textures": {
+    "BaseColor": {
+      "assetId": "",
+      "path": ""
+    },
+    "Environment": {
+      "assetId": "",
+      "path": ""
+    },
+    "Normal": {
+      "assetId": "",
+      "path": ""
+    }
+  },
   "version": 1
 }
