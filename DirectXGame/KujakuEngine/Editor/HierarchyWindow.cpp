@@ -8,7 +8,7 @@
 #include "EditorApplication.h"
 #include "EditorConsole.h"
 #include "EditorImGuiUtil.h"
-#include "EditorProjectPath.h"
+#include "../base/ProjectPath.h"
 #include "EditorSelection.h"
 #include "PrefabAsset.h"
 #include <cstring>

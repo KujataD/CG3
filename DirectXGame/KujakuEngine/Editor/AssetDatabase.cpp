@@ -1,5 +1,5 @@
 #include "AssetDatabase.h"
-#include "EditorProjectPath.h"
+#include "../base/ProjectPath.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)

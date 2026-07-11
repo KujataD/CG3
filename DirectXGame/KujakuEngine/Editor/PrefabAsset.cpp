@@ -1,5 +1,5 @@
 #include "PrefabAsset.h"
-#include "EditorProjectPath.h"
+#include "../base/ProjectPath.h"
 #include "../scene/Component.h"
 #include "../scene/ComponentFactory.h"
 #include "../scene/GameObject.h"
