@@ -1,5 +1,5 @@
 #include "EditorApplication.h"
-#include "../2d/ImGuiManager.h"
+#include "ImGuiManager.h"
 #include "../scene/ComponentFactory.h"
 #include "SceneJsonExporter.h"
 #include "../base/ProjectPath.h"

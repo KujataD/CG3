@@ -123,8 +123,8 @@
     <ClCompile Include="KujakuEngine\3d\WorldTransform.cpp">
       <Filter>KujakuEngine\3d</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\2d\ImGuiManager.cpp">
-      <Filter>KujakuEngine\2d</Filter>
+    <ClCompile Include="KujakuEngine\Editor\ImGuiManager.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\base\DirectXCommon.cpp">
       <Filter>KujakuEngine\base</Filter>
@@ -383,8 +383,8 @@
     <ClInclude Include="KujakuEngine\3d\WorldTransform.h">
       <Filter>KujakuEngine\3d</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\2d\ImGuiManager.h">
-      <Filter>KujakuEngine\2d</Filter>
+    <ClInclude Include="KujakuEngine\Editor\ImGuiManager.h">
+      <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\base\DirectXCommon.h">
       <Filter>KujakuEngine\base</Filter>
