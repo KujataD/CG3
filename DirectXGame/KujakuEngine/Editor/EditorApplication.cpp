@@ -2,7 +2,7 @@
 #include "../2d/ImGuiManager.h"
 #include "../scene/ComponentFactory.h"
 #include "SceneJsonExporter.h"
-#include "EditorProjectPath.h"
+#include "../base/ProjectPath.h"
 #include "EditorSelection.h"
 #include "EditorUndoManager.h"
 #include "PrefabAsset.h"

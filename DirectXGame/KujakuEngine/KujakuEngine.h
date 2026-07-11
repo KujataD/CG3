@@ -30,7 +30,7 @@
 
 #include "Editor/AssetDatabase.h"
 #include "Editor/EditorApplication.h"
-#include "Editor/EditorProjectPath.h"
+#include "base/ProjectPath.h"
 #include "Editor/EditorSelection.h"
 #include "Editor/PrefabAsset.h"
 #include "Editor/SceneJsonExporter.h"

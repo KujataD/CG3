@@ -2,7 +2,7 @@
 
 #include "AssetDatabase.h"
 #include "EditorApplication.h"
-#include "EditorProjectPath.h"
+#include "../base/ProjectPath.h"
 #include "EditorSelection.h"
 #include "../assets/MaterialAsset.h"
 #include "../base/DirectXCommon.h"

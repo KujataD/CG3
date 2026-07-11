@@ -147,8 +147,8 @@
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp">
-      <Filter>KujakuEngine\Editor</Filter>
+    <ClCompile Include="KujakuEngine\base\ProjectPath.cpp">
+      <Filter>KujakuEngine\base</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\EditorConsole.cpp">
       <Filter>KujakuEngine\Editor</Filter>
@@ -434,8 +434,8 @@
     <ClInclude Include="KujakuEngine\Editor\EditorApplication.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\Editor\EditorProjectPath.h">
-      <Filter>KujakuEngine\Editor</Filter>
+    <ClInclude Include="KujakuEngine\base\ProjectPath.h">
+      <Filter>KujakuEngine\base</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\EditorConsole.h">
       <Filter>KujakuEngine\Editor</Filter>

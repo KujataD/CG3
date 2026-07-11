@@ -1,6 +1,6 @@
 #include "MaterialAsset.h"
 #include "../Editor/AssetDatabase.h"
-#include "../Editor/EditorProjectPath.h"
+#include "../base/ProjectPath.h"
 #include "../base/TextureManager.h"
 
 #include <algorithm>
