@@ -4,6 +4,7 @@
 #include "../assets/MaterialAsset.h"
 #include "../scene/Component.h"
 #include "../scene/GameObject.h"
+#include "../scene/IMaterialTarget.h"
 #include "../scene/Scene.h"
 #include "AssetDatabase.h"
 #include "EditorApplication.h"
@@ -104,8 +105,9 @@ void RefreshMaterialUsers(const std::filesystem::path& materialPath) {
 			if (!component) {
 				continue;
 			}
-			if (component->UsesMaterialAsset(materialPathText)) {
-				component->ApplyMaterialAsset(materialPathText);
+			IMaterialTarget* materialTarget = dynamic_cast<IMaterialTarget*>(component.get());
+			if (materialTarget && materialTarget->UsesMaterialAsset(materialPathText)) {
+				materialTarget->ApplyMaterialAsset(materialPathText);
 			}
 		}
 	}

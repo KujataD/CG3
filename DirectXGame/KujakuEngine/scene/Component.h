@@ -132,19 +132,6 @@ public:
 	/// </summary>
 	virtual float GetEditorBillboardPickRadius() const;
 
-	/// <summary>
-	/// ProjectWindowからMaterial Assetをドロップされた時に受け取れるかどうか。
-	/// </summary>
-	virtual bool ApplyMaterialAsset(const std::string& materialPath) {
-		(void)materialPath;
-		return false;
-	}
-
-	virtual bool UsesMaterialAsset(const std::string& materialPath) const {
-		(void)materialPath;
-		return false;
-	}
-
 protected:
 	GameObject* owner_ = nullptr;
 	bool enabled_ = true;

@@ -3,6 +3,7 @@
 #include "../../externals/imgui/imgui.h"
 #include "../scene/Component.h"
 #include "../scene/GameObject.h"
+#include "../scene/IMaterialTarget.h"
 #include "../scene/Scene.h"
 #include "EditorApplication.h"
 #include "EditorConsole.h"
@@ -115,7 +116,8 @@ bool ApplyMaterialToGameObject(GameObject* gameObject, const std::filesystem::pa
 		if (!component) {
 			continue;
 		}
-		if (component->ApplyMaterialAsset(materialPath.generic_string())) {
+		IMaterialTarget* materialTarget = dynamic_cast<IMaterialTarget*>(component.get());
+		if (materialTarget && materialTarget->ApplyMaterialAsset(materialPath.generic_string())) {
 			applied = true;
 			break;
 		}
