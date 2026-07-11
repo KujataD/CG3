@@ -3,6 +3,7 @@
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
 #include "../Editor/EditorDockSpace.h"
+#include "../Editor/HierarchyWindow.h"
 #include "../Editor/ProjectWindow.h"
 #include "../Editor/SceneViewWindow.h"
 #include <cstdint>
@@ -49,8 +50,6 @@ private:
 	ImGuiManager(const ImGuiManager&) = delete;
 	ImGuiManager& operator=(const ImGuiManager&) = delete;
 
-	void DrawHierarchyWindow();
-	void DrawHierarchyObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists);
 	void DrawInspectorWindow();
 	void DrawConsoleWindow();
 	void DrawProjectWindow();
@@ -59,6 +58,7 @@ private:
 
 private:
 	EditorDockSpace dockSpace_;
+	HierarchyWindow hierarchyWindow_;
 	ProjectWindow projectWindow_;
 	SceneViewWindow sceneView_;
 	bool inspectorEditing_ = false;
