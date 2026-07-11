@@ -2,6 +2,7 @@
 #include "../../externals/imgui/imgui.h"
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
+#include "../Editor/EditorDockSpace.h"
 #include "../Editor/ProjectWindow.h"
 #include <cstdint>
 #include <string>
@@ -53,8 +54,6 @@ private:
 	ImGuiManager(const ImGuiManager&) = delete;
 	ImGuiManager& operator=(const ImGuiManager&) = delete;
 
-	void DrawDockSpace();
-	void SetupInitialLayout(ImGuiID dockspaceId);
 	void DrawGameWindow();
 	void DrawHierarchyWindow();
 	void DrawHierarchyObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists);
@@ -70,8 +69,7 @@ private:
 	bool DrawGizmoModeButton(const char* id, const char* fallbackLabel, uint32_t textureIndex, TransformGizmoOperation operation, const char* tooltip);
 
 private:
-	// DockBuilderによる初期配置は1回だけ行う。毎フレーム実行するとユーザーが動かしたDock配置を上書きしてしまう。
-	bool dockLayoutInitialized_ = false;
+	EditorDockSpace dockSpace_;
 	ProjectWindow projectWindow_;
 	TransformGizmoOperation gizmoOperation_ = TransformGizmoOperation::Translate;
 	bool transformGizmoUsing_ = false;

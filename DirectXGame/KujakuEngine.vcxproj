@@ -124,6 +124,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorConsole.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\EditorDockSpace.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorImGuiUtil.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorSelection.cpp" />
@@ -206,6 +207,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorApplication.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorConsole.h" />
+    <ClInclude Include="KujakuEngine\Editor\EditorDockSpace.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorImGuiUtil.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorProjectPath.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorSelection.h" />
