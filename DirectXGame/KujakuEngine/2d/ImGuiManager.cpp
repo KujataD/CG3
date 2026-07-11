@@ -5,6 +5,7 @@
 #include "../assets/MaterialAsset.h"
 #include "../Editor/AssetDatabase.h"
 #include "../Editor/EditorApplication.h"
+#include "../Editor/EditorConsole.h"
 #include "../Editor/EditorProjectPath.h"
 #include "../Editor/EditorSelection.h"
 #include "../Editor/EditorStyle.h"
@@ -461,20 +462,14 @@ void ImGuiManager::Initialize() {
 
 	// 初期レイアウトはImGui初期化後、最初のDrawDockSpaceで構築する。
 	dockLayoutInitialized_ = false;
-	consoleLogs_.clear();
+	ClearConsoleLogs();
 	AddConsoleLog("Console initialized.");
 #endif // USE_IMGUI
 }
 
-void ImGuiManager::AddConsoleLog(const std::string& message) {
-	consoleLogs_.push_back(message);
-	// 無制限にログを溜めるとメモリと描画負荷が増えるため、簡易Consoleでは古いログから捨てる。
-	if (consoleLogs_.size() > 128) {
-		consoleLogs_.erase(consoleLogs_.begin());
-	}
-}
+void ImGuiManager::AddConsoleLog(const std::string& message) { EditorConsole::GetInstance()->AddLog(message); }
 
-void ImGuiManager::ClearConsoleLogs() { consoleLogs_.clear(); }
+void ImGuiManager::ClearConsoleLogs() { EditorConsole::GetInstance()->ClearLogs(); }
 
 void ImGuiManager::DrawDockSpace() {
 #ifdef USE_IMGUI
@@ -1192,34 +1187,7 @@ void ImGuiManager::DrawInspectorWindow() {
 #endif // USE_IMGUI
 }
 
-void ImGuiManager::DrawConsoleWindow() {
-#ifdef USE_IMGUI
-	ImGui::Begin("Console");
-	// ログとは別に、現在モードを常に先頭へ表示する。
-	if (EditorApplication::GetInstance()->IsPlaying()) {
-		ImGui::TextUnformatted("Editor Mode: Play");
-	} else {
-		ImGui::TextUnformatted("Editor Mode: Edit");
-	}
-	int undoMaxCount = static_cast<int>(EditorUndoManager::GetInstance()->GetMaxUndoCount());
-	ImGui::SetNextItemWidth(96.0f);
-	if (ImGui::DragInt("Undo Max", &undoMaxCount, 1.0f, 1, 200)) {
-		if (undoMaxCount < 1) {
-			undoMaxCount = 1;
-		}
-		EditorUndoManager::GetInstance()->SetMaxUndoCount(static_cast<size_t>(undoMaxCount));
-	}
-	ImGui::Separator();
-	for (const std::string& log : consoleLogs_) {
-		ImGui::TextUnformatted(log.c_str());
-	}
-	// Consoleが末尾までスクロールされている場合は、新しいログへ追従する。
-	if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-		ImGui::SetScrollHereY(1.0f);
-	}
-	ImGui::End();
-#endif // USE_IMGUI
-}
+void ImGuiManager::DrawConsoleWindow() { EditorConsole::GetInstance()->Draw(); }
 
 void ImGuiManager::DrawProjectWindow() {
 #ifdef USE_IMGUI

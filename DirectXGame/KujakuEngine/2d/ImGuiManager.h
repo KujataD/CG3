@@ -72,8 +72,6 @@ private:
 private:
 	// DockBuilderによる初期配置は1回だけ行う。毎フレーム実行するとユーザーが動かしたDock配置を上書きしてしまう。
 	bool dockLayoutInitialized_ = false;
-	// Consoleウィンドウに表示する簡易ログ。今回は最低限の状態確認用としてメモリ上に保持する。
-	std::vector<std::string> consoleLogs_;
 	ProjectWindow projectWindow_;
 	TransformGizmoOperation gizmoOperation_ = TransformGizmoOperation::Translate;
 	bool transformGizmoUsing_ = false;
