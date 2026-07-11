@@ -3,6 +3,7 @@
 #include "../../externals/imgui/imgui.h"
 #include "../scene/Component.h"
 #include "../scene/ComponentFactory.h"
+#include "../scene/IMaterialTarget.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
 #include "EditorApplication.h"
@@ -32,7 +33,8 @@ void AcceptMaterialDropForComponent(Component* component, GameObject* owner) {
 	const ImGuiPayload* materialPayload = ImGui::AcceptDragDropPayload(kProjectMaterialDragPayloadType);
 	if (materialPayload && materialPayload->DataSize > 0) {
 		const char* materialPathText = static_cast<const char*>(materialPayload->Data);
-		if (component->ApplyMaterialAsset(materialPathText)) {
+		IMaterialTarget* materialTarget = dynamic_cast<IMaterialTarget*>(component);
+		if (materialTarget && materialTarget->ApplyMaterialAsset(materialPathText)) {
 			if (owner) {
 				EditorSelection::GetInstance()->SetSelectedGameObject(owner);
 			}

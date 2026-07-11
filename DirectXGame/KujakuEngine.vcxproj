@@ -262,6 +262,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\runtime\GameModuleLoader.h" />
     <ClInclude Include="KujakuEngine\runtime\KujakuApi.h" />
     <ClInclude Include="KujakuEngine\scene\Component.h" />
+    <ClInclude Include="KujakuEngine\scene\IMaterialTarget.h" />
     <ClInclude Include="KujakuEngine\scene\IRaycastTarget.h" />
     <ClInclude Include="KujakuEngine\scene\ComponentFactory.h" />
     <ClInclude Include="KujakuEngine\scene\GameObject.h" />
