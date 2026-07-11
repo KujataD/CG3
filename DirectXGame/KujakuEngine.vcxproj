@@ -123,6 +123,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\components\TransformComponent.cpp" />
     <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\EditorConsole.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorProjectPath.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorSelection.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorStyle.cpp" />
@@ -203,6 +204,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\components\TransformComponent.h" />
     <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorApplication.h" />
+    <ClInclude Include="KujakuEngine\Editor\EditorConsole.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorProjectPath.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorSelection.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorStyle.h" />
