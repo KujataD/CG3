@@ -2,19 +2,19 @@
 
 #include "../3d/PointLight.h"
 #include "../scene/Component.h"
+#include "../scene/IEditorBillboard.h"
 
 namespace KujakuEngine {
 
 /// <summary>
 /// GameObjectのTransform位置をPointLightへ反映するComponent
 /// </summary>
-class PointLightComponent : public Component {
+class PointLightComponent : public Component, public IEditorBillboard {
 public:
 
 	const char* GetTypeName() const override { return "PointLightComponent"; }
 
 	bool AllowMultiple() const override { return false; }
-	bool HasEditorBillboard() const override { return true; }
 	const char* GetEditorBillboardIconName() const override { return "icon_light_point.png"; }
 	float GetEditorBillboardPickRadius() const override { return 0.65f; }
 	
