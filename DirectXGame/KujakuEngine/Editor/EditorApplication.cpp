@@ -15,6 +15,7 @@
 #include "../3d/SpotLight.h"
 #include "../base/DirectXCommon.h"
 #include "../scene/GameObject.h"
+#include "../scene/IRaycastTarget.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -231,7 +232,8 @@ private:
 					continue;
 				}
 
-				const Model* model = component->GetRayCastModel();
+				const IRaycastTarget* raycastTarget = dynamic_cast<const IRaycastTarget*>(component.get());
+				const Model* model = raycastTarget ? raycastTarget->GetRayCastModel() : nullptr;
 				if (!model) {
 					continue;
 				}

@@ -2,6 +2,7 @@
 
 #include "../assets/MaterialAsset.h"
 #include "../scene/Component.h"
+#include "../scene/IRaycastTarget.h"
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -14,7 +15,7 @@ class Model;
 /// <summary>
 /// ModelをGameObjectのTransformで描画するComponent
 /// </summary>
-class ModelRendererComponent : public Component {
+class ModelRendererComponent : public Component, public IRaycastTarget {
 public:
 	enum class PrimitiveType {
 		Custom,

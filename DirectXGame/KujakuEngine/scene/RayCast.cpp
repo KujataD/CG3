@@ -5,6 +5,7 @@
 #include "../math/MathUtil.h"
 #include "Component.h"
 #include "GameObject.h"
+#include "IRaycastTarget.h"
 #include "Scene.h"
 #include <algorithm>
 #include <cmath>
@@ -84,7 +85,8 @@ bool FindPickableRenderer(GameObject& gameObject, Component*& outRenderer) {
 			continue;
 		}
 
-		if (!component->GetRayCastModel()) {
+		const IRaycastTarget* raycastTarget = dynamic_cast<const IRaycastTarget*>(component.get());
+		if (!raycastTarget || !raycastTarget->GetRayCastModel()) {
 			continue;
 		}
 
@@ -137,7 +139,8 @@ void UpdateNearestHit(
 }
 
 bool TryCastModel(GameObject& gameObject, Component& renderer, const Ray& worldRay, Vector3& outPoint, float& outDistance) {
-	const Model* model = renderer.GetRayCastModel();
+	const IRaycastTarget* raycastTarget = dynamic_cast<const IRaycastTarget*>(&renderer);
+	const Model* model = raycastTarget ? raycastTarget->GetRayCastModel() : nullptr;
 	if (!model) {
 		return false;
 	}
