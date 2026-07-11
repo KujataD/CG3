@@ -4,6 +4,7 @@
 #include "../../externals/imgui/imgui_impl_win32.h"
 #include "../Editor/EditorDockSpace.h"
 #include "../Editor/ProjectWindow.h"
+#include "../Editor/SceneViewWindow.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -43,18 +44,11 @@ public:
 	void Finalize();
 
 private:
-	enum class TransformGizmoOperation {
-		Translate,
-		Rotate,
-		Scale,
-	};
-
 	ImGuiManager() = default;
 	~ImGuiManager() = default;
 	ImGuiManager(const ImGuiManager&) = delete;
 	ImGuiManager& operator=(const ImGuiManager&) = delete;
 
-	void DrawGameWindow();
 	void DrawHierarchyWindow();
 	void DrawHierarchyObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists);
 	void DrawInspectorWindow();
@@ -62,22 +56,12 @@ private:
 	void DrawProjectWindow();
 	void HandleEditorShortcuts();
 	void ExportCurrentSceneJson();
-	void LoadGizmoIcons();
-	void DrawGizmoToolbar();
-	void DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2& imageSize);
-	void HandleGameWindowObjectSelection(const ImVec2& imagePosition, const ImVec2& imageSize);
-	bool DrawGizmoModeButton(const char* id, const char* fallbackLabel, uint32_t textureIndex, TransformGizmoOperation operation, const char* tooltip);
 
 private:
 	EditorDockSpace dockSpace_;
 	ProjectWindow projectWindow_;
-	TransformGizmoOperation gizmoOperation_ = TransformGizmoOperation::Translate;
-	bool transformGizmoUsing_ = false;
+	SceneViewWindow sceneView_;
 	bool inspectorEditing_ = false;
-	bool gizmoIconsLoaded_ = false;
-	uint32_t gizmoTranslateIconIndex_ = 0;
-	uint32_t gizmoRotateIconIndex_ = 0;
-	uint32_t gizmoScaleIconIndex_ = 0;
 };
 
 } // namespace KujakuEngine
