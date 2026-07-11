@@ -1,4 +1,6 @@
 #include "Scene.h"
+#include "IEditorBillboard.h"
+#include "ISceneCamera.h"
 #include "../3d/Camera.h"
 #include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
@@ -346,12 +348,13 @@ WorldTransform* FindEditorBillboardTransform(const Component* component) {
 }
 
 void PrepareEditorBillboardComponent(const Component* component) {
-	if (!component || !component->HasEditorBillboard()) {
+	const IEditorBillboard* billboard = dynamic_cast<const IEditorBillboard*>(component);
+	if (!billboard) {
 		return;
 	}
 
 	// TextureManager::LoadTextureはCommandListを実行するため、描画中ではなく初期化・追加時にPlaneを作る。
-	GetOrCreateEditorBillboardModel(component->GetEditorBillboardIconName());
+	GetOrCreateEditorBillboardModel(billboard->GetEditorBillboardIconName());
 	GetOrCreateEditorBillboardTransform(component);
 }
 
@@ -387,16 +390,18 @@ void DrawEditorBillboards(Scene& scene) {
 			if (!component || !component->IsEnabled()) {
 				continue;
 			}
-			if (!component->HasEditorBillboard()) {
+			const IEditorBillboard* billboard = dynamic_cast<const IEditorBillboard*>(component.get());
+			if (!billboard) {
 				continue;
 			}
-			if (component->GetSceneCamera() == camera) {
+			const ISceneCamera* sceneCamera = dynamic_cast<const ISceneCamera*>(component.get());
+			if (sceneCamera && sceneCamera->GetSceneCamera() == camera) {
 				// 表示に使っているCamera自身のアイコンを描くと、視点原点のPlaneが目前でちらつくため描画しない。
 				continue;
 			}
 
 			// Draw中にテクスチャロードが走るとCommandListの状態が壊れるため、準備済みのPlaneだけ描画する。
-			Model* model = FindEditorBillboardModel(component->GetEditorBillboardIconName());
+			Model* model = FindEditorBillboardModel(billboard->GetEditorBillboardIconName());
 			WorldTransform* transform = FindEditorBillboardTransform(component.get());
 			if (!model || !transform) {
 				continue;

@@ -2,18 +2,18 @@
 
 #include "../3d/DirectionalLight.h"
 #include "../scene/Component.h"
+#include "../scene/IEditorBillboard.h"
 
 namespace KujakuEngine {
 
 /// <summary>
 /// DirectionalLightのGPUデータをGameObject上で管理するComponent
 /// </summary>
-class DirectionalLightComponent : public Component {
+class DirectionalLightComponent : public Component, public IEditorBillboard {
 public:
 	const char* GetTypeName() const override { return "DirectionalLightComponent"; }
 
 	bool AllowMultiple() const override { return false; }
-	bool HasEditorBillboard() const override { return true; }
 	const char* GetEditorBillboardIconName() const override { return "icon_light_directional.png"; }
 	float GetEditorBillboardPickRadius() const override { return 0.65f; }
 

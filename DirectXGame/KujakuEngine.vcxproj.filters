@@ -536,10 +536,16 @@
     <ClInclude Include="KujakuEngine\scene\Component.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\IEditorBillboard.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\scene\IMaterialTarget.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\scene\IRaycastTarget.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\ISceneCamera.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\GameModule.h">

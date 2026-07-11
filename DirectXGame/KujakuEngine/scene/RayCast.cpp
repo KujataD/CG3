@@ -5,6 +5,7 @@
 #include "../math/MathUtil.h"
 #include "Component.h"
 #include "GameObject.h"
+#include "IEditorBillboard.h"
 #include "IRaycastTarget.h"
 #include "Scene.h"
 #include <algorithm>
@@ -209,11 +210,12 @@ bool CastInternal(const Scene& scene, const Ray& ray, bool includeEditorBillboar
 			if (!component || !component->IsEnabled()) {
 				continue;
 			}
-			if (!component->HasEditorBillboard()) {
+			const IEditorBillboard* billboard = dynamic_cast<const IEditorBillboard*>(component.get());
+			if (!billboard) {
 				continue;
 			}
 
-			float radius = component->GetEditorBillboardPickRadius();
+			float radius = billboard->GetEditorBillboardPickRadius();
 			if (radius <= 0.0f) {
 				continue;
 			}

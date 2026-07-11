@@ -18,7 +18,6 @@
 
 namespace KujakuEngine {
 
-class Camera;
 class ColliderComponent;
 class GameObject;
 class SerializedFieldRegistry;
@@ -112,25 +111,6 @@ public:
 	bool IsEnabled() const { return enabled_; }
 
 	virtual bool IsTransformComponent() const { return false; }
-
-	virtual Camera* GetSceneCamera() { return nullptr; }
-
-	virtual const Camera* GetSceneCamera() const { return nullptr; }
-
-	/// <summary>
-	/// Edit中のScene表示で、実体を持たないComponentの位置を示すアイコンを描画するかどうか。
-	/// </summary>
-	virtual bool HasEditorBillboard() const;
-
-	/// <summary>
-	/// Editor用ビルボードに使う画像ファイル名。KujakuEngine/resources/images から読み込む。
-	/// </summary>
-	virtual const char* GetEditorBillboardIconName() const;
-
-	/// <summary>
-	/// Editor用ビルボードをRayCastで選択するためのワールド半径。
-	/// </summary>
-	virtual float GetEditorBillboardPickRadius() const;
 
 protected:
 	GameObject* owner_ = nullptr;

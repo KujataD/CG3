@@ -2,18 +2,20 @@
 
 #include "../3d/Camera.h"
 #include "../scene/Component.h"
+#include "../scene/IEditorBillboard.h"
+#include "../scene/ISceneCamera.h"
 
 namespace KujakuEngine {
 
 /// <summary>
 /// GameObjectのTransformをCameraへ反映するComponent
 /// </summary>
-class CameraComponent : public Component {
+class CameraComponent : public Component, public IEditorBillboard, public ISceneCamera {
 public:
 	const char* GetTypeName() const override { return "CameraComponent"; }
 
 	bool AllowMultiple() const override { return false; }
-	bool HasEditorBillboard() const override { return true; }
+	const char* GetEditorBillboardIconName() const override { return ""; }
 	float GetEditorBillboardPickRadius() const override { return 0.65f; }
 
 	void Initialize() override;
