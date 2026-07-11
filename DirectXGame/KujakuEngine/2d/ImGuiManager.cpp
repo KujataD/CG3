@@ -1,33 +1,15 @@
 #include "ImGuiManager.h"
 #include "../../externals/ImGuizmo-1.9/src/ImGuizmo.h"
-#include "../../externals/imgui/imgui_internal.h"
-#include "../3d/Camera.h"
-#include "../assets/MaterialAsset.h"
-#include "../Editor/AssetDatabase.h"
 #include "../Editor/EditorApplication.h"
 #include "../Editor/EditorConsole.h"
-#include "../Editor/EditorImGuiUtil.h"
-#include "../Editor/EditorProjectPath.h"
-#include "../Editor/EditorSelection.h"
 #include "../Editor/EditorStyle.h"
 #include "../Editor/EditorUndoManager.h"
-#include "../Editor/MaterialInspector.h"
-#include "../Editor/PrefabAsset.h"
 #include "../Editor/SceneJsonExporter.h"
 #include "../base/DirectXCommon.h"
-#include "../base/TextureManager.h"
 #include "../base/WinApp.h"
-#include "../math/MathUtil.h"
-#include "../scene/Component.h"
-#include "../scene/ComponentFactory.h"
-#include "../scene/GameObject.h"
-#include "../scene/RayCast.h"
 #include "../scene/Scene.h"
-#include <array>
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <filesystem>
+#include <cstdint>
+#include <string>
 
 namespace KujakuEngine {
 namespace {
@@ -105,15 +87,6 @@ void ImGuiManager::AddConsoleLog(const std::string& message) { EditorConsole::Ge
 
 void ImGuiManager::ClearConsoleLogs() { EditorConsole::GetInstance()->ClearLogs(); }
 
-void ImGuiManager::DrawConsoleWindow() { EditorConsole::GetInstance()->Draw(); }
-
-void ImGuiManager::DrawProjectWindow() {
-#ifdef USE_IMGUI
-	// ProjectDir以下のフォルダ/ファイルを閲覧するProject Windowを描画する。
-	projectWindow_.Draw();
-#endif // USE_IMGUI
-}
-
 void ImGuiManager::HandleEditorShortcuts() {
 #ifdef USE_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
@@ -186,8 +159,8 @@ void ImGuiManager::DrawEditor() {
 	hierarchyWindow_.Draw();
 	inspectorWindow_.Draw(projectWindow_);
 	// ProjectはDockBuilderでHierarchyとInspectorの間に初期配置される。
-	DrawProjectWindow();
-	DrawConsoleWindow();
+	projectWindow_.Draw();
+	EditorConsole::GetInstance()->Draw();
 #endif // USE_IMGUI
 }
 

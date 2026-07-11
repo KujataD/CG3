@@ -7,20 +7,12 @@
 #include "../Editor/InspectorWindow.h"
 #include "../Editor/ProjectWindow.h"
 #include "../Editor/SceneViewWindow.h"
-#include <cstdint>
 #include <string>
-#include <vector>
 
 namespace KujakuEngine {
 
-class Camera;
-class GameObject;
-class Scene;
-
-/// <summary>
-/// ImGui管理クラス
-/// 初期化・フレーム開始・描画・終了処理を一括管理する
-/// </summary>
+// ImGuiバックエンド（DX12/Win32）の初期化・フレーム制御・終了と、
+// Editor各ウィンドウの毎フレーム描画の統括を行う。
 class ImGuiManager {
 public:
 	static ImGuiManager* GetInstance();
@@ -51,8 +43,6 @@ private:
 	ImGuiManager(const ImGuiManager&) = delete;
 	ImGuiManager& operator=(const ImGuiManager&) = delete;
 
-	void DrawConsoleWindow();
-	void DrawProjectWindow();
 	void HandleEditorShortcuts();
 	void ExportCurrentSceneJson();
 
