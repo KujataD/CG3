@@ -2,11 +2,11 @@
 #include "../../externals/imgui/imgui.h"
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
-#include "../Editor/EditorDockSpace.h"
-#include "../Editor/HierarchyWindow.h"
-#include "../Editor/InspectorWindow.h"
-#include "../Editor/ProjectWindow.h"
-#include "../Editor/SceneViewWindow.h"
+#include "EditorDockSpace.h"
+#include "HierarchyWindow.h"
+#include "InspectorWindow.h"
+#include "ProjectWindow.h"
+#include "SceneViewWindow.h"
 #include <string>
 
 namespace KujakuEngine {

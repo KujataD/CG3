@@ -21,7 +21,7 @@
 #include "base/Time.h"
 #include "base/WinApp.h"
 
-#include "2d/ImGuiManager.h"
+#include "Editor/ImGuiManager.h"
 #include "2d/Sprite.h"
 
 #include "assets/MaterialAsset.h"
