@@ -183,6 +183,9 @@
     <ClCompile Include="KujakuEngine\Editor\HierarchyWindow.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\InspectorWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\MaterialInspector.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
@@ -465,6 +468,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\HierarchyWindow.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\InspectorWindow.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\MaterialInspector.h">
