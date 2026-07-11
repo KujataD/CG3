@@ -6,6 +6,7 @@
 #include "../Editor/AssetDatabase.h"
 #include "../Editor/EditorApplication.h"
 #include "../Editor/EditorConsole.h"
+#include "../Editor/EditorImGuiUtil.h"
 #include "../Editor/EditorProjectPath.h"
 #include "../Editor/EditorSelection.h"
 #include "../Editor/EditorStyle.h"
@@ -31,17 +32,6 @@ namespace KujakuEngine {
 namespace {
 
 constexpr float kDegreesToRadians = 0.017453292519943295f;
-constexpr const char* kHierarchyDragPayloadType = "KujakuHierarchyGameObject";
-constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
-constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
-
-void CaptureUndo(Scene& scene, const std::string& label) {
-	EditorUndoManager::GetInstance()->Capture(scene, label);
-}
-
-void CaptureUndo(Scene& scene, const std::string& label, const std::string& sceneJson) {
-	EditorUndoManager::GetInstance()->Capture(scene, label, sceneJson);
-}
 
 struct MaterialInspectorState {
 	std::filesystem::path materialPath;
