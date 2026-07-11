@@ -11,24 +11,12 @@ namespace KujakuEngine{
 class KUJAKU_API DebugCamera {
 public:
 	
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	void Initialize(Vector3 rotation, Vector3 translation);
 
-	/// <summary>
-	/// 更新
-	/// </summary>
 	void Update();
 
-	/// <summary>
-	/// ViewMatrix更新処理を行います。
-	/// </summary>
 	void UpdateViewMatrix();
 
-	/// <summary>
-	/// ViewMatrixを取得します。
-	/// </summary>
 	Matrix4x4 GetViewMatrix() { return matView_; }
 
 	// ローカル回転軸

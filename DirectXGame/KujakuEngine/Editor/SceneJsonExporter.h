@@ -12,9 +12,6 @@ class Scene;
 /// </summary>
 class SceneJsonExporter {
 public:
-	/// <summary>
-	/// ExportResult構造体を表します。
-	/// </summary>
 	struct ExportResult {
 		bool succeeded = false;
 		std::filesystem::path outputDirectory;

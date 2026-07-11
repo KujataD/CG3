@@ -7,9 +7,6 @@ namespace KujakuEngine{
 
 class Matrix3x3;
 
-/// <summary>
-/// KUJAKU_APIクラスを表します。
-/// </summary>
 class KUJAKU_API Vector2 {
 public:
 	float x;

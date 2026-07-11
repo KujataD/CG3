@@ -11,9 +11,6 @@ class Component;
 class GameObject;
 class Scene;
 
-/// <summary>
-/// RayCastのヒット情報
-/// </summary>
 struct RayCastHit {
 	GameObject* gameObject = nullptr;
 	Component* renderer = nullptr;
@@ -43,9 +40,6 @@ public:
 	/// </summary>
 	static bool CastForEditor(const Scene& scene, const Ray& ray, RayCastHit& outHit);
 
-	/// <summary>
-	/// RayとAABBの交差判定
-	/// </summary>
 	static bool IntersectRayAabb(const Ray& ray, const Vector3& minValue, const Vector3& maxValue, float& outDistance);
 };
 

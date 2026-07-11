@@ -12,24 +12,15 @@ const uint32_t kCollisionAttributePlayer = 0b1;
 // 敵陣営
 const uint32_t kCollisionAttributeEnemy = 0b1 << 1;
 
-/// <summary>
-/// Colliderクラスを表します。
-/// </summary>
 class Collider {
 public:
 	// 半径を取得
-	/// <summary>
-	/// Radiusを取得します。
-	/// </summary>
 	float GetRadius() const { return radius_; }
 
 	// 半径を設定
 	void SetRadius(float radius) { radius_ = radius; }
 
 	// 衝突時に呼ばれる関数
-	/// <summary>
-	/// OnCollisionを実行します。
-	/// </summary>
 	virtual void OnCollision() = 0;
 
 	// --- getter ---
@@ -38,19 +29,10 @@ public:
 	/// WorldPositionを取得します。
 	/// </summary>
 	virtual Vector3 GetWorldPosition() const = 0;
-	/// <summary>
-	/// Sphereを取得します。
-	/// </summary>
 	Sphere GetSphere() const { return Sphere{GetWorldPosition(), GetRadius()}; }
 	// 衝突マスク（相手）
-	/// <summary>
-	/// CollisionMaskを取得します。
-	/// </summary>
 	uint32_t GetCollisionMask() { return collisionMask_; }
 	// 衝突属性（自分）
-	/// <summary>
-	/// CollisionAttributeを取得します。
-	/// </summary>
 	uint32_t GetCollisionAttribute() { return collisionAttribute_; }
 
 	// --- setter ---

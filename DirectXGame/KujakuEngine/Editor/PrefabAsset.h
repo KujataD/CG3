@@ -15,9 +15,6 @@ class Scene;
 /// </summary>
 class PrefabAsset {
 public:
-	/// <summary>
-	/// Prefab保存結果
-	/// </summary>
 	struct SaveResult {
 		bool succeeded = false;
 		std::filesystem::path outputPath;
@@ -26,9 +23,6 @@ public:
 		std::string message;
 	};
 
-	/// <summary>
-	/// Prefab生成結果
-	/// </summary>
 	struct InstantiateResult {
 		bool succeeded = false;
 		GameObject* rootObject = nullptr;

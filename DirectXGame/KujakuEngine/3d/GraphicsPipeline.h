@@ -16,18 +16,12 @@
 
 namespace KujakuEngine {
 
-/// <summary>
-/// VertexData構造体を表します。
-/// </summary>
 struct VertexData {
 	Vector4 position;
 	Vector2 texcoord;
 	Vector3 normal;
 };
 
-/// <summary>
-/// MaterialData構造体を表します。
-/// </summary>
 struct MaterialData {
 	Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f};
 	int32_t enableLighting = 0;
@@ -38,27 +32,18 @@ struct MaterialData {
 	uint32_t textureIndex;
 };
 
-/// <summary>
-/// Node構造体を表します。
-/// </summary>
 struct Node {
 	Matrix4x4 localMatrix = {{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}};
 	std::string name;
 	std::vector<Node> children;
 };
 
-/// <summary>
-/// ModelData構造体を表します。
-/// </summary>
 struct ModelData {
 	std::vector<VertexData> vertices;
 	MaterialData material;
 	Node rootNode;
 };
 
-/// <summary>
-/// BlendModeの種類を表します。
-/// </summary>
 enum class BlendMode {
 	kNone,      // ブレンドなし
 	kNormal,    // αブレンド	: Src * SrcA + Dest * (1 - SrcA)
@@ -71,9 +56,6 @@ enum class BlendMode {
 	kCountOfBlendMode, //!< ブレンドモード数。指定はしない
 };
 
-/// <summary>
-/// PipelineTypeの種類を表します。
-/// </summary>
 enum class PipelineType {
 	kObject3d,
 	kParticle,
@@ -83,9 +65,6 @@ enum class PipelineType {
 	kCountOfPipeLineType,
 };
 
-/// <summary>
-/// ShaderModelの種類を表します。
-/// </summary>
 enum class ShaderModel {
 	kNone,                 // シェーダーなし
 	kLambert,              // ランバート
@@ -103,9 +82,6 @@ public:
 public:
 	friend class Model;
 	friend class InstancingModel;
-	/// <summary>
-	/// シングルトンインスタンスの取得
-	/// </summary>
 	static GraphicsPipeline* GetInstance();
 
 	/// <summary>
@@ -120,67 +96,28 @@ public:
 	/// </summary>
 	void SetCommandList(PipelineType pipelineType, BlendMode blendMode);
 
-	/// <summary>
-	/// 終了処理
-	/// </summary>
 	void Finalize();
 
 private:
-	/// <summary>
-	/// GraphicsPipelineを実行します。
-	/// </summary>
 	GraphicsPipeline() = default;
-	/// <summary>
-	/// GraphicsPipelineを実行します。
-	/// </summary>
 	~GraphicsPipeline() = default;
-	/// <summary>
-	/// GraphicsPipelineを実行します。
-	/// </summary>
 	GraphicsPipeline(const GraphicsPipeline&) = delete;
-	/// <summary>
-	/// operator=を実行します。
-	/// </summary>
 	GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
 
-	/// <summary>
-	/// DXCコンパイラの初期化
-	/// </summary>
 	void InitializeDXC();
 
-	/// <summary>
-	/// シェーダーをコンパイルする
-	/// </summary>
 	IDxcBlob* CompileShader(const std::wstring& filePath, const wchar_t* profile);
 
-	/// <summary>
-	/// Object3d用RootSignatureを生成する
-	/// </summary>
 	void CreateObject3dRootSignature();
 
-	/// <summary>
-	/// Particle用RootSignatureを生成する
-	/// </summary>
 	void CreateInstancingRootSignature();
 
-	/// <summary>
-	/// Line描画用RootSignatureを生成する
-	/// </summary>
 	void CreateLineRootSignature();
 
-	/// <summary>
-	/// Object3d用PSOを生成する
-	/// </summary>
 	void CreateObject3dPipelineStateObject();
 
-	/// <summary>
-	/// Sprite用PSOを生成する
-	/// </summary>
 	void CreateInstancingPipelineStateObject();
 
-	/// <summary>
-	/// Line描画用PSOを生成する
-	/// </summary>
 	void CreateLinePipelineStateObject();
 
 private:

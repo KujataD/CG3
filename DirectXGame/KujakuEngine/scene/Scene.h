@@ -13,34 +13,13 @@ namespace KujakuEngine {
 class Camera;
 class ColliderComponent;
 
-/// <summary>
-/// Scene基底クラス
-/// </summary>
 class Scene {
 public:
-	/// <summary>
-	/// Sceneを実行します。
-	/// </summary>
 	KUJAKU_API virtual ~Scene();
-
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	KUJAKU_API virtual void Initialize();
-
-	/// <summary>
-	/// Scene内ObjectのUpdateを実行する
-	/// </summary>
 	KUJAKU_API virtual void Update();
-
-	/// <summary>
-	/// Scene内ObjectのDrawを実行する
-	/// </summary>
 	KUJAKU_API virtual void Draw();
 
-	/// <summary>
-	/// 終了処理
-	/// </summary>
 	KUJAKU_API virtual void Finalize();
 
 	/// <summary>
@@ -58,9 +37,6 @@ public:
 	/// </summary>
 	virtual const char* GetSceneName() const { return "Scene"; }
 
-	/// <summary>
-	/// Editor操作で使うCameraを取得
-	/// </summary>
 	virtual Camera* GetEditorCamera() { return nullptr; }
 
 	/// <summary>
@@ -93,14 +69,8 @@ public:
 	/// </summary>
 	KUJAKU_API GameObject* AddGameObject(std::unique_ptr<GameObject> gameObject);
 
-	/// <summary>
-	/// GameObject階層をSceneから削除する
-	/// </summary>
 	KUJAKU_API void RemoveGameObjectHierarchy(GameObject* gameObject);
 
-	/// <summary>
-	/// instanceIdからGameObjectを検索する
-	/// </summary>
 	KUJAKU_API GameObject* FindGameObjectByInstanceId(const std::string& instanceId) const;
 
 	/// <summary>
@@ -113,19 +83,10 @@ public:
 	/// </summary>
 	KUJAKU_API void UpdateWorldTransforms();
 
-	/// <summary>
-	/// GameObject一覧を取得
-	/// </summary>
 	std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return gameObjects_; }
 
-	/// <summary>
-	/// GameObject一覧を取得
-	/// </summary>
 	const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const { return gameObjects_; }
 
-	/// <summary>
-	/// Scene内のGameObject / Component情報をJSON形式で取得
-	/// </summary>
 	KUJAKU_API std::string ToJson() const;
 
 protected:
@@ -142,9 +103,6 @@ private:
 		bool isTrigger = false;
 	};
 
-	/// <summary>
-	/// Scene内ColliderComponentの接触イベントを更新します。
-	/// </summary>
 	void UpdateCollisions();
 
 	bool initialized_ = false;

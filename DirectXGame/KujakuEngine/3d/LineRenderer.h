@@ -20,9 +20,6 @@ class Camera;
 /// </summary>
 class LineRenderer {
 public:
-	/// <summary>
-	/// シングルトンインスタンスの取得
-	/// </summary>
 	static KUJAKU_API LineRenderer* GetInstance();
 
 	/// <summary>
@@ -46,21 +43,9 @@ public:
 	KUJAKU_API void Clear();
 
 private:
-	/// <summary>
-	/// LineRendererを実行します。
-	/// </summary>
 	LineRenderer() = default;
-	/// <summary>
-	/// LineRendererを実行します。
-	/// </summary>
 	~LineRenderer() = default;
-	/// <summary>
-	/// LineRendererを実行します。
-	/// </summary>
 	LineRenderer(const LineRenderer&) = delete;
-	/// <summary>
-	/// operator=を実行します。
-	/// </summary>
 	LineRenderer& operator=(const LineRenderer&) = delete;
 
 	struct LineVertex {
@@ -68,14 +53,8 @@ private:
 		Vector4 color;
 	};
 
-	/// <summary>
-	/// Line頂点を保持できる頂点バッファを確保します。
-	/// </summary>
 	void EnsureVertexCapacity(uint32_t vertexCount);
 
-	/// <summary>
-	/// WVP用定数バッファを確保します。
-	/// </summary>
 	void EnsureConstantBuffer();
 
 	std::vector<LineVertex> vertices_;

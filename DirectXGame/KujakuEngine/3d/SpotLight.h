@@ -10,9 +10,6 @@ namespace KujakuEngine {
 
 static const uint32_t kMaxSpotLight = 16;
 
-/// <summary>
-/// SpotLightData構造体を表します。
-/// </summary>
 struct SpotLightData {
 	Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; // !< ライトの色
 	Vector3 position = {0.0f, 0.0f, 0.0f};    // !< ライトの位置
@@ -30,63 +27,24 @@ struct SpotLightData {
 //	int32_t count = 0;
 //};
 
-/// <summary>
-/// SpotLightクラスを表します。
-/// </summary>
 class SpotLight {
 public:
-	/// <summary>
-	/// Instanceを取得します。
-	/// </summary>
 	static KUJAKU_API SpotLight* GetInstance();
 
-	/// <summary>
-	/// 初期化します。
-	/// </summary>
 	void Initialize();
-	/// <summary>
-	/// 状態をリセットします。
-	/// </summary>
 	KUJAKU_API void Reset();
 
-	/// <summary>
-	/// Lightを追加します。
-	/// </summary>
 	void AddLight(const SpotLightData& light);
-	/// <summary>
-	/// Lightを設定します。
-	/// </summary>
 	void SetLight(uint32_t index, const SpotLightData& light);
-	/// <summary>
-	/// Lightを設定します。
-	/// </summary>
 	KUJAKU_API void SetLight(SpotLightData* light);
 
-	/// <summary>
-	/// Resourceを取得します。
-	/// </summary>
 	ID3D12Resource* GetResource() const { return resource_.Get(); }
-	/// <summary>
-	/// Dataを取得します。
-	/// </summary>
 	const SpotLightData& GetData() const { return *map_; }
 
 private:
-	/// <summary>
-	/// SpotLightを実行します。
-	/// </summary>
 	SpotLight() = default;
-	/// <summary>
-	/// SpotLightを実行します。
-	/// </summary>
 	~SpotLight() = default;
-	/// <summary>
-	/// SpotLightを実行します。
-	/// </summary>
 	SpotLight(const SpotLight&) = delete;
-	/// <summary>
-	/// operator=を実行します。
-	/// </summary>
 	SpotLight& operator=(const SpotLight&) = delete;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> resource_;

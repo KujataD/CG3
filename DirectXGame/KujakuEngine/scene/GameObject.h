@@ -17,33 +17,14 @@ namespace KujakuEngine {
 /// </summary>
 class GameObject {
 public:
-	/// <summary>
-	/// GameObjectを実行します。
-	/// </summary>
 	KUJAKU_API explicit GameObject(const std::string& name = "GameObject");
-	/// <summary>
-	/// GameObjectを実行します。
-	/// </summary>
 	KUJAKU_API ~GameObject();
 
-	/// <summary>
-	/// 初期化
-	/// </summary>
+
 	KUJAKU_API void Initialize();
-
-	/// <summary>
-	/// ComponentのUpdateを実行する
-	/// </summary>
 	KUJAKU_API void Update();
-
-	/// <summary>
-	/// ComponentのDrawを実行する
-	/// </summary>
 	KUJAKU_API void Draw();
 
-	/// <summary>
-	/// 終了処理
-	/// </summary>
 	KUJAKU_API void Finalize();
 
 	/// <summary>
@@ -56,39 +37,18 @@ public:
 	/// </summary>
 	KUJAKU_API void OnPlayStop();
 
-	/// <summary>
-	/// 親GameObjectを設定
-	/// </summary>
 	KUJAKU_API bool SetParent(GameObject* parent, bool keepWorldPosition = false);
 
-	/// <summary>
-	/// 親GameObjectを取得
-	/// </summary>
 	GameObject* GetParent() const { return parent_; }
 
-	/// <summary>
-	/// 子GameObject一覧を取得
-	/// </summary>
 	const std::vector<GameObject*>& GetChildren() const { return children_; }
 
-	/// <summary>
-	/// ルートGameObjectかどうか
-	/// </summary>
 	bool IsRoot() const { return parent_ == nullptr; }
 
-	/// <summary>
-	/// 指定Objectの子孫かどうか
-	/// </summary>
 	KUJAKU_API bool IsDescendantOf(const GameObject* ancestor) const;
 
-	/// <summary>
-	/// 親子階層をたどってUpdateを実行
-	/// </summary>
 	KUJAKU_API void UpdateHierarchy();
 
-	/// <summary>
-	/// 親子階層をたどってDrawを実行
-	/// </summary>
 	KUJAKU_API void DrawHierarchy();
 
 	/// <summary>
@@ -111,44 +71,20 @@ public:
 	/// </summary>
 	KUJAKU_API void SetInstanceId(const std::string& instanceId);
 
-	/// <summary>
-	/// Prefab Instanceとしての参照情報を設定
-	/// </summary>
 	KUJAKU_API void SetPrefabLink(const std::string& assetPath, const std::string& objectId, const std::string& rootInstanceId, bool isRoot);
 
-	/// <summary>
-	/// Prefab Instanceとしての参照情報を解除
-	/// </summary>
 	KUJAKU_API void ClearPrefabLink();
 
-	/// <summary>
-	/// Prefab Instanceかどうか
-	/// </summary>
 	bool IsPrefabInstance() const { return !prefabAssetPath_.empty() && !prefabObjectId_.empty(); }
 
-	/// <summary>
-	/// Prefab InstanceのルートObjectかどうか
-	/// </summary>
 	bool IsPrefabInstanceRoot() const { return IsPrefabInstance() && isPrefabInstanceRoot_; }
 
-	/// <summary>
-	/// 参照元Prefabのパスを取得
-	/// </summary>
 	const std::string& GetPrefabAssetPath() const { return prefabAssetPath_; }
 
-	/// <summary>
-	/// Prefab内Object IDを取得
-	/// </summary>
 	const std::string& GetPrefabObjectId() const { return prefabObjectId_; }
 
-	/// <summary>
-	/// Prefab InstanceルートのinstanceIdを取得
-	/// </summary>
 	const std::string& GetPrefabInstanceRootId() const { return prefabInstanceRootId_; }
 
-	/// <summary>
-	/// 名前を取得
-	/// </summary>
 	const std::string& GetName() const { return name_; }
 
 	void SetName(const std::string& name) { name_ = name; }
@@ -173,9 +109,6 @@ public:
 	/// </summary>
 	KUJAKU_API void SetLayer(uint32_t layer);
 
-	/// <summary>
-	/// 有効状態を取得
-	/// </summary>
 	bool IsActive() const { return active_; }
 
 	/// <summary>
@@ -185,61 +118,28 @@ public:
 
 	void SetActive(bool active) { active_ = active; }
 
-	/// <summary>
-	/// Transformを取得
-	/// </summary>
 	KUJAKU_API WorldTransform& GetTransform();
 
-	/// <summary>
-	/// Transformを取得
-	/// </summary>
 	KUJAKU_API const WorldTransform& GetTransform() const;
 
-	/// <summary>
-	/// 必須Transform Componentを取得
-	/// </summary>
 	Component* GetTransformComponent() const { return transformComponent_; }
 
-	/// <summary>
-	/// 必須Transform Componentを保証
-	/// </summary>
 	KUJAKU_API Component* EnsureTransformComponent();
 
-	/// <summary>
-	/// Componentを追加
-	/// </summary>
 	KUJAKU_API Component* AddComponent(std::unique_ptr<Component> component);
 
-	/// <summary>
-	/// Componentを削除
-	/// </summary>
 	KUJAKU_API void RemoveComponent(Component* component);
 
-	/// <summary>
-	/// Componentを削除
-	/// </summary>
 	KUJAKU_API void RemoveComponentAt(size_t index);
 
-	/// <summary>
-	/// Componentを追加
-	/// </summary>
 	template <class T, class... Args>
 	T* AddComponent(Args&&... args);
 
-	/// <summary>
-	/// Componentを取得
-	/// </summary>
 	template <class T>
 	T* GetComponent();
 
-	/// <summary>
-	/// Component一覧を取得
-	/// </summary>
 	std::vector<std::unique_ptr<Component>>& GetComponents() { return components_; }
 
-	/// <summary>
-	/// Component一覧を取得
-	/// </summary>
 	const std::vector<std::unique_ptr<Component>>& GetComponents() const { return components_; }
 
 private:

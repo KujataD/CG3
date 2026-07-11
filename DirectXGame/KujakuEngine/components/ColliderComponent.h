@@ -9,9 +9,6 @@
 
 namespace KujakuEngine {
 
-/// <summary>
-/// Colliderの形状種別。
-/// </summary>
 enum class ColliderShapeType {
 	Sphere,
 	Box,
@@ -35,29 +32,14 @@ struct Collision {
 /// </summary>
 class KUJAKU_API ColliderComponent : public Component {
 public:
-	/// <summary>
-	/// ColliderComponentを実行します。
-	/// </summary>
 	ColliderComponent();
 
-	/// <summary>
-	/// Component名を取得します。
-	/// </summary>
 	const char* GetTypeName() const override { return "ColliderComponent"; }
 
-	/// <summary>
-	/// Colliderの形状種別を取得します。
-	/// </summary>
 	virtual ColliderShapeType GetShapeType() const = 0;
 
-	/// <summary>
-	/// Triggerとして扱うかどうか。
-	/// </summary>
 	bool IsTrigger() const { return isTrigger_; }
 
-	/// <summary>
-	/// Triggerとして扱うかどうかを設定します。
-	/// </summary>
 	void SetTrigger(bool isTrigger) { isTrigger_ = isTrigger; }
 
 	/// <summary>
@@ -65,9 +47,6 @@ public:
 	/// </summary>
 	const Vector3& GetCenter() const { return center_; }
 
-	/// <summary>
-	/// Collider中心のローカルオフセットを設定します。
-	/// </summary>
 	void SetCenter(const Vector3& center) { center_ = center; }
 
 	/// <summary>
@@ -75,9 +54,6 @@ public:
 	/// </summary>
 	uint32_t GetCollisionMask() const { return collisionMask_; }
 
-	/// <summary>
-	/// 接触対象Layerのビットマスクを設定します。
-	/// </summary>
 	void SetCollisionMask(uint32_t collisionMask) { collisionMask_ = collisionMask; }
 
 	/// <summary>
@@ -100,14 +76,8 @@ public:
 	/// </summary>
 	Vector3 GetWorldCenter() const;
 
-	/// <summary>
-	/// Sphere形状として取得します。
-	/// </summary>
 	virtual Sphere GetWorldSphere() const;
 
-	/// <summary>
-	/// AABB形状として取得します。
-	/// </summary>
 	virtual AABB GetWorldAABB() const;
 
 	/// <summary>
@@ -115,9 +85,6 @@ public:
 	/// </summary>
 	bool Intersects(const ColliderComponent& other) const;
 
-	/// <summary>
-	/// Inspector表示
-	/// </summary>
 	void DrawInspector() override;
 
 	/// <summary>
@@ -154,9 +121,6 @@ private:
 	uint64_t runtimeId_ = 0;
 };
 
-/// <summary>
-/// 球Collider。
-/// </summary>
 class KUJAKU_API SphereColliderComponent : public ColliderComponent {
 public:
 	const char* GetTypeName() const override { return "SphereColliderComponent"; }
@@ -196,9 +160,6 @@ public:
 	/// </summary>
 	bool UsesWorldOBB() const;
 
-	/// <summary>
-	/// 箱ColliderをワールドOBBとして取得します。
-	/// </summary>
 	OBB GetWorldOBB() const;
 
 protected:

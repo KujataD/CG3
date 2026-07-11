@@ -12,9 +12,6 @@ class Scene;
 /// </summary>
 class SceneJsonImporter {
 public:
-	/// <summary>
-	/// ImportResult構造体を表します。
-	/// </summary>
 	struct ImportResult {
 		bool succeeded = false;
 		bool imported = false;

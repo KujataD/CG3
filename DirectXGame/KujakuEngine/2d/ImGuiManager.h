@@ -19,14 +19,8 @@ class Scene;
 /// </summary>
 class ImGuiManager {
 public:
-	/// <summary>
-	/// シングルトンインスタンスの取得
-	/// </summary>
 	static ImGuiManager* GetInstance();
 
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	void Initialize();
 
 	/// <summary>
@@ -39,112 +33,40 @@ public:
 	/// </summary>
 	void End();
 
-	/// <summary>
-	/// Editor UIを描画
-	/// </summary>
 	void DrawEditor();
 
-	/// <summary>
-	/// Consoleにログを追加
-	/// </summary>
 	void AddConsoleLog(const std::string& message);
 
-	/// <summary>
-	/// Consoleログを消去
-	/// </summary>
 	void ClearConsoleLogs();
 
-	/// <summary>
-	/// 終了処理
-	/// </summary>
 	void Finalize();
 
 private:
-	/// <summary>
-	/// TransformGizmoOperationの種類を表します。
-	/// </summary>
 	enum class TransformGizmoOperation {
 		Translate,
 		Rotate,
 		Scale,
 	};
 
-	/// <summary>
-	/// ImGuiManagerを実行します。
-	/// </summary>
 	ImGuiManager() = default;
-	/// <summary>
-	/// ImGuiManagerを実行します。
-	/// </summary>
 	~ImGuiManager() = default;
-	/// <summary>
-	/// ImGuiManagerを実行します。
-	/// </summary>
 	ImGuiManager(const ImGuiManager&) = delete;
-	/// <summary>
-	/// operator=を実行します。
-	/// </summary>
 	ImGuiManager& operator=(const ImGuiManager&) = delete;
 
-	/// <summary>
-	/// DockSpaceを描画します。
-	/// </summary>
 	void DrawDockSpace();
-	/// <summary>
-	/// upInitialLayoutを設定します。
-	/// </summary>
 	void SetupInitialLayout(ImGuiID dockspaceId);
-	/// <summary>
-	/// GameWindowを描画します。
-	/// </summary>
 	void DrawGameWindow();
-	/// <summary>
-	/// HierarchyWindowを描画します。
-	/// </summary>
 	void DrawHierarchyWindow();
-	/// <summary>
-	/// HierarchyObjectを描画します。
-	/// </summary>
 	void DrawHierarchyObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists);
-	/// <summary>
-	/// InspectorWindowを描画します。
-	/// </summary>
 	void DrawInspectorWindow();
-	/// <summary>
-	/// ConsoleWindowを描画します。
-	/// </summary>
 	void DrawConsoleWindow();
-	/// <summary>
-	/// ProjectWindowを描画します。
-	/// </summary>
 	void DrawProjectWindow();
-	/// <summary>
-	/// HandleEditorShortcutsを実行します。
-	/// </summary>
 	void HandleEditorShortcuts();
-	/// <summary>
-	/// ExportCurrentSceneJsonを実行します。
-	/// </summary>
 	void ExportCurrentSceneJson();
-	/// <summary>
-	/// LoadGizmoIconsを実行します。
-	/// </summary>
 	void LoadGizmoIcons();
-	/// <summary>
-	/// GizmoToolbarを描画します。
-	/// </summary>
 	void DrawGizmoToolbar();
-	/// <summary>
-	/// TransformGizmoを描画します。
-	/// </summary>
 	void DrawTransformGizmo(const ImVec2& imagePosition, const ImVec2& imageSize);
-	/// <summary>
-	/// HandleGameWindowObjectSelectionを実行します。
-	/// </summary>
 	void HandleGameWindowObjectSelection(const ImVec2& imagePosition, const ImVec2& imageSize);
-	/// <summary>
-	/// GizmoModeButtonを描画します。
-	/// </summary>
 	bool DrawGizmoModeButton(const char* id, const char* fallbackLabel, uint32_t textureIndex, TransformGizmoOperation operation, const char* tooltip);
 
 private:

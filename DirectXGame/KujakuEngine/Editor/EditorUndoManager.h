@@ -23,9 +23,6 @@ public:
 		std::string selectedObjectInstanceId;
 	};
 
-	/// <summary>
-	/// シングルトンインスタンスを取得します。
-	/// </summary>
 	static KUJAKU_API EditorUndoManager* GetInstance();
 
 	/// <summary>
@@ -38,39 +35,17 @@ public:
 	/// </summary>
 	KUJAKU_API void Capture(Scene& scene, const std::string& label, const std::string& sceneJson);
 
-	/// <summary>
-	/// Undoを実行します。
-	/// </summary>
 	KUJAKU_API bool Undo(Scene& scene);
-
-	/// <summary>
-	/// Redoを実行します。
-	/// </summary>
 	KUJAKU_API bool Redo(Scene& scene);
 
-	/// <summary>
-	/// Undo/Redo履歴を破棄します。
-	/// </summary>
 	KUJAKU_API void Clear();
 
-	/// <summary>
-	/// Undo履歴上限を設定します。
-	/// </summary>
 	KUJAKU_API void SetMaxUndoCount(size_t maxUndoCount);
 
-	/// <summary>
-	/// Undo履歴上限を取得します。
-	/// </summary>
 	size_t GetMaxUndoCount() const { return maxUndoCount_; }
 
-	/// <summary>
-	/// Undo可能かを返します。
-	/// </summary>
 	bool CanUndo() const { return !undoStack_.empty(); }
 
-	/// <summary>
-	/// Redo可能かを返します。
-	/// </summary>
 	bool CanRedo() const { return !redoStack_.empty(); }
 
 private:

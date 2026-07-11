@@ -29,9 +29,6 @@ namespace KujakuEngine {
 /// </summary>
 class SerializedFieldRegistry {
 public:
-	/// <summary>
-	/// Registryの実行モード。
-	/// </summary>
 	enum class Mode {
 		DrawInspector,
 		WriteJson,
@@ -53,17 +50,11 @@ public:
 	/// </summary>
 	explicit SerializedFieldRegistry(const nlohmann::json& json) : mode_(Mode::ReadJson), readJson_(&json) {}
 
-	/// <summary>
-	/// float項目を登録します。
-	/// </summary>
 	void Float(const char* memberName, float& value, float dragSpeed, float minValue, float maxValue) {
 		std::string key = MakeJsonKey(memberName);
 		FloatNamed(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
 	}
 
-	/// <summary>
-	/// 表示名付きfloat項目を登録します。
-	/// </summary>
 	void FloatNamed(const char* jsonKey, const char* label, float& value, float dragSpeed, float minValue, float maxValue) {
 		if (mode_ == Mode::DrawInspector) {
 			InspectorUI::DragFloat(label, &value, dragSpeed, minValue, maxValue);
@@ -85,17 +76,11 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// int項目を登録します。
-	/// </summary>
 	void Int(const char* memberName, int& value, float dragSpeed, int minValue, int maxValue) {
 		std::string key = MakeJsonKey(memberName);
 		IntNamed(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
 	}
 
-	/// <summary>
-	/// 表示名付きint項目を登録します。
-	/// </summary>
 	void IntNamed(const char* jsonKey, const char* label, int& value, float dragSpeed, int minValue, int maxValue) {
 		if (mode_ == Mode::DrawInspector) {
 			InspectorUI::DragInt(label, &value, dragSpeed, minValue, maxValue);
@@ -117,17 +102,11 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// uint32_t項目を登録します。
-	/// </summary>
 	void UInt32(const char* memberName, uint32_t& value, float dragSpeed, uint32_t minValue, uint32_t maxValue) {
 		std::string key = MakeJsonKey(memberName);
 		UInt32Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
 	}
 
-	/// <summary>
-	/// 表示名付きuint32_t項目を登録します。
-	/// </summary>
 	void UInt32Named(const char* jsonKey, const char* label, uint32_t& value, float dragSpeed, uint32_t minValue, uint32_t maxValue) {
 		if (mode_ == Mode::DrawInspector) {
 			int intValue = static_cast<int>(std::min<uint32_t>(value, static_cast<uint32_t>(0x7fffffff)));
@@ -162,17 +141,11 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// bool項目を登録します。
-	/// </summary>
 	void Bool(const char* memberName, bool& value) {
 		std::string key = MakeJsonKey(memberName);
 		BoolNamed(key.c_str(), MakeDisplayName(key).c_str(), value);
 	}
 
-	/// <summary>
-	/// 表示名付きbool項目を登録します。
-	/// </summary>
 	void BoolNamed(const char* jsonKey, const char* label, bool& value) {
 		if (mode_ == Mode::DrawInspector) {
 			InspectorUI::Checkbox(label, &value);
@@ -191,17 +164,11 @@ public:
 		value = readJson_->at(jsonKey).get<bool>();
 	}
 
-	/// <summary>
-	/// Vector3項目を登録します。
-	/// </summary>
 	void Vector3Field(const char* memberName, Vector3& value, float dragSpeed, float minValue, float maxValue) {
 		std::string key = MakeJsonKey(memberName);
 		Vector3Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
 	}
 
-	/// <summary>
-	/// 表示名付きVector3項目を登録します。
-	/// </summary>
 	void Vector3Named(const char* jsonKey, const char* label, Vector3& value, float dragSpeed, float minValue, float maxValue) {
 		if (mode_ == Mode::DrawInspector) {
 			InspectorUI::DragFloat3(label, &value.x, dragSpeed, minValue, maxValue);
@@ -226,17 +193,11 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// Vector4項目を登録します。
-	/// </summary>
 	void Vector4Field(const char* memberName, Vector4& value, float dragSpeed, float minValue, float maxValue) {
 		std::string key = MakeJsonKey(memberName);
 		Vector4Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
 	}
 
-	/// <summary>
-	/// 表示名付きVector4項目を登録します。
-	/// </summary>
 	void Vector4Named(const char* jsonKey, const char* label, Vector4& value, float dragSpeed, float minValue, float maxValue) {
 		if (mode_ == Mode::DrawInspector) {
 			float values[4] = {value.x, value.y, value.z, value.w};
@@ -270,17 +231,11 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// string項目を登録します。
-	/// </summary>
 	void String(const char* memberName, std::string& value) {
 		std::string key = MakeJsonKey(memberName);
 		StringNamed(key.c_str(), MakeDisplayName(key).c_str(), value);
 	}
 
-	/// <summary>
-	/// 表示名付きstring項目を登録します。
-	/// </summary>
 	void StringNamed(const char* jsonKey, const char* label, std::string& value) {
 		if (mode_ == Mode::DrawInspector) {
 			std::array<char, 256> buffer{};
@@ -305,18 +260,12 @@ public:
 		value = readJson_->at(jsonKey).get<std::string>();
 	}
 
-	/// <summary>
-	/// Serializableな構造体を登録します。
-	/// </summary>
 	template <class TObject>
 	void Object(const char* memberName, TObject& value) {
 		std::string key = MakeJsonKey(memberName);
 		ObjectNamed(key.c_str(), MakeDisplayName(key).c_str(), value);
 	}
 
-	/// <summary>
-	/// 表示名付きSerializableな構造体を登録します。
-	/// </summary>
 	template <class TObject>
 	void ObjectNamed(const char* jsonKey, const char* label, TObject& value) {
 		if (mode_ == Mode::DrawInspector) {
@@ -342,9 +291,6 @@ public:
 		value.RegisterSerializedFields(childRegistry);
 	}
 
-	/// <summary>
-	/// メンバ名からJSONキーを生成します。
-	/// </summary>
 	static std::string MakeJsonKey(const char* memberName) {
 		std::string key = memberName;
 		size_t dotPosition = key.find_last_of('.');
@@ -357,9 +303,6 @@ public:
 		return key;
 	}
 
-	/// <summary>
-	/// JSONキーからInspector表示名を生成します。
-	/// </summary>
 	static std::string MakeDisplayName(const std::string& key) {
 		std::string label;
 		label.reserve(key.size() + 4);

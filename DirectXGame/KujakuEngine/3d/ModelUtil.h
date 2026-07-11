@@ -13,9 +13,6 @@ namespace KujakuEngine::ModelUtil {
 /// モデルファイルを読み込み、エンジン用のモデルデータに変換する
 /// </summary>
 ModelData LoadModelFile(const std::string& directoryPath, const std::string& filename);
-/// <summary>
-/// LoadModelFileを試行します。
-/// </summary>
 bool TryLoadModelFile(const std::string& directoryPath, const std::string& filename, ModelData& outModelData);
 
 /// <summary>

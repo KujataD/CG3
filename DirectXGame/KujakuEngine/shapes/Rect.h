@@ -3,9 +3,6 @@
 namespace KujakuEngine {
 
 // 矩形
-/// <summary>
-/// Rect構造体を表します。
-/// </summary>
 struct Rect {
 	float left = 0.0f;   // 左端
 	float right = 1.0f;  // 右端

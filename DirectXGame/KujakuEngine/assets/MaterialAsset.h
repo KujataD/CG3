@@ -52,19 +52,10 @@ struct MaterialAssetData {
 /// </summary>
 class MaterialAsset {
 public:
-	/// <summary>
-	/// 標準Material設定を作成します。
-	/// </summary>
 	static KUJAKU_API MaterialAssetData CreateDefault();
 
-	/// <summary>
-	/// Material JSONファイルかどうかを返します。
-	/// </summary>
 	static KUJAKU_API bool IsMaterialFile(const std::filesystem::path& path);
 
-	/// <summary>
-	/// Materialファイル名から表示名を取得します。
-	/// </summary>
 	static KUJAKU_API std::string GetDisplayName(const std::filesystem::path& path);
 
 	/// <summary>
@@ -82,9 +73,6 @@ public:
 	/// </summary>
 	static KUJAKU_API const char* ToString(MaterialTextureSlot slot);
 
-	/// <summary>
-	/// 文字列からTextureSlotへ変換します。
-	/// </summary>
 	static KUJAKU_API bool TryGetTextureSlotFromString(const std::string& slotName, MaterialTextureSlot& outSlot);
 
 	/// <summary>
@@ -92,44 +80,20 @@ public:
 	/// </summary>
 	static KUJAKU_API const MaterialTexture* GetTexture(const MaterialAssetData& material, MaterialTextureSlot slot);
 
-	/// <summary>
-	/// 指定SlotのTextureパスを取得します。
-	/// </summary>
 	static KUJAKU_API std::string GetTexturePath(const MaterialAssetData& material, MaterialTextureSlot slot);
 
-	/// <summary>
-	/// 指定SlotのTexture参照を設定します。
-	/// </summary>
 	static KUJAKU_API void SetTexture(MaterialAssetData& material, MaterialTextureSlot slot, const std::string& assetId, const std::string& path);
 
-	/// <summary>
-	/// Material JSONからMaterial設定を読み込みます。
-	/// </summary>
 	static KUJAKU_API bool Load(const std::filesystem::path& path, MaterialAssetData& outMaterial, std::string& message);
 
-	/// <summary>
-	/// Material設定をMaterial JSONへ保存します。
-	/// </summary>
 	static KUJAKU_API bool Save(const std::filesystem::path& path, const MaterialAssetData& material, std::string& message);
 
-	/// <summary>
-	/// 標準Material JSONを新規作成します。
-	/// </summary>
 	static KUJAKU_API bool CreateDefaultFile(const std::filesystem::path& path, std::string& message);
 
-	/// <summary>
-	/// JSON ObjectからMaterial設定を読みます。
-	/// </summary>
 	static KUJAKU_API MaterialAssetData ReadJsonObject(const nlohmann::json& json, const MaterialAssetData& defaultMaterial);
 
-	/// <summary>
-	/// Material設定をJSON Objectへ書きます。
-	/// </summary>
 	static KUJAKU_API void WriteJsonObject(nlohmann::json& json, const MaterialAssetData& material);
 
-	/// <summary>
-	/// Materialが参照するTextureパスを解決します。
-	/// </summary>
 	static KUJAKU_API std::filesystem::path ResolveTexturePath(const MaterialAssetData& material, MaterialTextureSlot slot = MaterialTextureSlot::BaseColor);
 
 	/// <summary>

@@ -30,15 +30,10 @@ struct Collision;
 /// </summary>
 class KUJAKU_API Component {
 public:
-	/// <summary>
-	/// Componentを実行します。
-	/// </summary>
 	virtual ~Component();
 
 	virtual void Initialize() {}
-
 	virtual void Update() {}
-
 	virtual void Draw() {}
 
 	/// <summary>
@@ -46,9 +41,6 @@ public:
 	/// </summary>
 	virtual const char* GetTypeName() const { return "Component"; }
 
-	/// <summary>
-	/// Inspector表示を行います。
-	/// </summary>
 	virtual void DrawInspector();
 
 	/// <summary>
@@ -114,36 +106,18 @@ public:
 
 	void SetOwner(GameObject* owner) { owner_ = owner; }
 
-	/// <summary>
-	/// 所有GameObjectを取得
-	/// </summary>
 	GameObject* GetOwner() const { return owner_; }
 
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
 
-	/// <summary>
-	/// Componentが有効かどうか
-	/// </summary>
 	bool IsEnabled() const { return enabled_; }
 
-	/// <summary>
-	/// 必須Transform Componentかどうか
-	/// </summary>
 	virtual bool IsTransformComponent() const { return false; }
 
-	/// <summary>
-	/// Scene表示に使えるCameraを取得
-	/// </summary>
 	virtual Camera* GetSceneCamera() { return nullptr; }
 
-	/// <summary>
-	/// Scene表示に使えるCameraを取得
-	/// </summary>
 	virtual const Camera* GetSceneCamera() const { return nullptr; }
 
-	/// <summary>
-	/// RayCast対象にできるModelを取得
-	/// </summary>
 	virtual const Model* GetRayCastModel() const { return nullptr; }
 
 	/// <summary>
@@ -169,9 +143,6 @@ public:
 		return false;
 	}
 
-	/// <summary>
-	/// 指定Material Assetを参照しているかどうか。
-	/// </summary>
 	virtual bool UsesMaterialAsset(const std::string& materialPath) const {
 		(void)materialPath;
 		return false;

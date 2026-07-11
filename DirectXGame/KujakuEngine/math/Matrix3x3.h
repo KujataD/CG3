@@ -4,9 +4,6 @@
 
 namespace KujakuEngine{
 
-/// <summary>
-/// Matrix3x3クラスを表します。
-/// </summary>
 class Matrix3x3 {
 public:
 	float m[3][3];

@@ -22,18 +22,9 @@ namespace KujakuEngine {
 /// </summary>
 class InstancingModel {
 public:
-	/// <summary>
-	/// InstancingModelを実行します。
-	/// </summary>
 	InstancingModel() = default;
-	/// <summary>
-	/// InstancingModelを実行します。
-	/// </summary>
 	~InstancingModel();
 
-	/// <summary>
-	/// 初期化します。
-	/// </summary>
 	void Initialize();
 
 	/// <summary>
@@ -41,19 +32,10 @@ public:
 	/// </summary>
 	static InstancingModel* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
 
-	/// <summary>
-	/// Cubeオブジェクトを作成します。
-	/// </summary>
 	static InstancingModel* CreateCube(const std::string& textureFilePath, bool enableLighting = false);
 
-	/// <summary>
-	/// Planeオブジェクトを作成します。
-	/// </summary>
 	static InstancingModel* CreatePlane(const std::string& textureFilePath, bool enableLighting = false);
 
-	/// <summary>
-	/// Tetrahedronオブジェクトを作成します。
-	/// </summary>
 	static InstancingModel* CreateTetrahedron(const std::string& textureFilePath, bool enableLighting = false);
 
 	/// <summary>
@@ -73,17 +55,11 @@ public:
 	/// </summary>
 	void Draw();
 
-	/// <summary>
-	/// Buffer更新処理を行います。
-	/// </summary>
 	void UpdateBuffer();
 
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
-	/// <summary>
-	/// InstanceModelを追加します。
-	/// </summary>
 	bool AddInstanceModel(const TransformationMatrix& transformationMatrix, const Vector4& color) {
 		// 最大値を超えたらプッシュしない
 		if (static_cast<uint32_t>(instanceParticles_.size()) >= kMaxInstance) {
@@ -100,13 +76,7 @@ public:
 	void ClearInstanceParticles() { instanceParticles_.clear(); }
 
 	// --- get ---
-	/// <summary>
-	/// MaxInstanceを取得します。
-	/// </summary>
 	uint32_t GetMaxInstance() const { return kMaxInstance; }
-	/// <summary>
-	/// InstancingResourceを取得します。
-	/// </summary>
 	ID3D12Resource* GetInstancingResource() { return instancingResource_.Get(); }
 
 private:
@@ -137,22 +107,10 @@ private:
 	uint32_t instancingSrvIndex_ = 0;
 	static inline uint32_t sInstancingSrvIndexCounter_ = 64;
 
-	/// <summary>
-	/// InstancingModelを実行します。
-	/// </summary>
 	InstancingModel(const InstancingModel&) = delete;
-	/// <summary>
-	/// operator=を実行します。
-	/// </summary>
 	InstancingModel& operator=(const InstancingModel&) = delete;
 
-	/// <summary>
-	/// VertexBufferオブジェクトを作成します。
-	/// </summary>
 	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
-	/// <summary>
-	/// MaterialBufferオブジェクトを作成します。
-	/// </summary>
 	void CreateMaterialBuffer(const MaterialData& material);
 };
 

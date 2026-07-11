@@ -35,14 +35,8 @@ struct AssetInfo {
 /// </summary>
 class AssetDatabase {
 public:
-	/// <summary>
-	/// シングルトンインスタンスを取得します。
-	/// </summary>
 	static KUJAKU_API AssetDatabase& GetInstance();
 
-	/// <summary>
-	/// ProjectDirを基準にAssetDatabaseを初期化します。
-	/// </summary>
 	KUJAKU_API void Initialize(const std::filesystem::path& projectRoot);
 
 	/// <summary>
@@ -55,14 +49,8 @@ public:
 	/// </summary>
 	KUJAKU_API std::string GetOrCreateAssetId(const std::filesystem::path& assetPath);
 
-	/// <summary>
-	/// Asset IDからAsset情報を検索します。
-	/// </summary>
 	KUJAKU_API const AssetInfo* FindById(const std::string& assetId);
 
-	/// <summary>
-	/// ファイルパスからAsset情報を検索します。
-	/// </summary>
 	KUJAKU_API const AssetInfo* FindByPath(const std::filesystem::path& assetPath);
 
 	/// <summary>
@@ -70,24 +58,12 @@ public:
 	/// </summary>
 	KUJAKU_API std::filesystem::path ResolveAssetPath(const std::string& assetId, const std::filesystem::path& fallbackPath);
 
-	/// <summary>
-	/// ProjectDirからの相対パスへ変換します。
-	/// </summary>
 	KUJAKU_API std::string MakeProjectRelativePath(const std::filesystem::path& assetPath) const;
 
-	/// <summary>
-	/// ファイルパスからAsset種別を判定します。
-	/// </summary>
 	KUJAKU_API AssetType ClassifyAssetType(const std::filesystem::path& assetPath) const;
 
-	/// <summary>
-	/// KujakuEngineの管理対象Assetかどうかを返します。
-	/// </summary>
 	KUJAKU_API bool IsAssetFile(const std::filesystem::path& assetPath) const;
 
-	/// <summary>
-	/// Unity風の.metaファイルかどうかを返します。
-	/// </summary>
 	KUJAKU_API bool IsMetaFile(const std::filesystem::path& path) const;
 
 	/// <summary>

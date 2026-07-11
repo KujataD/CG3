@@ -84,22 +84,11 @@
 
 namespace KujakuEngine {
 
-/// <param name="title">ウィンドウタイトル</param>
-/// <param name="enableDebugLayer">デバッグレイヤーを有効にするか</param>
-/// <summary>
-/// 初期化します。
-/// </summary>
 void Initialize(const std::wstring& title = L"KujakuEngine", Vector4 color = {0.1f, 0.25f, 0.5f, 1.0f}, bool enableDebugLayer = false);
 
-/// <summary>
-/// エンジンの終了処理
-/// </summary>
 void Finalize();
 
 /// <returns>falseで終了リクエスト</returns>
-/// <summary>
-/// 更新処理を行います。
-/// </summary>
 bool Update();
 
 /// <summary>
