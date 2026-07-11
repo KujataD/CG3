@@ -21,7 +21,6 @@ namespace KujakuEngine {
 class Camera;
 class ColliderComponent;
 class GameObject;
-class Model;
 class SerializedFieldRegistry;
 struct Collision;
 
@@ -117,8 +116,6 @@ public:
 	virtual Camera* GetSceneCamera() { return nullptr; }
 
 	virtual const Camera* GetSceneCamera() const { return nullptr; }
-
-	virtual const Model* GetRayCastModel() const { return nullptr; }
 
 	/// <summary>
 	/// Edit中のScene表示で、実体を持たないComponentの位置を示すアイコンを描画するかどうか。
