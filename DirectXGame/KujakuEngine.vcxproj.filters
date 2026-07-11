@@ -455,8 +455,8 @@
     <ClInclude Include="KujakuEngine\Editor\EditorUndoManager.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\Editor\InspectorUI.h">
-      <Filter>KujakuEngine\Editor</Filter>
+    <ClInclude Include="KujakuEngine\runtime\InspectorUI.h">
+      <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\PrefabAsset.h">
       <Filter>KujakuEngine\Editor</Filter>

@@ -2,7 +2,7 @@
 #include "../3d/Camera.h"
 #include "../3d/Model.h"
 #include "../Editor/AssetDatabase.h"
-#include "../Editor/InspectorUI.h"
+#include "../runtime/InspectorUI.h"
 #include "../scene/GameObject.h"
 #include <array>
 #include <cstring>

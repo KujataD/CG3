@@ -1,7 +1,7 @@
 #include "DebugCameraComponent.h"
 #include "CameraComponent.h"
 #include "../Editor/EditorApplication.h"
-#include "../Editor/InspectorUI.h"
+#include "../runtime/InspectorUI.h"
 #include "../scene/GameObject.h"
 #include <cmath>
 

@@ -1,5 +1,5 @@
 #include "ColliderComponent.h"
-#include "../Editor/InspectorUI.h"
+#include "../runtime/InspectorUI.h"
 #include "../math/MathUtil.h"
 #include "../scene/GameObject.h"
 #include "../shapes/ShapeUtil.h"

@@ -1,5 +1,5 @@
 #include "DirectionalLightComponent.h"
-#include "../Editor/InspectorUI.h"
+#include "../runtime/InspectorUI.h"
 #include "../math/MathUtil.h"
 
 namespace KujakuEngine {
