@@ -180,6 +180,9 @@
     <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\SceneViewWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\SceneJsonExporter.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
@@ -453,6 +456,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\SceneViewWindow.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\SceneJsonExporter.h">
