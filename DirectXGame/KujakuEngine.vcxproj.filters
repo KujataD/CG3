@@ -180,6 +180,9 @@
     <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\HierarchyWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\SceneViewWindow.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
@@ -456,6 +459,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\HierarchyWindow.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\SceneViewWindow.h">

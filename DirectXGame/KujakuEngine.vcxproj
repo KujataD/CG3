@@ -130,6 +130,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\Editor\EditorSelection.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorStyle.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorUndoManager.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\InspectorUI.cpp" />
     <ClCompile Include="KujakuEngine\Editor\PrefabAsset.cpp" />
     <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp" />
@@ -214,6 +215,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\Editor\EditorSelection.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorStyle.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorUndoManager.h" />
+    <ClInclude Include="KujakuEngine\Editor\HierarchyWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\InspectorUI.h" />
     <ClInclude Include="KujakuEngine\Editor\PrefabAsset.h" />
     <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h" />
