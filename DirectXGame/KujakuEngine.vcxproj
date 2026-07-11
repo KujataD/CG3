@@ -218,7 +218,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\Editor\EditorStyle.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorUndoManager.h" />
     <ClInclude Include="KujakuEngine\Editor\HierarchyWindow.h" />
-    <ClInclude Include="KujakuEngine\Editor\InspectorUI.h" />
+    <ClInclude Include="KujakuEngine\runtime\InspectorUI.h" />
     <ClInclude Include="KujakuEngine\Editor\InspectorWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\MaterialInspector.h" />
     <ClInclude Include="KujakuEngine\Editor\PrefabAsset.h" />

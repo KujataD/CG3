@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../runtime/KujakuApi.h"
+#include "KujakuApi.h"
 #include <cstddef>
 
 namespace KujakuEngine::InspectorUI {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Editor/InspectorUI.h"
+#include "../runtime/InspectorUI.h"
 #include "../math/Vector3.h"
 #include "../math/Vector4.h"
 #include "../runtime/KujakuApi.h"

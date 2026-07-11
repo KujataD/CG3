@@ -1,5 +1,5 @@
 #include "TransformComponent.h"
-#include "../Editor/InspectorUI.h"
+#include "../runtime/InspectorUI.h"
 #include "../scene/GameObject.h"
 
 namespace KujakuEngine {
