@@ -21,20 +21,13 @@
 #include "base/Time.h"
 #include "base/WinApp.h"
 
-#include "Editor/ImGuiManager.h"
 #include "2d/Sprite.h"
 
 #include "assets/MaterialAsset.h"
 
 #include "components/ColliderComponent.h"
 
-#include "Editor/AssetDatabase.h"
-#include "Editor/EditorApplication.h"
 #include "base/ProjectPath.h"
-#include "Editor/EditorSelection.h"
-#include "Editor/PrefabAsset.h"
-#include "Editor/SceneJsonExporter.h"
-#include "Editor/SceneJsonImporter.h"
 
 #include "3d/Camera.h"
 #include "3d/FollowCamera.h"

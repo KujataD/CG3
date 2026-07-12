@@ -404,6 +404,9 @@
     <ClInclude Include="KujakuEngine\KujakuEngine.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\KujakuEngineEditor.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\2d\Sprite.h">
       <Filter>KujakuEngine\2d</Filter>
     </ClInclude>

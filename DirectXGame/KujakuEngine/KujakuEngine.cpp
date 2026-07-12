@@ -1,4 +1,5 @@
 #include "KujakuEngine.h"
+#include "Editor/ImGuiManager.h"
 #include "components/BuiltinComponents.h"
 #include <objbase.h>
 
