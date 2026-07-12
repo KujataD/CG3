@@ -5,7 +5,7 @@
 #include "../3d/Model.h"
 #include "../3d/PointLight.h"
 #include "../3d/SpotLight.h"
-#include "../Editor/EditorApplication.h"
+#include "../runtime/PlayState.h"
 #include "../components/CameraComponent.h"
 #include "../components/DebugCameraComponent.h"
 #include "../components/DirectionalLightComponent.h"
@@ -77,7 +77,7 @@ Camera* SampleScene::GetEditorCamera() {
 void SampleScene::UpdateSceneView() {
 	EnsureSceneServiceObjects();
 
-	if (EditorApplication::GetInstance()->IsPlaying()) {
+	if (IsGamePlaying()) {
 		currentViewCameraComponent_ = gameCameraComponent_;
 	} else {
 		if (editorDebugCameraComponent_) {
@@ -137,7 +137,7 @@ void SampleScene::EnsureSceneServiceObjects() {
 		pointLightComponent->GetData().intensity = 0.0f;
 	}
 
-	if (EditorApplication::GetInstance()->IsPlaying()) {
+	if (IsGamePlaying()) {
 		currentViewCameraComponent_ = gameCameraComponent_;
 	} else {
 		currentViewCameraComponent_ = editorCameraComponent_;

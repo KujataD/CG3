@@ -5,7 +5,7 @@
 #include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
-#include "../Editor/EditorApplication.h"
+#include "../runtime/PlayState.h"
 #include "../Editor/EditorSelection.h"
 #include "../Editor/PrefabAsset.h"
 #include "../components/ColliderComponent.h"
@@ -213,7 +213,7 @@ void DrawSphere(const Sphere& sphere, const Vector4& color) {
 }
 
 void DrawColliderDebugLines(Scene& scene) {
-	if (EditorApplication::GetInstance()->IsPlaying()) {
+	if (IsGamePlaying()) {
 		return;
 	}
 
@@ -371,7 +371,7 @@ void PrepareEditorBillboards(Scene& scene) {
 }
 
 void DrawEditorBillboards(Scene& scene) {
-	if (EditorApplication::GetInstance()->IsPlaying()) {
+	if (IsGamePlaying()) {
 		return;
 	}
 

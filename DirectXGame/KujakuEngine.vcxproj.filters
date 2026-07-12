@@ -252,6 +252,9 @@
     <ClCompile Include="KujakuEngine\runtime\GameModuleLoader.cpp">
       <Filter>KujakuEngine\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\PlayState.cpp">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
@@ -456,6 +459,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\InspectorUI.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\PlayState.h">
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\PrefabAsset.h">

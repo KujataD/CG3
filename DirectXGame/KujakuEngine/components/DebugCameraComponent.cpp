@@ -1,6 +1,6 @@
 #include "DebugCameraComponent.h"
 #include "CameraComponent.h"
-#include "../Editor/EditorApplication.h"
+#include "../runtime/PlayState.h"
 #include "../runtime/InspectorUI.h"
 #include "../scene/GameObject.h"
 #include <cmath>
@@ -39,7 +39,7 @@ void DebugCameraComponent::DrawInspector() {
 }
 
 void DebugCameraComponent::UpdateEditorCamera() {
-	if (EditorApplication::GetInstance()->IsPlaying()) {
+	if (IsGamePlaying()) {
 		return;
 	}
 
