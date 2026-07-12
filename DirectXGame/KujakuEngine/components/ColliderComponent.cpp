@@ -170,6 +170,44 @@ bool IsCollisionBoxAndSphere(const ColliderComponent& boxCollider, const Collide
 	return ShapeUtil::IsCollision(box->GetWorldAABB(), sphereCollider.GetWorldSphere());
 }
 
+// 任意ColliderをワールドOBBへ変換する(Box以外はAABBから軸並行OBBを作る)。
+OBB MakeWorldOBB(const ColliderComponent& collider) {
+	if (const BoxColliderComponent* box = AsBoxCollider(collider)) {
+		return box->GetWorldOBB();
+	}
+	AABB aabb = collider.GetWorldAABB();
+	OBB obb{};
+	obb.center = (aabb.min + aabb.max) * 0.5f;
+	obb.orientations[0] = {1.0f, 0.0f, 0.0f};
+	obb.orientations[1] = {0.0f, 1.0f, 0.0f};
+	obb.orientations[2] = {0.0f, 0.0f, 1.0f};
+	obb.size = (aabb.max - aabb.min) * 0.5f;
+	return obb;
+}
+
+// a→b への接触情報を計算する(normal は a から b へ向かう分離方向)。
+bool ComputeContactByShape(const ColliderComponent& a, const ColliderComponent& b, Contact& out) {
+	const bool aSphere = a.GetShapeType() == ColliderShapeType::Sphere;
+	const bool bSphere = b.GetShapeType() == ColliderShapeType::Sphere;
+
+	if (aSphere && bSphere) {
+		return ShapeUtil::ComputeContact(a.GetWorldSphere(), b.GetWorldSphere(), out);
+	}
+	if (!aSphere && !bSphere) {
+		return ShapeUtil::ComputeContact(MakeWorldOBB(a), MakeWorldOBB(b), out);
+	}
+	if (aSphere && !bSphere) {
+		// 球a→箱b: normal は sphere→obb = a→b
+		return ShapeUtil::ComputeContact(a.GetWorldSphere(), MakeWorldOBB(b), out);
+	}
+	// 箱a→球b: sphere(b)→obb(a) を求めると normal は b→a なので反転する
+	if (ShapeUtil::ComputeContact(b.GetWorldSphere(), MakeWorldOBB(a), out)) {
+		out.normal = out.normal * -1.0f;
+		return true;
+	}
+	return false;
+}
+
 bool IntersectsByShape(const ColliderComponent& a, const ColliderComponent& b) {
 	if (a.GetShapeType() == ColliderShapeType::Sphere && b.GetShapeType() == ColliderShapeType::Sphere) {
 		return ShapeUtil::IsCollision(a.GetWorldSphere(), b.GetWorldSphere());
@@ -246,6 +284,10 @@ bool ColliderComponent::Intersects(const ColliderComponent& other) const {
 	}
 
 	return IntersectsByShape(*this, other);
+}
+
+bool ColliderComponent::ComputeContact(const ColliderComponent& other, Contact& out) const {
+	return ComputeContactByShape(*this, other, out);
 }
 
 void ColliderComponent::DrawInspector() {

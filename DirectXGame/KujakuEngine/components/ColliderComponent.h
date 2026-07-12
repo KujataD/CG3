@@ -85,6 +85,13 @@ public:
 	/// </summary>
 	bool Intersects(const ColliderComponent& other) const;
 
+	/// <summary>
+	/// 指定Colliderとの接触情報(法線・めり込み量・接触点)を計算します。
+	/// 交差していれば true を返し out を埋めます。normal は自分→otherへの分離方向。
+	/// レイヤーマスクは判定しません(呼び出し側の責務)。
+	/// </summary>
+	bool ComputeContact(const ColliderComponent& other, Contact& out) const;
+
 	void DrawInspector() override;
 
 	/// <summary>
