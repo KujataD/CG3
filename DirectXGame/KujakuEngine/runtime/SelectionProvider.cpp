@@ -1,5 +1,7 @@
 #include "SelectionProvider.h"
 
+#include "EngineContext.h"
+
 namespace KujakuEngine {
 
 namespace {
@@ -10,18 +12,16 @@ public:
 	GameObject* GetSelectedGameObject() const override { return nullptr; }
 };
 
-ISelectionProvider* g_provider = nullptr;
-
 } // namespace
 
 ISelectionProvider& GetSelectionProvider() {
-	if (g_provider) {
-		return *g_provider;
+	if (ISelectionProvider* provider = GetEngineContext().selectionProvider) {
+		return *provider;
 	}
 	static NullSelectionProvider fallback;
 	return fallback;
 }
 
-void SetSelectionProvider(ISelectionProvider* provider) { g_provider = provider; }
+void SetSelectionProvider(ISelectionProvider* provider) { GetEngineContext().selectionProvider = provider; }
 
 } // namespace KujakuEngine

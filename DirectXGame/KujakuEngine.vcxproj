@@ -172,6 +172,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\runtime\GameModuleLoader.cpp" />
     <ClCompile Include="KujakuEngine\runtime\PlayState.cpp" />
     <ClCompile Include="KujakuEngine\runtime\AssetResolver.cpp" />
+    <ClCompile Include="KujakuEngine\runtime\EngineContext.cpp" />
     <ClCompile Include="KujakuEngine\runtime\SelectionProvider.cpp" />
     <ClCompile Include="KujakuEngine\scene\Component.cpp" />
     <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp" />
@@ -267,6 +268,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\runtime\KujakuApi.h" />
     <ClInclude Include="KujakuEngine\runtime\PlayState.h" />
     <ClInclude Include="KujakuEngine\runtime\AssetResolver.h" />
+    <ClInclude Include="KujakuEngine\runtime\EngineContext.h" />
     <ClInclude Include="KujakuEngine\runtime\IAssetResolver.h" />
     <ClInclude Include="KujakuEngine\runtime\ISelectionProvider.h" />
     <ClInclude Include="KujakuEngine\runtime\SelectionProvider.h" />
