@@ -8,6 +8,8 @@
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
 #include "../components/ColliderComponent.h"
+#include "../components/RigidbodyComponent.h"
+#include "../math/MathUtil.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -97,6 +99,72 @@ void NotifyCollisionPair(ColliderComponent* colliderA, ColliderComponent* collid
 
 	NotifyCollisionToComponents(colliderA->GetOwner(), colliderA, colliderB, isTrigger, phase);
 	NotifyCollisionToComponents(colliderB->GetOwner(), colliderB, colliderA, isTrigger, phase);
+}
+
+RigidbodyComponent* FindRigidbody(ColliderComponent* collider) {
+	if (!collider) {
+		return nullptr;
+	}
+	GameObject* owner = collider->GetOwner();
+	if (!owner) {
+		return nullptr;
+	}
+	return owner->GetComponent<RigidbodyComponent>();
+}
+
+// 非トリガーの交差ペアに剛体反発(押し出し+速度反射)を適用する。
+// Rigidbodyを持つColliderが動的、持たないColliderはStatic(不動)。両Staticは何もしない。
+void ResolveCollisionResponse(ColliderComponent* colliderA, ColliderComponent* colliderB) {
+	RigidbodyComponent* rigidbodyA = FindRigidbody(colliderA);
+	RigidbodyComponent* rigidbodyB = FindRigidbody(colliderB);
+	if (!rigidbodyA && !rigidbodyB) {
+		return; // 両方Static
+	}
+
+	Contact contact{};
+	if (!colliderA->ComputeContact(*colliderB, contact)) {
+		return;
+	}
+	if (contact.depth <= 0.0f) {
+		return;
+	}
+
+	const Vector3& normal = contact.normal; // A→B の分離方向
+
+	// --- 位置補正(押し出し): Aは-normal、Bは+normal。両dynamicは折半、片方Staticは動く側が全量。---
+	float moveA = 0.0f;
+	float moveB = 0.0f;
+	if (rigidbodyA && rigidbodyB) {
+		moveA = contact.depth * 0.5f;
+		moveB = contact.depth * 0.5f;
+	} else if (rigidbodyA) {
+		moveA = contact.depth;
+	} else {
+		moveB = contact.depth;
+	}
+
+	if (rigidbodyA && moveA > 0.0f) {
+		WorldTransform& transformA = colliderA->GetOwner()->GetTransform();
+		transformA.translation_ = transformA.translation_ - normal * moveA;
+	}
+	if (rigidbodyB && moveB > 0.0f) {
+		WorldTransform& transformB = colliderB->GetOwner()->GetTransform();
+		transformB.translation_ = transformB.translation_ + normal * moveB;
+	}
+
+	// --- 速度反射: 相手へ接近している法線成分のみ反射し反発係数を掛ける。---
+	if (rigidbodyA) {
+		Vector3 velocityA = rigidbodyA->GetVelocity();
+		if (Dot(velocityA, normal) > 0.0f) { // AがB方向へ接近
+			rigidbodyA->SetVelocity(ShapeUtil::Reflect(velocityA, normal) * rigidbodyA->GetBounciness());
+		}
+	}
+	if (rigidbodyB) {
+		Vector3 velocityB = rigidbodyB->GetVelocity();
+		if (Dot(velocityB, normal) < 0.0f) { // BがA方向へ接近
+			rigidbodyB->SetVelocity(ShapeUtil::Reflect(velocityB, normal) * rigidbodyB->GetBounciness());
+		}
+	}
 }
 
 void CollectSceneColliders(Scene& scene, std::vector<ColliderComponent*>& outColliders) {
@@ -535,6 +603,12 @@ void Scene::UpdateCollisions() {
 			}
 
 			bool isTrigger = colliderA->IsTrigger() || colliderB->IsTrigger();
+
+			// 非トリガーは物理応答(押し出し+速度反射)を適用する。
+			if (!isTrigger) {
+				ResolveCollisionResponse(colliderA, colliderB);
+			}
+
 			std::string pairKey = MakeCollisionPairKey(*colliderA, *colliderB);
 			currentPairStates[pairKey] = {colliderA, colliderB, isTrigger};
 
