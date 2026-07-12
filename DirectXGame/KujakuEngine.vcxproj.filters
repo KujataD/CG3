@@ -258,6 +258,9 @@
     <ClCompile Include="KujakuEngine\runtime\AssetResolver.cpp">
       <Filter>KujakuEngine\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\SelectionProvider.cpp">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
@@ -471,6 +474,12 @@
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\IAssetResolver.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\ISelectionProvider.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\SelectionProvider.h">
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\PrefabAsset.h">

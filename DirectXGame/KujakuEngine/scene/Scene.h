@@ -74,11 +74,6 @@ public:
 	KUJAKU_API GameObject* FindGameObjectByInstanceId(const std::string& instanceId) const;
 
 	/// <summary>
-	/// PrefabファイルからGameObject階層を生成する
-	/// </summary>
-	KUJAKU_API GameObject* InstantiatePrefab(const std::filesystem::path& prefabPath);
-
-	/// <summary>
 	/// Scene内GameObjectのワールド行列を親子順に更新
 	/// </summary>
 	KUJAKU_API void UpdateWorldTransforms();
