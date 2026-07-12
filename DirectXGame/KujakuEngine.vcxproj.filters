@@ -440,6 +440,9 @@
     <ClInclude Include="KujakuEngine\components\PointLightComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\components\RigidbodyComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>

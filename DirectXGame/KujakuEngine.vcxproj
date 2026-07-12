@@ -211,6 +211,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\components\DirectionalLightComponent.h" />
     <ClInclude Include="KujakuEngine\components\ModelRendererComponent.h" />
     <ClInclude Include="KujakuEngine\components\PointLightComponent.h" />
+    <ClInclude Include="KujakuEngine\components\RigidbodyComponent.h" />
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h" />
     <ClInclude Include="KujakuEngine\components\TransformComponent.h" />
     <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h" />
