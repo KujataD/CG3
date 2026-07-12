@@ -122,14 +122,28 @@ RigidbodyComponent* FindRigidbody(ColliderComponent* collider) {
 	return owner->GetComponent<RigidbodyComponent>();
 }
 
+// Rigidbodyの物理速度(無ければ0=純粋な静的壁)。
+Vector3 PhysicsVelocity(RigidbodyComponent* rigidbody) {
+	return rigidbody ? rigidbody->GetVelocity() : Vector3{0.0f, 0.0f, 0.0f};
+}
+
+// 押し出し・速度変化の対象になる「動的」ボディか(Rigidbody有 かつ Is Static でない)。
+bool IsMovable(RigidbodyComponent* rigidbody) {
+	return rigidbody && !rigidbody->IsStatic();
+}
+
 // 非トリガーの交差ペアに剛体反発(押し出し+速度反射)を適用する。
-// Rigidbodyを持つColliderが動的、持たないColliderはStatic(不動)。両Staticは何もしない。
+// 動的(Rigidbody有・非Static)のみ押し出し/速度変化の対象。キネマティック(Is Static)と
+// Rigidbody無しは無限質量として不動だが、キネマティックは自身の速度を相手へ与える。
 // contact は colliderA→colliderB 基準(呼び出し側で計算済み)。
 void ResolveCollisionResponse(ColliderComponent* colliderA, ColliderComponent* colliderB, const Contact& contact) {
 	RigidbodyComponent* rigidbodyA = FindRigidbody(colliderA);
 	RigidbodyComponent* rigidbodyB = FindRigidbody(colliderB);
-	if (!rigidbodyA && !rigidbodyB) {
-		return; // 両方Static
+
+	bool movableA = IsMovable(rigidbodyA);
+	bool movableB = IsMovable(rigidbodyB);
+	if (!movableA && !movableB) {
+		return; // 両方とも不動(静的壁/キネマティック) → 応答なし
 	}
 	if (contact.depth <= 0.0f) {
 		return;
@@ -137,38 +151,43 @@ void ResolveCollisionResponse(ColliderComponent* colliderA, ColliderComponent* c
 
 	const Vector3& normal = contact.normal; // A→B の分離方向
 
-	// --- 位置補正(押し出し): Aは-normal、Bは+normal。両dynamicは折半、片方Staticは動く側が全量。---
+	// --- 位置補正(押し出し): 動的なAは-normal、動的なBは+normal。両dynamicは折半、片方のみ動的なら全量。---
 	float moveA = 0.0f;
 	float moveB = 0.0f;
-	if (rigidbodyA && rigidbodyB) {
+	if (movableA && movableB) {
 		moveA = contact.depth * 0.5f;
 		moveB = contact.depth * 0.5f;
-	} else if (rigidbodyA) {
+	} else if (movableA) {
 		moveA = contact.depth;
 	} else {
 		moveB = contact.depth;
 	}
 
-	if (rigidbodyA && moveA > 0.0f) {
+	if (moveA > 0.0f) {
 		WorldTransform& transformA = colliderA->GetOwner()->GetTransform();
 		transformA.translation_ = transformA.translation_ - normal * moveA;
 	}
-	if (rigidbodyB && moveB > 0.0f) {
+	if (moveB > 0.0f) {
 		WorldTransform& transformB = colliderB->GetOwner()->GetTransform();
 		transformB.translation_ = transformB.translation_ + normal * moveB;
 	}
 
-	// --- 速度反射: 相手へ接近している法線成分のみ反射し反発係数を掛ける。---
-	if (rigidbodyA) {
-		Vector3 velocityA = rigidbodyA->GetVelocity();
-		if (Dot(velocityA, normal) > 0.0f) { // AがB方向へ接近
-			rigidbodyA->SetVelocity(ShapeUtil::Reflect(velocityA, normal) * rigidbodyA->GetBounciness());
+	// --- 速度反射(相対速度ベース): 動的ボディのみ、相手へ接近している場合に相対速度を反射する。---
+	// 相手の物理速度(キネマティックの移動速度含む)を加え戻すことで運動量が伝わる。
+	// 相手が静的(velocity 0)のときは従来の絶対速度反射に一致する。
+	Vector3 physVelocityA = PhysicsVelocity(rigidbodyA);
+	Vector3 physVelocityB = PhysicsVelocity(rigidbodyB);
+
+	if (movableA) {
+		Vector3 relative = physVelocityA - physVelocityB;
+		if (Dot(relative, normal) > 0.0f) { // AがBへ接近
+			rigidbodyA->SetVelocity(physVelocityB + ShapeUtil::Reflect(relative, normal) * rigidbodyA->GetBounciness());
 		}
 	}
-	if (rigidbodyB) {
-		Vector3 velocityB = rigidbodyB->GetVelocity();
-		if (Dot(velocityB, normal) < 0.0f) { // BがA方向へ接近
-			rigidbodyB->SetVelocity(ShapeUtil::Reflect(velocityB, normal) * rigidbodyB->GetBounciness());
+	if (movableB) {
+		Vector3 relative = physVelocityB - physVelocityA;
+		if (Dot(relative, normal) < 0.0f) { // BがAへ接近
+			rigidbodyB->SetVelocity(physVelocityA + ShapeUtil::Reflect(relative, normal) * rigidbodyB->GetBounciness());
 		}
 	}
 }
