@@ -1,5 +1,7 @@
 #include "AssetResolver.h"
 
+#include "EngineContext.h"
+
 namespace KujakuEngine {
 
 namespace {
@@ -20,18 +22,16 @@ public:
 	}
 };
 
-IAssetResolver* g_resolver = nullptr;
-
 } // namespace
 
 IAssetResolver& GetAssetResolver() {
-	if (g_resolver) {
-		return *g_resolver;
+	if (IAssetResolver* resolver = GetEngineContext().assetResolver) {
+		return *resolver;
 	}
 	static FallbackAssetResolver fallback;
 	return fallback;
 }
 
-void SetAssetResolver(IAssetResolver* resolver) { g_resolver = resolver; }
+void SetAssetResolver(IAssetResolver* resolver) { GetEngineContext().assetResolver = resolver; }
 
 } // namespace KujakuEngine

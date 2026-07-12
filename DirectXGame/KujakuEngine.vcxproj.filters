@@ -258,6 +258,9 @@
     <ClCompile Include="KujakuEngine\runtime\AssetResolver.cpp">
       <Filter>KujakuEngine\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\EngineContext.cpp">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\runtime\SelectionProvider.cpp">
       <Filter>KujakuEngine\runtime</Filter>
     </ClCompile>
@@ -474,6 +477,9 @@
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\AssetResolver.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\EngineContext.h">
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\IAssetResolver.h">

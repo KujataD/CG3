@@ -1,13 +1,11 @@
 #include "PlayState.h"
 
+#include "EngineContext.h"
+
 namespace KujakuEngine {
 
-namespace {
-bool g_gamePlaying = false;
-}
+bool IsGamePlaying() { return GetEngineContext().gamePlaying; }
 
-bool IsGamePlaying() { return g_gamePlaying; }
-
-void SetGamePlaying(bool playing) { g_gamePlaying = playing; }
+void SetGamePlaying(bool playing) { GetEngineContext().gamePlaying = playing; }
 
 } // namespace KujakuEngine
