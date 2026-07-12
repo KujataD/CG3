@@ -184,6 +184,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\shapes\Collider.cpp" />
     <ClCompile Include="KujakuEngine\shapes\CollisionManager.cpp" />
     <ClCompile Include="KujakuEngine\shapes\Rect.cpp" />
+    <ClCompile Include="KujakuEngine\shapes\ShapeDraw.cpp" />
     <ClCompile Include="KujakuEngine\shapes\ShapeUtil.cpp" />
     <ClCompile Include="KujakuEngine\vfx\InstancingModel.cpp" />
     <ClCompile Include="KujakuEngine\vfx\ParticleField.cpp" />
@@ -286,6 +287,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\shapes\Collider.h" />
     <ClInclude Include="KujakuEngine\shapes\CollisionManager.h" />
     <ClInclude Include="KujakuEngine\shapes\Rect.h" />
+    <ClInclude Include="KujakuEngine\shapes\ShapeDraw.h" />
     <ClInclude Include="KujakuEngine\shapes\ShapeUtil.h" />
     <ClInclude Include="KujakuEngine\vfx\InstancingModel.h" />
     <ClInclude Include="KujakuEngine\vfx\Particle.h" />

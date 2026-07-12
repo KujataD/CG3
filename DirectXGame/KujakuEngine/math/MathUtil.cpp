@@ -1,4 +1,6 @@
 #include "MathUtil.h"
+#include "../3d/Camera.h"
+#include "../3d/WorldTransform.h"
 #include <shapes/ShapeUtil.h>
 
 namespace KujakuEngine {

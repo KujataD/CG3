@@ -225,6 +225,9 @@
     <ClCompile Include="KujakuEngine\shapes\AABB.cpp">
       <Filter>KujakuEngine\shapes</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\shapes\ShapeDraw.cpp">
+      <Filter>KujakuEngine\shapes</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\shapes\ShapeUtil.cpp">
       <Filter>KujakuEngine\shapes</Filter>
     </ClCompile>
@@ -540,6 +543,9 @@
       <Filter>KujakuEngine\math</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\shapes\AABB.h">
+      <Filter>KujakuEngine\shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\shapes\ShapeDraw.h">
       <Filter>KujakuEngine\shapes</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\shapes\ShapeUtil.h">
