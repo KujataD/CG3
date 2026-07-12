@@ -1,5 +1,7 @@
 #include "EditorApplication.h"
 #include "ImGuiManager.h"
+#include "AssetDatabase.h"
+#include "../runtime/AssetResolver.h"
 #include "../runtime/PlayState.h"
 #include "../scene/ComponentFactory.h"
 #include "SceneJsonExporter.h"
@@ -258,6 +260,9 @@ EditorApplication* EditorApplication::GetInstance() {
 }
 
 void EditorApplication::Initialize() {
+	// ランタイムのアセット解決をEditorのAssetDatabaseへ橋渡しする(依存性逆転の注入点)。
+	SetAssetResolver(&AssetDatabase::GetInstance());
+
 	editorMode_ = EditorMode::Edit;
 	AddConsoleLog("Editor Mode: Edit");
 

@@ -1,0 +1,37 @@
+#include "AssetResolver.h"
+
+namespace KujakuEngine {
+
+namespace {
+
+// リゾルバ未設定時のフォールバック。Asset ID機構なしでパスを素通しする。
+class FallbackAssetResolver : public IAssetResolver {
+public:
+	std::filesystem::path ResolveAssetPath(const std::string& assetId, const std::filesystem::path& fallbackPath) override {
+		(void)assetId;
+		return fallbackPath;
+	}
+	std::string GetOrCreateAssetId(const std::filesystem::path& assetPath) override {
+		(void)assetPath;
+		return {};
+	}
+	std::string MakeProjectRelativePath(const std::filesystem::path& assetPath) const override {
+		return assetPath.generic_string();
+	}
+};
+
+IAssetResolver* g_resolver = nullptr;
+
+} // namespace
+
+IAssetResolver& GetAssetResolver() {
+	if (g_resolver) {
+		return *g_resolver;
+	}
+	static FallbackAssetResolver fallback;
+	return fallback;
+}
+
+void SetAssetResolver(IAssetResolver* resolver) { g_resolver = resolver; }
+
+} // namespace KujakuEngine

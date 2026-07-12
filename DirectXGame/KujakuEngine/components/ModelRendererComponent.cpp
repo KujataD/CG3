@@ -1,7 +1,7 @@
 #include "ModelRendererComponent.h"
 #include "../3d/Camera.h"
 #include "../3d/Model.h"
-#include "../Editor/AssetDatabase.h"
+#include "../runtime/AssetResolver.h"
 #include "../runtime/InspectorUI.h"
 #include "../scene/GameObject.h"
 #include <array>
@@ -102,7 +102,7 @@ void ModelRendererComponent::SetMaterialPath(const std::string& materialPath) {
 		return;
 	}
 
-	AssetDatabase& assetDatabase = AssetDatabase::GetInstance();
+	IAssetResolver& assetDatabase = GetAssetResolver();
 	std::filesystem::path resolvedPath = assetDatabase.ResolveAssetPath("", materialPath);
 	std::string assetId = assetDatabase.GetOrCreateAssetId(resolvedPath);
 	std::string storedPath = assetDatabase.MakeProjectRelativePath(resolvedPath);
@@ -119,7 +119,7 @@ bool ModelRendererComponent::UsesMaterialAsset(const std::string& materialPath) 
 		return false;
 	}
 
-	AssetDatabase& assetDatabase = AssetDatabase::GetInstance();
+	IAssetResolver& assetDatabase = GetAssetResolver();
 	std::filesystem::path targetPath = assetDatabase.ResolveAssetPath("", materialPath);
 	std::filesystem::path currentPath = ResolveMaterialPath();
 	if (targetPath.empty() || currentPath.empty()) {
@@ -304,7 +304,7 @@ std::filesystem::path ModelRendererComponent::ResolveMaterialPath() const {
 		return {};
 	}
 
-	AssetDatabase& assetDatabase = AssetDatabase::GetInstance();
+	IAssetResolver& assetDatabase = GetAssetResolver();
 	return assetDatabase.ResolveAssetPath(materialAssetId_, materialPath_);
 }
 

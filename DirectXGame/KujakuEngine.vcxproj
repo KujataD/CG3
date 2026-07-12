@@ -171,6 +171,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\math\Vector3.cpp" />
     <ClCompile Include="KujakuEngine\runtime\GameModuleLoader.cpp" />
     <ClCompile Include="KujakuEngine\runtime\PlayState.cpp" />
+    <ClCompile Include="KujakuEngine\runtime\AssetResolver.cpp" />
     <ClCompile Include="KujakuEngine\scene\Component.cpp" />
     <ClCompile Include="KujakuEngine\scene\ComponentFactory.cpp" />
     <ClCompile Include="KujakuEngine\scene\GameObject.cpp" />
@@ -263,6 +264,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\runtime\GameModuleLoader.h" />
     <ClInclude Include="KujakuEngine\runtime\KujakuApi.h" />
     <ClInclude Include="KujakuEngine\runtime\PlayState.h" />
+    <ClInclude Include="KujakuEngine\runtime\AssetResolver.h" />
+    <ClInclude Include="KujakuEngine\runtime\IAssetResolver.h" />
     <ClInclude Include="KujakuEngine\scene\Component.h" />
     <ClInclude Include="KujakuEngine\scene\IEditorBillboard.h" />
     <ClInclude Include="KujakuEngine\scene\IMaterialTarget.h" />
