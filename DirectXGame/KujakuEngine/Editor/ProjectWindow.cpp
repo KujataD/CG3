@@ -2,6 +2,7 @@
 
 #include "AssetDatabase.h"
 #include "EditorApplication.h"
+#include "PrefabAsset.h"
 #include "../base/ProjectPath.h"
 #include "EditorSelection.h"
 #include "../assets/MaterialAsset.h"
@@ -249,7 +250,7 @@ bool ProjectWindow::InstantiatePrefabItem(const std::filesystem::path& prefabPat
 		return false;
 	}
 
-	GameObject* rootObject = scene->InstantiatePrefab(prefabPath);
+	GameObject* rootObject = PrefabAsset::Instantiate(*scene, prefabPath).rootObject;
 	if (!rootObject) {
 		return false;
 	}

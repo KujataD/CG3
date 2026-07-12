@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AssetDatabase.h"
+#include "../runtime/ISelectionProvider.h"
 #include <filesystem>
 
 namespace KujakuEngine {
@@ -10,7 +11,7 @@ class GameObject;
 /// <summary>
 /// Editor内の選択状態を管理する
 /// </summary>
-class EditorSelection {
+class EditorSelection : public ISelectionProvider {
 public:
 	static EditorSelection* GetInstance();
 
@@ -18,7 +19,7 @@ public:
 
 	void SetSelectedAsset(const std::filesystem::path& assetPath, AssetType assetType);
 
-	GameObject* GetSelectedGameObject() const;
+	GameObject* GetSelectedGameObject() const override;
 
 	const std::filesystem::path& GetSelectedAssetPath() const;
 

@@ -6,8 +6,7 @@
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
 #include "../runtime/PlayState.h"
-#include "../Editor/EditorSelection.h"
-#include "../Editor/PrefabAsset.h"
+#include "../runtime/SelectionProvider.h"
 #include "../components/ColliderComponent.h"
 #include <algorithm>
 #include <cmath>
@@ -217,7 +216,7 @@ void DrawColliderDebugLines(Scene& scene) {
 		return;
 	}
 
-	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
 	if (!selectedObject || !selectedObject->IsActiveInHierarchy()) {
 		return;
 	}
@@ -645,11 +644,6 @@ GameObject* Scene::FindGameObjectByInstanceId(const std::string& instanceId) con
 	}
 
 	return nullptr;
-}
-
-GameObject* Scene::InstantiatePrefab(const std::filesystem::path& prefabPath) {
-	PrefabAsset::InstantiateResult result = PrefabAsset::Instantiate(*this, prefabPath);
-	return result.rootObject;
 }
 
 void Scene::UpdateWorldTransforms() {

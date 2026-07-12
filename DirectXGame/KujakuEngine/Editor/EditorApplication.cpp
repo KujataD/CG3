@@ -3,6 +3,7 @@
 #include "AssetDatabase.h"
 #include "../runtime/AssetResolver.h"
 #include "../runtime/PlayState.h"
+#include "../runtime/SelectionProvider.h"
 #include "../scene/ComponentFactory.h"
 #include "SceneJsonExporter.h"
 #include "../base/ProjectPath.h"
@@ -260,8 +261,9 @@ EditorApplication* EditorApplication::GetInstance() {
 }
 
 void EditorApplication::Initialize() {
-	// ランタイムのアセット解決をEditorのAssetDatabaseへ橋渡しする(依存性逆転の注入点)。
+	// ランタイムのアセット解決/選択問い合わせをEditor実装へ橋渡しする(依存性逆転の注入点)。
 	SetAssetResolver(&AssetDatabase::GetInstance());
+	SetSelectionProvider(EditorSelection::GetInstance());
 
 	editorMode_ = EditorMode::Edit;
 	AddConsoleLog("Editor Mode: Edit");

@@ -166,7 +166,7 @@ void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 	if (prefabPayload && prefabPayload->DataSize > 0) {
 		const char* prefabPathText = static_cast<const char*>(prefabPayload->Data);
 		CaptureUndo(scene, "Instantiate Prefab");
-		GameObject* created = scene.InstantiatePrefab(std::filesystem::path(prefabPathText));
+		GameObject* created = PrefabAsset::Instantiate(scene, std::filesystem::path(prefabPathText)).rootObject;
 		if (created) {
 			if (targetParent) {
 				created->SetParent(targetParent);
