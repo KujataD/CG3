@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{B8F3A1C2-4D5E-4F6A-9B0C-1D2E3F4A5B6C}</ProjectGuid>
+    <RootNamespace>KujakuEngineTests</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Tests</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)x64\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)x64\$(Configuration)\obj\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CONSOLE;KUJAKU_ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\KujakuEngine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- ShapeUtil.cpp 内の描画系関数(DrawSplineParticles 等)は未参照なので、関数単位で切り離してリンカに破棄させる -->
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <!-- 未参照シンボル(GPU依存の描画関数など)を除去し、純粋ロジックだけをリンクする -->
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- テスト本体 -->
+    <ClCompile Include="TestMain.cpp" />
+    <ClCompile Include="MathTests.cpp" />
+    <ClCompile Include="ShapeTests.cpp" />
+    <!-- テスト対象のエンジンソース(GPU非依存の純粋ロジックのみ) -->
+    <ClCompile Include="..\KujakuEngine\math\MathUtil.cpp" />
+    <ClCompile Include="..\KujakuEngine\math\Matrix3x3.cpp" />
+    <ClCompile Include="..\KujakuEngine\math\Matrix4x4.cpp" />
+    <ClCompile Include="..\KujakuEngine\math\Vector2.cpp" />
+    <ClCompile Include="..\KujakuEngine\math\Vector3.cpp" />
+    <ClCompile Include="..\KujakuEngine\math\Easing.cpp" />
+    <ClCompile Include="..\KujakuEngine\math\Random.cpp" />
+    <ClCompile Include="..\KujakuEngine\shapes\ShapeUtil.cpp" />
+    <ClCompile Include="..\KujakuEngine\shapes\AABB.cpp" />
+    <ClCompile Include="..\KujakuEngine\shapes\Rect.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestFramework.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

@@ -2,8 +2,6 @@
 #include "AABB.h"
 #include "Rect.h"
 #include <vector>
-#include "../vfx/InstancingModel.h"
-#include "../3d/Camera.h"
 #include <math/MathUtil.h>
 
 namespace KujakuEngine {
@@ -127,8 +125,6 @@ Vector3 CatmullRomInterpolation(const Vector3& p0, const Vector3& p1, const Vect
 /// <param name="t">スプラインの全区間の中での割合指定[0,1]</param>
 ///< returns>座標</returns>
 Vector3 CatmullRomPosition(const std::vector<Vector3>& points, float t);
-
-void DrawSplineParticles(InstancingModel* model, const std::vector<Vector3>& controlPoints, const Camera& camera);
 
 Segment MakeLimitedSegment(const Vector3& start, const Vector3& end, float maxDistance);
 Segment MakeNattoSegment(const Vector3& start, const Vector3& end, float maxDistance, float minDistance);
