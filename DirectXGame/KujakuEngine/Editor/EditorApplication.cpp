@@ -1,5 +1,6 @@
 #include "EditorApplication.h"
 #include "ImGuiManager.h"
+#include "../runtime/PlayState.h"
 #include "../scene/ComponentFactory.h"
 #include "SceneJsonExporter.h"
 #include "../base/ProjectPath.h"
@@ -364,6 +365,7 @@ void EditorApplication::Start() {
 	}
 
 	editorMode_ = EditorMode::Play;
+	SetGamePlaying(true);
 
 #ifdef USE_IMGUI
 	ImGuiManager::GetInstance()->ClearConsoleLogs();
@@ -381,6 +383,7 @@ void EditorApplication::Stop() {
 	}
 
 	editorMode_ = EditorMode::Edit;
+	SetGamePlaying(false);
 
 	if (currentScene_) {
 		currentScene_->OnPlayStop();
