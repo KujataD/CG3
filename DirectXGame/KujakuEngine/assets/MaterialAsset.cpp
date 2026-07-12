@@ -1,5 +1,5 @@
 #include "MaterialAsset.h"
-#include "../Editor/AssetDatabase.h"
+#include "../runtime/AssetResolver.h"
 #include "../base/ProjectPath.h"
 #include "../base/TextureManager.h"
 
@@ -136,7 +136,7 @@ std::filesystem::path ResolveMaterialTexturePath(const MaterialTexture* texture,
 		return {};
 	}
 
-	AssetDatabase& assetDatabase = AssetDatabase::GetInstance();
+	IAssetResolver& assetDatabase = GetAssetResolver();
 	std::filesystem::path fallbackPath;
 	if (!texture->path.empty()) {
 		fallbackPath = texture->path;
@@ -394,7 +394,7 @@ bool MaterialAsset::Save(const std::filesystem::path& path, const MaterialAssetD
 		return false;
 	}
 
-	AssetDatabase::GetInstance().GetOrCreateAssetId(resolvedPath);
+	GetAssetResolver().GetOrCreateAssetId(resolvedPath);
 	message = "Saved Material.";
 	return true;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/IAssetResolver.h"
 #include "../runtime/KujakuApi.h"
 #include <filesystem>
 #include <string>
@@ -33,7 +34,7 @@ struct AssetInfo {
 /// <summary>
 /// ProjectDir配下のAsset IDと実ファイルパスを対応付ける簡易AssetDatabase。
 /// </summary>
-class AssetDatabase {
+class AssetDatabase : public IAssetResolver {
 public:
 	static KUJAKU_API AssetDatabase& GetInstance();
 
@@ -47,7 +48,7 @@ public:
 	/// <summary>
 	/// 指定ファイルの.metaを保証し、Asset IDを取得します。
 	/// </summary>
-	KUJAKU_API std::string GetOrCreateAssetId(const std::filesystem::path& assetPath);
+	KUJAKU_API std::string GetOrCreateAssetId(const std::filesystem::path& assetPath) override;
 
 	KUJAKU_API const AssetInfo* FindById(const std::string& assetId);
 
@@ -56,9 +57,9 @@ public:
 	/// <summary>
 	/// Asset IDを実ファイルパスへ解決します。失敗時はfallbackPathを返します。
 	/// </summary>
-	KUJAKU_API std::filesystem::path ResolveAssetPath(const std::string& assetId, const std::filesystem::path& fallbackPath);
+	KUJAKU_API std::filesystem::path ResolveAssetPath(const std::string& assetId, const std::filesystem::path& fallbackPath) override;
 
-	KUJAKU_API std::string MakeProjectRelativePath(const std::filesystem::path& assetPath) const;
+	KUJAKU_API std::string MakeProjectRelativePath(const std::filesystem::path& assetPath) const override;
 
 	KUJAKU_API AssetType ClassifyAssetType(const std::filesystem::path& assetPath) const;
 
