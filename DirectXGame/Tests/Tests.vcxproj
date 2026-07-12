@@ -61,6 +61,7 @@
     <ClCompile Include="TestMain.cpp" />
     <ClCompile Include="MathTests.cpp" />
     <ClCompile Include="ShapeTests.cpp" />
+    <ClCompile Include="TagTests.cpp" />
     <!-- テスト対象のエンジンソース(GPU非依存の純粋ロジックのみ) -->
     <ClCompile Include="..\KujakuEngine\math\MathUtil.cpp" />
     <ClCompile Include="..\KujakuEngine\math\Matrix3x3.cpp" />
@@ -72,6 +73,7 @@
     <ClCompile Include="..\KujakuEngine\shapes\ShapeUtil.cpp" />
     <ClCompile Include="..\KujakuEngine\shapes\AABB.cpp" />
     <ClCompile Include="..\KujakuEngine\shapes\Rect.cpp" />
+    <ClCompile Include="..\KujakuEngine\runtime\TagRegistry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestFramework.h" />
