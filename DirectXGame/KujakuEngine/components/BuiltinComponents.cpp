@@ -5,6 +5,7 @@
 #include "DirectionalLightComponent.h"
 #include "ModelRendererComponent.h"
 #include "PointLightComponent.h"
+#include "RigidbodyComponent.h"
 #include "RotatorComponent.h"
 #include "TransformComponent.h"
 #include "../scene/ComponentFactory.h"
@@ -25,6 +26,7 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<DebugCameraComponent>();
 	factory.RegisterComponent<DirectionalLightComponent>();
 	factory.RegisterComponent<PointLightComponent>();
+	factory.RegisterComponent<RigidbodyComponent>();
 	factory.RegisterComponent<SphereColliderComponent>();
 	factory.RegisterComponent<BoxColliderComponent>();
 
