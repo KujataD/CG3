@@ -68,6 +68,17 @@ struct Plane {
 	Vector3 normal;
 	float distance;
 };
+
+// 接触情報。反発応答(押し出し+速度反射)のための最小データ。
+//   normal : 第1引数から第2引数へ向かう単位分離ベクトル。第1形状は -normal、第2形状は +normal 方向へ押し出す。
+//   depth  : めり込み量(>=0)。
+//   point  : おおよその接触点(ワールド座標)。
+struct Contact {
+	Vector3 normal{};
+	float depth = 0.0f;
+	Vector3 point{};
+};
+
 namespace ShapeUtil {
 
 bool IsCollision(const Sphere& sphere, const Plane& plane);
@@ -104,6 +115,12 @@ bool IsCollision(const Sphere& a, const Sphere& b);
 /// 軸が重なっているかどうか
 /// </summary>
 bool IsOverlappingOnAxis(const OBB& A, const OBB& B, const Vector3& axis);
+
+// 接触情報(法線・めり込み量・接触点)を計算する。交差していれば true。
+// normal は第1引数から第2引数へ向かう分離方向(単位)。詳細は Contact を参照。
+bool ComputeContact(const Sphere& a, const Sphere& b, Contact& out);
+bool ComputeContact(const Sphere& sphere, const OBB& obb, Contact& out);
+bool ComputeContact(const OBB& a, const OBB& b, Contact& out);
 
 Vector3 Reflect(const Vector3& input, const Vector3& normal);
 

@@ -327,6 +327,125 @@ bool IsCollision(const OBB& obb1, const OBB& obb2) {
 
 bool IsCollision(const Sphere& a, const Sphere& b) { return powf(b.center.x - a.center.x, 2) + powf(b.center.y - a.center.y, 2) + powf(b.center.z - a.center.z, 2) <= powf(b.radius + a.radius, 2); }
 
+bool ComputeContact(const Sphere& a, const Sphere& b, Contact& out) {
+	Vector3 d = b.center - a.center;
+	float dist = Length(d);
+	float sumR = a.radius + b.radius;
+	if (dist > sumR) {
+		return false;
+	}
+	// 中心一致の退化時は任意軸を採用
+	Vector3 n = (dist > 1e-6f) ? d * (1.0f / dist) : Vector3{1.0f, 0.0f, 0.0f};
+	out.normal = n;
+	out.depth = sumR - dist;
+	out.point = a.center + n * (a.radius - out.depth * 0.5f);
+	return true;
+}
+
+bool ComputeContact(const Sphere& sphere, const OBB& obb, Contact& out) {
+	Vector3 d = sphere.center - obb.center;
+	float ext[3] = {obb.size.x, obb.size.y, obb.size.z};
+
+	// OBB 上の最近点をローカル軸ごとの射影クランプで求める
+	float proj[3];
+	Vector3 closest = obb.center;
+	for (int i = 0; i < 3; ++i) {
+		proj[i] = Dot(d, obb.orientations[i]);
+		float c = std::clamp(proj[i], -ext[i], ext[i]);
+		closest = closest + obb.orientations[i] * c;
+	}
+
+	Vector3 v = sphere.center - closest; // OBB表面 → 球中心
+	float distSq = Dot(v, v);
+	float r = sphere.radius;
+
+	if (distSq > r * r) {
+		return false; // 球中心が OBB 外かつ半径外(中心が内部なら distSq==0 で下へ)
+	}
+
+	float dist = std::sqrt(distSq);
+	if (dist > 1e-6f) {
+		// 球中心が OBB 外(または表面): normal は sphere→obb = -(OBB→球)
+		Vector3 obbToSphere = v * (1.0f / dist);
+		out.normal = obbToSphere * -1.0f;
+		out.depth = r - dist;
+		out.point = closest;
+	} else {
+		// 球中心が OBB 内部: めり込み最小の面へ押し出す
+		int minAxis = 0;
+		float minPen = 1e30f;
+		float sign = 1.0f;
+		for (int i = 0; i < 3; ++i) {
+			float pen = ext[i] - std::abs(proj[i]); // 内部なら >=0
+			if (pen < minPen) {
+				minPen = pen;
+				minAxis = i;
+				sign = (proj[i] >= 0.0f) ? 1.0f : -1.0f;
+			}
+		}
+		Vector3 faceNormal = obb.orientations[minAxis] * sign; // OBB中心→球のある面側
+		out.normal = faceNormal * -1.0f;                       // sphere→obb は逆向き
+		out.depth = r + minPen;
+		out.point = sphere.center - faceNormal * minPen;
+	}
+	return true;
+}
+
+bool ComputeContact(const OBB& a, const OBB& b, Contact& out) {
+	// SAT の 15 軸(各3面法線 + 9エッジ外積)から、最小めり込み軸(MTV)を求める
+	Vector3 axes[15];
+	int n = 0;
+	for (int i = 0; i < 3; ++i) {
+		axes[n++] = a.orientations[i];
+	}
+	for (int i = 0; i < 3; ++i) {
+		axes[n++] = b.orientations[i];
+	}
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			axes[n++] = Cross(a.orientations[i], b.orientations[j]);
+		}
+	}
+
+	auto GetProjection = [](const OBB& o, const Vector3& L) {
+		float center = Dot(o.center, L);
+		float extent = std::abs(Dot(o.orientations[0], L)) * o.size.x + std::abs(Dot(o.orientations[1], L)) * o.size.y + std::abs(Dot(o.orientations[2], L)) * o.size.z;
+		return std::make_pair(center - extent, center + extent);
+	};
+
+	float minOverlap = 1e30f;
+	Vector3 minAxis{};
+	for (int k = 0; k < 15; ++k) {
+		float len = Length(axes[k]);
+		if (len < 1e-6f) {
+			continue; // 平行軸のエッジ外積は退化するのでスキップ
+		}
+		Vector3 L = axes[k] * (1.0f / len);
+
+		auto [minA, maxA] = GetProjection(a, L);
+		auto [minB, maxB] = GetProjection(b, L);
+
+		float overlap = (std::min)(maxA, maxB) - (std::max)(minA, minB);
+		if (overlap <= 0.0f) {
+			return false; // 分離軸あり
+		}
+		if (overlap < minOverlap) {
+			minOverlap = overlap;
+			minAxis = L;
+		}
+	}
+
+	// normal を a→b 方向へ揃える
+	Vector3 dir = b.center - a.center;
+	if (Dot(minAxis, dir) < 0.0f) {
+		minAxis = minAxis * -1.0f;
+	}
+	out.normal = minAxis;
+	out.depth = minOverlap;
+	out.point = (a.center + b.center) * 0.5f; // 近似接触点
+	return true;
+}
+
 Vector3 Reflect(const Vector3& input, const Vector3& normal) { return input - normal * (2.0f * Dot(input, normal)); }
 
 Vector3 CatmullRomInterpolation(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t) {
