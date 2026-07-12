@@ -83,3 +83,21 @@ KU_TEST(接触_OBB同士) {
 	Contact c2{};
 	KU_CHECK(ShapeUtil::ComputeContact(a, far, c2) == false);
 }
+
+// Rigidbody の速度反射で使う Reflect の式を固定する(v' = v - 2(v・n)n)。
+KU_TEST(反射_Reflect) {
+	Vector3 n{0, 1, 0};
+
+	// 真下向き速度が上向き法線で反転する
+	Vector3 v{0, -2, 0};
+	Vector3 r = ShapeUtil::Reflect(v, n);
+	KU_CHECK_NEAR(r.x, 0.0f, 1e-4f);
+	KU_CHECK_NEAR(r.y, 2.0f, 1e-4f);
+	KU_CHECK_NEAR(r.z, 0.0f, 1e-4f);
+
+	// 斜め入射: 接線成分は保存、法線成分のみ反転
+	Vector3 v2{1, -1, 0};
+	Vector3 r2 = ShapeUtil::Reflect(v2, n);
+	KU_CHECK_NEAR(r2.x, 1.0f, 1e-4f);  // 接線保存
+	KU_CHECK_NEAR(r2.y, 1.0f, 1e-4f);  // 法線反転
+}

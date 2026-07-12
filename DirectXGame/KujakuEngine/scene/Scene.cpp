@@ -5,6 +5,7 @@
 #include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
+#include "../base/Time.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
 #include "../components/ColliderComponent.h"
@@ -54,7 +55,9 @@ std::string MakeCollisionPairKey(const ColliderComponent& colliderA, const Colli
 	return std::to_string(idA) + ":" + std::to_string(idB);
 }
 
-void NotifyCollisionToComponents(GameObject* owner, ColliderComponent* self, ColliderComponent* other, bool isTrigger, CollisionEventPhase phase) {
+// contact は colliderA→colliderB の接触情報(非トリガーで交差中のみ非null)。
+// flipNormal=true のとき normal を反転して self 視点(self→other)に揃える。
+void NotifyCollisionToComponents(GameObject* owner, ColliderComponent* self, ColliderComponent* other, bool isTrigger, CollisionEventPhase phase, const Contact* contact, bool flipNormal) {
 	if (!owner || !self || !other) {
 		return;
 	}
@@ -80,7 +83,13 @@ void NotifyCollisionToComponents(GameObject* owner, ColliderComponent* self, Col
 		collision.other = other;
 		collision.selfObject = owner;
 		collision.otherObject = other->GetOwner();
-		collision.point = self->GetWorldCenter();
+		if (contact) {
+			collision.normal = flipNormal ? contact->normal * -1.0f : contact->normal;
+			collision.penetrationDepth = contact->depth;
+			collision.point = contact->point;
+		} else {
+			collision.point = self->GetWorldCenter();
+		}
 
 		if (phase == CollisionEventPhase::Enter) {
 			component->OnCollisionEnter(collision);
@@ -92,13 +101,14 @@ void NotifyCollisionToComponents(GameObject* owner, ColliderComponent* self, Col
 	}
 }
 
-void NotifyCollisionPair(ColliderComponent* colliderA, ColliderComponent* colliderB, bool isTrigger, CollisionEventPhase phase) {
+void NotifyCollisionPair(ColliderComponent* colliderA, ColliderComponent* colliderB, bool isTrigger, CollisionEventPhase phase, const Contact* contact = nullptr) {
 	if (!colliderA || !colliderB) {
 		return;
 	}
 
-	NotifyCollisionToComponents(colliderA->GetOwner(), colliderA, colliderB, isTrigger, phase);
-	NotifyCollisionToComponents(colliderB->GetOwner(), colliderB, colliderA, isTrigger, phase);
+	// contact は colliderA→colliderB 基準。B側へは normal を反転して渡す。
+	NotifyCollisionToComponents(colliderA->GetOwner(), colliderA, colliderB, isTrigger, phase, contact, false);
+	NotifyCollisionToComponents(colliderB->GetOwner(), colliderB, colliderA, isTrigger, phase, contact, true);
 }
 
 RigidbodyComponent* FindRigidbody(ColliderComponent* collider) {
@@ -114,16 +124,12 @@ RigidbodyComponent* FindRigidbody(ColliderComponent* collider) {
 
 // 非トリガーの交差ペアに剛体反発(押し出し+速度反射)を適用する。
 // Rigidbodyを持つColliderが動的、持たないColliderはStatic(不動)。両Staticは何もしない。
-void ResolveCollisionResponse(ColliderComponent* colliderA, ColliderComponent* colliderB) {
+// contact は colliderA→colliderB 基準(呼び出し側で計算済み)。
+void ResolveCollisionResponse(ColliderComponent* colliderA, ColliderComponent* colliderB, const Contact& contact) {
 	RigidbodyComponent* rigidbodyA = FindRigidbody(colliderA);
 	RigidbodyComponent* rigidbodyB = FindRigidbody(colliderB);
 	if (!rigidbodyA && !rigidbodyB) {
 		return; // 両方Static
-	}
-
-	Contact contact{};
-	if (!colliderA->ComputeContact(*colliderB, contact)) {
-		return;
 	}
 	if (contact.depth <= 0.0f) {
 		return;
@@ -164,6 +170,24 @@ void ResolveCollisionResponse(ColliderComponent* colliderA, ColliderComponent* c
 		if (Dot(velocityB, normal) < 0.0f) { // BがA方向へ接近
 			rigidbodyB->SetVelocity(ShapeUtil::Reflect(velocityB, normal) * rigidbodyB->GetBounciness());
 		}
+	}
+}
+
+// Rigidbodyの速度を位置へ積分する(translation += velocity * dt)。重力・力は無し。
+void IntegrateRigidbodies(Scene& scene, float deltaTime) {
+	if (deltaTime <= 0.0f) {
+		return;
+	}
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
+			continue;
+		}
+		RigidbodyComponent* rigidbody = gameObject->GetComponent<RigidbodyComponent>();
+		if (!rigidbody || !rigidbody->IsEnabled()) {
+			continue;
+		}
+		WorldTransform& transform = gameObject->GetTransform();
+		transform.translation_ = transform.translation_ + rigidbody->GetVelocity() * deltaTime;
 	}
 }
 
@@ -521,11 +545,14 @@ void Scene::Initialize() {
 }
 
 void Scene::Update() {
+	// ゲームロジック(Component::Update)がSetVeloc/移動を行う → 速度積分 → 衝突検出+応答 の順。
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
 		if (gameObject && gameObject->IsRoot()) {
 			gameObject->UpdateHierarchy();
 		}
 	}
+
+	IntegrateRigidbodies(*this, Time::GetDeltaTime());
 
 	UpdateWorldTransforms();
 	UpdateCollisions();
@@ -604,27 +631,34 @@ void Scene::UpdateCollisions() {
 
 			bool isTrigger = colliderA->IsTrigger() || colliderB->IsTrigger();
 
-			// 非トリガーは物理応答(押し出し+速度反射)を適用する。
+			// 非トリガーは接触情報(A→B)を計算し、物理応答(押し出し+速度反射)を適用する。
+			// 同じ接触情報をCollisionイベントのnormal/penetration充填にも使う。
+			Contact contact{};
+			bool hasContact = false;
 			if (!isTrigger) {
-				ResolveCollisionResponse(colliderA, colliderB);
+				hasContact = colliderA->ComputeContact(*colliderB, contact);
+				if (hasContact) {
+					ResolveCollisionResponse(colliderA, colliderB, contact);
+				}
 			}
+			const Contact* contactPtr = hasContact ? &contact : nullptr;
 
 			std::string pairKey = MakeCollisionPairKey(*colliderA, *colliderB);
 			currentPairStates[pairKey] = {colliderA, colliderB, isTrigger};
 
 			auto previous = collisionPairStates_.find(pairKey);
 			if (previous == collisionPairStates_.end()) {
-				NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Enter);
+				NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Enter, contactPtr);
 				continue;
 			}
 
 			if (previous->second.isTrigger != isTrigger) {
 				NotifyCollisionPair(previous->second.colliderA, previous->second.colliderB, previous->second.isTrigger, CollisionEventPhase::Exit);
-				NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Enter);
+				NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Enter, contactPtr);
 				continue;
 			}
 
-			NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Stay);
+			NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Stay, contactPtr);
 		}
 	}
 
