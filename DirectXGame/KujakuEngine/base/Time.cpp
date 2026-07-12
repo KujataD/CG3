@@ -1,6 +1,5 @@
 #include "Time.h"
 #include <algorithm>
-#include <Editor/ImGuiManager.h>
 
 
 Time* Time::GetInstance() {

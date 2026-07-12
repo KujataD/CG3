@@ -1,6 +1,5 @@
 #include "DebugCamera.h"
 #include "../input/Input.h"
-#include "../Editor/ImGuiManager.h"
 
 namespace KujakuEngine{
 

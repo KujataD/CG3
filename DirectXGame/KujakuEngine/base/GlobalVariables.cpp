@@ -1,5 +1,5 @@
 #include "GlobalVariables.h"
-#include "../Editor/ImGuiManager.h"
+#include "../../externals/imgui/imgui.h"
 #include <Windows.h>
 
 using json = nlohmann::json;
