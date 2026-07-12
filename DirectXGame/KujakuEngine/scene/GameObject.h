@@ -100,6 +100,11 @@ public:
 	void SetTag(const std::string& tag) { tag_ = tag; }
 
 	/// <summary>
+	/// Tagが一致するかを返します(Unityの CompareTag 相当)。
+	/// </summary>
+	bool CompareTag(const std::string& tag) const { return tag_ == tag; }
+
+	/// <summary>
 	/// 衝突フィルタなどに使うLayerを取得
 	/// </summary>
 	uint32_t GetLayer() const { return layer_; }

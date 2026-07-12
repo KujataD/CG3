@@ -6,6 +6,7 @@
 #include "../scene/IMaterialTarget.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
+#include "../runtime/TagRegistry.h"
 #include "EditorApplication.h"
 #include "EditorConsole.h"
 #include "EditorImGuiUtil.h"
@@ -81,11 +82,43 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow) {
 		selected->SetName(nameBuffer.data());
 	}
 
-	std::array<char, 128> tagBuffer{};
-	std::snprintf(tagBuffer.data(), tagBuffer.size(), "%s", selected->GetTag().c_str());
+	// Tag: 登録リストから選択(Unity風)。末尾の "Add Tag..." で新規追加できる。
+	TagRegistry& tagRegistry = TagRegistry::GetInstance();
+	tagRegistry.EnsureTag(selected->GetTag()); // Scene由来の未登録タグも選択肢に含める
+	bool openAddTagPopup = false;
 	ImGui::SetNextItemWidth(125.0f);
-	if (ImGui::InputText("Tag", tagBuffer.data(), tagBuffer.size())) {
-		selected->SetTag(tagBuffer.data());
+	if (ImGui::BeginCombo("Tag", selected->GetTag().c_str())) {
+		for (const std::string& tag : tagRegistry.GetTags()) {
+			bool isSelected = (tag == selected->GetTag());
+			if (ImGui::Selectable(tag.c_str(), isSelected)) {
+				selected->SetTag(tag);
+			}
+			if (isSelected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::Separator();
+		if (ImGui::Selectable("Add Tag...")) {
+			openAddTagPopup = true;
+		}
+		ImGui::EndCombo();
+	}
+	if (openAddTagPopup) {
+		ImGui::OpenPopup("Add Tag");
+	}
+	if (ImGui::BeginPopup("Add Tag")) {
+		static std::array<char, 64> newTagBuffer{};
+		ImGui::SetNextItemWidth(160.0f);
+		bool submitted = ImGui::InputText("##NewTag", newTagBuffer.data(), newTagBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::SameLine();
+		if ((ImGui::Button("Add") || submitted) && newTagBuffer[0] != '\0') {
+			std::string newTag = newTagBuffer.data();
+			tagRegistry.AddTag(newTag);
+			selected->SetTag(newTag);
+			newTagBuffer.fill('\0');
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
 	}
 	ImGui::SameLine();
 	int layer = static_cast<int>(selected->GetLayer());

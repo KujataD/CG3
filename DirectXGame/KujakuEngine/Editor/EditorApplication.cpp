@@ -4,6 +4,7 @@
 #include "../runtime/AssetResolver.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
+#include "../runtime/TagRegistry.h"
 #include "../scene/ComponentFactory.h"
 #include "SceneJsonExporter.h"
 #include "../base/ProjectPath.h"
@@ -264,6 +265,9 @@ void EditorApplication::Initialize() {
 	// ランタイムのアセット解決/選択問い合わせをEditor実装へ橋渡しする(依存性逆転の注入点)。
 	SetAssetResolver(&AssetDatabase::GetInstance());
 	SetSelectionProvider(EditorSelection::GetInstance());
+
+	// プロジェクト共有のTag登録リストを読み込む(ProjectSettings/Tags.json)。
+	TagRegistry::GetInstance().LoadFromProjectRoot(DetectEditorProjectRoot());
 
 	editorMode_ = EditorMode::Edit;
 	AddConsoleLog("Editor Mode: Edit");

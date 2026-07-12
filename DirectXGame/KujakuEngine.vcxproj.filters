@@ -258,6 +258,9 @@
     <ClCompile Include="KujakuEngine\runtime\PlayState.cpp">
       <Filter>KujakuEngine\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\TagRegistry.cpp">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\runtime\AssetResolver.cpp">
       <Filter>KujakuEngine\runtime</Filter>
     </ClCompile>
@@ -480,6 +483,9 @@
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\PlayState.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\TagRegistry.h">
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\AssetResolver.h">
