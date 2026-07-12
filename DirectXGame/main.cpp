@@ -1,4 +1,4 @@
-#include <KujakuEngine.h>
+#include <KujakuEngineEditor.h>
 
 #include <cassert>
 #include <fstream>

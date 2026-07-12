@@ -253,6 +253,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\base\WinApp.h" />
     <ClInclude Include="KujakuEngine\input\Input.h" />
     <ClInclude Include="KujakuEngine\KujakuEngine.h" />
+    <ClInclude Include="KujakuEngine\KujakuEngineEditor.h" />
     <ClInclude Include="KujakuEngine\math\Easing.h" />
     <ClInclude Include="KujakuEngine\math\MathUtil.h" />
     <ClInclude Include="KujakuEngine\math\Matrix3x3.h" />
