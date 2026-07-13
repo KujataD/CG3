@@ -164,6 +164,39 @@ public:
 		value = readJson_->at(jsonKey).get<bool>();
 	}
 
+	// ラベル見出しの下に X/Y/Z の3チェックボックスを横並びで描く(Unityのconstraints風)。
+	// JSONは各軸を個別キーで保存/読込する。
+	void BoolAxes(const char* label, const char* keyX, bool& x, const char* keyY, bool& y, const char* keyZ, bool& z) {
+		if (mode_ == Mode::DrawInspector) {
+			InspectorUI::TextUnformatted(label);
+			// 表示は "X"/"Y"/"Z"、IDはキーで一意化(##で不可視化)。
+			std::string labelX = std::string("X##") + keyX;
+			std::string labelY = std::string("Y##") + keyY;
+			std::string labelZ = std::string("Z##") + keyZ;
+			InspectorUI::Checkbox(labelX.c_str(), &x);
+			InspectorUI::SameLine();
+			InspectorUI::Checkbox(labelY.c_str(), &y);
+			InspectorUI::SameLine();
+			InspectorUI::Checkbox(labelZ.c_str(), &z);
+			return;
+		}
+		if (mode_ == Mode::WriteJson) {
+			(*writeJson_)[keyX] = x;
+			(*writeJson_)[keyY] = y;
+			(*writeJson_)[keyZ] = z;
+			return;
+		}
+		if (HasReadableKey(keyX) && readJson_->at(keyX).is_boolean()) {
+			x = readJson_->at(keyX).get<bool>();
+		}
+		if (HasReadableKey(keyY) && readJson_->at(keyY).is_boolean()) {
+			y = readJson_->at(keyY).get<bool>();
+		}
+		if (HasReadableKey(keyZ) && readJson_->at(keyZ).is_boolean()) {
+			z = readJson_->at(keyZ).get<bool>();
+		}
+	}
+
 	void Vector3Field(const char* memberName, Vector3& value, float dragSpeed, float minValue, float maxValue) {
 		std::string key = MakeJsonKey(memberName);
 		Vector3Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
@@ -395,6 +428,10 @@ private: \
 #define KUJAKU_REGISTER_UINT32_NAMED(member, label, dragSpeed, minValue, maxValue) registry.UInt32Named(KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue)
 #define KUJAKU_REGISTER_BOOL(member) registry.Bool(#member, member)
 #define KUJAKU_REGISTER_BOOL_NAMED(member, label) registry.BoolNamed(KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member)
+#define KUJAKU_REGISTER_BOOL_AXES(label, memberX, memberY, memberZ)                                    \
+	registry.BoolAxes(label, KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#memberX).c_str(), memberX, \
+	                  KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#memberY).c_str(), memberY,        \
+	                  KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#memberZ).c_str(), memberZ)
 #define KUJAKU_REGISTER_VECTOR3(member, dragSpeed, minValue, maxValue) registry.Vector3Field(#member, member, dragSpeed, minValue, maxValue)
 #define KUJAKU_REGISTER_VECTOR3_NAMED(member, label, dragSpeed, minValue, maxValue) registry.Vector3Named(KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue)
 #define KUJAKU_REGISTER_VECTOR4(member, dragSpeed, minValue, maxValue) registry.Vector4Field(#member, member, dragSpeed, minValue, maxValue)

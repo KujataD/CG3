@@ -115,4 +115,10 @@ void TextDisabled(const char* text) {
 #endif
 }
 
+void SameLine() {
+#ifdef USE_IMGUI
+	ImGui::SameLine();
+#endif
+}
+
 } // namespace KujakuEngine::InspectorUI

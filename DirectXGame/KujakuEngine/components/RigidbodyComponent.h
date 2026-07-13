@@ -66,12 +66,8 @@ private:
 		KUJAKU_REGISTER_FLOAT(gravityScale_, 0.01f, 0.0f, 0.0f);
 		KUJAKU_REGISTER_VECTOR3(velocity_, 0.01f, 0.0f, 0.0f);
 		KUJAKU_REGISTER_FLOAT(bounciness_, 0.01f, 0.0f, 1.0f);
-		KUJAKU_REGISTER_BOOL(freezePositionX_);
-		KUJAKU_REGISTER_BOOL(freezePositionY_);
-		KUJAKU_REGISTER_BOOL(freezePositionZ_);
-		KUJAKU_REGISTER_BOOL(freezeRotationX_);
-		KUJAKU_REGISTER_BOOL(freezeRotationY_);
-		KUJAKU_REGISTER_BOOL(freezeRotationZ_);
+		KUJAKU_REGISTER_BOOL_AXES("Freeze Position", freezePositionX_, freezePositionY_, freezePositionZ_);
+		KUJAKU_REGISTER_BOOL_AXES("Freeze Rotation", freezeRotationX_, freezeRotationY_, freezeRotationZ_);
 	}
 
 	KUJAKU_FIELD_BOOL(isStatic_, false);

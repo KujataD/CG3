@@ -17,5 +17,6 @@ KUJAKU_API bool InputText(const char* label, char* buffer, std::size_t bufferSiz
 KUJAKU_API bool Button(const char* label);
 KUJAKU_API void TextUnformatted(const char* text);
 KUJAKU_API void TextDisabled(const char* text);
+KUJAKU_API void SameLine();
 
 } // namespace KujakuEngine::InspectorUI
