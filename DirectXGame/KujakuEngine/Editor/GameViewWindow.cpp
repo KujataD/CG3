@@ -2,13 +2,20 @@
 
 #include "../../externals/imgui/imgui.h"
 #include "../base/DirectXCommon.h"
+#include "../runtime/PlayState.h"
 #include <d3d12.h>
 
 namespace KujakuEngine {
 
 void GameViewWindow::Draw() {
 #ifdef USE_IMGUI
-	ImGui::Begin("Game");
+	// Begin の戻り値で可視性(タブ非アクティブ/折り畳み時はfalse)を判定し、非表示ならGameパスをスキップさせる。
+	bool visible = ImGui::Begin("Game");
+	SetGameViewVisible(visible);
+	if (!visible) {
+		ImGui::End();
+		return;
+	}
 
 	// Dock内側の描画可能領域(タブや枠を除いた分)。
 	ImVec2 contentSize = ImGui::GetContentRegionAvail();

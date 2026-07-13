@@ -248,11 +248,18 @@ void SceneViewWindow::HandleGameWindowObjectSelection(const ImVec2& imagePositio
 
 void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 #ifdef USE_IMGUI
-	ImGui::Begin("Scene");
+	// Begin の戻り値で可視性(タブ非アクティブ/折り畳み時はfalse)を判定し、非表示ならパスをスキップさせる。
+	bool visible = ImGui::Begin("Scene");
+	SetSceneViewVisible(visible);
 
 	// Sceneビューがフォーカスされている間だけデバッグカメラを操作できるようにする(プレイ中も含む)。
 	// これによりGameビュー(メインカメラ)やゲーム入力と操作が競合しない。
-	SetSceneViewFocused(ImGui::IsWindowFocused());
+	SetSceneViewFocused(visible && ImGui::IsWindowFocused());
+
+	if (!visible) {
+		ImGui::End();
+		return;
+	}
 
 	DrawGizmoToolbar(projectRoot);
 	ImGui::Separator();

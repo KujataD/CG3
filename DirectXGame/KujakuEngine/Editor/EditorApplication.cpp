@@ -320,14 +320,21 @@ void EditorApplication::Draw() {
 
 #ifdef USE_IMGUI
 	// エディタ(ImGui)有効時: Scene/Gameを別々のオフスクリーンRTへ描き、ImGuiのImageで表示する。
-	if (currentScene_) {
-		Camera* gameCamera = currentScene_->GetGameViewCamera();
-		if (gameCamera) {
-			// --- 2画面: 準備は1回、Scene(デバッグカメラ+オーバーレイ)とGame(メインカメラ)を別RTへ ---
-			currentScene_->PrepareFrame();
-			Camera* sceneCamera = currentScene_->GetSceneViewCamera();
+	// 非表示のビュー(タブ非アクティブ/折り畳み)は描画パスをスキップして負荷を抑える。
+	const bool sceneVisible = IsSceneViewVisible();
+	const bool gameVisible = IsGameViewVisible();
 
-			// Sceneビュー(デバッグカメラ + 編集オーバーレイ)。
+	Camera* gameCamera = currentScene_ ? currentScene_->GetGameViewCamera() : nullptr;
+	if (currentScene_ && gameCamera) {
+		// --- 2画面 ---
+		// 表示中のビューがあれば準備(カメラ同期・ライト・ワールド行列)は1回だけ行う。
+		if (sceneVisible || gameVisible) {
+			currentScene_->PrepareFrame();
+		}
+
+		// Sceneビュー(デバッグカメラ + 編集オーバーレイ)。
+		if (sceneVisible) {
+			Camera* sceneCamera = currentScene_->GetSceneViewCamera();
 			dxCommon->BeginSceneRender();
 			currentScene_->RenderView(sceneCamera, true);
 			if (sceneCamera) {
@@ -336,23 +343,27 @@ void EditorApplication::Draw() {
 				LineRenderer::GetInstance()->Clear();
 			}
 			dxCommon->EndSceneRender();
+		} else {
+			LineRenderer::GetInstance()->Clear();
+		}
 
-			// Gameビュー(メインカメラ・オーバーレイ無し)。
+		// Gameビュー(メインカメラ・オーバーレイ無し)。
+		if (gameVisible) {
 			dxCommon->BeginGameRender();
 			currentScene_->RenderView(gameCamera, false);
 			dxCommon->EndGameRender();
-		} else {
-			// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
-			dxCommon->BeginSceneRender();
-			currentScene_->Draw();
-			Camera* renderCamera = currentScene_->GetEditorCamera();
-			if (renderCamera) {
-				LineRenderer::GetInstance()->Render(*renderCamera);
-			} else {
-				LineRenderer::GetInstance()->Clear();
-			}
-			dxCommon->EndSceneRender();
 		}
+	} else if (currentScene_ && sceneVisible) {
+		// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
+		dxCommon->BeginSceneRender();
+		currentScene_->Draw();
+		Camera* renderCamera = currentScene_->GetEditorCamera();
+		if (renderCamera) {
+			LineRenderer::GetInstance()->Render(*renderCamera);
+		} else {
+			LineRenderer::GetInstance()->Clear();
+		}
+		dxCommon->EndSceneRender();
 	} else {
 		LineRenderer::GetInstance()->Clear();
 	}

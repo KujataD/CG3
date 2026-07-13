@@ -19,4 +19,10 @@ KUJAKU_API bool IsSceneViewFocused();
 // Sceneビューのフォーカス状態を設定する(Editor側が呼ぶ)。
 KUJAKU_API void SetSceneViewFocused(bool focused);
 
+// Scene/Gameビューが表示中か。非表示なら描画パスをスキップして負荷を抑える。Editorが毎フレーム設定する。
+KUJAKU_API bool IsSceneViewVisible();
+KUJAKU_API void SetSceneViewVisible(bool visible);
+KUJAKU_API bool IsGameViewVisible();
+KUJAKU_API void SetGameViewVisible(bool visible);
+
 } // namespace KujakuEngine
