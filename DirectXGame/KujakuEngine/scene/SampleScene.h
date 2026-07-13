@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "ISceneRenderer.h"
 #include <string>
 
 namespace KujakuEngine {
@@ -12,7 +13,7 @@ class DebugCameraComponent;
 /// <summary>
 /// 現在のmain.cppにあったサンプル用Scene
 /// </summary>
-class SampleScene : public Scene {
+class SampleScene : public Scene, public ISceneRenderer {
 public:
 	KUJAKU_API void Initialize() override;
 
@@ -33,7 +34,7 @@ public:
 
 	KUJAKU_API Camera* GetEditorCamera() override;
 
-	// --- Scene/Game 2画面描画 ---
+	// --- ISceneRenderer(Scene/Game 2画面描画)---
 	KUJAKU_API void PrepareFrame() override;
 	KUJAKU_API void RenderView(Camera* camera, bool drawEditorOverlays) override;
 	KUJAKU_API Camera* GetSceneViewCamera() override;

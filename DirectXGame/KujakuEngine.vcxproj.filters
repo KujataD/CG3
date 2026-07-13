@@ -596,6 +596,9 @@
     <ClInclude Include="KujakuEngine\scene\ISceneCamera.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\ISceneRenderer.h">
+      <Filter>KujakuEngine</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\GameModule.h">
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
