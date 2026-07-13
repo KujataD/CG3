@@ -6,27 +6,37 @@
 
 namespace KujakuEngine {
 
-void WorldTransform::Initialize() {
-	// 定数バッファの生成
-	transformationMatrixResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(TransformationMatrix));
-
-	// マッピング
-	HRESULT hr = transformationMatrixResource_->Map(0, nullptr, reinterpret_cast<void**>(&constMap_));
-	assert(SUCCEEDED(hr));
-
-	// 単位行列で初期化
-	matWorld_ = MakeIdentity();
-	constMap_->WVP = MakeIdentity();
-	constMap_->World = MakeIdentity();
-	constMap_->WorldInverseTranspose = MakeIdentity();
+namespace {
+// 現在描画中のビュー番号(範囲外は0へ丸める)。
+uint32_t CurrentViewIndex() {
+	uint32_t index = DirectXCommon::GetInstance()->GetRenderViewIndex();
+	return index < 2 ? index : 0;
 }
+} // namespace
+
+void WorldTransform::Initialize() {
+	// ビュー毎に定数バッファを生成・マッピングし、単位行列で初期化する。
+	matWorld_ = MakeIdentity();
+	for (uint32_t viewIndex = 0; viewIndex < 2; ++viewIndex) {
+		transformationMatrixResource_[viewIndex] = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(TransformationMatrix));
+
+		HRESULT hr = transformationMatrixResource_[viewIndex]->Map(0, nullptr, reinterpret_cast<void**>(&constMap_[viewIndex]));
+		assert(SUCCEEDED(hr));
+
+		constMap_[viewIndex]->WVP = MakeIdentity();
+		constMap_[viewIndex]->World = MakeIdentity();
+		constMap_[viewIndex]->WorldInverseTranspose = MakeIdentity();
+	}
+}
+
+const Microsoft::WRL::ComPtr<ID3D12Resource>& WorldTransform::GetConstBuffer() const { return transformationMatrixResource_[CurrentViewIndex()]; }
 
 void WorldTransform::UpdateMatrix(const Camera& camera, bool isBillboard) {
 	if (isBillboard) {
 		// ワールド行列の生成
 		TransformationMatrix data = MakeBillboardMatrix(scale_, rotation_, translation_, camera);
 		matWorld_ = data.World;
-		*constMap_ = data;
+		*constMap_[CurrentViewIndex()] = data;
 		return;
 	}
 
@@ -48,10 +58,11 @@ void WorldTransform::TransferMatrix(const Camera& camera, const Matrix4x4& world
 	// WVP行列の生成
 	Matrix4x4 matWVP = worldMatrix * camera.matView * camera.matProjection;
 
-	// 定数バッファへ転送
-	constMap_->WVP = matWVP;
-	constMap_->World = worldMatrix;
-	constMap_->WorldInverseTranspose = Transpose(Inverse(worldMatrix));
+	// 現在ビューの定数バッファへ転送(他ビューのWVPを上書きしない)。
+	TransformationMatrix* map = constMap_[CurrentViewIndex()];
+	map->WVP = matWVP;
+	map->World = worldMatrix;
+	map->WorldInverseTranspose = Transpose(Inverse(worldMatrix));
 }
 
 TransformationMatrix WorldTransform::GetMatrixData(const Camera& camera) const {

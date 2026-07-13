@@ -533,7 +533,10 @@ void DirectXCommon::SetBackBufferRenderTarget() {
 	commandList_->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 }
 
-void DirectXCommon::BeginGameRender() { BeginRenderTexture(gameRenderTexture_); }
+void DirectXCommon::BeginGameRender() {
+	renderViewIndex_ = kGameViewIndex;
+	BeginRenderTexture(gameRenderTexture_);
+}
 
 void DirectXCommon::EndGameRender() { EndRenderTexture(gameRenderTexture_); }
 

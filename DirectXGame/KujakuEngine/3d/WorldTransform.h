@@ -58,7 +58,9 @@ public:
 	void CalcRotationOfVelocity(const Vector3& velocity, const Vector3& deltaAngle = {0, 0, 0}, float maxRotationSpeed = 1.0f);
 
 
-	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return transformationMatrixResource_; }
+	// 現在描画中のビュー(DirectXCommonのrenderViewIndex)に対応する定数バッファを返す。
+	// 同一フレームで複数ビューへ描いてもWVPが上書きされないよう、ビュー毎に別バッファを持つ。
+	KUJAKU_API const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const;
 
 	Vector3 GetWorldPosition() const { return {matWorld_.m[3][0], matWorld_.m[3][1], matWorld_.m[3][2]}; }
 	void SetWorldPosition(Vector3 worldPos) {
@@ -73,10 +75,10 @@ public:
 	}
 
 private:
-	// 定数バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource_;
-	// マッピング済みアドレス
-	mutable TransformationMatrix* constMap_ = nullptr;
+	// 定数バッファ(ビュー毎に別々。Scene/Gameで同じオブジェクトを描くため2本持つ)。
+	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource_[2];
+	// マッピング済みアドレス(各ビュー分)
+	mutable TransformationMatrix* constMap_[2] = {nullptr, nullptr};
 
 	// コピー禁止
 	WorldTransform(const WorldTransform&) = delete;

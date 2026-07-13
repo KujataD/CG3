@@ -68,8 +68,18 @@ public:
 	/// <summary>
 	/// Sceneウィンドウ用RenderTexture(デバッグカメラ描画)への描画開始/終了。
 	/// </summary>
-	void BeginSceneRender() { BeginRenderTexture(sceneRenderTexture_); }
+	void BeginSceneRender() {
+		renderViewIndex_ = kSceneViewIndex;
+		BeginRenderTexture(sceneRenderTexture_);
+	}
 	void EndSceneRender() { EndRenderTexture(sceneRenderTexture_); }
+
+	// 同一フレームで同じオブジェクトを複数ビューへ描くため、ビュー毎に別々の定数バッファを使う。
+	// WorldTransform等がこの番号で書き込み/バインド先のバッファを選ぶ。Scene=0/Game=1。
+	static const uint32_t kRenderViewCount = 2;
+	static const uint32_t kSceneViewIndex = 0;
+	static const uint32_t kGameViewIndex = 1;
+	uint32_t GetRenderViewIndex() const { return renderViewIndex_; }
 
 	/// <summary>
 	/// 指定サイズのRenderTexture(カラー+深度+RTV/DSV/SRV)を作成する。
@@ -247,6 +257,8 @@ private:
 	uint32_t backBufferIndex_ = 0;
 	int32_t backBufferWidth_ = 0;
 	int32_t backBufferHeight_ = 0;
+	// 現在描画中のビュー番号(Scene=0/Game=1)。BeginSceneRender/BeginGameRenderで切り替える。
+	uint32_t renderViewIndex_ = kSceneViewIndex;
 
 	// 画面の色
 	float clearColor_[4] = {0.1f, 0.25f, 0.5f, 1.0f}; // 青っぽい色。RGBAの順
