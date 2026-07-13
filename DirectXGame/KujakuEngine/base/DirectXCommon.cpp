@@ -33,7 +33,6 @@ void DirectXCommon::Initialize(WinApp* winApp, Vector4 color , int32_t backBuffe
 	CreateFinalRenderTargets();
 	CreateDepthBuffer();
 	CreateGameRenderTarget();
-	CreateGameDepthBuffer();
 	CreateFence();
 
 	initialized_ = true;
@@ -231,24 +230,28 @@ void DirectXCommon::CreateSwapChainRenderTargetViews() {
 }
 
 void DirectXCommon::CreateGameRenderTarget() {
-	// Gameウィンドウに表示するための描画先テクスチャを作る。
-	// SwapChainのバックバッファへ直接描くのではなく、このテクスチャへゲーム画面を描いてからImGui::Imageで表示する。
-	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	// まずはウィンドウのバックバッファサイズと同じ解像度で作る。
-	// Gameウィンドウ側ではImGui::Imageの表示サイズを変えて拡大縮小する。
-	resourceDesc.Width = gameRenderWidth_;
-	resourceDesc.Height = gameRenderHeight_;
-	resourceDesc.DepthOrArraySize = 1;
-	resourceDesc.MipLevels = 1;
-	resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resourceDesc.SampleDesc.Count = 1;
-	// RenderTargetとして使うため、ALLOW_RENDER_TARGETを付ける。
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	// Gameウィンドウに表示するための描画先テクスチャ(カラー+深度)をRenderTextureとして作る。
+	CreateRenderTexture(gameRenderTexture_, WinApp::kWindowWidth, WinApp::kWindowHeight, kGameRenderTargetRtvIndex, kGameRenderDsvIndex);
+}
+
+void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, int32_t height, uint32_t rtvIndex, uint32_t dsvIndex) {
+	target.width = width;
+	target.height = height;
 
 	D3D12_HEAP_PROPERTIES heapProperties{};
 	// GPUが描画するテクスチャなのでDEFAULTヒープに置く。
 	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	// --- カラー ---
+	D3D12_RESOURCE_DESC colorDesc{};
+	colorDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	colorDesc.Width = width;
+	colorDesc.Height = height;
+	colorDesc.DepthOrArraySize = 1;
+	colorDesc.MipLevels = 1;
+	colorDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	colorDesc.SampleDesc.Count = 1;
+	colorDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	D3D12_CLEAR_VALUE clearValue{};
 	// RTV/SRVはsRGBとして扱うため、ClearValueもsRGBフォーマットに合わせる。
@@ -261,74 +264,64 @@ void DirectXCommon::CreateGameRenderTarget() {
 	HRESULT hr = device_->CreateCommittedResource(
 	    &heapProperties,
 	    D3D12_HEAP_FLAG_NONE,
-	    &resourceDesc,
-	    // 作成直後はImGuiから読む側の状態にしておく。描画するときだけBeginGameRenderでRTVへ遷移する。
+	    &colorDesc,
+	    // 作成直後はImGuiから読む側の状態にしておく。描画するときだけBeginRenderTextureでRTVへ遷移する。
 	    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 	    &clearValue,
-	    IID_PPV_ARGS(&gameRenderResource_));
+	    IID_PPV_ARGS(&target.colorResource));
 	assert(SUCCEEDED(hr));
 
-	// RTVヒープの末尾をGameウィンドウ用に使う。SwapChain用RTVとは別のDescriptorになる。
-	gameRenderRtvHandle_ = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	gameRenderRtvHandle_.ptr += descriptorSizeRTV_ * kGameRenderTargetRtvIndex;
-
-	// 描き込み用のRTVを作る。BeginGameRender中はこのRTVをOMSetRenderTargetsへ渡す。
+	// RTV(指定スロット)。
+	target.rtvHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.rtvHandle.ptr += descriptorSizeRTV_ * rtvIndex;
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-	device_->CreateRenderTargetView(gameRenderResource_.Get(), &rtvDesc, gameRenderRtvHandle_);
+	device_->CreateRenderTargetView(target.colorResource.Get(), &rtvDesc, target.rtvHandle);
 
-	// ImGui::Imageから読むためにはSRVも必要になる。
-	// SRV番号はDirectXCommonで一元採番し、通常テクスチャやImGuiフォントとの衝突を避ける。
+	// SRV(ImGui::Imageで読む)。SRV番号はDirectXCommonで一元採番する。
 	uint32_t srvIndex = AllocateSrvIndex();
-	gameRenderSrvHandleCPU_ = srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	gameRenderSrvHandleCPU_.ptr += descriptorSizeSRV_ * srvIndex;
-	gameRenderSrvHandleGPU_ = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
-	gameRenderSrvHandleGPU_.ptr += descriptorSizeSRV_ * srvIndex;
-
-	// 読み込み用のSRVを作る。ImGuiへ渡すのはGPUハンドル側。
+	target.srvHandleCPU = srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.srvHandleCPU.ptr += descriptorSizeSRV_ * srvIndex;
+	target.srvHandleGPU = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
+	target.srvHandleGPU.ptr += descriptorSizeSRV_ * srvIndex;
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
-	device_->CreateShaderResourceView(gameRenderResource_.Get(), &srvDesc, gameRenderSrvHandleCPU_);
-}
+	device_->CreateShaderResourceView(target.colorResource.Get(), &srvDesc, target.srvHandleCPU);
 
-void DirectXCommon::CreateGameDepthBuffer() {
-	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Width = gameRenderWidth_;
-	resourceDesc.Height = gameRenderHeight_;
-	resourceDesc.MipLevels = 1;
-	resourceDesc.DepthOrArraySize = 1;
-	resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	resourceDesc.SampleDesc.Count = 1;
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+	// --- 深度 ---
+	D3D12_RESOURCE_DESC depthDesc{};
+	depthDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depthDesc.Width = width;
+	depthDesc.Height = height;
+	depthDesc.DepthOrArraySize = 1;
+	depthDesc.MipLevels = 1;
+	depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthDesc.SampleDesc.Count = 1;
+	depthDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 	D3D12_CLEAR_VALUE depthClearValue{};
 	depthClearValue.DepthStencil.Depth = 1.0f;
 	depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-	HRESULT hr = device_->CreateCommittedResource(
+	hr = device_->CreateCommittedResource(
 	    &heapProperties,
 	    D3D12_HEAP_FLAG_NONE,
-	    &resourceDesc,
+	    &depthDesc,
 	    D3D12_RESOURCE_STATE_DEPTH_WRITE,
 	    &depthClearValue,
-	    IID_PPV_ARGS(&gameDepthStencilResource_));
+	    IID_PPV_ARGS(&target.depthResource));
 	assert(SUCCEEDED(hr));
 
-	gameRenderDsvHandle_ = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	gameRenderDsvHandle_.ptr += descriptorSizeDSV_ * kGameRenderDsvIndex;
-
+	target.dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.dsvHandle.ptr += descriptorSizeDSV_ * dsvIndex;
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	device_->CreateDepthStencilView(gameDepthStencilResource_.Get(), &dsvDesc, gameRenderDsvHandle_);
+	device_->CreateDepthStencilView(target.depthResource.Get(), &dsvDesc, target.dsvHandle);
 }
 
 ID3D12Resource* DirectXCommon::CreateBufferResource(size_t sizeInBytes) {
@@ -538,49 +531,52 @@ void DirectXCommon::SetBackBufferRenderTarget() {
 	commandList_->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 }
 
-void DirectXCommon::BeginGameRender() {
-	// Game用RenderTargetは通常ImGuiから読まれる状態にしている。
-	// ここからゲーム描画を書き込むため、RENDER_TARGET状態へ遷移する。
+void DirectXCommon::BeginGameRender() { BeginRenderTexture(gameRenderTexture_); }
+
+void DirectXCommon::EndGameRender() { EndRenderTexture(gameRenderTexture_); }
+
+void DirectXCommon::BeginRenderTexture(RenderTexture& target) {
+	// RenderTextureは通常ImGuiから読まれる状態にしている。
+	// ここから描画を書き込むため、RENDER_TARGET状態へ遷移する。
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = gameRenderResource_.Get();
+	barrier.Transition.pResource = target.colorResource.Get();
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	commandList_->ResourceBarrier(1, &barrier);
 
-	// 以降のDraw呼び出しがGame用RenderTargetへ描かれるように、描画先を差し替える。
-	commandList_->OMSetRenderTargets(1, &gameRenderRtvHandle_, false, &gameRenderDsvHandle_);
-	// 毎フレーム、Gameウィンドウ用の色と深度を初期化する。
-	commandList_->ClearRenderTargetView(gameRenderRtvHandle_, clearColor_, 0, nullptr);
-	commandList_->ClearDepthStencilView(gameRenderDsvHandle_, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	// 以降のDraw呼び出しがこのRenderTextureへ描かれるように、描画先を差し替える。
+	commandList_->OMSetRenderTargets(1, &target.rtvHandle, false, &target.dsvHandle);
+	// 毎フレーム、色と深度を初期化する。
+	commandList_->ClearRenderTargetView(target.rtvHandle, clearColor_, 0, nullptr);
+	commandList_->ClearDepthStencilView(target.dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	// Game用RenderTargetは固定解像度で描く。Gameウィンドウ側でアスペクト比を保って拡大縮小する。
+	// Viewport/ScissorをRenderTexture全体に合わせる。ここが小さいと描画が途中で切れる。
 	D3D12_VIEWPORT viewport{};
-	viewport.Width = static_cast<float>(gameRenderWidth_);
-	viewport.Height = static_cast<float>(gameRenderHeight_);
+	viewport.Width = static_cast<float>(target.width);
+	viewport.Height = static_cast<float>(target.height);
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	commandList_->RSSetViewports(1, &viewport);
 
-	// ScissorもRenderTarget全体に合わせる。ここが小さいと描画が途中で切れる。
 	D3D12_RECT scissorRect{};
 	scissorRect.left = 0;
 	scissorRect.top = 0;
-	scissorRect.right = gameRenderWidth_;
-	scissorRect.bottom = gameRenderHeight_;
+	scissorRect.right = target.width;
+	scissorRect.bottom = target.height;
 	commandList_->RSSetScissorRects(1, &scissorRect);
 }
 
-void DirectXCommon::EndGameRender() {
-	// Game用RenderTargetへの描画が終わったので、ImGui::Imageから読める状態へ戻す。
+void DirectXCommon::EndRenderTexture(RenderTexture& target) {
+	// 描画が終わったので、ImGui::Imageから読める状態へ戻す。
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = gameRenderResource_.Get();
+	barrier.Transition.pResource = target.colorResource.Get();
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
