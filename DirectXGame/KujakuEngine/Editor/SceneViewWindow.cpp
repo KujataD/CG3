@@ -5,6 +5,7 @@
 #include "../3d/WorldTransform.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
+#include "../runtime/PlayState.h"
 #include "../math/MathUtil.h"
 #include "../math/Vector2.h"
 #include "../scene/GameObject.h"
@@ -248,6 +249,11 @@ void SceneViewWindow::HandleGameWindowObjectSelection(const ImVec2& imagePositio
 void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 #ifdef USE_IMGUI
 	ImGui::Begin("Scene");
+
+	// Sceneビューがフォーカスされている間だけデバッグカメラを操作できるようにする(プレイ中も含む)。
+	// これによりGameビュー(メインカメラ)やゲーム入力と操作が競合しない。
+	SetSceneViewFocused(ImGui::IsWindowFocused());
+
 	DrawGizmoToolbar(projectRoot);
 	ImGui::Separator();
 

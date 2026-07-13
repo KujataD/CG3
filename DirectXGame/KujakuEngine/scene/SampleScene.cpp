@@ -223,8 +223,9 @@ void SampleScene::PrepareFrame() {
 	// 毎フレーム1回: service Object確保・デバッグカメラ入力反映・両カメラ同期・ライト・ワールド行列。
 	EnsureSceneServiceObjects();
 
-	// デバッグカメラ操作は編集中のみ(プレイ中の操作ルーティングはPhase5)。
-	if (!IsGamePlaying() && editorDebugCameraComponent_) {
+	// デバッグカメラ操作。UpdateEditorCamera内でSceneビューのフォーカスを見て制御する
+	// (フォーカス中のみ動く=プレイ中でもSceneを覗きながら見回せる)。
+	if (editorDebugCameraComponent_) {
 		editorDebugCameraComponent_->UpdateEditorCamera();
 	}
 

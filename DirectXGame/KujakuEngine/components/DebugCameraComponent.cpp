@@ -34,12 +34,14 @@ void DebugCameraComponent::DrawInspector() {
 		InspectorUI::TextDisabled("Add CameraComponent to this GameObject.");
 	}
 
-	InspectorUI::TextDisabled("Active only in Edit mode.");
+	InspectorUI::TextDisabled("Active while the Scene view is focused.");
 #endif // USE_IMGUI
 }
 
 void DebugCameraComponent::UpdateEditorCamera() {
-	if (IsGamePlaying()) {
+	// Sceneビューにフォーカスがある時だけ操作する(プレイ中でもSceneを覗きながら見回せる)。
+	// フォーカスが無い時(Gameビュー操作中など)は動かさず、ゲーム入力と競合させない。
+	if (!IsSceneViewFocused()) {
 		return;
 	}
 

@@ -12,4 +12,11 @@ KUJAKU_API bool IsGamePlaying();
 // Play/Edit状態を設定する(Editor側が呼ぶ)。
 KUJAKU_API void SetGamePlaying(bool playing);
 
+// Sceneビュー(ウィンドウ)がフォーカスされているか。Editorが毎フレーム設定する。
+// これがtrueの時だけデバッグカメラをキーボード/マウスで操作する(プレイ中も含む)。
+KUJAKU_API bool IsSceneViewFocused();
+
+// Sceneビューのフォーカス状態を設定する(Editor側が呼ぶ)。
+KUJAKU_API void SetSceneViewFocused(bool focused);
+
 } // namespace KujakuEngine
