@@ -305,6 +305,12 @@ void EditorApplication::Update() {
 	if (ShouldUpdateGame() && currentScene_) {
 		currentScene_->Update();
 	}
+
+	// 編集中は毎フレーム、Editor用ビルボード(アイコン)を準備する。ランタイム生成された
+	// service Camera等のアイコンも確実に用意する。描画パス外なのでテクスチャ生成が安全。
+	if (!ShouldUpdateGame() && currentScene_) {
+		currentScene_->RefreshEditorBillboards();
+	}
 }
 
 void EditorApplication::Draw() {

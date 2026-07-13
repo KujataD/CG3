@@ -388,13 +388,27 @@ void DrawColliderDebugLines(Scene& scene) {
 }
 
 // カメラの視錘台(フラスタム)をワイヤーフレームで描く。Unityのカメラ選択時のギズモ相当。
-// near/far平面の矩形を四隅で結ぶ。cornersはカメラローカル(+Z前方)で作りworldMatrixでワールドへ。
+// 実far(既定1000)は大きすぎるので、向きが分かる固定サイズ(おおよそ5x5x5に収まる)で描く。
+// 断面の縦横比は画面(ウィンドウ)の縦横比に沿わせる。cornersはカメラローカル(+Z前方)で作り
+// worldMatrixでワールドへ変換する。
 void DrawCameraFrustum(const Camera& camera, const Matrix4x4& worldMatrix, const Vector4& color) {
 	const float tanHalfFovY = std::tan(camera.fovAngleY * 0.5f);
+	const float screenAspect = static_cast<float>(WinApp::kWindowWidth) / static_cast<float>(WinApp::kWindowHeight);
+
+	// far側の奥行きを固定し、半幅/半高/奥行きのどれかが2.5(=5の半分)を超えたら等倍で縮める。
+	const float kHalfBox = 2.5f;
+	float farDistance = 2.5f;
+	const float farHalfHeight = tanHalfFovY * farDistance;
+	const float farHalfWidth = farHalfHeight * screenAspect;
+	const float maxExtent = (std::max)(farDistance, (std::max)(farHalfWidth, farHalfHeight));
+	if (maxExtent > kHalfBox) {
+		farDistance *= kHalfBox / maxExtent;
+	}
+	const float nearDistance = farDistance * 0.1f; // near平面は小さく(四角錐に近い見た目)
 
 	auto MakePlaneCorners = [&](float distance, Vector3 outCorners[4]) {
 		const float halfHeight = tanHalfFovY * distance;
-		const float halfWidth = halfHeight * camera.aspectRatio;
+		const float halfWidth = halfHeight * screenAspect;
 		const Vector3 localCorners[4] = {
 		    {-halfWidth, -halfHeight, distance},
 		    {halfWidth, -halfHeight, distance},
@@ -408,8 +422,8 @@ void DrawCameraFrustum(const Camera& camera, const Matrix4x4& worldMatrix, const
 
 	Vector3 nearCorners[4];
 	Vector3 farCorners[4];
-	MakePlaneCorners(camera.nearZ, nearCorners);
-	MakePlaneCorners(camera.farZ, farCorners);
+	MakePlaneCorners(nearDistance, nearCorners);
+	MakePlaneCorners(farDistance, farCorners);
 
 	for (int i = 0; i < 4; ++i) {
 		const int next = (i + 1) % 4;
@@ -668,6 +682,8 @@ void Scene::Update() {
 	UpdateWorldTransforms();
 	UpdateCollisions();
 }
+
+void Scene::RefreshEditorBillboards() { PrepareEditorBillboards(*this); }
 
 void Scene::Draw() {
 	UpdateWorldTransforms();
