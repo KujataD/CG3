@@ -66,6 +66,12 @@ public:
 	void EndGameRender();
 
 	/// <summary>
+	/// Sceneウィンドウ用RenderTexture(デバッグカメラ描画)への描画開始/終了。
+	/// </summary>
+	void BeginSceneRender() { BeginRenderTexture(sceneRenderTexture_); }
+	void EndSceneRender() { EndRenderTexture(sceneRenderTexture_); }
+
+	/// <summary>
 	/// 指定サイズのRenderTexture(カラー+深度+RTV/DSV/SRV)を作成する。
 	/// rtvIndex/dsvIndexはそれぞれのヒープ内で使うスロット番号。
 	/// </summary>
@@ -121,6 +127,11 @@ public:
 	// ImGui::Imageへ渡すGame用RenderTargetのGPU側SRVハンドル。
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGameRenderSrvHandle() const { return gameRenderTexture_.srvHandleGPU; }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetGameRenderDsvHandle() const { return gameRenderTexture_.dsvHandle; }
+
+	// ImGui::Imageへ渡すScene用RenderTextureのGPU側SRVハンドル。
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSceneRenderSrvHandle() const { return sceneRenderTexture_.srvHandleGPU; }
+	int32_t GetSceneRenderWidth() const { return sceneRenderTexture_.width; }
+	int32_t GetSceneRenderHeight() const { return sceneRenderTexture_.height; }
 
 	uint32_t GetDescriptorSizeRTV() const { return descriptorSizeRTV_; }
 	uint32_t GetDescriptorSizeSRV() const { return descriptorSizeSRV_; }
@@ -190,6 +201,9 @@ private:
 	static const uint32_t kSwapChainBufferCount = 3;
 	static const uint32_t kGameRenderTargetRtvIndex = kSwapChainBufferCount;
 	static const uint32_t kGameRenderDsvIndex = 1;
+	// Sceneビュー用RenderTexture(デバッグカメラ描画)のRTV/DSVスロット。
+	static const uint32_t kSceneRenderTargetRtvIndex = kGameRenderTargetRtvIndex + 1;
+	static const uint32_t kSceneRenderDsvIndex = kGameRenderDsvIndex + 1;
 	static const uint32_t kRtvDescriptorCount = 256;
 	// 通常テクスチャ+Project Windowのプレビュー+ImGuiフォントが同じヒープを共有するため、
 	// フォルダ数やアセット数が増えても余裕を持たせておく。
@@ -210,8 +224,10 @@ private:
 	// リソース関連
 	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[kSwapChainBufferCount];
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource_;
-	// Gameウィンドウへ表示するための描画先(カラー+深度+View一式)。
+	// Gameウィンドウへ表示するための描画先(メインカメラ・固定解像度)。
 	RenderTexture gameRenderTexture_;
+	// Sceneウィンドウへ表示するための描画先(デバッグカメラ・表示サイズ追従)。
+	RenderTexture sceneRenderTexture_;
 
 	// ディスクリプタヒープ
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap_;
@@ -237,8 +253,8 @@ private:
 
 	// テクスチャのインデックス管理カウンター
 	uint32_t srvIndexCounter_ = 1;
-	uint32_t rtvIndexCounter_ = kGameRenderTargetRtvIndex + 1;
-	uint32_t dsvIndexCounter_ = kGameRenderDsvIndex + 1;
+	uint32_t rtvIndexCounter_ = kSceneRenderTargetRtvIndex + 1;
+	uint32_t dsvIndexCounter_ = kSceneRenderDsvIndex + 1;
 };
 
 } // namespace KujakuEngine
