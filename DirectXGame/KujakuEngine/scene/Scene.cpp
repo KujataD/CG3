@@ -700,6 +700,26 @@ void Scene::Draw() {
 	DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
 }
 
+void Scene::PrepareFrame() { UpdateWorldTransforms(); }
+
+void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
+	(void)camera; // モデルのカメラは派生側でApplyRenderCameraToModelRenderers済みの想定。
+
+	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
+		if (gameObject && gameObject->IsRoot()) {
+			gameObject->DrawHierarchy();
+		}
+	}
+
+	// 編集用オーバーレイはSceneビューのみ(呼び出し側のdrawEditorOverlaysで制御)。
+	if (drawEditorOverlays) {
+		DrawEditorBillboards(*this);
+		DrawColliderDebugLines(*this);
+		DrawCameraDebugLines(*this);
+		DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
+	}
+}
+
 void Scene::Finalize() {
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
 		if (gameObject) {

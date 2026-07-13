@@ -218,6 +218,48 @@ void SampleScene::ApplyRenderCameraToModelRenderers(const Camera* camera) {
 	}
 }
 
+void SampleScene::PrepareFrame() {
+	// 毎フレーム1回: service Object確保・デバッグカメラ入力反映・両カメラ同期・ライト・ワールド行列。
+	EnsureSceneServiceObjects();
+
+	// デバッグカメラ操作は編集中のみ(プレイ中の操作ルーティングはPhase5)。
+	if (!IsGamePlaying() && editorDebugCameraComponent_) {
+		editorDebugCameraComponent_->UpdateEditorCamera();
+	}
+
+	// Scene/Game両ビューが使うので両カメラの行列を更新しておく。
+	if (editorCameraComponent_) {
+		editorCameraComponent_->SyncFromOwnerTransform();
+	}
+	if (gameCameraComponent_) {
+		gameCameraComponent_->SyncFromOwnerTransform();
+	}
+
+	ApplySceneLights();
+	UpdateWorldTransforms();
+}
+
+void SampleScene::RenderView(Camera* camera, bool drawEditorOverlays) {
+	if (!camera) {
+		return;
+	}
+	// このビューのカメラを各ModelRendererへ設定し、モデル用パイプラインで描く。
+	ApplyRenderCameraToModelRenderers(camera);
+	Model::PreDraw();
+	Scene::RenderView(camera, drawEditorOverlays);
+	Model::PostDraw();
+}
+
+Camera* SampleScene::GetSceneViewCamera() {
+	EnsureSceneServiceObjects();
+	return editorCameraComponent_ ? &editorCameraComponent_->GetCamera() : nullptr;
+}
+
+Camera* SampleScene::GetGameViewCamera() {
+	EnsureSceneServiceObjects();
+	return gameCameraComponent_ ? &gameCameraComponent_->GetCamera() : nullptr;
+}
+
 GameObject* SampleScene::CreateEditorCube() {
 	GameObject* cube = CreateGameObject("Cube");
 	if (!cube) {
