@@ -138,6 +138,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\Editor\ProjectAssetClassifier.cpp" />
     <ClCompile Include="KujakuEngine\Editor\ProjectWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\SceneJsonExporter.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\GameViewWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\SceneViewWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\SceneJsonImporter.cpp" />
     <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp" />
@@ -232,6 +233,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\Editor\ProjectAssetClassifier.h" />
     <ClInclude Include="KujakuEngine\Editor\ProjectWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\SceneJsonExporter.h" />
+    <ClInclude Include="KujakuEngine\Editor\GameViewWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\SceneViewWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\SceneJsonImporter.h" />
     <ClInclude Include="externals\ImGuizmo-1.9\src\ImGuizmo.h" />

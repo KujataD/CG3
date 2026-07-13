@@ -156,6 +156,7 @@ void ImGuiManager::DrawEditor() {
 	HandleEditorShortcuts();
 	dockSpace_.Draw();
 	sceneView_.Draw(projectWindow_.GetProjectRoot());
+	gameView_.Draw();
 	hierarchyWindow_.Draw();
 	inspectorWindow_.Draw(projectWindow_);
 	// ProjectはDockBuilderでHierarchyとInspectorの間に初期配置される。
