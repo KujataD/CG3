@@ -319,26 +319,60 @@ void EditorApplication::Draw() {
 	dxCommon->PreDraw();
 
 #ifdef USE_IMGUI
-	// Gameウィンドウ用RenderTargetへゲーム描画を流す。
-	dxCommon->BeginGameRender();
-#endif // USE_IMGUI
-
+	// エディタ(ImGui)有効時: Scene/Gameを別々のオフスクリーンRTへ描き、ImGuiのImageで表示する。
 	if (currentScene_) {
-		currentScene_->Draw();
-		Camera* renderCamera = currentScene_->GetEditorCamera();
-		if (renderCamera) {
-			LineRenderer::GetInstance()->Render(*renderCamera);
+		Camera* gameCamera = currentScene_->GetGameViewCamera();
+		if (gameCamera) {
+			// --- 2画面: 準備は1回、Scene(デバッグカメラ+オーバーレイ)とGame(メインカメラ)を別RTへ ---
+			currentScene_->PrepareFrame();
+			Camera* sceneCamera = currentScene_->GetSceneViewCamera();
+
+			// Sceneビュー(デバッグカメラ + 編集オーバーレイ)。
+			dxCommon->BeginSceneRender();
+			currentScene_->RenderView(sceneCamera, true);
+			if (sceneCamera) {
+				LineRenderer::GetInstance()->Render(*sceneCamera);
+			} else {
+				LineRenderer::GetInstance()->Clear();
+			}
+			dxCommon->EndSceneRender();
+
+			// Gameビュー(メインカメラ・オーバーレイ無し)。
+			dxCommon->BeginGameRender();
+			currentScene_->RenderView(gameCamera, false);
+			dxCommon->EndGameRender();
+		} else {
+			// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
+			dxCommon->BeginSceneRender();
+			currentScene_->Draw();
+			Camera* renderCamera = currentScene_->GetEditorCamera();
+			if (renderCamera) {
+				LineRenderer::GetInstance()->Render(*renderCamera);
+			} else {
+				LineRenderer::GetInstance()->Clear();
+			}
+			dxCommon->EndSceneRender();
+		}
+	} else {
+		LineRenderer::GetInstance()->Clear();
+	}
+#else
+	// エディタUI無し(ゲーム単体): メインカメラでバックバッファへ直接描く。
+	if (currentScene_) {
+		currentScene_->PrepareFrame();
+		Camera* camera = currentScene_->GetGameViewCamera();
+		if (!camera) {
+			camera = currentScene_->GetSceneViewCamera();
+		}
+		if (camera) {
+			currentScene_->RenderView(camera, false);
+			LineRenderer::GetInstance()->Render(*camera);
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}
-	}
-	else {
+	} else {
 		LineRenderer::GetInstance()->Clear();
 	}
-
-#ifdef USE_IMGUI
-	// Gameウィンドウ用RenderTargetをImGuiから読める状態に戻す。
-	dxCommon->EndGameRender();
 #endif // USE_IMGUI
 }
 

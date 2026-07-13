@@ -71,7 +71,8 @@ void SampleScene::Draw() {
 }
 
 Camera* SampleScene::GetEditorCamera() {
-	return GetCurrentViewCamera();
+	// Sceneビュー(ギズモ/選択RayCast/ビルボード)は常にデバッグカメラ基準。
+	return GetSceneViewCamera();
 }
 
 void SampleScene::UpdateSceneView() {

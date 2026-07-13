@@ -353,10 +353,7 @@ void DrawSphere(const Sphere& sphere, const Vector4& color) {
 }
 
 void DrawColliderDebugLines(Scene& scene) {
-	if (IsGamePlaying()) {
-		return;
-	}
-
+	// 出し分けは呼び出し側(RenderViewのdrawEditorOverlays)が担当する。Sceneビューはプレイ中も表示。
 	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
 	if (!selectedObject || !selectedObject->IsActiveInHierarchy()) {
 		return;
@@ -435,10 +432,7 @@ void DrawCameraFrustum(const Camera& camera, const Matrix4x4& worldMatrix, const
 
 // 選択中のGameObjectがCameraComponentを持つ場合、そのフラスタムを描く。
 void DrawCameraDebugLines(Scene& scene) {
-	if (IsGamePlaying()) {
-		return;
-	}
-
+	// 出し分けは呼び出し側(RenderViewのdrawEditorOverlays)が担当する。
 	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
 	if (!selectedObject || !selectedObject->IsActiveInHierarchy()) {
 		return;
@@ -587,10 +581,7 @@ void PrepareEditorBillboards(Scene& scene) {
 }
 
 void DrawEditorBillboards(Scene& scene) {
-	if (IsGamePlaying()) {
-		return;
-	}
-
+	// 出し分けは呼び出し側(RenderViewのdrawEditorOverlays)が担当する。
 	Camera* camera = scene.GetEditorCamera();
 	if (!camera) {
 		return;
