@@ -16,6 +16,10 @@ struct EngineContext {
 	bool gamePlaying = false;
 	// Sceneビュー(ウィンドウ)がフォーカスされているか。デバッグカメラ操作の入力ルーティングに使う。
 	bool sceneViewFocused = false;
+	// Scene/Gameビューが表示されているか(タブ非アクティブ/折り畳み時はfalse)。
+	// 非表示のビューは描画パスをスキップして負荷を抑える。既定はtrue(初回フレーム/非Editor時に描く)。
+	bool sceneViewVisible = true;
+	bool gameViewVisible = true;
 	// アセットID↔パスの解決(未設定時は各アクセサがフォールバックを使う)。
 	IAssetResolver* assetResolver = nullptr;
 	// Editorの選択状態の問い合わせ。
