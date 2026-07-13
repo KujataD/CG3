@@ -33,6 +33,12 @@ public:
 
 	KUJAKU_API Camera* GetEditorCamera() override;
 
+	// --- Scene/Game 2画面描画 ---
+	KUJAKU_API void PrepareFrame() override;
+	KUJAKU_API void RenderView(Camera* camera, bool drawEditorOverlays) override;
+	KUJAKU_API Camera* GetSceneViewCamera() override;
+	KUJAKU_API Camera* GetGameViewCamera() override;
+
 	/// <summary>
 	/// EditorのHierarchyからCubeを作成する
 	/// </summary>

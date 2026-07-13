@@ -39,6 +39,27 @@ public:
 
 	virtual Camera* GetEditorCamera() { return nullptr; }
 
+	// --- Scene/Game 2画面描画用API ---
+	/// <summary>
+	/// 毎フレーム1回の準備(入力反映・カメラ同期・ライト・ワールド行列など)。ビュー描画の前に呼ぶ。
+	/// </summary>
+	KUJAKU_API virtual void PrepareFrame();
+
+	/// <summary>
+	/// 1ビューぶんの描画。cameraでモデルを描き、drawEditorOverlaysでグリッド/アイコン/フラスタム等を足す。
+	/// </summary>
+	KUJAKU_API virtual void RenderView(Camera* camera, bool drawEditorOverlays);
+
+	/// <summary>
+	/// Sceneビュー(デバッグカメラ)のカメラ。既定はGetEditorCamera。
+	/// </summary>
+	virtual Camera* GetSceneViewCamera() { return GetEditorCamera(); }
+
+	/// <summary>
+	/// Gameビュー(メインカメラ)のカメラ。2画面対応シーンのみ非nullを返す。
+	/// </summary>
+	virtual Camera* GetGameViewCamera() { return nullptr; }
+
 	/// <summary>
 	/// Editor用ビルボード(アイコン)のModel/Transformを準備する。描画パス外から呼ぶこと。
 	/// ランタイム生成されたComponentのアイコンも確実に表示させるため冪等に何度でも呼べる。
