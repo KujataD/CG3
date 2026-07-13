@@ -261,14 +261,14 @@ void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 		contentSize.y = 1.0f;
 	}
 
-	// DirectXCommonが作ったGame用RenderTargetのSRVをImGuiへ渡す。
-	// 描画本体はEditorApplicationでBeginGameRenderからEndGameRenderの間に行われる。
+	// DirectXCommonが作ったScene用RenderTexture(デバッグカメラ描画)のSRVをImGuiへ渡す。
+	// 描画本体はEditorApplicationでBeginSceneRenderからEndSceneRenderの間に行われる。
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = dxCommon->GetGameRenderSrvHandle();
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = dxCommon->GetSceneRenderSrvHandle();
 
 	float gameAspect = 16.0f / 9.0f;
-	if (dxCommon->GetGameRenderHeight() > 0) {
-		gameAspect = static_cast<float>(dxCommon->GetGameRenderWidth()) / static_cast<float>(dxCommon->GetGameRenderHeight());
+	if (dxCommon->GetSceneRenderHeight() > 0) {
+		gameAspect = static_cast<float>(dxCommon->GetSceneRenderWidth()) / static_cast<float>(dxCommon->GetSceneRenderHeight());
 	}
 
 	ImVec2 imageSize = contentSize;
