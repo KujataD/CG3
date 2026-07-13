@@ -240,15 +240,33 @@ void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, in
 	target.width = width;
 	target.height = height;
 
+	// ディスクリプタハンドルを確保する(RTV/DSVは指定スロット、SRVは一元採番)。
+	// リサイズ時はこれらのハンドルを使い回してリソースとViewだけ作り直す。
+	target.rtvHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.rtvHandle.ptr += descriptorSizeRTV_ * rtvIndex;
+	target.dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.dsvHandle.ptr += descriptorSizeDSV_ * dsvIndex;
+
+	uint32_t srvIndex = AllocateSrvIndex();
+	target.srvHandleCPU = srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.srvHandleCPU.ptr += descriptorSizeSRV_ * srvIndex;
+	target.srvHandleGPU = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
+	target.srvHandleGPU.ptr += descriptorSizeSRV_ * srvIndex;
+
+	RecreateRenderTextureResources(target);
+}
+
+void DirectXCommon::RecreateRenderTextureResources(RenderTexture& target) {
+	// target.width/height と確保済みハンドルを使い、カラー/深度リソースとViewを(再)生成する。
+	// 既存リソースはComPtr再代入で解放される(呼び出し側でGPU完了を待っていること)。
 	D3D12_HEAP_PROPERTIES heapProperties{};
-	// GPUが描画するテクスチャなのでDEFAULTヒープに置く。
 	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 
 	// --- カラー ---
 	D3D12_RESOURCE_DESC colorDesc{};
 	colorDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	colorDesc.Width = width;
-	colorDesc.Height = height;
+	colorDesc.Width = target.width;
+	colorDesc.Height = target.height;
 	colorDesc.DepthOrArraySize = 1;
 	colorDesc.MipLevels = 1;
 	colorDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -256,37 +274,27 @@ void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, in
 	colorDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	D3D12_CLEAR_VALUE clearValue{};
-	// RTV/SRVはsRGBとして扱うため、ClearValueもsRGBフォーマットに合わせる。
 	clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	clearValue.Color[0] = clearColor_[0];
 	clearValue.Color[1] = clearColor_[1];
 	clearValue.Color[2] = clearColor_[2];
 	clearValue.Color[3] = clearColor_[3];
 
+	target.colorResource.Reset();
 	HRESULT hr = device_->CreateCommittedResource(
 	    &heapProperties,
 	    D3D12_HEAP_FLAG_NONE,
 	    &colorDesc,
-	    // 作成直後はImGuiから読む側の状態にしておく。描画するときだけBeginRenderTextureでRTVへ遷移する。
 	    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 	    &clearValue,
 	    IID_PPV_ARGS(&target.colorResource));
 	assert(SUCCEEDED(hr));
 
-	// RTV(指定スロット)。
-	target.rtvHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	target.rtvHandle.ptr += descriptorSizeRTV_ * rtvIndex;
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	device_->CreateRenderTargetView(target.colorResource.Get(), &rtvDesc, target.rtvHandle);
 
-	// SRV(ImGui::Imageで読む)。SRV番号はDirectXCommonで一元採番する。
-	uint32_t srvIndex = AllocateSrvIndex();
-	target.srvHandleCPU = srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	target.srvHandleCPU.ptr += descriptorSizeSRV_ * srvIndex;
-	target.srvHandleGPU = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
-	target.srvHandleGPU.ptr += descriptorSizeSRV_ * srvIndex;
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -297,8 +305,8 @@ void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, in
 	// --- 深度 ---
 	D3D12_RESOURCE_DESC depthDesc{};
 	depthDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthDesc.Width = width;
-	depthDesc.Height = height;
+	depthDesc.Width = target.width;
+	depthDesc.Height = target.height;
 	depthDesc.DepthOrArraySize = 1;
 	depthDesc.MipLevels = 1;
 	depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -309,6 +317,7 @@ void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, in
 	depthClearValue.DepthStencil.Depth = 1.0f;
 	depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
+	target.depthResource.Reset();
 	hr = device_->CreateCommittedResource(
 	    &heapProperties,
 	    D3D12_HEAP_FLAG_NONE,
@@ -318,12 +327,25 @@ void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, in
 	    IID_PPV_ARGS(&target.depthResource));
 	assert(SUCCEEDED(hr));
 
-	target.dsvHandle = dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
-	target.dsvHandle.ptr += descriptorSizeDSV_ * dsvIndex;
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	device_->CreateDepthStencilView(target.depthResource.Get(), &dsvDesc, target.dsvHandle);
+}
+
+void DirectXCommon::ResizeSceneRenderTarget(int32_t width, int32_t height) {
+	if (width <= 0 || height <= 0) {
+		return;
+	}
+	if (sceneRenderTexture_.width == width && sceneRenderTexture_.height == height) {
+		return;
+	}
+	// 旧リソースがGPUで使用中の可能性があるため、解放・再生成の前にGPU完了を待つ。
+	// 描画パスの外(SceneViewWindow::Draw=Update中)から呼ぶこと。
+	WaitForGpu();
+	sceneRenderTexture_.width = width;
+	sceneRenderTexture_.height = height;
+	RecreateRenderTextureResources(sceneRenderTexture_);
 }
 
 ID3D12Resource* DirectXCommon::CreateBufferResource(size_t sizeInBytes) {

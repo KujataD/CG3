@@ -97,6 +97,13 @@ public:
 	/// </summary>
 	void EndRenderTexture(RenderTexture& target);
 
+	/// <summary>
+	/// Scene用RenderTextureを指定サイズへリサイズする(サイズ変化時のみ、GPU完了を待って作り直す)。
+	/// SRV等のディスクリプタスロットは維持するのでImGui::Imageのハンドルは変わらない。
+	/// 描画パスの外(Update中)から呼ぶこと。
+	/// </summary>
+	void ResizeSceneRenderTarget(int32_t width, int32_t height);
+
 	void PostDraw();
 
 	void ClearRenderTarget();
@@ -200,6 +207,8 @@ private:
 
 	// Gameウィンドウに表示するためのOffscreen RenderTargetを作成する。
 	void CreateGameRenderTarget();
+	// RenderTextureのカラー/深度リソースとViewを(再)生成する(width/heightと確保済みハンドルを使う)。
+	void RecreateRenderTextureResources(RenderTexture& target);
 	void CreateFence();
 
 	void WaitForGpu();
