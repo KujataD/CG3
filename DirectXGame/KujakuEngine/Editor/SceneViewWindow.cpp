@@ -277,16 +277,12 @@ void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
-	// Scene RTを表示領域サイズへ追従させる(縦横比は問わずウィンドウを埋める)。
-	// 描画パスの外(Update中)なのでここでリサイズしてよい。歪み防止にデバッグカメラのaspectも合わせる。
+	// Scene RTの解像度を表示領域サイズへ追従させる(大きく表示しても粗くならない)。描画パスの外(Update中)なので安全。
+	// カメラのaspectRatioはあえて変えない=遠近感(FOV)はウィンドウ形状に依らず一定に保つ。
+	// 縦横比は問わないので、RTがウィンドウ比と違う場合は描画がそのままウィンドウを埋める(多少の伸縮は許容)。
 	int sceneWidth = std::clamp(static_cast<int>(contentSize.x), 16, 4096);
 	int sceneHeight = std::clamp(static_cast<int>(contentSize.y), 16, 4096);
 	dxCommon->ResizeSceneRenderTarget(sceneWidth, sceneHeight);
-	if (Scene* scene = EditorApplication::GetInstance()->GetCurrentScene()) {
-		if (Camera* editorCamera = scene->GetEditorCamera()) {
-			editorCamera->aspectRatio = static_cast<float>(sceneWidth) / static_cast<float>(sceneHeight);
-		}
-	}
 
 	// DirectXCommonが作ったScene用RenderTexture(デバッグカメラ描画)のSRVをImGuiへ渡す。
 	// 描画本体はEditorApplicationでBeginSceneRenderからEndSceneRenderの間に行われる。
