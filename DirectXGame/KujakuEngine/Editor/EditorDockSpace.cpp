@@ -112,6 +112,8 @@ void EditorDockSpace::SetupInitialLayout(unsigned int dockspaceId) {
 	ImGui::DockBuilderDockWindow("Project", projectNode);
 	ImGui::DockBuilderDockWindow("Hierarchy", hierarchyNode);
 	ImGui::DockBuilderDockWindow("Console", consoleNode);
+	// SceneとGameは中央ノードにタブとして重ねる(Unity同様)。ユーザーがドラッグで分割可能。
+	ImGui::DockBuilderDockWindow("Scene", gameNode);
 	ImGui::DockBuilderDockWindow("Game", gameNode);
 	ImGui::DockBuilderFinish(dockspaceId);
 

@@ -189,6 +189,9 @@
     <ClCompile Include="KujakuEngine\Editor\MaterialInspector.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\GameViewWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\SceneViewWindow.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
@@ -519,6 +522,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\MaterialInspector.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\GameViewWindow.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\SceneViewWindow.h">

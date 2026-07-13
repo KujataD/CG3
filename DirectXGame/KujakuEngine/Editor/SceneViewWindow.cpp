@@ -247,7 +247,7 @@ void SceneViewWindow::HandleGameWindowObjectSelection(const ImVec2& imagePositio
 
 void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 #ifdef USE_IMGUI
-	ImGui::Begin("Game");
+	ImGui::Begin("Scene");
 	DrawGizmoToolbar(projectRoot);
 	ImGui::Separator();
 

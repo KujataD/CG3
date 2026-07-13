@@ -3,6 +3,7 @@
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
 #include "EditorDockSpace.h"
+#include "GameViewWindow.h"
 #include "HierarchyWindow.h"
 #include "InspectorWindow.h"
 #include "ProjectWindow.h"
@@ -52,6 +53,7 @@ private:
 	InspectorWindow inspectorWindow_;
 	ProjectWindow projectWindow_;
 	SceneViewWindow sceneView_;
+	GameViewWindow gameView_;
 };
 
 } // namespace KujakuEngine
