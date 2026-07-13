@@ -7,12 +7,17 @@ namespace KujakuEngine {
 
 /// <summary>
 /// 剛体反発(押し出し+速度反射)のためのRigidbody。形状を持つColliderとは分離する。
-/// 重力・摩擦・力は扱わない。速度はゲームコードがSetVelocityで与えるか、反射で変化する(自然落下しない)。
+/// 速度はゲームコードがSetVelocityで与えるか、重力・反射で変化する。摩擦・力(AddForce)は未対応。
+///
+/// gravityScale: 重力の影響度(Unity Rigidbody2D準拠)。適用される重力 = グローバル重力(0,-9.81,0)×gravityScale。
+///   1=通常、0=無重力、負値=反重力。キネマティック(Is Static)には適用されない。
+/// Freeze Position X/Y/Z: そのワールド軸の移動を固定(速度成分を0にし、押し出しでも動かさない)。Unity Constraints準拠。
+/// Freeze Rotation X/Y/Z: そのワールド軸の回転を固定(現状は角速度物理が無いため保持のみ・将来用)。
 ///
 /// Is Static:
-///   OFF(動的) = 通常の剛体。衝突で押し出され、速度が反射される。
-///   ON(キネマティック) = 無限質量として扱う。衝突で押し出されず速度も変化しないが、
-///     自身のvelocityで移動し(動く床など)、接触した動的ボディへ運動量を与える。
+///   OFF(動的) = 通常の剛体。重力・衝突で押し出され、速度が反射される。
+///   ON(キネマティック) = 無限質量。押し出されず速度も変化せず重力も受けないが、velocityで移動し
+///     接触した動的ボディへ運動量を与える。
 /// Rigidbodyを持たないCollider = 動かない純粋な静的壁(velocity 0、運動量なし)。
 /// </summary>
 class RigidbodyComponent : public Component {
@@ -37,20 +42,48 @@ public:
 		bounciness_ = bounciness;
 	}
 
-	// true=キネマティック(無限質量・押し出されない)、false=動的。
+	// 重力の影響度(Unity Rigidbody2D準拠)。
+	float GetGravityScale() const { return gravityScale_; }
+	void SetGravityScale(float gravityScale) { gravityScale_ = gravityScale; }
+
+	// true=キネマティック(無限質量・押し出されない・重力を受けない)、false=動的。
 	bool IsStatic() const { return isStatic_; }
 	void SetStatic(bool isStatic) { isStatic_ = isStatic; }
+
+	// Freeze Position(そのワールド軸の移動を固定)。
+	bool FreezePositionX() const { return freezePositionX_; }
+	bool FreezePositionY() const { return freezePositionY_; }
+	bool FreezePositionZ() const { return freezePositionZ_; }
+
+	// Freeze Rotation(そのワールド軸の回転を固定。現状は保持のみ)。
+	bool FreezeRotationX() const { return freezeRotationX_; }
+	bool FreezeRotationY() const { return freezeRotationY_; }
+	bool FreezeRotationZ() const { return freezeRotationZ_; }
 
 private:
 	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
 		KUJAKU_REGISTER_BOOL(isStatic_);
+		KUJAKU_REGISTER_FLOAT(gravityScale_, 0.01f, 0.0f, 0.0f);
 		KUJAKU_REGISTER_VECTOR3(velocity_, 0.01f, 0.0f, 0.0f);
 		KUJAKU_REGISTER_FLOAT(bounciness_, 0.01f, 0.0f, 1.0f);
+		KUJAKU_REGISTER_BOOL(freezePositionX_);
+		KUJAKU_REGISTER_BOOL(freezePositionY_);
+		KUJAKU_REGISTER_BOOL(freezePositionZ_);
+		KUJAKU_REGISTER_BOOL(freezeRotationX_);
+		KUJAKU_REGISTER_BOOL(freezeRotationY_);
+		KUJAKU_REGISTER_BOOL(freezeRotationZ_);
 	}
 
 	KUJAKU_FIELD_BOOL(isStatic_, false);
+	KUJAKU_FIELD_FLOAT(gravityScale_, 1.0f);
 	KUJAKU_FIELD_VECTOR3(velocity_, {});
 	KUJAKU_FIELD_FLOAT(bounciness_, 0.5f);
+	KUJAKU_FIELD_BOOL(freezePositionX_, false);
+	KUJAKU_FIELD_BOOL(freezePositionY_, false);
+	KUJAKU_FIELD_BOOL(freezePositionZ_, false);
+	KUJAKU_FIELD_BOOL(freezeRotationX_, false);
+	KUJAKU_FIELD_BOOL(freezeRotationY_, false);
+	KUJAKU_FIELD_BOOL(freezeRotationZ_, false);
 };
 
 } // namespace KujakuEngine
