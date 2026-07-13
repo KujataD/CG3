@@ -230,8 +230,10 @@ void DirectXCommon::CreateSwapChainRenderTargetViews() {
 }
 
 void DirectXCommon::CreateGameRenderTarget() {
-	// Gameウィンドウに表示するための描画先テクスチャ(カラー+深度)をRenderTextureとして作る。
+	// Gameウィンドウ用(メインカメラ・固定解像度)の描画先を作る。
 	CreateRenderTexture(gameRenderTexture_, WinApp::kWindowWidth, WinApp::kWindowHeight, kGameRenderTargetRtvIndex, kGameRenderDsvIndex);
+	// Sceneウィンドウ用(デバッグカメラ)の描画先を作る。初期は同解像度。表示サイズ追従は後Phaseで対応。
+	CreateRenderTexture(sceneRenderTexture_, WinApp::kWindowWidth, WinApp::kWindowHeight, kSceneRenderTargetRtvIndex, kSceneRenderDsvIndex);
 }
 
 void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, int32_t height, uint32_t rtvIndex, uint32_t dsvIndex) {
