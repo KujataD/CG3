@@ -14,6 +14,7 @@
 #include "EditorApplication.h"
 #include "EditorImGuiUtil.h"
 #include "EditorSelection.h"
+#include <algorithm>
 #include <cmath>
 #include <d3d12.h>
 
@@ -274,9 +275,21 @@ void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 		contentSize.y = 1.0f;
 	}
 
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+
+	// Scene RTを表示領域サイズへ追従させる(縦横比は問わずウィンドウを埋める)。
+	// 描画パスの外(Update中)なのでここでリサイズしてよい。歪み防止にデバッグカメラのaspectも合わせる。
+	int sceneWidth = std::clamp(static_cast<int>(contentSize.x), 16, 4096);
+	int sceneHeight = std::clamp(static_cast<int>(contentSize.y), 16, 4096);
+	dxCommon->ResizeSceneRenderTarget(sceneWidth, sceneHeight);
+	if (Scene* scene = EditorApplication::GetInstance()->GetCurrentScene()) {
+		if (Camera* editorCamera = scene->GetEditorCamera()) {
+			editorCamera->aspectRatio = static_cast<float>(sceneWidth) / static_cast<float>(sceneHeight);
+		}
+	}
+
 	// DirectXCommonが作ったScene用RenderTexture(デバッグカメラ描画)のSRVをImGuiへ渡す。
 	// 描画本体はEditorApplicationでBeginSceneRenderからEndSceneRenderの間に行われる。
-	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = dxCommon->GetSceneRenderSrvHandle();
 
 	float gameAspect = 16.0f / 9.0f;
