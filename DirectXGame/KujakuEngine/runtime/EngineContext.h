@@ -14,6 +14,8 @@ class ISelectionProvider;
 struct EngineContext {
 	// Play(実行)中かどうか。
 	bool gamePlaying = false;
+	// Sceneビュー(ウィンドウ)がフォーカスされているか。デバッグカメラ操作の入力ルーティングに使う。
+	bool sceneViewFocused = false;
 	// アセットID↔パスの解決(未設定時は各アクセサがフォールバックを使う)。
 	IAssetResolver* assetResolver = nullptr;
 	// Editorの選択状態の問い合わせ。
