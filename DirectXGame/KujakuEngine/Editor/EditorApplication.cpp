@@ -21,7 +21,6 @@
 #include "../base/DirectXCommon.h"
 #include "../scene/GameObject.h"
 #include "../scene/IRaycastTarget.h"
-#include "../scene/ISceneRenderer.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -319,64 +318,55 @@ void EditorApplication::Draw() {
 
 	dxCommon->PreDraw();
 
-	// 2画面描画対応(ISceneRenderer)かを問い合わせる。未対応なら単一ビューへフォールバック。
-	ISceneRenderer* sceneRenderer = dynamic_cast<ISceneRenderer*>(currentScene_);
-
 #ifdef USE_IMGUI
 	// エディタ(ImGui)有効時: Scene/Gameを別々のオフスクリーンRTへ描き、ImGuiのImageで表示する。
-	if (sceneRenderer && sceneRenderer->GetGameViewCamera()) {
-		// --- 2画面: 準備は1回、Scene(デバッグカメラ+オーバーレイ)とGame(メインカメラ)を別RTへ ---
-		sceneRenderer->PrepareFrame();
-		Camera* sceneCamera = sceneRenderer->GetSceneViewCamera();
-		Camera* gameCamera = sceneRenderer->GetGameViewCamera();
+	if (currentScene_) {
+		Camera* gameCamera = currentScene_->GetGameViewCamera();
+		if (gameCamera) {
+			// --- 2画面: 準備は1回、Scene(デバッグカメラ+オーバーレイ)とGame(メインカメラ)を別RTへ ---
+			currentScene_->PrepareFrame();
+			Camera* sceneCamera = currentScene_->GetSceneViewCamera();
 
-		// Sceneビュー(デバッグカメラ + 編集オーバーレイ)。
-		dxCommon->BeginSceneRender();
-		sceneRenderer->RenderView(sceneCamera, true);
-		if (sceneCamera) {
-			LineRenderer::GetInstance()->Render(*sceneCamera);
-		} else {
-			LineRenderer::GetInstance()->Clear();
-		}
-		dxCommon->EndSceneRender();
+			// Sceneビュー(デバッグカメラ + 編集オーバーレイ)。
+			dxCommon->BeginSceneRender();
+			currentScene_->RenderView(sceneCamera, true);
+			if (sceneCamera) {
+				LineRenderer::GetInstance()->Render(*sceneCamera);
+			} else {
+				LineRenderer::GetInstance()->Clear();
+			}
+			dxCommon->EndSceneRender();
 
-		// Gameビュー(メインカメラ・オーバーレイ無し)。
-		dxCommon->BeginGameRender();
-		sceneRenderer->RenderView(gameCamera, false);
-		dxCommon->EndGameRender();
-	} else if (currentScene_) {
-		// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
-		dxCommon->BeginSceneRender();
-		currentScene_->Draw();
-		Camera* renderCamera = currentScene_->GetEditorCamera();
-		if (renderCamera) {
-			LineRenderer::GetInstance()->Render(*renderCamera);
+			// Gameビュー(メインカメラ・オーバーレイ無し)。
+			dxCommon->BeginGameRender();
+			currentScene_->RenderView(gameCamera, false);
+			dxCommon->EndGameRender();
 		} else {
-			LineRenderer::GetInstance()->Clear();
+			// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
+			dxCommon->BeginSceneRender();
+			currentScene_->Draw();
+			Camera* renderCamera = currentScene_->GetEditorCamera();
+			if (renderCamera) {
+				LineRenderer::GetInstance()->Render(*renderCamera);
+			} else {
+				LineRenderer::GetInstance()->Clear();
+			}
+			dxCommon->EndSceneRender();
 		}
-		dxCommon->EndSceneRender();
 	} else {
 		LineRenderer::GetInstance()->Clear();
 	}
 #else
 	// エディタUI無し(ゲーム単体): メインカメラでバックバッファへ直接描く。
-	if (sceneRenderer) {
-		sceneRenderer->PrepareFrame();
-		Camera* camera = sceneRenderer->GetGameViewCamera();
+	if (currentScene_) {
+		currentScene_->PrepareFrame();
+		Camera* camera = currentScene_->GetGameViewCamera();
 		if (!camera) {
-			camera = sceneRenderer->GetSceneViewCamera();
+			camera = currentScene_->GetSceneViewCamera();
 		}
 		if (camera) {
-			sceneRenderer->RenderView(camera, false);
+			currentScene_->RenderView(camera, false);
 			LineRenderer::GetInstance()->Render(*camera);
-		} else {
-			LineRenderer::GetInstance()->Clear();
-		}
-	} else if (currentScene_) {
-		currentScene_->Draw();
-		Camera* renderCamera = currentScene_->GetEditorCamera();
-		if (renderCamera) {
-			LineRenderer::GetInstance()->Render(*renderCamera);
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}
