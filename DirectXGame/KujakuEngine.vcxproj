@@ -281,7 +281,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\scene\IMaterialTarget.h" />
     <ClInclude Include="KujakuEngine\scene\IRaycastTarget.h" />
     <ClInclude Include="KujakuEngine\scene\ISceneCamera.h" />
-    <ClInclude Include="KujakuEngine\scene\ISceneRenderer.h" />
     <ClInclude Include="KujakuEngine\scene\ComponentFactory.h" />
     <ClInclude Include="KujakuEngine\scene\GameObject.h" />
     <ClInclude Include="KujakuEngine\scene\RayCast.h" />

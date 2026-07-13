@@ -691,8 +691,11 @@ void Scene::Draw() {
 	DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
 }
 
-void Scene::DrawSceneContents(bool drawEditorOverlays) {
-	// モデルのカメラは呼び出し側(SampleScene::RenderView)でApplyRenderCameraToModelRenderers済みの想定。
+void Scene::PrepareFrame() { UpdateWorldTransforms(); }
+
+void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
+	(void)camera; // モデルのカメラは派生側でApplyRenderCameraToModelRenderers済みの想定。
+
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
 		if (gameObject && gameObject->IsRoot()) {
 			gameObject->DrawHierarchy();

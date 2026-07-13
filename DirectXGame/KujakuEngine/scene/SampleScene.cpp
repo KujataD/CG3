@@ -247,7 +247,7 @@ void SampleScene::RenderView(Camera* camera, bool drawEditorOverlays) {
 	// このビューのカメラを各ModelRendererへ設定し、モデル用パイプラインで描く。
 	ApplyRenderCameraToModelRenderers(camera);
 	Model::PreDraw();
-	DrawSceneContents(drawEditorOverlays);
+	Scene::RenderView(camera, drawEditorOverlays);
 	Model::PostDraw();
 }
 
