@@ -14,7 +14,6 @@
 #include "EditorApplication.h"
 #include "EditorImGuiUtil.h"
 #include "EditorSelection.h"
-#include <algorithm>
 #include <cmath>
 #include <d3d12.h>
 
@@ -275,17 +274,11 @@ void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 		contentSize.y = 1.0f;
 	}
 
-	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-
-	// Scene RTの解像度を表示領域サイズへ追従させる(大きく表示しても粗くならない)。描画パスの外(Update中)なので安全。
-	// カメラのaspectRatioはあえて変えない=遠近感(FOV)はウィンドウ形状に依らず一定に保つ。
-	// 縦横比は問わないので、RTがウィンドウ比と違う場合は描画がそのままウィンドウを埋める(多少の伸縮は許容)。
-	int sceneWidth = std::clamp(static_cast<int>(contentSize.x), 16, 4096);
-	int sceneHeight = std::clamp(static_cast<int>(contentSize.y), 16, 4096);
-	dxCommon->ResizeSceneRenderTarget(sceneWidth, sceneHeight);
-
 	// DirectXCommonが作ったScene用RenderTexture(デバッグカメラ描画)のSRVをImGuiへ渡す。
+	// Scene RTはGameビューと同じく固定解像度(1280x720)。表示側でアスペクト比を保ってレターボックス表示する。
+	// (表示サイズ追従は毎フレームのGPU待ち/作り直しで不安定だったため固定に戻した)
 	// 描画本体はEditorApplicationでBeginSceneRenderからEndSceneRenderの間に行われる。
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = dxCommon->GetSceneRenderSrvHandle();
 
 	float gameAspect = 16.0f / 9.0f;
