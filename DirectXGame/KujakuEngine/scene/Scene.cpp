@@ -453,7 +453,11 @@ void DrawCameraDebugLines(Scene& scene) {
 		if (!camera) {
 			continue;
 		}
-		DrawCameraFrustum(*camera, selectedObject->GetTransform().matWorld_, kCameraFrustumColor);
+		// カメラが実際に描画へ使う姿勢(=ローカル回転+ワールド位置。SyncFromOwnerTransform参照)で錐体を描く。
+		// オーナーのmatWorld_(親の回転/スケールを含む)を使うとGameビューの見え方とズレるため、
+		// カメラ自身の向きに合わせる(親が回転していても錐体は実際の描画と一致する)。
+		Matrix4x4 cameraWorld = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, camera->rotation_, camera->translation_);
+		DrawCameraFrustum(*camera, cameraWorld, kCameraFrustumColor);
 	}
 }
 
