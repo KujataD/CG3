@@ -29,6 +29,9 @@ constexpr int32_t kColliderSphereSubdivision = 12;
 constexpr float kColliderDebugPi = 3.14159265358979323846f;
 constexpr Vector4 kColliderDebugColor = {0.1f, 1.0f, 0.35f, 1.0f};
 
+// グローバル重力(Unity既定に合わせる)。RigidbodyのgravityScale倍で各動的ボディに適用する。
+constexpr Vector3 kRigidbodyGravity = {0.0f, -9.81f, 0.0f};
+
 struct EditorBillboardDrawCache {
 	std::unordered_map<std::string, std::unique_ptr<Model>> models;
 	std::unordered_map<const Component*, std::unique_ptr<WorldTransform>> transforms;
@@ -132,6 +135,20 @@ bool IsMovable(RigidbodyComponent* rigidbody) {
 	return rigidbody && !rigidbody->IsStatic();
 }
 
+// Freeze Position が有効な軸の成分を0にする(移動・速度の凍結)。
+Vector3 ApplyPositionFreeze(const RigidbodyComponent* rigidbody, Vector3 value) {
+	if (rigidbody->FreezePositionX()) {
+		value.x = 0.0f;
+	}
+	if (rigidbody->FreezePositionY()) {
+		value.y = 0.0f;
+	}
+	if (rigidbody->FreezePositionZ()) {
+		value.z = 0.0f;
+	}
+	return value;
+}
+
 // 非トリガーの交差ペアに剛体反発(押し出し+速度反射)を適用する。
 // 動的(Rigidbody有・非Static)のみ押し出し/速度変化の対象。キネマティック(Is Static)と
 // Rigidbody無しは無限質量として不動だが、キネマティックは自身の速度を相手へ与える。
@@ -165,34 +182,35 @@ void ResolveCollisionResponse(ColliderComponent* colliderA, ColliderComponent* c
 
 	if (moveA > 0.0f) {
 		WorldTransform& transformA = colliderA->GetOwner()->GetTransform();
-		transformA.translation_ = transformA.translation_ - normal * moveA;
+		transformA.translation_ = transformA.translation_ + ApplyPositionFreeze(rigidbodyA, normal * -moveA);
 	}
 	if (moveB > 0.0f) {
 		WorldTransform& transformB = colliderB->GetOwner()->GetTransform();
-		transformB.translation_ = transformB.translation_ + normal * moveB;
+		transformB.translation_ = transformB.translation_ + ApplyPositionFreeze(rigidbodyB, normal * moveB);
 	}
 
 	// --- 速度反射(相対速度ベース): 動的ボディのみ、相手へ接近している場合に相対速度を反射する。---
 	// 相手の物理速度(キネマティックの移動速度含む)を加え戻すことで運動量が伝わる。
-	// 相手が静的(velocity 0)のときは従来の絶対速度反射に一致する。
+	// 相手が静的(velocity 0)のときは従来の絶対速度反射に一致する。Freeze軸の速度は0に固定。
 	Vector3 physVelocityA = PhysicsVelocity(rigidbodyA);
 	Vector3 physVelocityB = PhysicsVelocity(rigidbodyB);
 
 	if (movableA) {
 		Vector3 relative = physVelocityA - physVelocityB;
 		if (Dot(relative, normal) > 0.0f) { // AがBへ接近
-			rigidbodyA->SetVelocity(physVelocityB + ShapeUtil::Reflect(relative, normal) * rigidbodyA->GetBounciness());
+			rigidbodyA->SetVelocity(ApplyPositionFreeze(rigidbodyA, physVelocityB + ShapeUtil::Reflect(relative, normal) * rigidbodyA->GetBounciness()));
 		}
 	}
 	if (movableB) {
 		Vector3 relative = physVelocityB - physVelocityA;
 		if (Dot(relative, normal) < 0.0f) { // BがAへ接近
-			rigidbodyB->SetVelocity(physVelocityA + ShapeUtil::Reflect(relative, normal) * rigidbodyB->GetBounciness());
+			rigidbodyB->SetVelocity(ApplyPositionFreeze(rigidbodyB, physVelocityA + ShapeUtil::Reflect(relative, normal) * rigidbodyB->GetBounciness()));
 		}
 	}
 }
 
-// Rigidbodyの速度を位置へ積分する(translation += velocity * dt)。重力・力は無し。
+// Rigidbodyの速度を位置へ積分する。動的ボディには重力(gravityScale倍)を加え、Freeze Position軸を固定する。
+// キネマティック(Is Static)は重力・拘束を受けず、自身の速度でそのまま移動する。
 void IntegrateRigidbodies(Scene& scene, float deltaTime) {
 	if (deltaTime <= 0.0f) {
 		return;
@@ -206,7 +224,18 @@ void IntegrateRigidbodies(Scene& scene, float deltaTime) {
 			continue;
 		}
 		WorldTransform& transform = gameObject->GetTransform();
-		transform.translation_ = transform.translation_ + rigidbody->GetVelocity() * deltaTime;
+
+		if (rigidbody->IsStatic()) {
+			// キネマティック: 重力・拘束なしで自身の速度でそのまま移動。
+			transform.translation_ = transform.translation_ + rigidbody->GetVelocity() * deltaTime;
+			continue;
+		}
+
+		// 動的: 重力を加え、Freeze Position軸の速度を0に固定してから積分する。
+		Vector3 velocity = rigidbody->GetVelocity() + kRigidbodyGravity * (rigidbody->GetGravityScale() * deltaTime);
+		velocity = ApplyPositionFreeze(rigidbody, velocity);
+		rigidbody->SetVelocity(velocity);
+		transform.translation_ = transform.translation_ + velocity * deltaTime;
 	}
 }
 
