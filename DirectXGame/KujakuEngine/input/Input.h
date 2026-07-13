@@ -1,7 +1,7 @@
 #pragma once
 #include "../math/Vector2.h"
+#include "../runtime/KujakuApi.h"
 #include <Windows.h>
-#include <cassert>
 
 // DirectInputのバージョン指定
 #define DIRECTINPUT_VERSION 0x0800
@@ -13,6 +13,8 @@
 
 namespace KujakuEngine {
 
+// キーボード/マウス/コントローラー入力。exeが所有し、GameModuleからも公開APIを呼べるよう
+// 各メソッドを KUJAKU_API で公開する(DirectInput/XInputの状態は静的privateに隠蔽)。
 class Input {
 public:
 	enum class InputDeviceType {
@@ -20,51 +22,54 @@ public:
 		kController,
 	};
 
-	static void Initialize();
+	static KUJAKU_API void Initialize();
+	static KUJAKU_API void Update();
 
-	static void Update();
+	// --- キーボード ---
+	static KUJAKU_API bool GetKey(unsigned char keycode);
+	static KUJAKU_API bool GetPreKey(unsigned char keycode);
+	static KUJAKU_API bool GetKeyTrigger(unsigned char keycode);
+	static KUJAKU_API bool GetKeyRelease(unsigned char keycode);
 
-	static bool GetKey(unsigned char keycode) { return key_[keycode]; }
-	static bool GetPreKey(unsigned char keycode) { return preKey_[keycode]; }
-	static bool GetKeyTrigger(unsigned char keycode) { return key_[keycode] && !preKey_[keycode]; }
-	static bool GetKeyRelease(unsigned char keycode) { return !key_[keycode] && preKey_[keycode]; }
+	// --- マウスボタン ---
+	static KUJAKU_API bool GetClick(int num);
+	static KUJAKU_API bool GetPreClick(int num);
+	static KUJAKU_API bool GetClickTrigger(int num);
+	static KUJAKU_API bool GetClickRelease(int num);
 
-	static bool GetClick(int num) { return mouseState_.rgbButtons[num]; }
-	static bool GetPreClick(int num) { return preMouseState_.rgbButtons[num]; }
-	static bool GetClickTrigger(int num) { return mouseState_.rgbButtons[num] && !preMouseState_.rgbButtons[num]; }
-	static bool GetClickRelease(int num) { return !mouseState_.rgbButtons[num] && preMouseState_.rgbButtons[num]; }
+	// --- 使用中の入力デバイス種別 ---
+	static KUJAKU_API InputDeviceType GetCurrentInputDeviceType();
+	static KUJAKU_API bool IsKeyboardMouseInput();
+	static KUJAKU_API bool IsControllerInput();
 
-	static InputDeviceType GetCurrentInputDeviceType() { return currentInputDeviceType_; }
-	static bool IsKeyboardMouseInput() { return currentInputDeviceType_ == InputDeviceType::kKeyboardMouse; }
-	static bool IsControllerInput() { return currentInputDeviceType_ == InputDeviceType::kController; }
+	// --- マウス座標(クライアント) ---
+	static KUJAKU_API Vector2 GetMouseClientPos();
+	static KUJAKU_API Vector2 GetMousePreClientPos();
 
-	static Vector2 GetMouseClientPos();
-
-	static Vector2 GetMousePreClientPos();
-
+	// --- コントローラー ---
 	// コントローラーが接続されているかを取得する。
-	static bool IsControllerConnected(int padNo = 0);
+	static KUJAKU_API bool IsControllerConnected(int padNo = 0);
 
 	// コントローラーのボタン入力を取得する。
-	static bool GetControllerButton(WORD button, int padNo = 0);
-	static bool GetPreControllerButton(WORD button, int padNo = 0);
-	static bool GetControllerButtonTrigger(WORD button, int padNo = 0);
-	static bool GetControllerButtonRelease(WORD button, int padNo = 0);
+	static KUJAKU_API bool GetControllerButton(WORD button, int padNo = 0);
+	static KUJAKU_API bool GetPreControllerButton(WORD button, int padNo = 0);
+	static KUJAKU_API bool GetControllerButtonTrigger(WORD button, int padNo = 0);
+	static KUJAKU_API bool GetControllerButtonRelease(WORD button, int padNo = 0);
 
 	// 左右スティックの入力を取得する。
-	static Vector2 GetLeftStick(int padNo = 0);
-	static Vector2 GetRightStick(int padNo = 0);
+	static KUJAKU_API Vector2 GetLeftStick(int padNo = 0);
+	static KUJAKU_API Vector2 GetRightStick(int padNo = 0);
 
 	// 左右トリガーの入力を取得する。
-	static float GetLeftTrigger(int padNo = 0);
-	static float GetRightTrigger(int padNo = 0);
+	static KUJAKU_API float GetLeftTrigger(int padNo = 0);
+	static KUJAKU_API float GetRightTrigger(int padNo = 0);
 
 private:
-
 	static Vector2 CalcMouseClientPos();
 	static void UpdateInputDeviceType();
 	static bool IsKeyboardMouseInputDetected();
 	static bool IsControllerInputDetected(int padNo);
+
 private:
 	static HWND hwnd_;
 
@@ -90,4 +95,4 @@ private:
 	static InputDeviceType currentInputDeviceType_;
 };
 
-}; // namespace KujakuEngine
+} // namespace KujakuEngine

@@ -1,5 +1,7 @@
 #include "Input.h"
 #include "../base/WinApp.h"
+#include <cassert>
+#include <cstring>
 
 namespace KujakuEngine {
 
@@ -22,6 +24,23 @@ HWND Input::hwnd_;
 Vector2 Input::mouseClientPos_ = {};
 Vector2 Input::mousePreClientPos_ = {};
 Input::InputDeviceType Input::currentInputDeviceType_ = Input::InputDeviceType::kKeyboardMouse;
+
+// --- キーボード ---
+bool Input::GetKey(unsigned char keycode) { return key_[keycode]; }
+bool Input::GetPreKey(unsigned char keycode) { return preKey_[keycode]; }
+bool Input::GetKeyTrigger(unsigned char keycode) { return key_[keycode] && !preKey_[keycode]; }
+bool Input::GetKeyRelease(unsigned char keycode) { return !key_[keycode] && preKey_[keycode]; }
+
+// --- マウスボタン ---
+bool Input::GetClick(int num) { return mouseState_.rgbButtons[num] != 0; }
+bool Input::GetPreClick(int num) { return preMouseState_.rgbButtons[num] != 0; }
+bool Input::GetClickTrigger(int num) { return mouseState_.rgbButtons[num] && !preMouseState_.rgbButtons[num]; }
+bool Input::GetClickRelease(int num) { return !mouseState_.rgbButtons[num] && preMouseState_.rgbButtons[num]; }
+
+// --- 入力デバイス種別 ---
+Input::InputDeviceType Input::GetCurrentInputDeviceType() { return currentInputDeviceType_; }
+bool Input::IsKeyboardMouseInput() { return currentInputDeviceType_ == InputDeviceType::kKeyboardMouse; }
+bool Input::IsControllerInput() { return currentInputDeviceType_ == InputDeviceType::kController; }
 
 namespace {
 
@@ -310,4 +329,4 @@ Vector2 Input::CalcMouseClientPos() {
 	return Vector2{ static_cast<float>(mousePoint.x), static_cast<float>(mousePoint.y) };
 }
 
-}
+} // namespace KujakuEngine
