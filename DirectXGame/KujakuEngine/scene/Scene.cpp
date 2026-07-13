@@ -28,6 +28,7 @@ constexpr const char* kEditorBillboardTextureDirectory = "KujakuEngine/resources
 constexpr int32_t kColliderSphereSubdivision = 12;
 constexpr float kColliderDebugPi = 3.14159265358979323846f;
 constexpr Vector4 kColliderDebugColor = {0.1f, 1.0f, 0.35f, 1.0f};
+constexpr Vector4 kCameraFrustumColor = {0.85f, 0.85f, 0.95f, 1.0f};
 
 // グローバル重力(Unity既定に合わせる)。RigidbodyのgravityScale倍で各動的ボディに適用する。
 constexpr Vector3 kRigidbodyGravity = {0.0f, -9.81f, 0.0f};
@@ -386,6 +387,68 @@ void DrawColliderDebugLines(Scene& scene) {
 	}
 }
 
+// カメラの視錘台(フラスタム)をワイヤーフレームで描く。Unityのカメラ選択時のギズモ相当。
+// near/far平面の矩形を四隅で結ぶ。cornersはカメラローカル(+Z前方)で作りworldMatrixでワールドへ。
+void DrawCameraFrustum(const Camera& camera, const Matrix4x4& worldMatrix, const Vector4& color) {
+	const float tanHalfFovY = std::tan(camera.fovAngleY * 0.5f);
+
+	auto MakePlaneCorners = [&](float distance, Vector3 outCorners[4]) {
+		const float halfHeight = tanHalfFovY * distance;
+		const float halfWidth = halfHeight * camera.aspectRatio;
+		const Vector3 localCorners[4] = {
+		    {-halfWidth, -halfHeight, distance},
+		    {halfWidth, -halfHeight, distance},
+		    {halfWidth, halfHeight, distance},
+		    {-halfWidth, halfHeight, distance},
+		};
+		for (int i = 0; i < 4; ++i) {
+			outCorners[i] = Transform(localCorners[i], worldMatrix);
+		}
+	};
+
+	Vector3 nearCorners[4];
+	Vector3 farCorners[4];
+	MakePlaneCorners(camera.nearZ, nearCorners);
+	MakePlaneCorners(camera.farZ, farCorners);
+
+	for (int i = 0; i < 4; ++i) {
+		const int next = (i + 1) % 4;
+		LineRenderer::DrawLine(nearCorners[i], nearCorners[next], color); // near平面
+		LineRenderer::DrawLine(farCorners[i], farCorners[next], color);   // far平面
+		LineRenderer::DrawLine(nearCorners[i], farCorners[i], color);     // 側面エッジ
+	}
+}
+
+// 選択中のGameObjectがCameraComponentを持つ場合、そのフラスタムを描く。
+void DrawCameraDebugLines(Scene& scene) {
+	if (IsGamePlaying()) {
+		return;
+	}
+
+	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
+	if (!selectedObject || !selectedObject->IsActiveInHierarchy()) {
+		return;
+	}
+	if (scene.FindGameObjectByInstanceId(selectedObject->GetInstanceId()) != selectedObject) {
+		return;
+	}
+
+	for (const std::unique_ptr<Component>& component : selectedObject->GetComponents()) {
+		if (!component || !component->IsEnabled()) {
+			continue;
+		}
+		const ISceneCamera* sceneCamera = dynamic_cast<const ISceneCamera*>(component.get());
+		if (!sceneCamera) {
+			continue;
+		}
+		const Camera* camera = sceneCamera->GetSceneCamera();
+		if (!camera) {
+			continue;
+		}
+		DrawCameraFrustum(*camera, selectedObject->GetTransform().matWorld_, kCameraFrustumColor);
+	}
+}
+
 void DrawGrid(Scene& scene, const Vector4& color) {
 	const float kGridHalfWidth = 100.0f;
 	const uint32_t kSubdivision = 100;
@@ -617,6 +680,7 @@ void Scene::Draw() {
 
 	DrawEditorBillboards(*this);
 	DrawColliderDebugLines(*this);
+	DrawCameraDebugLines(*this);
 	DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
 }
 
