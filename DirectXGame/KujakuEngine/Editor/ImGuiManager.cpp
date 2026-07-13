@@ -161,6 +161,7 @@ void ImGuiManager::DrawEditor() {
 	inspectorWindow_.Draw(projectWindow_);
 	// ProjectはDockBuilderでHierarchyとInspectorの間に初期配置される。
 	projectWindow_.Draw();
+	performanceWindow_.Draw();
 	EditorConsole::GetInstance()->Draw();
 #endif // USE_IMGUI
 }
