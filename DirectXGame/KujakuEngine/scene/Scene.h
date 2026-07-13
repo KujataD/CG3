@@ -40,6 +40,12 @@ public:
 	virtual Camera* GetEditorCamera() { return nullptr; }
 
 	/// <summary>
+	/// Editor用ビルボード(アイコン)のModel/Transformを準備する。描画パス外から呼ぶこと。
+	/// ランタイム生成されたComponentのアイコンも確実に表示させるため冪等に何度でも呼べる。
+	/// </summary>
+	KUJAKU_API void RefreshEditorBillboards();
+
+	/// <summary>
 	/// GameObjectを作成し、所有権をSceneへ持たせる
 	/// </summary>
 	KUJAKU_API GameObject* CreateGameObject(const std::string& name = "GameObject");
