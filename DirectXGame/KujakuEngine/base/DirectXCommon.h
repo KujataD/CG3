@@ -16,6 +16,23 @@
 namespace KujakuEngine {
 
 /// <summary>
+/// オフスクリーン描画先(カラー+深度+各種View+サイズ)を1単位にまとめたもの。
+/// Scene/Gameなど複数ビューを別々のRenderTextureへ描くために使う。
+/// </summary>
+struct RenderTexture {
+	Microsoft::WRL::ComPtr<ID3D12Resource> colorResource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> depthResource;
+	// 描き込み用RTV/DSV(CPUハンドル)。
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{};
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle{};
+	// ImGui::Imageで読むためのSRV(CPU=作成用/GPU=ImGuiへ渡す)。
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU{};
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU{};
+	int32_t width = 0;
+	int32_t height = 0;
+};
+
+/// <summary>
 /// DirectX汎用
 /// </summary>
 class DirectXCommon {
@@ -47,6 +64,22 @@ public:
 	/// Game用RenderTargetをImGuiから読める状態へ戻し、描画先をSwapChainへ戻す
 	/// </summary>
 	void EndGameRender();
+
+	/// <summary>
+	/// 指定サイズのRenderTexture(カラー+深度+RTV/DSV/SRV)を作成する。
+	/// rtvIndex/dsvIndexはそれぞれのヒープ内で使うスロット番号。
+	/// </summary>
+	void CreateRenderTexture(RenderTexture& target, int32_t width, int32_t height, uint32_t rtvIndex, uint32_t dsvIndex);
+
+	/// <summary>
+	/// targetを描画先にする(PIXEL_SHADER_RESOURCE→RENDER_TARGET遷移+クリア+Viewport/Scissor)。
+	/// </summary>
+	void BeginRenderTexture(RenderTexture& target);
+
+	/// <summary>
+	/// targetへの描画を終える(RENDER_TARGET→PIXEL_SHADER_RESOURCE遷移+描画先をバックバッファへ戻す)。
+	/// </summary>
+	void EndRenderTexture(RenderTexture& target);
 
 	void PostDraw();
 
@@ -86,8 +119,8 @@ public:
 	ID3D12DescriptorHeap* GetDsvDescriptorHeap() const { return dsvDescriptorHeap_.Get(); }
 
 	// ImGui::Imageへ渡すGame用RenderTargetのGPU側SRVハンドル。
-	D3D12_GPU_DESCRIPTOR_HANDLE GetGameRenderSrvHandle() const { return gameRenderSrvHandleGPU_; }
-	D3D12_CPU_DESCRIPTOR_HANDLE GetGameRenderDsvHandle() const { return gameRenderDsvHandle_; }
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGameRenderSrvHandle() const { return gameRenderTexture_.srvHandleGPU; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetGameRenderDsvHandle() const { return gameRenderTexture_.dsvHandle; }
 
 	uint32_t GetDescriptorSizeRTV() const { return descriptorSizeRTV_; }
 	uint32_t GetDescriptorSizeSRV() const { return descriptorSizeSRV_; }
@@ -96,8 +129,8 @@ public:
 	int32_t GetBackBufferWidth() const { return backBufferWidth_; }
 	int32_t GetBackBufferHeight() const { return backBufferHeight_; }
 
-	int32_t GetGameRenderWidth() const { return gameRenderWidth_; }
-	int32_t GetGameRenderHeight() const { return gameRenderHeight_; }
+	int32_t GetGameRenderWidth() const { return gameRenderTexture_.width; }
+	int32_t GetGameRenderHeight() const { return gameRenderTexture_.height; }
 
 	uint32_t GetSwapChainBufferCount() const { return kSwapChainBufferCount; }
 	void SetBackBufferRenderTarget();
@@ -146,7 +179,6 @@ private:
 
 	// Gameウィンドウに表示するためのOffscreen RenderTargetを作成する。
 	void CreateGameRenderTarget();
-	void CreateGameDepthBuffer();
 	void CreateFence();
 
 	void WaitForGpu();
@@ -178,9 +210,8 @@ private:
 	// リソース関連
 	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[kSwapChainBufferCount];
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource_;
-	// Gameウィンドウへ表示するための描画結果を保持するテクスチャ。
-	Microsoft::WRL::ComPtr<ID3D12Resource> gameRenderResource_;
-	Microsoft::WRL::ComPtr<ID3D12Resource> gameDepthStencilResource_;
+	// Gameウィンドウへ表示するための描画先(カラー+深度+View一式)。
+	RenderTexture gameRenderTexture_;
 
 	// ディスクリプタヒープ
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap_;
@@ -200,15 +231,6 @@ private:
 	uint32_t backBufferIndex_ = 0;
 	int32_t backBufferWidth_ = 0;
 	int32_t backBufferHeight_ = 0;
-	int32_t gameRenderWidth_ = WinApp::kWindowWidth;
-	int32_t gameRenderHeight_ = WinApp::kWindowHeight;
-	// Game用RenderTargetへ描くためのRTV。CPUハンドルはOMSetRenderTargetsで使う。
-	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderRtvHandle_{};
-	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderDsvHandle_{};
-	// Game用RenderTargetをSRVとして作成するためのCPUハンドル。
-	D3D12_CPU_DESCRIPTOR_HANDLE gameRenderSrvHandleCPU_{};
-	// ImGui::ImageでGame用RenderTargetを表示するためのGPUハンドル。
-	D3D12_GPU_DESCRIPTOR_HANDLE gameRenderSrvHandleGPU_{};
 
 	// 画面の色
 	float clearColor_[4] = {0.1f, 0.25f, 0.5f, 1.0f}; // 青っぽい色。RGBAの順
