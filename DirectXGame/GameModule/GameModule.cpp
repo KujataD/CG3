@@ -1,6 +1,7 @@
 #include "../KujakuEngine/KujakuEngine.h"
 #include "../KujakuEngine/scene/SampleScene.h"
 #include "../GameComponents/EnemyComponent.h"
+#include "../GameComponents/Player.h"
 #include <memory>
 
 namespace {
@@ -97,6 +98,7 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 	factory.RegisterComponent<MoveForwardComponent>(kGameModuleName);
 	factory.RegisterComponent<BlinkComponent>(kGameModuleName);
 	factory.RegisterComponent<EnemyComponent>(kGameModuleName);
+	factory.RegisterComponent<Player>(kGameModuleName);
 }
 
 extern "C" __declspec(dllexport) void UnregisterGameComponents(KujakuEngine::ComponentFactory& factory) {

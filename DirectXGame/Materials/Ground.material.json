@@ -1,0 +1,25 @@
+{
+  "assetType": "Material",
+  "baseColor": [
+    0.2818112373352051,
+    0.875,
+    0.15692934393882751,
+    1.0
+  ],
+  "name": "Ground",
+  "textures": {
+    "BaseColor": {
+      "assetId": "",
+      "path": "Resources/white1x1.png"
+    },
+    "Environment": {
+      "assetId": "",
+      "path": ""
+    },
+    "Normal": {
+      "assetId": "",
+      "path": ""
+    }
+  },
+  "version": 1
+}
