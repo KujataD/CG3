@@ -21,11 +21,12 @@
         }
       ],
       "name": "Main",
-      "nextLinkId": 1018,
-      "nextNodeId": 12,
-      "nextPinId": 119,
+      "nextLinkId": 1021,
+      "nextNodeId": 19,
+      "nextPinId": 131,
       "nodes": [
         {
+          "cooldownDuration": 1.0,
           "id": 1,
           "inputPinId": 0,
           "name": "Root",
@@ -34,24 +35,30 @@
             "x": -8.0,
             "y": -23.0
           },
+          "reactive": false,
           "repeatCount": -1,
+          "repeatPaced": false,
           "status": "",
           "type": "Root"
         },
         {
+          "cooldownDuration": 1.0,
           "id": 2,
           "inputPinId": 101,
           "name": "MoveForward",
           "outputPinId": 0,
           "position": {
-            "x": 72.0,
+            "x": 88.0,
             "y": 321.0
           },
+          "reactive": false,
           "repeatCount": -1,
+          "repeatPaced": false,
           "status": "",
           "type": "Action"
         },
         {
+          "cooldownDuration": 1.0,
           "id": 4,
           "inputPinId": 104,
           "name": "RotateY",
@@ -60,11 +67,14 @@
             "x": -104.0,
             "y": 321.0
           },
+          "reactive": false,
           "repeatCount": -1,
+          "repeatPaced": false,
           "status": "",
           "type": "Action"
         },
         {
+          "cooldownDuration": 1.0,
           "id": 11,
           "inputPinId": 117,
           "name": "Selector",
@@ -73,7 +83,9 @@
             "x": -8.0,
             "y": 137.0
           },
+          "reactive": false,
           "repeatCount": -1,
+          "repeatPaced": false,
           "status": "",
           "type": "Selector"
         }
@@ -97,6 +109,7 @@
               ],
               "id": 11,
               "name": "Selector",
+              "reactive": false,
               "type": "Selector"
             }
           ],
@@ -116,6 +129,7 @@
       "nextPinId": 1000101,
       "nodes": [
         {
+          "cooldownDuration": 1.0,
           "id": 1000001,
           "inputPinId": 0,
           "name": "Root",
@@ -124,7 +138,9 @@
             "x": 0.0,
             "y": 0.0
           },
+          "reactive": false,
           "repeatCount": -1,
+          "repeatPaced": false,
           "status": "",
           "type": "Root"
         }

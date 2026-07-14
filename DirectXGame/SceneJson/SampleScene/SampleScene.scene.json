@@ -3,16 +3,16 @@
   "name": "SampleScene",
   "gameObjects": [
     {
-      "instanceId": "go_0028e633fb05a08c0016b492af8aebe2",
+      "instanceId": "go_54bb2aec2d051fe82a5f52fd4139f659",
       "parentInstanceId": "",
-      "prefabAssetPath": "Prefabs/Cubsse.prefab.json",
-      "prefabObjectId": "object_0",
-      "prefabInstanceRootId": "go_0028e633fb05a08c0016b492af8aebe2",
-      "prefabInstanceRoot": true,
-      "name": "Cubsse",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Main Camera",
       "tag": "Untagged",
       "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_0028e633fb05a08c0016b492af8aebe2.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_54bb2aec2d051fe82a5f52fd4139f659.gameobject.json"
     },
     {
       "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
@@ -51,54 +51,6 @@
       "assetPath": "SceneJson/SampleScene/GameObjects/go_0b3976b031f89672059e7cd34af4cc9d.gameobject.json"
     },
     {
-      "instanceId": "go_ebb9b52e9bae0c3875de1d1c18c6b11a",
-      "parentInstanceId": "",
-      "prefabAssetPath": "",
-      "prefabObjectId": "",
-      "prefabInstanceRootId": "",
-      "prefabInstanceRoot": false,
-      "name": "Terrain",
-      "tag": "Untagged",
-      "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_ebb9b52e9bae0c3875de1d1c18c6b11a.gameobject.json"
-    },
-    {
-      "instanceId": "go_54bb2aec2d051fe82a5f52fd4139f659",
-      "parentInstanceId": "",
-      "prefabAssetPath": "",
-      "prefabObjectId": "",
-      "prefabInstanceRootId": "",
-      "prefabInstanceRoot": false,
-      "name": "Main Camera",
-      "tag": "Untagged",
-      "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_54bb2aec2d051fe82a5f52fd4139f659.gameobject.json"
-    },
-    {
-      "instanceId": "go_44ed3fde329cd330227476dcba495650",
-      "parentInstanceId": "",
-      "prefabAssetPath": "Prefabs/Cubsse.prefab.json",
-      "prefabObjectId": "object_0",
-      "prefabInstanceRootId": "go_44ed3fde329cd330227476dcba495650",
-      "prefabInstanceRoot": true,
-      "name": "Cubsse",
-      "tag": "Untagged",
-      "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_44ed3fde329cd330227476dcba495650.gameobject.json"
-    },
-    {
-      "instanceId": "go_1a223ec304238a490d13f655607d7567",
-      "parentInstanceId": "",
-      "prefabAssetPath": "Prefabs/Cubsse.prefab.json",
-      "prefabObjectId": "object_0",
-      "prefabInstanceRootId": "go_1a223ec304238a490d13f655607d7567",
-      "prefabInstanceRoot": true,
-      "name": "Cubsse",
-      "tag": "Untagged",
-      "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_1a223ec304238a490d13f655607d7567.gameobject.json"
-    },
-    {
       "instanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
       "parentInstanceId": "",
       "prefabAssetPath": "",
@@ -111,28 +63,28 @@
       "assetPath": "SceneJson/SampleScene/GameObjects/go_40c77fc3833c4a44206156d6dcaf0d7f.gameobject.json"
     },
     {
-      "instanceId": "go_dcf10ecb42bd7bac6e78cd5991da62b1",
+      "instanceId": "go_a19672b7cae624c950caa1145e77d7e5",
       "parentInstanceId": "",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Cube",
+      "name": "Ground",
       "tag": "Untagged",
       "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_dcf10ecb42bd7bac6e78cd5991da62b1.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_a19672b7cae624c950caa1145e77d7e5.gameobject.json"
     },
     {
-      "instanceId": "go_b2fa83a5654c336a597d0bec83b24a15",
-      "parentInstanceId": "go_dcf10ecb42bd7bac6e78cd5991da62b1",
+      "instanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+      "parentInstanceId": "",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Sphere",
+      "name": "Player",
       "tag": "Untagged",
       "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_b2fa83a5654c336a597d0bec83b24a15.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_15f788c96bf669800afa5d0d725f7df3.gameobject.json"
     }
   ]
 }

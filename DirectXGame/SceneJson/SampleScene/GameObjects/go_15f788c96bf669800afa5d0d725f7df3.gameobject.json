@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
+  "instanceId": "go_15f788c96bf669800afa5d0d725f7df3",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Enemy",
+  "name": "Player",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -20,14 +20,14 @@
           0.0
         ],
         "scale": [
-          1.0,
-          0.6000000238418579,
-          0.6000000238418579
+          0.5,
+          0.5,
+          0.5
         ],
         "translation": [
-          9.313225746154785e-10,
-          8.682869911193848,
-          0.0
+          -5.697638511657715,
+          5.130646705627441,
+          1.2493284940719604
         ]
       },
       "type": "Transform"
@@ -37,16 +37,16 @@
       "properties": {
         "material": {
           "baseColor": [
+            0.788693368434906,
+            0.91847825050354,
             0.0,
-            1.0,
-            1.0,
             1.0
           ],
-          "name": "Color",
+          "name": "New Material",
           "textures": {
             "BaseColor": {
               "assetId": "",
-              "path": ""
+              "path": "resources/white1x1.png"
             },
             "Environment": {
               "assetId": "",
@@ -58,25 +58,18 @@
             }
           }
         },
-        "materialAssetId": "asset_c2de0b0a46b31f30616c0cffbb5b843f",
-        "materialPath": "Materials/Color.material.json",
+        "materialAssetId": "",
+        "materialPath": "",
         "modelPath": "player",
         "primitive": "Sphere",
-        "texture": ""
+        "texture": "resources/white1x1.png"
       },
       "type": "ModelRendererComponent"
     },
     {
       "enabled": true,
       "properties": {
-        "speed": 0.16699999570846558
-      },
-      "type": "EnemyComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "bounciness": 0.0,
+        "bounciness": 0.5,
         "freezePositionX": false,
         "freezePositionY": false,
         "freezePositionZ": false,
@@ -96,6 +89,13 @@
     {
       "enabled": true,
       "properties": {
+        "speed": 0.15000000596046448
+      },
+      "type": "Player"
+    },
+    {
+      "enabled": true,
+      "properties": {
         "center": [
           0.0,
           0.0,
@@ -103,7 +103,7 @@
         ],
         "collisionMask": 4294967295,
         "isTrigger": false,
-        "radius": 0.3700000047683716
+        "radius": 1.0
       },
       "type": "SphereColliderComponent"
     }
