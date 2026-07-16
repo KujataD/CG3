@@ -288,6 +288,12 @@ void EditorApplication::Initialize() {
 		AddConsoleLog("[Editor] Fallback empty Scene.");
 		SetCurrentScene(std::make_unique<Scene>());
 	}
+
+#ifndef USE_IMGUI
+	// エディタUI無し(リリース/ゲーム単体)ビルドでは Start(Play)モードのみで動作させる。
+	// Startボタンが無く、そのままではEditのままゲームが更新されないため、起動時に自動でPlayへ移行する。
+	Start();
+#endif // USE_IMGUI
 }
 
 void EditorApplication::BeginFrame() {

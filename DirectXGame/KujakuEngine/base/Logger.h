@@ -14,9 +14,6 @@ class KUJAKU_API Logger {
 public: 
     static void Initialize();
     static void Log(const std::string& message);
-
-private:
-    static std::ofstream logStream_;
 };
 
 } // namespace KujakuEngine
