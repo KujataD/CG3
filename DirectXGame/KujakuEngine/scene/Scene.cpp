@@ -880,6 +880,54 @@ void Scene::RemoveGameObjectHierarchy(GameObject* gameObject) {
 	gameObjects_.erase(std::remove_if(gameObjects_.begin(), gameObjects_.end(), shouldRemove), gameObjects_.end());
 }
 
+bool Scene::MoveGameObjectOrder(GameObject* dragged, GameObject* target, bool insertAfter) {
+	if (!dragged || !target || dragged == target) {
+		return false;
+	}
+	// 自分の子孫の隣には移動できない(自分を自分の中へ入れることになるため)。
+	if (target->IsDescendantOf(dragged)) {
+		return false;
+	}
+
+	GameObject* newParent = target->GetParent();
+
+	// 1. 兄弟にするため、必要なら親を変更(ワールド位置を維持)。
+	if (dragged->GetParent() != newParent) {
+		if (!dragged->SetParent(newParent, true)) {
+			return false;
+		}
+	}
+
+	// 2. ランタイムの子表示順(children_)を更新。ルート同士(newParent==nullptr)は対象外。
+	if (newParent) {
+		newParent->ReorderChild(dragged, target, insertAfter);
+	}
+
+	// 3. 永続化順(gameObjects_の並び)を、draggedの所有ptrがtargetの直前/直後へ来るよう移動。
+	//    保存はgameObjects_順で書き出されるため、これでルート順・子順の両方が保存に反映される。
+	std::vector<std::unique_ptr<GameObject>>::iterator draggedIt =
+	    std::find_if(gameObjects_.begin(), gameObjects_.end(),
+	        [dragged](const std::unique_ptr<GameObject>& current) { return current.get() == dragged; });
+	if (draggedIt == gameObjects_.end()) {
+		return true;
+	}
+	std::unique_ptr<GameObject> ownedDragged = std::move(*draggedIt);
+	gameObjects_.erase(draggedIt);
+
+	std::vector<std::unique_ptr<GameObject>>::iterator targetIt =
+	    std::find_if(gameObjects_.begin(), gameObjects_.end(),
+	        [target](const std::unique_ptr<GameObject>& current) { return current.get() == target; });
+	if (targetIt == gameObjects_.end()) {
+		gameObjects_.push_back(std::move(ownedDragged));
+		return true;
+	}
+	if (insertAfter) {
+		++targetIt;
+	}
+	gameObjects_.insert(targetIt, std::move(ownedDragged));
+	return true;
+}
+
 GameObject* Scene::FindGameObjectByInstanceId(const std::string& instanceId) const {
 	if (instanceId.empty()) {
 		return nullptr;

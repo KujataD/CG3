@@ -1,6 +1,7 @@
 #include "InspectorWindow.h"
 
 #include "../../externals/imgui/imgui.h"
+#include "../../externals/imsearch/imsearch.h"
 #include "../scene/Component.h"
 #include "../scene/ComponentFactory.h"
 #include "../scene/IMaterialTarget.h"
@@ -48,9 +49,9 @@ void AcceptMaterialDropForComponent(Component* component, GameObject* owner) {
 
 } // namespace
 
-void InspectorWindow::Draw(ProjectWindow& projectWindow) {
+void InspectorWindow::Draw(ProjectWindow& projectWindow, bool* pOpen) {
 #ifdef USE_IMGUI
-	ImGui::Begin("Inspector");
+	ImGui::Begin("Inspector", pOpen);
 
 	EditorSelection* selection = EditorSelection::GetInstance();
 	if (selection->GetSelectedAssetType() == AssetType::Material) {
@@ -198,7 +199,21 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow) {
 		}
 
 		ImGui::PushID(component.get());
-		if (ImGui::CollapsingHeader(component->GetTypeName(), ImGuiTreeNodeFlags_DefaultOpen)) {
+		bool headerOpen = ImGui::CollapsingHeader(component->GetTypeName(), ImGuiTreeNodeFlags_DefaultOpen);
+
+		// コンポーネントヘッダーの右クリックでRemove Componentを提供(常時ボタン表示をやめて隠蔽)。
+		if (ImGui::BeginPopupContextItem("ComponentContextMenu")) {
+			if (component->CanRemove()) {
+				if (ImGui::MenuItem("Remove Component")) {
+					removeTarget = component.get();
+				}
+			} else {
+				ImGui::TextDisabled("Required Component");
+			}
+			ImGui::EndPopup();
+		}
+
+		if (headerOpen) {
 			bool enabled = component->IsEnabled();
 			if (ImGui::Checkbox("Enabled", &enabled)) {
 				component->SetEnabled(enabled);
@@ -206,14 +221,6 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow) {
 
 			component->DrawInspector();
 			AcceptMaterialDropForComponent(component.get(), selected);
-
-			if (component->CanRemove()) {
-				if (ImGui::Button("Remove Component")) {
-					removeTarget = component.get();
-				}
-			} else {
-				ImGui::TextDisabled("Required Component");
-			}
 		}
 		ImGui::PopID();
 	}
@@ -231,13 +238,19 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow) {
 		const std::vector<std::string>& typeNames = ComponentFactory::GetInstance().GetRegisteredTypeNames();
 		if (typeNames.empty()) {
 			ImGui::TextDisabled("No registered Components.");
-		}
-
-		for (const std::string& typeName : typeNames) {
-			if (ImGui::MenuItem(typeName.c_str())) {
-				Component* added = selected->AddComponent(ComponentFactory::GetInstance().Create(typeName));
-				scene->OnEditorComponentAdded(selected, added);
+		} else if (ImSearch::BeginSearch()) {
+			// ImSearchの検索バーで登録Componentを絞り込み、MenuItemで追加する。
+			ImSearch::SearchBar("Search Component");
+			for (const std::string& typeName : typeNames) {
+				ImSearch::SearchableItem(typeName.c_str(), [&](const char* name) {
+					if (ImGui::MenuItem(name)) {
+						Component* added = selected->AddComponent(ComponentFactory::GetInstance().Create(name));
+						scene->OnEditorComponentAdded(selected, added);
+						ImGui::CloseCurrentPopup();
+					}
+				});
 			}
+			ImSearch::EndSearch();
 		}
 
 		ImGui::EndPopup();
@@ -254,6 +267,7 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow) {
 	ImGui::End();
 #else
 	(void)projectWindow;
+	(void)pOpen;
 #endif // USE_IMGUI
 }
 

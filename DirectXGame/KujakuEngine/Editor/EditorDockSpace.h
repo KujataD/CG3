@@ -1,11 +1,15 @@
 #pragma once
 
+#include <functional>
+
 namespace KujakuEngine {
 
 // Unity風のDockSpaceとメニューバーを描画し、初期Dockレイアウトを構築する。
 class EditorDockSpace {
 public:
-	void Draw();
+	// メニューバーの中身はdrawMenuBarContent、その下の独立したツールバー帯の中身は
+	// drawToolbarContentで注入する(状態はImGuiManager側が持つ)。
+	void Draw(const std::function<void()>& drawMenuBarContent, const std::function<void()>& drawToolbarContent);
 
 	// 次のDrawで初期Dockレイアウトを組み直させる（再初期化時に使う）。
 	void ResetLayout() { dockLayoutInitialized_ = false; }

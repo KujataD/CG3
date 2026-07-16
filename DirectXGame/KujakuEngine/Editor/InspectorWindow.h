@@ -9,7 +9,7 @@ class ProjectWindow;
 class InspectorWindow {
 public:
 	// projectWindow はMaterialアセット編集UIとPrefab反映後のRefreshに使う。
-	void Draw(ProjectWindow& projectWindow);
+	void Draw(ProjectWindow& projectWindow, bool* pOpen = nullptr);
 
 private:
 	// Inspector編集中に1操作を1つのUndoへまとめるためのフラグ。

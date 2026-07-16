@@ -21,9 +21,9 @@ void EditorConsole::AddLog(const std::string& message) {
 
 void EditorConsole::ClearLogs() { logs_.clear(); }
 
-void EditorConsole::Draw() {
+void EditorConsole::Draw(bool* pOpen) {
 #ifdef USE_IMGUI
-	ImGui::Begin("Console");
+	ImGui::Begin("Console", pOpen);
 	// ログとは別に、現在モードを常に先頭へ表示する。
 	if (EditorApplication::GetInstance()->IsPlaying()) {
 		ImGui::TextUnformatted("Editor Mode: Play");
@@ -47,6 +47,8 @@ void EditorConsole::Draw() {
 		ImGui::SetScrollHereY(1.0f);
 	}
 	ImGui::End();
+#else
+	(void)pOpen;
 #endif // USE_IMGUI
 }
 

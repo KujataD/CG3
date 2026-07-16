@@ -23,7 +23,7 @@ class ProjectWindow {
 public:
 	void Initialize();
 	void EnsureInitialized();
-	void Draw();
+	void Draw(bool* pOpen = nullptr);
 	void RenderModelPreviews();
 	void Refresh();
 	const std::filesystem::path& GetProjectRoot();

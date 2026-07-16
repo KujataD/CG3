@@ -98,6 +98,13 @@ public:
 
 	KUJAKU_API void RemoveGameObjectHierarchy(GameObject* gameObject);
 
+	/// <summary>
+	/// Hierarchyのドラッグ&ドロップ並び替え用。draggedをtargetの兄弟にし、直前/直後へ移動する。
+	/// 必要なら親を変更(ワールド位置維持)し、ランタイム表示順(children_)と
+	/// 永続化順(gameObjects_)の両方を更新する。
+	/// </summary>
+	KUJAKU_API bool MoveGameObjectOrder(GameObject* dragged, GameObject* target, bool insertAfter);
+
 	KUJAKU_API GameObject* FindGameObjectByInstanceId(const std::string& instanceId) const;
 
 	/// <summary>

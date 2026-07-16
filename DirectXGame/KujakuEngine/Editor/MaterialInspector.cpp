@@ -1,6 +1,7 @@
 #include "MaterialInspector.h"
 
 #include "../../externals/imgui/imgui.h"
+#include "../../externals/imsearch/imsearch.h"
 #include "../assets/MaterialAsset.h"
 #include "../scene/Component.h"
 #include "../scene/GameObject.h"
@@ -8,14 +9,24 @@
 #include "../scene/Scene.h"
 #include "AssetDatabase.h"
 #include "EditorApplication.h"
+#include "EditorImGuiUtil.h"
 #include "../base/ProjectPath.h"
 #include "EditorSelection.h"
 #include "ProjectWindow.h"
 #include <array>
+#include <cctype>
 #include <cstring>
 #include <filesystem>
+#include <iterator>
 #include <memory>
 #include <string>
+#include <system_error>
+#include <vector>
+
+// OSファイル選択ダイアログ(IFileDialog)用。
+#include <Windows.h>
+#include <shobjidl.h>
+#pragma comment(lib, "ole32.lib")
 
 namespace KujakuEngine {
 namespace {
@@ -89,6 +100,146 @@ bool SaveMaterialInspectorState(MaterialInspectorState& state) {
 	return true;
 }
 
+// 選択したテクスチャパスをassetId解決付きでMaterialへ反映し、表示用バッファも更新する。
+void ApplyTextureSelection(MaterialInspectorState& state, MaterialTextureSlot slot, std::array<char, 256>& buffer, const std::filesystem::path& texturePath) {
+	AssetDatabase& db = AssetDatabase::GetInstance();
+	// プロジェクト相対パスを保存パスに、assetIdを安定参照として保存する(従来はpathのみでassetIdが空だった)。
+	std::string relativePath = db.MakeProjectRelativePath(texturePath);
+	if (relativePath.empty()) {
+		relativePath = texturePath.generic_string();
+	}
+	std::string assetId = db.GetOrCreateAssetId(texturePath);
+	MaterialAsset::SetTexture(state.material, slot, assetId, relativePath);
+	CopyTextToBuffer(buffer, relativePath);
+}
+
+// プロジェクト内の画像ファイル(.png/.jpg/.jpeg)を列挙する。
+std::vector<std::filesystem::path> EnumerateProjectTextures() {
+	std::vector<std::filesystem::path> textures;
+	std::filesystem::path projectRoot = DetectEditorProjectRoot();
+	if (projectRoot.empty()) {
+		return textures;
+	}
+
+	std::error_code errorCode;
+	std::filesystem::recursive_directory_iterator iterator(projectRoot, std::filesystem::directory_options::skip_permission_denied, errorCode);
+	std::filesystem::recursive_directory_iterator end;
+	for (; iterator != end; iterator.increment(errorCode)) {
+		if (errorCode) {
+			break;
+		}
+		if (!iterator->is_regular_file(errorCode)) {
+			continue;
+		}
+		std::filesystem::path extension = iterator->path().extension();
+		std::string ext = extension.string();
+		for (char& character : ext) {
+			character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+		}
+		if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+			textures.push_back(iterator->path());
+		}
+	}
+	return textures;
+}
+
+// OSのファイル選択ダイアログで画像ファイルを1つ選ぶ。選択されたらtrueとパスを返す。
+bool OpenTextureFileDialog(std::filesystem::path& outPath) {
+	HRESULT initResult = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	const bool shouldUninitialize = SUCCEEDED(initResult);
+
+	bool picked = false;
+	IFileOpenDialog* fileDialog = nullptr;
+	if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog)))) {
+		const COMDLG_FILTERSPEC filters[] = {
+		    {L"Image Files", L"*.png;*.jpg;*.jpeg"},
+		    {L"All Files", L"*.*"},
+		};
+		fileDialog->SetFileTypes(static_cast<UINT>(std::size(filters)), filters);
+
+		if (SUCCEEDED(fileDialog->Show(nullptr))) {
+			IShellItem* item = nullptr;
+			if (SUCCEEDED(fileDialog->GetResult(&item))) {
+				PWSTR filePath = nullptr;
+				if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &filePath))) {
+					outPath = std::filesystem::path(filePath);
+					picked = true;
+					CoTaskMemFree(filePath);
+				}
+				item->Release();
+			}
+		}
+		fileDialog->Release();
+	}
+
+	if (shouldUninitialize) {
+		CoUninitialize();
+	}
+	return picked;
+}
+
+// 1テクスチャスロット分のUI(手動入力 + D&D + 一覧選択 + ファイルダイアログ)。変更があればtrue。
+bool DrawTextureSlotEditor(const char* label, const char* popupId, MaterialInspectorState& state, MaterialTextureSlot slot, std::array<char, 256>& buffer) {
+	bool changed = false;
+	ImGui::PushID(label);
+
+	// 手動パス入力も残す(直接編集したい場合)。assetIdはクリアされ、pathのみになる。
+	ImGui::SetNextItemWidth(-160.0f);
+	if (ImGui::InputText(label, buffer.data(), buffer.size())) {
+		MaterialAsset::SetTexture(state.material, slot, "", buffer.data());
+		changed = true;
+	}
+
+	// Projectからのテクスチャドロップを受け付ける。
+	if (ImGui::BeginDragDropTarget()) {
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kProjectTextureDragPayloadType);
+		if (payload && payload->DataSize > 0) {
+			ApplyTextureSelection(state, slot, buffer, std::filesystem::path(static_cast<const char*>(payload->Data)));
+			changed = true;
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("Select")) {
+		ImGui::OpenPopup(popupId);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("...")) {
+		std::filesystem::path picked;
+		if (OpenTextureFileDialog(picked)) {
+			ApplyTextureSelection(state, slot, buffer, picked);
+			changed = true;
+		}
+	}
+
+	// プロジェクト内テクスチャ一覧(ImSearchで絞り込み)。
+	if (ImGui::BeginPopup(popupId)) {
+		if (ImSearch::BeginSearch()) {
+			ImSearch::SearchBar("Search Texture");
+			AssetDatabase& db = AssetDatabase::GetInstance();
+			for (const std::filesystem::path& texturePath : EnumerateProjectTextures()) {
+				std::string relative = db.MakeProjectRelativePath(texturePath);
+				if (relative.empty()) {
+					relative = texturePath.generic_string();
+				}
+				ImSearch::SearchableItem(relative.c_str(), [&](const char* name) {
+					if (ImGui::Selectable(name)) {
+						ApplyTextureSelection(state, slot, buffer, texturePath);
+						changed = true;
+						ImGui::CloseCurrentPopup();
+					}
+				});
+			}
+			ImSearch::EndSearch();
+		}
+		ImGui::EndPopup();
+	}
+
+	ImGui::PopID();
+	return changed;
+}
+
 void RefreshMaterialUsers(const std::filesystem::path& materialPath) {
 	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
 	if (!scene) {
@@ -150,18 +301,15 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 		changed = true;
 	}
 
-	if (ImGui::InputText("BaseColor Texture", state.baseColorTextureBuffer.data(), state.baseColorTextureBuffer.size())) {
-		MaterialAsset::SetTexture(state.material, MaterialTextureSlot::BaseColor, "", state.baseColorTextureBuffer.data());
+	if (DrawTextureSlotEditor("BaseColor Texture", "BaseColorTexturePicker", state, MaterialTextureSlot::BaseColor, state.baseColorTextureBuffer)) {
 		changed = true;
 	}
 
-	if (ImGui::InputText("Normal Texture", state.normalTextureBuffer.data(), state.normalTextureBuffer.size())) {
-		MaterialAsset::SetTexture(state.material, MaterialTextureSlot::Normal, "", state.normalTextureBuffer.data());
+	if (DrawTextureSlotEditor("Normal Texture", "NormalTexturePicker", state, MaterialTextureSlot::Normal, state.normalTextureBuffer)) {
 		changed = true;
 	}
 
-	if (ImGui::InputText("Environment Texture", state.environmentTextureBuffer.data(), state.environmentTextureBuffer.size())) {
-		MaterialAsset::SetTexture(state.material, MaterialTextureSlot::Environment, "", state.environmentTextureBuffer.data());
+	if (DrawTextureSlotEditor("Environment Texture", "EnvironmentTexturePicker", state, MaterialTextureSlot::Environment, state.environmentTextureBuffer)) {
 		changed = true;
 	}
 

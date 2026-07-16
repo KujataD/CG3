@@ -185,6 +185,80 @@ void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 	ImGui::EndDragDropTarget();
 }
 
+// ノード上のドロップ位置を判定して、並び替え(前/後)と親子化(中央)を切り替える。
+// 上30%=targetの直前へ / 下30%=targetの直後へ / 中40%=targetの子にする。
+void AcceptHierarchyObjectDropOnNode(Scene& scene, GameObject* target, const ImVec2& itemMin, const ImVec2& itemMax) {
+	if (!ImGui::BeginDragDropTarget()) {
+		return;
+	}
+
+	// ドラッグ中ペイロードを覗いて、Hierarchyのドラッグなら挿入インジケータを描く。
+	const ImGuiPayload* peekPayload = ImGui::GetDragDropPayload();
+	const bool isHierarchyDrag = peekPayload && peekPayload->IsDataType(kHierarchyDragPayloadType);
+
+	// 0=直前へ, 1=子にする, 2=直後へ
+	int dropZone = 1;
+	if (isHierarchyDrag) {
+		const float height = itemMax.y - itemMin.y;
+		const float ratio = height > 0.0f ? (ImGui::GetMousePos().y - itemMin.y) / height : 0.5f;
+		if (ratio < 0.30f) {
+			dropZone = 0;
+		} else if (ratio > 0.70f) {
+			dropZone = 2;
+		} else {
+			dropZone = 1;
+		}
+
+		if (dropZone != 1) {
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			const ImU32 lineColor = ImGui::GetColorU32(ImGuiCol_DragDropTarget);
+			const float lineY = (dropZone == 0) ? itemMin.y : itemMax.y;
+			drawList->AddLine(ImVec2(itemMin.x, lineY), ImVec2(itemMax.x, lineY), lineColor, 2.0f);
+		}
+		// dropZone==1(子にする)はImGui標準の矩形ハイライトに任せる。
+	}
+
+	const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kHierarchyDragPayloadType);
+	if (payload && payload->DataSize == sizeof(GameObject*)) {
+		GameObject* dragged = *static_cast<GameObject**>(payload->Data);
+		if (dropZone == 1) {
+			if (CanDropHierarchyObject(dragged, target)) {
+				CaptureUndo(scene, "Set Parent");
+				dragged->SetParent(target, true);
+				EditorSelection::GetInstance()->SetSelectedGameObject(dragged);
+			}
+		} else {
+			CaptureUndo(scene, "Reorder GameObject");
+			if (scene.MoveGameObjectOrder(dragged, target, dropZone == 2)) {
+				EditorSelection::GetInstance()->SetSelectedGameObject(dragged);
+			}
+		}
+	}
+
+	// Prefab/Materialのドロップはノードへの適用(中央相当)として従来どおり受け付ける。
+	const ImGuiPayload* prefabPayload = ImGui::AcceptDragDropPayload(kProjectPrefabDragPayloadType);
+	if (prefabPayload && prefabPayload->DataSize > 0) {
+		const char* prefabPathText = static_cast<const char*>(prefabPayload->Data);
+		CaptureUndo(scene, "Instantiate Prefab");
+		GameObject* created = PrefabAsset::Instantiate(scene, std::filesystem::path(prefabPathText)).rootObject;
+		if (created) {
+			if (target) {
+				created->SetParent(target);
+			}
+			EditorSelection::GetInstance()->SetSelectedGameObject(created);
+		}
+	}
+
+	const ImGuiPayload* materialPayload = ImGui::AcceptDragDropPayload(kProjectMaterialDragPayloadType);
+	if (materialPayload && materialPayload->DataSize > 0) {
+		const char* materialPathText = static_cast<const char*>(materialPayload->Data);
+		CaptureUndo(scene, "Assign Material");
+		ApplyMaterialToGameObject(target, std::filesystem::path(materialPathText));
+	}
+
+	ImGui::EndDragDropTarget();
+}
+
 } // namespace
 
 void HierarchyWindow::DrawObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists) {
@@ -227,6 +301,9 @@ void HierarchyWindow::DrawObject(Scene& scene, GameObject* gameObject, GameObjec
 	}
 
 	bool opened = ImGui::TreeNodeEx(displayName.c_str(), flags);
+	// 並び替えのドロップ位置判定に使うノードの矩形を、この時点で取得しておく。
+	const ImVec2 itemMin = ImGui::GetItemRectMin();
+	const ImVec2 itemMax = ImGui::GetItemRectMax();
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
 		EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
 	}
@@ -238,7 +315,7 @@ void HierarchyWindow::DrawObject(Scene& scene, GameObject* gameObject, GameObjec
 		ImGui::EndDragDropSource();
 	}
 
-	AcceptHierarchyObjectDrop(scene, gameObject);
+	AcceptHierarchyObjectDropOnNode(scene, gameObject, itemMin, itemMax);
 
 	if (pushedTextColorCount > 0) {
 		ImGui::PopStyleColor(pushedTextColorCount);
@@ -290,9 +367,9 @@ void HierarchyWindow::DrawObject(Scene& scene, GameObject* gameObject, GameObjec
 #endif // USE_IMGUI
 }
 
-void HierarchyWindow::Draw() {
+void HierarchyWindow::Draw(bool* pOpen) {
 #ifdef USE_IMGUI
-	ImGui::Begin("Hierarchy");
+	ImGui::Begin("Hierarchy", pOpen);
 
 	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
 	if (!scene) {
@@ -343,6 +420,8 @@ void HierarchyWindow::Draw() {
 	}
 
 	ImGui::End();
+#else
+	(void)pOpen;
 #endif // USE_IMGUI
 }
 

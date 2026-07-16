@@ -27,6 +27,7 @@ namespace {
 
 constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
 constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
+constexpr const char* kProjectTextureDragPayloadType = "KujakuProjectTexture";
 constexpr const char* kRenameMaterialPopupName = "Rename Material";
 
 } // namespace
@@ -53,7 +54,7 @@ void ProjectWindow::EnsureInitialized() {
 	Initialize();
 }
 
-void ProjectWindow::Draw() {
+void ProjectWindow::Draw(bool* pOpen) {
 	// ImGuiManagerの初期化順が変わっても落ちないよう、未初期化ならここで初期化する。
 	EnsureInitialized();
 
@@ -65,7 +66,7 @@ void ProjectWindow::Draw() {
 		}
 	}
 
-	ImGui::Begin("Project");
+	ImGui::Begin("Project", pOpen);
 	// 現在パス、Back、Refreshなど、Project Window上部の操作UIを描画する。
 	DrawToolbar();
 	ImGui::Separator();
@@ -433,6 +434,15 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 	if (isMaterialFile && ImGui::BeginDragDropSource()) {
 		std::string pathText = item.absolutePath.generic_string();
 		ImGui::SetDragDropPayload(kProjectMaterialDragPayloadType, pathText.c_str(), pathText.size() + 1);
+		ImGui::TextUnformatted(displayName.c_str());
+		ImGui::EndDragDropSource();
+	}
+
+	// 画像ファイルはテクスチャとしてMaterial InspectorへD&Dできるようにする。
+	bool isImageFile = item.viewInfo.type == ProjectItemType::ImageFile;
+	if (isImageFile && ImGui::BeginDragDropSource()) {
+		std::string pathText = item.absolutePath.generic_string();
+		ImGui::SetDragDropPayload(kProjectTextureDragPayloadType, pathText.c_str(), pathText.size() + 1);
 		ImGui::TextUnformatted(displayName.c_str());
 		ImGui::EndDragDropSource();
 	}

@@ -10,7 +10,7 @@ namespace KujakuEngine {
 class SceneViewWindow {
 public:
 	// projectRoot はギズモアイコンの読み込み元（ImGuiManagerが保持するProjectRootを渡す）。
-	void Draw(const std::filesystem::path& projectRoot);
+	void Draw(const std::filesystem::path& projectRoot, bool* pOpen = nullptr);
 
 private:
 	enum class TransformGizmoOperation {

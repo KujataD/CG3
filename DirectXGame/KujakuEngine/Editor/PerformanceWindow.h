@@ -7,7 +7,7 @@ namespace KujakuEngine {
 // 2画面化(2パス描画)の負荷や、非表示ビューのスキップが効いているかを確認するのに使う。
 class PerformanceWindow {
 public:
-	void Draw();
+	void Draw(bool* pOpen = nullptr);
 
 private:
 	static const int kHistoryCount = 120;

@@ -43,6 +43,12 @@ public:
 
 	const std::vector<GameObject*>& GetChildren() const { return children_; }
 
+	/// <summary>
+	/// 直下の子childを、同じく直下の子referenceの直前/直後へ並び替える。
+	/// childとreferenceは共に現在の直接の子である必要がある。
+	/// </summary>
+	KUJAKU_API bool ReorderChild(GameObject* child, GameObject* reference, bool insertAfter);
+
 	bool IsRoot() const { return parent_ == nullptr; }
 
 	KUJAKU_API bool IsDescendantOf(const GameObject* ancestor) const;

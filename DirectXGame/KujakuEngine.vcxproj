@@ -109,6 +109,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\imgui\imgui_tables.cpp" />
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="externals\ImGuizmo-1.9\src\ImGuizmo.cpp" />
+    <ClCompile Include="externals\imsearch\imsearch.cpp" />
     <ClCompile Include="KujakuEngine\Editor\ImGuiManager.cpp" />
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
     <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp" />
@@ -204,6 +205,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui\imstb_rectpack.h" />
     <ClInclude Include="externals\imgui\imstb_textedit.h" />
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
+    <ClInclude Include="externals\imsearch\imsearch.h" />
+    <ClInclude Include="externals\imsearch\imsearch_internal.h" />
     <ClInclude Include="KujakuEngine\Editor\ImGuiManager.h" />
     <ClInclude Include="KujakuEngine\2d\Sprite.h" />
     <ClInclude Include="KujakuEngine\assets\MaterialAsset.h" />
