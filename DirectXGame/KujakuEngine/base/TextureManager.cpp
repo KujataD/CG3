@@ -1,8 +1,13 @@
 #include "TextureManager.h"
 #include "../3d/GraphicsPipeline.h"
 #include "DirectXCommon.h"
+#include <wincodec.h>
 
 #include "WinApp.h"
+#include <cctype>
+#include <cstring>
+#include <filesystem>
+#include <system_error>
 
 namespace KujakuEngine {
 void TextureManager::Initialize() { defaultWhiteTextureIndex_ = LoadTexture("Resources/white1x1.png"); }
@@ -130,6 +135,97 @@ bool TextureManager::LoadTextureInternal(const std::string& filePath, uint32_t& 
 
 	outIndex = srvIndex;
 	return true;
+}
+
+uint32_t TextureManager::CreateTextureFromMemory(const std::string& key, const uint8_t* rgbaPixels, uint32_t width, uint32_t height) {
+	if (textures_.contains(key)) {
+		return textures_[key].index;
+	}
+
+	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
+
+	// RGBA8のScratchImageを用意し、行ごとにコピー。ミップは作らない(フォントは1ミップ固定=にじみ防止)。
+	DirectX::ScratchImage image{};
+	HRESULT hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1);
+	assert(SUCCEEDED(hr));
+	const DirectX::Image* destImage = image.GetImage(0, 0, 0);
+	for (uint32_t y = 0; y < height; ++y) {
+		std::memcpy(destImage->pixels + destImage->rowPitch * y, rgbaPixels + static_cast<size_t>(width) * 4 * y, static_cast<size_t>(width) * 4);
+	}
+
+	const DirectX::TexMetadata& metadata = image.GetMetadata();
+	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource;
+	textureResource.Attach(CreateTextureResource(device, metadata));
+
+	auto intermediate = UploadTextureData(textureResource.Get(), image, DirectXCommon::GetInstance()->GetCommandList());
+	DirectXCommon::GetInstance()->ExecuteCommandAndWait();
+	if (intermediate) {
+		intermediate->Release();
+		intermediate = nullptr;
+	}
+
+	ID3D12DescriptorHeap* srvHeap = DirectXCommon::GetInstance()->GetSrvDescriptorHeap();
+	const UINT descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	uint32_t srvIndex = DirectXCommon::GetInstance()->AllocateSrvIndex();
+
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = srvHeap->GetCPUDescriptorHandleForHeapStart();
+	cpuHandle.ptr += descriptorSizeSRV * srvIndex;
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = srvHeap->GetGPUDescriptorHandleForHeapStart();
+	gpuHandle.ptr += descriptorSizeSRV * srvIndex;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = metadata.format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	device->CreateShaderResourceView(textureResource.Get(), &srvDesc, cpuHandle);
+
+	TextureData data{};
+	data.resource = textureResource;
+	data.cpuHandle = cpuHandle;
+	data.gpuHandle = gpuHandle;
+	data.index = srvIndex;
+	textures_[key] = data;
+	return srvIndex;
+}
+
+uint32_t TextureManager::UpdateTextureFromMemory(const std::string& key, const uint8_t* rgbaPixels, uint32_t width, uint32_t height) {
+	auto found = textures_.find(key);
+	if (found == textures_.end()) {
+		// 未生成なら新規生成にフォールバック。
+		return CreateTextureFromMemory(key, rgbaPixels, width, height);
+	}
+
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+	ID3D12Resource* resource = found->second.resource.Get();
+
+	// RGBA8のScratchImageを用意し、行ごとにコピー。
+	DirectX::ScratchImage image{};
+	HRESULT hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1);
+	assert(SUCCEEDED(hr));
+	const DirectX::Image* destImage = image.GetImage(0, 0, 0);
+	for (uint32_t y = 0; y < height; ++y) {
+		std::memcpy(destImage->pixels + destImage->rowPitch * y, rgbaPixels + static_cast<size_t>(width) * 4 * y, static_cast<size_t>(width) * 4);
+	}
+
+	// 既存リソースはGENERIC_READ状態なので、コピー前にCOPY_DESTへ戻す(UploadTextureDataがCOPY_DEST→GENERIC_READに戻す)。
+	D3D12_RESOURCE_BARRIER toCopyDest{};
+	toCopyDest.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	toCopyDest.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	toCopyDest.Transition.pResource = resource;
+	toCopyDest.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	toCopyDest.Transition.StateBefore = D3D12_RESOURCE_STATE_GENERIC_READ;
+	toCopyDest.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+	dxCommon->GetCommandList()->ResourceBarrier(1, &toCopyDest);
+
+	auto intermediate = UploadTextureData(resource, image, dxCommon->GetCommandList());
+	dxCommon->ExecuteCommandAndWait();
+	if (intermediate) {
+		intermediate->Release();
+		intermediate = nullptr;
+	}
+
+	return found->second.index;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandle(uint32_t index) {

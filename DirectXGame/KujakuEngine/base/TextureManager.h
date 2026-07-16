@@ -46,6 +46,18 @@ public:
 	bool TryLoadTexture(const std::string& filePath, uint32_t& outIndex);
 
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandle(uint32_t index);
+
+	/// <summary>
+	/// RGBA8のメモリ画像からテクスチャを生成し、SRVインデックスを返す。
+	/// keyでキャッシュする(同一keyは再生成しない)。フォントアトラス等の動的テクスチャ用。
+	/// </summary>
+	uint32_t CreateTextureFromMemory(const std::string& key, const uint8_t* rgbaPixels, uint32_t width, uint32_t height);
+
+	/// <summary>
+	/// 既存キーのテクスチャへRGBA8画像を再アップロード(SRVインデックスは維持)。動的に成長するフォントアトラス用。
+	/// keyが未生成なら新規生成する。描画パス外(Prepare相当)で呼ぶこと(内部でGPU待ちを行う)。
+	/// </summary>
+	uint32_t UpdateTextureFromMemory(const std::string& key, const uint8_t* rgbaPixels, uint32_t width, uint32_t height);
 	const std::deque<TextureLoadEvent>& GetRecentLoadEvents() const { return recentLoadEvents_; }
 
 	uint32_t GetDefaultWhiteTexture() const { return defaultWhiteTextureIndex_; }

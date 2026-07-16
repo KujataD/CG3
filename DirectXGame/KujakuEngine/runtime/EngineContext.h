@@ -20,6 +20,8 @@ struct EngineContext {
 	// 非表示のビューは描画パスをスキップして負荷を抑える。既定はtrue(初回フレーム/非Editor時に描く)。
 	bool sceneViewVisible = true;
 	bool gameViewVisible = true;
+	// SceneビューのUI編集モードが有効か。有効な間はSceneビューにCanvasのUIを常に描画する。
+	bool sceneViewUIEditMode = false;
 	// アセットID↔パスの解決(未設定時は各アクセサがフォールバックを使う)。
 	IAssetResolver* assetResolver = nullptr;
 	// Editorの選択状態の問い合わせ。

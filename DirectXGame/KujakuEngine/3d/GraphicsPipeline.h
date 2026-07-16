@@ -52,6 +52,7 @@ enum class BlendMode {
 	kMultiply,  // 乗算		: Src * 0 + Dest * Src
 	kScreen,    // スクリーン	: Src * (1 - Dest) + Dest * 1
 	kExclusion, // 除外		: (1 - Dest) * Src + (1 - Src) * Dest
+	kPremultipliedAlpha, // 乗算済みα: Src * 1 + Dest * (1 - SrcA)。テキスト等のフチが暗くならない。
 
 	kCountOfBlendMode, //!< ブレンドモード数。指定はしない
 };
@@ -62,6 +63,7 @@ enum class PipelineType {
 	kInstancingObject3d,
 	kObject3dWireframe,
 	kLine,
+	kUI, // スクリーン空間UI(深度OFF・アルファブレンド)
 	kCountOfPipeLineType,
 };
 
@@ -119,6 +121,10 @@ private:
 	void CreateInstancingPipelineStateObject();
 
 	void CreateLinePipelineStateObject();
+
+	void CreateUIRootSignature();
+
+	void CreateUIPipelineStateObject();
 
 private:
 	// DXCコンパイラ関連

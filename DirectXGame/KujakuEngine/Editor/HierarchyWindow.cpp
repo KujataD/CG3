@@ -11,6 +11,7 @@
 #include "../base/ProjectPath.h"
 #include "EditorSelection.h"
 #include "PrefabAsset.h"
+#include "UIObjectFactory.h"
 #include <cstring>
 #include <filesystem>
 #include <memory>
@@ -56,6 +57,28 @@ void DrawHierarchyCreateMenu(Scene& scene, GameObject* parent) {
 	}
 	if (ImGui::MenuItem("Sphere")) {
 		CreateHierarchyObject(scene, "Sphere", parent);
+	}
+
+	// UIはGameObjectメニューと共有(UIObjectFactory)。Canvas配下に生成する。
+	ImGui::Separator();
+	if (ImGui::BeginMenu("UI")) {
+		if (ImGui::MenuItem("Canvas")) {
+			CaptureUndo(scene, "Create Canvas");
+			EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::EnsureCanvas(&scene));
+		}
+		if (ImGui::MenuItem("Image")) {
+			CaptureUndo(scene, "Create UI Image");
+			EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateImage(&scene));
+		}
+		if (ImGui::MenuItem("Text")) {
+			CaptureUndo(scene, "Create UI Text");
+			EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateText(&scene));
+		}
+		if (ImGui::MenuItem("Button")) {
+			CaptureUndo(scene, "Create UI Button");
+			EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateButton(&scene));
+		}
+		ImGui::EndMenu();
 	}
 
 	ImGui::EndMenu();

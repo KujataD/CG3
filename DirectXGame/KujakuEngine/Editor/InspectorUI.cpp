@@ -20,6 +20,20 @@ bool DragFloat(const char* label, float* value, float speed, float minValue, flo
 #endif
 }
 
+bool DragFloat2(const char* label, float* values, float speed, float minValue, float maxValue, const char* format) {
+#ifdef USE_IMGUI
+	return ImGui::DragFloat2(label, values, speed, minValue, maxValue, format);
+#else
+	(void)label;
+	(void)values;
+	(void)speed;
+	(void)minValue;
+	(void)maxValue;
+	(void)format;
+	return false;
+#endif
+}
+
 bool DragFloat3(const char* label, float* values, float speed, float minValue, float maxValue, const char* format) {
 #ifdef USE_IMGUI
 	return ImGui::DragFloat3(label, values, speed, minValue, maxValue, format);
@@ -95,6 +109,55 @@ bool Button(const char* label) {
 	return ImGui::Button(label);
 #else
 	(void)label;
+	return false;
+#endif
+}
+
+bool ButtonSized(const char* label, float width, float height) {
+#ifdef USE_IMGUI
+	return ImGui::Button(label, ImVec2(width, height));
+#else
+	(void)label;
+	(void)width;
+	(void)height;
+	return false;
+#endif
+}
+
+bool ObjectField(const char* label, const char* currentName, void** outDroppedObject, bool* outCleared) {
+#ifdef USE_IMGUI
+	bool changed = false;
+	ImGui::PushID(label);
+	const char* display = (currentName && currentName[0] != '\0') ? currentName : "None";
+	// 参照表示ボタン(ここへHierarchyのGameObjectをドロップする)。
+	ImGui::Button(display, ImVec2(-60.0f, 0.0f));
+	if (ImGui::BeginDragDropTarget()) {
+		// Hierarchyのドラッグペイロード(GameObject*)を受け取る。
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("KujakuHierarchyGameObject");
+		if (payload && payload->DataSize == sizeof(void*)) {
+			if (outDroppedObject) {
+				*outDroppedObject = *static_cast<void* const*>(payload->Data);
+			}
+			changed = true;
+		}
+		ImGui::EndDragDropTarget();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Clear")) {
+		if (outCleared) {
+			*outCleared = true;
+		}
+		changed = true;
+	}
+	ImGui::SameLine();
+	ImGui::TextUnformatted(label);
+	ImGui::PopID();
+	return changed;
+#else
+	(void)label;
+	(void)currentName;
+	(void)outDroppedObject;
+	(void)outCleared;
 	return false;
 #endif
 }

@@ -6,6 +6,10 @@
 #include "../runtime/SelectionProvider.h"
 #include "../runtime/TagRegistry.h"
 #include "../scene/ComponentFactory.h"
+#include "../2d/UICanvasRenderer.h"
+#include "../2d/UIEventSystem.h"
+#include "../input/Input.h"
+#include "../runtime/UIInput.h"
 #include "SceneJsonExporter.h"
 #include "../base/ProjectPath.h"
 #include "EditorSelection.h"
@@ -316,6 +320,34 @@ void EditorApplication::Update() {
 	// service Camera等のアイコンも確実に用意する。描画パス外なのでテクスチャ生成が安全。
 	if (!ShouldUpdateGame() && currentScene_) {
 		currentScene_->RefreshEditorBillboards();
+	}
+
+	// UI(Canvas)のテクスチャ/フォント読み込みは描画パス外のここで行う(コマンドリスト実行を伴うため)。
+	if (currentScene_) {
+		PrepareSceneCanvases(*currentScene_);
+	}
+
+#ifndef USE_IMGUI
+	// ランタイム(エディタUI無し)ではウィンドウのマウスをGame RT空間としてUIポインタへ渡す。
+	{
+		DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+		UIPointerState pointer;
+		Vector2 mouse = Input::GetMouseClientPos();
+		pointer.x = mouse.x;
+		pointer.y = mouse.y;
+		pointer.inside = true;
+		pointer.held = Input::GetClick(0);
+		pointer.pressed = Input::GetClickTrigger(0);
+		pointer.released = Input::GetClickRelease(0);
+		(void)dxCommon;
+		SetUIPointer(pointer);
+	}
+#endif // USE_IMGUI
+
+	// Play中はUIイベント(ボタン)を処理する。ポインタはGameView(編集時)/Input(実行時)がセット済み。
+	if (ShouldUpdateGame() && currentScene_) {
+		DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+		UpdateUIEventSystem(*currentScene_, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()));
 	}
 }
 
@@ -891,7 +923,21 @@ std::filesystem::path EditorApplication::GetGameModuleProjectPath() const {
 }
 
 std::filesystem::path EditorApplication::GetGameModuleDllPath() const {
-	return DetectEditorProjectRoot() / "GameModules" / "GameModule.dll";
+	// GameModule.dllはビルド構成(Debug/Release)ごとに別フォルダへ出力される。
+	// exeと同じ構成のDLLを読み込まないとstd::string等のABIが食い違いクラッシュするため、
+	// exe自身の構成に対応するサブフォルダを選ぶ(GameModule.vcxprojのOutDirと一致させること)。
+#ifdef _DEBUG
+	const char* configuration = "Debug";
+#else
+	const char* configuration = "Release";
+#endif
+	std::filesystem::path root = DetectEditorProjectRoot();
+	std::filesystem::path configPath = root / "GameModules" / configuration / "GameModule.dll";
+	if (std::filesystem::exists(configPath)) {
+		return configPath;
+	}
+	// 後方互換: 旧レイアウト(構成を分けていない固定パス)にDLLがあればそれを使う。
+	return root / "GameModules" / "GameModule.dll";
 }
 
 std::filesystem::path EditorApplication::GetGameModuleHotReloadBuildRoot() const {
