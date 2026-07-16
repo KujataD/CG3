@@ -8,12 +8,15 @@
 #include "EditorStyle.h"
 #include "EditorUndoManager.h"
 #include "SceneJsonExporter.h"
+#include "UIObjectFactory.h"
 #include "../base/DirectXCommon.h"
 #include "../base/WinApp.h"
 #include "../runtime/PlayState.h"
+#include "../scene/ComponentFactory.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <string>
 
@@ -304,6 +307,26 @@ void ImGuiManager::DrawMainMenuBar() {
 		if (ImGui::MenuItem("Create Sphere", nullptr, false, hasScene)) {
 			CaptureUndo(*scene, "Create Sphere");
 			EditorSelection::GetInstance()->SetSelectedGameObject(scene->CreateEditorSphere());
+		}
+		ImGui::Separator();
+		if (ImGui::BeginMenu("UI")) {
+			if (ImGui::MenuItem("Canvas", nullptr, false, hasScene)) {
+				CaptureUndo(*scene, "Create Canvas");
+				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::EnsureCanvas(scene));
+			}
+			if (ImGui::MenuItem("Image", nullptr, false, hasScene)) {
+				CaptureUndo(*scene, "Create UI Image");
+				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateImage(scene));
+			}
+			if (ImGui::MenuItem("Text", nullptr, false, hasScene)) {
+				CaptureUndo(*scene, "Create UI Text");
+				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateText(scene));
+			}
+			if (ImGui::MenuItem("Button", nullptr, false, hasScene)) {
+				CaptureUndo(*scene, "Create UI Button");
+				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateButton(scene));
+			}
+			ImGui::EndMenu();
 		}
 		ImGui::EndMenu();
 	}

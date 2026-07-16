@@ -11,6 +11,7 @@
 #include "EditorApplication.h"
 #include "EditorImGuiUtil.h"
 #include "../base/ProjectPath.h"
+#include "../base/TextureManager.h"
 #include "EditorSelection.h"
 #include "ProjectWindow.h"
 #include <array>
@@ -183,14 +184,27 @@ bool DrawTextureSlotEditor(const char* label, const char* popupId, MaterialInspe
 	bool changed = false;
 	ImGui::PushID(label);
 
-	// 手動パス入力も残す(直接編集したい場合)。assetIdはクリアされ、pathのみになる。
-	ImGui::SetNextItemWidth(-160.0f);
-	if (ImGui::InputText(label, buffer.data(), buffer.size())) {
-		MaterialAsset::SetTexture(state.material, slot, "", buffer.data());
-		changed = true;
+	// UnityのようにテクスチャをImageプレビューで表示する(パス入力欄は廃止)。
+	// 現在のパスからSRVを解決(エディタUpdate内なので読み込み=コマンドリスト実行が安全)。
+	TextureManager* textureManager = TextureManager::GetInstance();
+	const char* currentPath = buffer.data();
+	bool hasTexture = false;
+	uint32_t previewIndex = textureManager->GetDefaultWhiteTexture();
+	if (currentPath[0] != '\0') {
+		uint32_t loaded = 0;
+		if (textureManager->TryLoadTexture(currentPath, loaded)) {
+			previewIndex = loaded;
+			hasTexture = true;
+		}
 	}
 
-	// Projectからのテクスチャドロップを受け付ける。
+	const ImVec2 previewSize(56.0f, 56.0f);
+	D3D12_GPU_DESCRIPTOR_HANDLE previewHandle = textureManager->GetSrvHandle(previewIndex);
+	ImGui::Image(static_cast<ImTextureID>(previewHandle.ptr), previewSize);
+	// プレビュー枠(未設定は赤みで示す)。
+	ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), hasTexture ? IM_COL32(120, 120, 120, 255) : IM_COL32(200, 90, 90, 255));
+
+	// プレビュー画像へProjectからテクスチャをドロップ可能。
 	if (ImGui::BeginDragDropTarget()) {
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kProjectTextureDragPayloadType);
 		if (payload && payload->DataSize > 0) {
@@ -201,6 +215,9 @@ bool DrawTextureSlotEditor(const char* label, const char* popupId, MaterialInspe
 	}
 
 	ImGui::SameLine();
+	ImGui::BeginGroup();
+	ImGui::TextUnformatted(label);
+	ImGui::TextDisabled("%s", hasTexture ? currentPath : "(no texture)");
 	if (ImGui::Button("Select")) {
 		ImGui::OpenPopup(popupId);
 	}
@@ -212,6 +229,13 @@ bool DrawTextureSlotEditor(const char* label, const char* popupId, MaterialInspe
 			changed = true;
 		}
 	}
+	ImGui::SameLine();
+	if (ImGui::Button("Clear")) {
+		MaterialAsset::SetTexture(state.material, slot, "", "");
+		CopyTextToBuffer(buffer, "");
+		changed = true;
+	}
+	ImGui::EndGroup();
 
 	// プロジェクト内テクスチャ一覧(ImSearchで絞り込み)。
 	if (ImGui::BeginPopup(popupId)) {

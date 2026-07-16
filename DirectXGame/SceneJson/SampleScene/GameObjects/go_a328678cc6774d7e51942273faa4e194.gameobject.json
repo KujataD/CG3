@@ -1,0 +1,83 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_a328678cc6774d7e51942273faa4e194",
+  "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Text",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchoredPosition": [
+          -459.5294189453125,
+          -278.4705810546875
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "rotationZ": 0.0,
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "sizeDelta": [
+          100.0,
+          100.0
+        ]
+      },
+      "type": "RectTransform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "align": 1,
+        "color": [
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "fontPath": "C:/Windows/Fonts/msgothic.ttc",
+        "fontSize": 175.5,
+        "text": "熱盛"
+      },
+      "type": "Text"
+    }
+  ]
+}

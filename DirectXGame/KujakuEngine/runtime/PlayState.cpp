@@ -20,4 +20,8 @@ bool IsGameViewVisible() { return GetEngineContext().gameViewVisible; }
 
 void SetGameViewVisible(bool visible) { GetEngineContext().gameViewVisible = visible; }
 
+bool IsSceneViewUIEditMode() { return GetEngineContext().sceneViewUIEditMode; }
+
+void SetSceneViewUIEditMode(bool enabled) { GetEngineContext().sceneViewUIEditMode = enabled; }
+
 } // namespace KujakuEngine

@@ -5,6 +5,8 @@
 #include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
+#include "../2d/UICanvasRenderer.h"
+#include "../base/DirectXCommon.h"
 #include "../base/Time.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
@@ -712,6 +714,18 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 		DrawColliderDebugLines(*this);
 		DrawCameraDebugLines(*this);
 		DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
+	}
+
+	// スクリーン空間UI(Canvas)の描画。drawEditorOverlays==true はSceneビュー、false はGameビュー。
+	// Gameビューは常にUIを描く。SceneビューはUI(Canvasまたはその子孫)を選択中のときだけ描く。
+	bool drawUI = !drawEditorOverlays;
+	if (drawEditorOverlays) {
+		// UI編集モード中は選択に関わらず常にCanvasを描く。それ以外はUI(またはその子孫)選択時のみ。
+		drawUI = IsSceneViewUIEditMode() || IsUIRelatedObject(GetSelectionProvider().GetSelectedGameObject());
+	}
+	if (drawUI) {
+		DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+		DrawSceneCanvases(*this, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()));
 	}
 }
 

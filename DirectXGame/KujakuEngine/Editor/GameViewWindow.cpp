@@ -3,6 +3,7 @@
 #include "../../externals/imgui/imgui.h"
 #include "../base/DirectXCommon.h"
 #include "../runtime/PlayState.h"
+#include "../runtime/UIInput.h"
 #include <d3d12.h>
 
 namespace KujakuEngine {
@@ -59,6 +60,24 @@ void GameViewWindow::Draw(bool* pOpen) {
 	drawList->AddRectFilled(contentPosition, contentEnd, IM_COL32(0, 0, 0, 255));
 	drawList->AddImage(static_cast<ImTextureID>(handle.ptr), imagePosition, imageEnd, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
 	ImGui::Dummy(contentSize);
+
+	// マウス位置をGame RTピクセル空間へ変換してUIのポインタ入力へ渡す(UIボタンの当たり判定用)。
+	{
+		UIPointerState pointer;
+		const ImVec2 mousePos = ImGui::GetMousePos();
+		const float localX = mousePos.x - imagePosition.x;
+		const float localY = mousePos.y - imagePosition.y;
+		const bool inside = ImGui::IsWindowHovered() && localX >= 0.0f && localY >= 0.0f && localX <= imageSize.x && localY <= imageSize.y;
+		const float rtWidth = static_cast<float>(dxCommon->GetGameRenderWidth());
+		const float rtHeight = static_cast<float>(dxCommon->GetGameRenderHeight());
+		pointer.x = imageSize.x > 0.0f ? (localX / imageSize.x) * rtWidth : 0.0f;
+		pointer.y = imageSize.y > 0.0f ? (localY / imageSize.y) * rtHeight : 0.0f;
+		pointer.inside = inside;
+		pointer.held = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+		pointer.pressed = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+		pointer.released = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+		SetUIPointer(pointer);
+	}
 
 	ImGui::End();
 #else

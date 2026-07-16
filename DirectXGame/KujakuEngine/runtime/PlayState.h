@@ -25,4 +25,8 @@ KUJAKU_API void SetSceneViewVisible(bool visible);
 KUJAKU_API bool IsGameViewVisible();
 KUJAKU_API void SetGameViewVisible(bool visible);
 
+// SceneビューのUI編集モードが有効か。有効な間はSceneビューにCanvasのUIを常に描画する。Editorが設定する。
+KUJAKU_API bool IsSceneViewUIEditMode();
+KUJAKU_API void SetSceneViewUIEditMode(bool enabled);
+
 } // namespace KujakuEngine

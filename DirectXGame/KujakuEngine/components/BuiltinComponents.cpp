@@ -1,11 +1,16 @@
 #include "BuiltinComponents.h"
+#include "ButtonComponent.h"
 #include "CameraComponent.h"
+#include "CanvasComponent.h"
 #include "ColliderComponent.h"
 #include "DebugCameraComponent.h"
 #include "DirectionalLightComponent.h"
+#include "ImageComponent.h"
 #include "ModelRendererComponent.h"
 #include "PointLightComponent.h"
+#include "RectTransformComponent.h"
 #include "RigidbodyComponent.h"
+#include "TextComponent.h"
 #include "RotatorComponent.h"
 #include "TransformComponent.h"
 #include "../scene/ComponentFactory.h"
@@ -29,6 +34,11 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<RigidbodyComponent>();
 	factory.RegisterComponent<SphereColliderComponent>();
 	factory.RegisterComponent<BoxColliderComponent>();
+	factory.RegisterComponent<CanvasComponent>();
+	factory.RegisterComponent<RectTransformComponent>();
+	factory.RegisterComponent<ImageComponent>();
+	factory.RegisterComponent<TextComponent>();
+	factory.RegisterComponent<ButtonComponent>();
 
 	registered = true;
 }
