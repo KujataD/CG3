@@ -5,7 +5,11 @@
 
 namespace KujakuEngine {
 
-std::ofstream Logger::logStream_;
+// DLLエクスポートクラスにSTL型メンバを持たせるとC4251が出るため、
+// ログストリームはこの翻訳単位ローカルのstaticに保持する。
+namespace {
+std::ofstream logStream_;
+}
 
 void Logger::Initialize() {
 	// ログのディレクトリを用意
