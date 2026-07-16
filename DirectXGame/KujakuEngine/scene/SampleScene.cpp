@@ -270,7 +270,7 @@ GameObject* SampleScene::CreateEditorCube() {
 
 	ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(GetCurrentViewCamera());
 	if (renderer) {
-		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/monsterBall.png");
+		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/white1x1.png");
 	}
 
 	return cube;
@@ -284,7 +284,7 @@ GameObject* SampleScene::CreateEditorSphere() {
 
 	ModelRendererComponent* renderer = sphere->AddComponent<ModelRendererComponent>(GetCurrentViewCamera());
 	if (renderer) {
-		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/monsterBall.png");
+		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/white1x1.png");
 	}
 
 	return sphere;

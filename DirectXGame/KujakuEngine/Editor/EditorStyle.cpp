@@ -11,7 +11,7 @@ void EditorStyle::Apply() {
 	style.FramePadding = ImVec2(4.0f, 2.0f);     // ボタンや入力欄などの内側余白
 	style.ItemSpacing = ImVec2(6.0f, 2.0f);      // UI要素同士の間隔
 	style.ItemInnerSpacing = ImVec2(2.0f, 4.0f); // 複合UI要素内のパーツ同士の間隔
-	style.Alpha = 0.95f;                         // UI全体の透明度
+	style.Alpha = 1.00f;                         // UI全体の透明度(メニュー等を完全不透明にするため1.0)
 	style.WindowRounding = 4.0f;                 // ウィンドウ角の丸み
 	style.FrameRounding = 2.0f;                  // ボタンや入力欄などの角の丸み
 	style.ChildRounding = 5.0f;                  // 子ウィンドウ角の丸み
@@ -30,9 +30,9 @@ void EditorStyle::Apply() {
 	const ImVec4 textDisabledColor = ImVec4(0.86f, 0.93f, 0.89f, 0.28f);
 	const ImVec4 mainBgColor = ImVec4(0.02f, 0.02f, 0.02f, 1.00f);
 	const ImVec4 mainBgTransparentColor = ImVec4(0.02f, 0.02f, 0.02f, 0.73f);
-	const ImVec4 popupBgColor = ImVec4(0.02f, 0.02f, 0.02f, 0.97f);
+	const ImVec4 popupBgColor = ImVec4(0.02f, 0.02f, 0.02f, 1.00f);   // メニュー/ポップアップ背景は完全不透明で視認性を確保
 	const ImVec4 titleCollapsedColor = ImVec4(0.02f, 0.02f, 0.02f, 0.75f);
-	const ImVec4 menuBarBgColor = ImVec4(0.02f, 0.02f, 0.02f, 0.70f);
+	const ImVec4 menuBarBgColor = ImVec4(0.02f, 0.02f, 0.02f, 1.00f); // メニューバーも完全不透明
 
 	const ImVec4 frameBgColor = ImVec4(0.110f, 0.110f, 0.110f, 1.00f);
 	const ImVec4 tabBgColor = ImVec4(0.110f, 0.110f, 0.110f, 0.92f);

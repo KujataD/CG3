@@ -88,6 +88,32 @@ bool GameObject::SetParent(GameObject* parent, bool keepWorldPosition) {
 	return true;
 }
 
+bool GameObject::ReorderChild(GameObject* child, GameObject* reference, bool insertAfter) {
+	if (!child || child == reference) {
+		return false;
+	}
+
+	std::vector<GameObject*>::iterator childIt = std::find(children_.begin(), children_.end(), child);
+	if (childIt == children_.end()) {
+		return false;
+	}
+	children_.erase(childIt);
+
+	// referenceが子でない/未指定なら末尾へ。
+	std::vector<GameObject*>::iterator referenceIt =
+	    reference ? std::find(children_.begin(), children_.end(), reference) : children_.end();
+	if (referenceIt == children_.end()) {
+		children_.push_back(child);
+		return true;
+	}
+
+	if (insertAfter) {
+		++referenceIt;
+	}
+	children_.insert(referenceIt, child);
+	return true;
+}
+
 bool GameObject::IsDescendantOf(const GameObject* ancestor) const {
 	if (!ancestor) {
 		return false;

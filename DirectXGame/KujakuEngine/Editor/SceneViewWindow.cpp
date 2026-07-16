@@ -246,10 +246,10 @@ void SceneViewWindow::HandleGameWindowObjectSelection(const ImVec2& imagePositio
 #endif // USE_IMGUI
 }
 
-void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
+void SceneViewWindow::Draw(const std::filesystem::path& projectRoot, bool* pOpen) {
 #ifdef USE_IMGUI
 	// Begin の戻り値で可視性(タブ非アクティブ/折り畳み時はfalse)を判定し、非表示ならパスをスキップさせる。
-	bool visible = ImGui::Begin("Scene");
+	bool visible = ImGui::Begin("Scene", pOpen);
 	SetSceneViewVisible(visible);
 
 	// Sceneビューがフォーカスされている間だけデバッグカメラを操作できるようにする(プレイ中も含む)。
@@ -313,6 +313,7 @@ void SceneViewWindow::Draw(const std::filesystem::path& projectRoot) {
 	ImGui::End();
 #else
 	(void)projectRoot;
+	(void)pOpen;
 #endif // USE_IMGUI
 }
 

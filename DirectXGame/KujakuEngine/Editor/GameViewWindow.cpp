@@ -7,10 +7,10 @@
 
 namespace KujakuEngine {
 
-void GameViewWindow::Draw() {
+void GameViewWindow::Draw(bool* pOpen) {
 #ifdef USE_IMGUI
 	// Begin の戻り値で可視性(タブ非アクティブ/折り畳み時はfalse)を判定し、非表示ならGameパスをスキップさせる。
-	bool visible = ImGui::Begin("Game");
+	bool visible = ImGui::Begin("Game", pOpen);
 	SetGameViewVisible(visible);
 	if (!visible) {
 		ImGui::End();
@@ -61,6 +61,8 @@ void GameViewWindow::Draw() {
 	ImGui::Dummy(contentSize);
 
 	ImGui::End();
+#else
+	(void)pOpen;
 #endif // USE_IMGUI
 }
 

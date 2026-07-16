@@ -3,6 +3,7 @@
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
 #include "EditorDockSpace.h"
+#include "EditorWindowVisibility.h"
 #include "GameViewWindow.h"
 #include "HierarchyWindow.h"
 #include "InspectorWindow.h"
@@ -48,8 +49,21 @@ private:
 	void HandleEditorShortcuts();
 	void ExportCurrentSceneJson();
 
+	/// <summary>
+	/// メニューバーの中身(File/Edit/GameObject/Window)を描画する。
+	/// DockSpaceのBeginMenuBar内からコールバックとして呼ばれる。
+	/// </summary>
+	void DrawMainMenuBar();
+
+	/// <summary>
+	/// メニューバー下のツールバー帯(再生・編集コントロール)を描画する。
+	/// DockSpaceのツールバー用childからコールバックとして呼ばれる。
+	/// </summary>
+	void DrawToolbar();
+
 private:
 	EditorDockSpace dockSpace_;
+	EditorWindowVisibility windowVisibility_;
 	HierarchyWindow hierarchyWindow_;
 	InspectorWindow inspectorWindow_;
 	ProjectWindow projectWindow_;

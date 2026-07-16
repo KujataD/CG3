@@ -2,11 +2,10 @@
 
 #include "../../externals/imgui/imgui.h"
 #include "../../externals/imgui/imgui_internal.h"
-#include "EditorApplication.h"
 
 namespace KujakuEngine {
 
-void EditorDockSpace::Draw() {
+void EditorDockSpace::Draw(const std::function<void()>& drawMenuBarContent, const std::function<void()>& drawToolbarContent) {
 #ifdef USE_IMGUI
 	// MainViewport全体を覆う透明な親ウィンドウを作り、その中にDockSpaceを置く。
 	// これによりGame/Hierarchy/Inspector/ConsoleをUnity風に分割配置できる。
@@ -27,46 +26,26 @@ void EditorDockSpace::Draw() {
 	ImGui::PopStyleVar(3);
 
 	if (ImGui::BeginMenuBar()) {
-		// EditはStopと同じ扱い。今はPlayを止めて編集状態に戻すだけにしている。
-		if (ImGui::Button("Edit")) {
-			EditorApplication::GetInstance()->Stop();
-		}
-		ImGui::SameLine();
-		// Startを押すとPlayへ入り、EditorApplication側でゲームロジックが進む。
-		if (ImGui::Button("Start")) {
-			EditorApplication::GetInstance()->Start();
-		}
-		ImGui::SameLine();
-		// Stopを押すとEditへ戻り、EditorApplication側でゲームロジックが止まる。
-		if (ImGui::Button("Stop")) {
-			EditorApplication::GetInstance()->Stop();
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Reload DLL")) {
-			EditorApplication::GetInstance()->ReloadGameModule();
-		}
-		ImGui::SameLine();
-
-		if (EditorApplication::GetInstance()->IsPrefabEditing()) {
-			if (ImGui::Button("Save Prefab")) {
-				EditorApplication::GetInstance()->SavePrefabEditMode();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Back")) {
-				EditorApplication::GetInstance()->ClosePrefabEditMode(false);
-			}
-			ImGui::SameLine();
-		}
-
-		// 現在のモードをメニューバー上にも出して、Start/Stopの結果をすぐ確認できるようにする。
-		if (EditorApplication::GetInstance()->IsPrefabEditing()) {
-			ImGui::Text("Mode: PrefabEdit (%s)", EditorApplication::GetInstance()->GetPrefabEditPath().filename().string().c_str());
-		} else if (EditorApplication::GetInstance()->IsPlaying()) {
-			ImGui::TextUnformatted("Mode: Play");
-		} else {
-			ImGui::TextUnformatted("Mode: Edit");
+		// メニュー内容(File/Edit/GameObject/Window)はImGuiManager側から注入する。
+		if (drawMenuBarContent) {
+			drawMenuBarContent();
 		}
 		ImGui::EndMenuBar();
+	}
+
+	// メニューバーの下に、再生・編集コントロール用の独立したツールバー帯を作る。
+	if (drawToolbarContent) {
+		ImGuiStyle& style = ImGui::GetStyle();
+		const float toolbarHeight = ImGui::GetFrameHeight() + style.FramePadding.y * 2.0f;
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
+		ImGui::BeginChild("##KujakuToolbar", ImVec2(0.0f, toolbarHeight), ImGuiChildFlags_None,
+		    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::PopStyleColor();
+		// 左端に少し余白を入れてから中身を描く。
+		ImGui::Dummy(ImVec2(style.ItemSpacing.x, 0.0f));
+		ImGui::SameLine();
+		drawToolbarContent();
+		ImGui::EndChild();
 	}
 
 	// DockSpaceのIDは毎フレーム同じ値にする必要がある。IDが変わるとドッキング状態を維持できない。
@@ -80,6 +59,9 @@ void EditorDockSpace::Draw() {
 	}
 
 	ImGui::End();
+#else
+	(void)drawMenuBarContent;
+	(void)drawToolbarContent;
 #endif // USE_IMGUI
 }
 

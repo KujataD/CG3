@@ -6,9 +6,9 @@
 
 namespace KujakuEngine {
 
-void PerformanceWindow::Draw() {
+void PerformanceWindow::Draw(bool* pOpen) {
 #ifdef USE_IMGUI
-	ImGui::Begin("Performance");
+	ImGui::Begin("Performance", pOpen);
 
 	// フレーム時間はImGuiが計測しているものを使う(エディタの実フレームレートを正確に反映)。
 	ImGuiIO& io = ImGui::GetIO();
@@ -43,6 +43,8 @@ void PerformanceWindow::Draw() {
 	ImGui::Text("Game RT : %d x %d", dxCommon->GetGameRenderWidth(), dxCommon->GetGameRenderHeight());
 
 	ImGui::End();
+#else
+	(void)pOpen;
 #endif // USE_IMGUI
 }
 

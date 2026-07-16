@@ -7,7 +7,7 @@ namespace KujakuEngine {
 // RenderTextureは固定解像度(1280x720)なのでアスペクト比を保ってレターボックス表示する。
 class GameViewWindow {
 public:
-	void Draw();
+	void Draw(bool* pOpen = nullptr);
 };
 
 } // namespace KujakuEngine

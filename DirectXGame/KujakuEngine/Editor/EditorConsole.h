@@ -12,7 +12,7 @@ public:
 
 	void AddLog(const std::string& message);
 	void ClearLogs();
-	void Draw();
+	void Draw(bool* pOpen = nullptr);
 
 private:
 	EditorConsole() = default;
