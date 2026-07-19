@@ -221,6 +221,12 @@ void ImGuiManager::DrawEditor() {
 	if (windowVisibility_.console) {
 		EditorConsole::GetInstance()->Draw(&windowVisibility_.console);
 	}
+	if (windowVisibility_.animation) {
+		animationWindow_.Draw(&windowVisibility_.animation);
+	} else {
+		// 非表示中は録画/プレビュー/Add Keyframeコンテキストを解除しておく。
+		animationWindow_.NotifyHidden();
+	}
 #endif // USE_IMGUI
 }
 
@@ -339,6 +345,7 @@ void ImGuiManager::DrawMainMenuBar() {
 		ImGui::MenuItem("Project", nullptr, &windowVisibility_.project);
 		ImGui::MenuItem("Console", nullptr, &windowVisibility_.console);
 		ImGui::MenuItem("Performance", nullptr, &windowVisibility_.performance);
+		ImGui::MenuItem("Animation", nullptr, &windowVisibility_.animation);
 		ImGui::Separator();
 		if (ImGui::MenuItem("Reset Layout")) {
 			dockSpace_.ResetLayout();

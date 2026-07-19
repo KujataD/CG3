@@ -114,7 +114,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp" />
     <ClCompile Include="KujakuEngine\2d\UIRenderer.cpp" />
     <ClCompile Include="KujakuEngine\2d\UIQuad.cpp" />
+    <ClCompile Include="KujakuEngine\assets\AnimationClipAsset.cpp" />
     <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp" />
+    <ClCompile Include="KujakuEngine\components\AnimatorComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\BuiltinComponents.cpp" />
     <ClCompile Include="KujakuEngine\components\CameraComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\ColliderComponent.cpp" />
@@ -135,6 +137,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\components\PointLightComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\TransformComponent.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\AnimationWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorApplication.cpp" />
     <ClCompile Include="KujakuEngine\Editor\EditorConsole.cpp" />
@@ -186,6 +189,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\math\Vector2.cpp" />
     <ClCompile Include="KujakuEngine\math\Vector3.cpp" />
     <ClCompile Include="KujakuEngine\runtime\GameModuleLoader.cpp" />
+    <ClCompile Include="KujakuEngine\runtime\AnimationRecordingState.cpp" />
     <ClCompile Include="KujakuEngine\runtime\PlayState.cpp" />
     <ClCompile Include="KujakuEngine\runtime\AssetResolver.cpp" />
     <ClCompile Include="KujakuEngine\runtime\EngineContext.cpp" />
@@ -224,7 +228,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\2d\Sprite.h" />
     <ClInclude Include="KujakuEngine\2d\UIRenderer.h" />
     <ClInclude Include="KujakuEngine\2d\UIQuad.h" />
+    <ClInclude Include="KujakuEngine\assets\AnimationClipAsset.h" />
     <ClInclude Include="KujakuEngine\assets\MaterialAsset.h" />
+    <ClInclude Include="KujakuEngine\components\AnimatorComponent.h" />
     <ClInclude Include="KujakuEngine\components\BuiltinComponents.h" />
     <ClInclude Include="KujakuEngine\components\CameraComponent.h" />
     <ClInclude Include="KujakuEngine\components\ColliderComponent.h" />
@@ -248,6 +254,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\components\RigidbodyComponent.h" />
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h" />
     <ClInclude Include="KujakuEngine\components\TransformComponent.h" />
+    <ClInclude Include="KujakuEngine\Editor\AnimationWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorApplication.h" />
     <ClInclude Include="KujakuEngine\Editor\EditorConsole.h" />
@@ -304,6 +311,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\runtime\GameModule.h" />
     <ClInclude Include="KujakuEngine\runtime\GameModuleLoader.h" />
     <ClInclude Include="KujakuEngine\runtime\KujakuApi.h" />
+    <ClInclude Include="KujakuEngine\runtime\AnimationRecordingState.h" />
     <ClInclude Include="KujakuEngine\runtime\PlayState.h" />
     <ClInclude Include="KujakuEngine\runtime\AssetResolver.h" />
     <ClInclude Include="KujakuEngine\runtime\EngineContext.h" />

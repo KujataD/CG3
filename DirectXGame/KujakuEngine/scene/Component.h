@@ -15,12 +15,14 @@
 
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 namespace KujakuEngine {
 
 class ColliderComponent;
 class GameObject;
 class SerializedFieldRegistry;
+struct AnimatableChannel;
 struct Collision;
 
 /// <summary>
@@ -52,6 +54,12 @@ public:
 	virtual void ReadJson(const nlohmann::json& json);
 
 	virtual void OnAfterReadJson() {}
+
+	/// <summary>
+	/// アニメーション可能なfloatチャンネルを列挙します。
+	/// KUJAKU_SERIALIZED_FIELDS使用Componentは自動対応。手書きComponentは個別にoverrideします。
+	/// </summary>
+	virtual void CollectAnimatableChannels(std::vector<AnimatableChannel>& channels) { (void)channels; }
 
 	/// <summary>
 	/// Component情報を共通形式のJSONとして書き出す

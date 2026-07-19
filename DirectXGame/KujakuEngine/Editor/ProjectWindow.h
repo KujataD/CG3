@@ -74,6 +74,7 @@ private:
 	void OpenFileInExplorer(const std::filesystem::path& filePath) const;
 	bool InstantiatePrefabItem(const std::filesystem::path& prefabPath);
 	void CreateMaterialInCurrentDirectory();
+	void CreateAnimationClipInCurrentDirectory();
 	std::filesystem::path MakeUniqueMaterialPath() const;
 	void BeginRenameMaterial(const ProjectItem& item);
 	void DrawRenameMaterialPopup();

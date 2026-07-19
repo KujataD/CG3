@@ -138,8 +138,17 @@
     <ClCompile Include="KujakuEngine\2d\Sprite.cpp">
       <Filter>KujakuEngine\2d</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\assets\AnimationClipAsset.cpp">
+      <Filter>KujakuEngine\assets</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\assets\MaterialAsset.cpp">
       <Filter>KujakuEngine\assets</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\AnimatorComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\AnimationWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\AssetDatabase.cpp">
       <Filter>KujakuEngine\Editor</Filter>
@@ -259,6 +268,9 @@
       <Filter>KujakuEngine</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\runtime\GameModuleLoader.cpp">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\AnimationRecordingState.cpp">
       <Filter>KujakuEngine\runtime</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\runtime\PlayState.cpp">
@@ -425,8 +437,14 @@
     <ClInclude Include="KujakuEngine\2d\Sprite.h">
       <Filter>KujakuEngine\2d</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\assets\AnimationClipAsset.h">
+      <Filter>KujakuEngine\assets</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\assets\MaterialAsset.h">
       <Filter>KujakuEngine\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\AnimatorComponent.h">
+      <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\BuiltinComponents.h">
       <Filter>KujakuEngine\components</Filter>
@@ -458,6 +476,9 @@
     <ClInclude Include="KujakuEngine\components\TransformComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\AnimationWindow.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\AssetDatabase.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
@@ -486,6 +507,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\InspectorUI.h">
+      <Filter>KujakuEngine\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\AnimationRecordingState.h">
       <Filter>KujakuEngine\runtime</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\runtime\PlayState.h">

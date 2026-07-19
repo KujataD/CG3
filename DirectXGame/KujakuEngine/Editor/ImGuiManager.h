@@ -2,6 +2,7 @@
 #include "../../externals/imgui/imgui.h"
 #include "../../externals/imgui/imgui_impl_dx12.h"
 #include "../../externals/imgui/imgui_impl_win32.h"
+#include "AnimationWindow.h"
 #include "EditorDockSpace.h"
 #include "EditorWindowVisibility.h"
 #include "GameViewWindow.h"
@@ -64,6 +65,7 @@ private:
 private:
 	EditorDockSpace dockSpace_;
 	EditorWindowVisibility windowVisibility_;
+	AnimationWindow animationWindow_;
 	HierarchyWindow hierarchyWindow_;
 	InspectorWindow inspectorWindow_;
 	ProjectWindow projectWindow_;

@@ -5,6 +5,7 @@
 #include "PrefabAsset.h"
 #include "../base/ProjectPath.h"
 #include "EditorSelection.h"
+#include "../assets/AnimationClipAsset.h"
 #include "../assets/MaterialAsset.h"
 #include "../base/DirectXCommon.h"
 #include "../base/TextureManager.h"
@@ -29,6 +30,7 @@ constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
 constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
 constexpr const char* kProjectTextureDragPayloadType = "KujakuProjectTexture";
 constexpr const char* kProjectModelDragPayloadType = "KujakuProjectModel";
+constexpr const char* kProjectAnimClipDragPayloadType = "KujakuProjectAnimClip";
 constexpr const char* kRenameMaterialPopupName = "Rename Material";
 
 } // namespace
@@ -85,6 +87,9 @@ void ProjectWindow::Draw(bool* pOpen) {
 		if (ImGui::BeginMenu("Create")) {
 			if (ImGui::MenuItem("Material")) {
 				CreateMaterialInCurrentDirectory();
+			}
+			if (ImGui::MenuItem("Animation Clip")) {
+				CreateAnimationClipInCurrentDirectory();
 			}
 			ImGui::EndMenu();
 		}
@@ -266,6 +271,20 @@ void ProjectWindow::CreateMaterialInCurrentDirectory() {
 	std::string message;
 	if (MaterialAsset::CreateDefaultFile(materialPath, message)) {
 		AssetDatabase::GetInstance().GetOrCreateAssetId(materialPath);
+		Refresh();
+	}
+}
+
+void ProjectWindow::CreateAnimationClipInCurrentDirectory() {
+	// MakeUniqueMaterialPathと同じ方式で重複しないファイル名を決める。
+	std::filesystem::path candidate = currentDirectory_ / "NewAnimation.anim.json";
+	for (int index = 1; index < 10000 && std::filesystem::exists(candidate); ++index) {
+		candidate = currentDirectory_ / ("NewAnimation " + std::to_string(index) + ".anim.json");
+	}
+
+	std::string message;
+	if (AnimationClipAsset::CreateDefaultFile(candidate, message)) {
+		AssetDatabase::GetInstance().GetOrCreateAssetId(candidate);
 		Refresh();
 	}
 }
@@ -453,6 +472,15 @@ void ProjectWindow::DrawItem(ProjectItem& item, int itemIndex) {
 	if (isModelFile && ImGui::BeginDragDropSource()) {
 		std::string pathText = item.absolutePath.generic_string();
 		ImGui::SetDragDropPayload(kProjectModelDragPayloadType, pathText.c_str(), pathText.size() + 1);
+		ImGui::TextUnformatted(displayName.c_str());
+		ImGui::EndDragDropSource();
+	}
+
+	// Animation Clip(*.anim.json)はAnimator/AnimationWindowへD&Dできるようにする。
+	bool isAnimClipFile = AnimationClipAsset::IsClipFile(item.absolutePath);
+	if (isAnimClipFile && ImGui::BeginDragDropSource()) {
+		std::string pathText = item.absolutePath.generic_string();
+		ImGui::SetDragDropPayload(kProjectAnimClipDragPayloadType, pathText.c_str(), pathText.size() + 1);
 		ImGui::TextUnformatted(displayName.c_str());
 		ImGui::EndDragDropSource();
 	}
