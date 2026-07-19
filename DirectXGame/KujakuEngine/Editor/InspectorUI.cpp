@@ -2,8 +2,10 @@
 
 #ifdef USE_IMGUI
 #include "../../externals/imgui/imgui.h"
+#include "../runtime/AnimationRecordingState.h"
 #include "EditorImGuiUtil.h"
 #include <cstring>
+#include <string>
 #endif
 
 namespace KujakuEngine::InspectorUI {
@@ -189,6 +191,44 @@ bool ModelAssetField(const char* label, const char* currentDisplay, char* outBuf
 	(void)outBuffer;
 	(void)outBufferSize;
 	return false;
+#endif
+}
+
+void AnimationFieldHook(const char* channelKey, const float* values, int count, bool changedByWidget) {
+#ifdef USE_IMGUI
+	if (!IsAnimationKeyContextEnabled() || !GetAnimationRecordingComponentContext()) {
+		return;
+	}
+	if (!channelKey || !values || count < 1 || count > 4) {
+		return;
+	}
+
+	bool shouldReport = changedByWidget && IsAnimationRecording();
+
+	// 直前のフィールドの右クリックで"Add Keyframe"(録画中でなくてもキーを打てる)。
+	std::string popupId = std::string("##AnimKey_") + channelKey;
+	if (ImGui::BeginPopupContextItem(popupId.c_str())) {
+		if (ImGui::MenuItem("Add Keyframe")) {
+			shouldReport = true;
+		}
+		ImGui::EndPopup();
+	}
+
+	if (shouldReport) {
+		static constexpr const char* kSuffixes[4] = {".x", ".y", ".z", ".w"};
+		if (count == 1) {
+			ReportAnimationChannelChange(channelKey, values[0]);
+		} else {
+			for (int i = 0; i < count; ++i) {
+				ReportAnimationChannelChange(std::string(channelKey) + kSuffixes[i], values[i]);
+			}
+		}
+	}
+#else
+	(void)channelKey;
+	(void)values;
+	(void)count;
+	(void)changedByWidget;
 #endif
 }
 

@@ -2,11 +2,13 @@
 
 #include "../../externals/imgui/imgui.h"
 #include "../../externals/imsearch/imsearch.h"
+#include "../components/AnimatorComponent.h"
 #include "../scene/Component.h"
 #include "../scene/ComponentFactory.h"
 #include "../scene/IMaterialTarget.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
+#include "../runtime/AnimationRecordingState.h"
 #include "../runtime/TagRegistry.h"
 #include "EditorApplication.h"
 #include "EditorConsole.h"
@@ -17,6 +19,7 @@
 #include "ProjectWindow.h"
 #include <array>
 #include <cstdio>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
@@ -41,6 +44,17 @@ void AcceptMaterialDropForComponent(Component* component, GameObject* owner) {
 				EditorSelection::GetInstance()->SetSelectedGameObject(owner);
 			}
 			EditorConsole::GetInstance()->AddLog("[Material] Assigned: " + std::string(materialPathText));
+		}
+	}
+
+	// Animation Clip(*.anim.json)はAnimatorComponentへ追加する。
+	const ImGuiPayload* animClipPayload = ImGui::AcceptDragDropPayload(kProjectAnimClipDragPayloadType);
+	if (animClipPayload && animClipPayload->DataSize > 0) {
+		const char* clipPathText = static_cast<const char*>(animClipPayload->Data);
+		AnimatorComponent* animator = dynamic_cast<AnimatorComponent*>(component);
+		if (animator) {
+			animator->SetClipPath(clipPathText);
+			EditorConsole::GetInstance()->AddLog("[Animation] Clip added: " + std::string(clipPathText));
 		}
 	}
 
@@ -219,7 +233,24 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow, bool* pOpen) {
 				component->SetEnabled(enabled);
 			}
 
+			// 録画対象のComponent文脈を設定する(Animator自身は記録対象外)。
+			// 録画中はUnityの赤ティントのようにフィールド背景を赤くする。
+			bool recordable = std::strcmp(component->GetTypeName(), "AnimatorComponent") != 0;
+			SetAnimationRecordingComponentContext(recordable ? component->GetTypeName() : nullptr);
+			bool tintRecording = recordable && IsAnimationRecording() && IsAnimationKeyContextEnabled();
+			if (tintRecording) {
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.55f, 0.16f, 0.16f, 0.85f));
+				ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.65f, 0.22f, 0.22f, 0.9f));
+				ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.75f, 0.28f, 0.28f, 0.95f));
+			}
+
 			component->DrawInspector();
+
+			if (tintRecording) {
+				ImGui::PopStyleColor(3);
+			}
+			SetAnimationRecordingComponentContext(nullptr);
+
 			AcceptMaterialDropForComponent(component.get(), selected);
 		}
 		ImGui::PopID();

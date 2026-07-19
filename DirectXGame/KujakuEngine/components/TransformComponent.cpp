@@ -54,9 +54,12 @@ void TransformComponent::Initialize() {
 void TransformComponent::DrawInspector() {
 #ifdef USE_IMGUI
 	WorldTransform& transform = GetTransform();
-	InspectorUI::DragFloat3("Translation", &transform.translation_.x, 0.01f);
-	InspectorUI::DragFloat3("Rotation", &transform.rotation_.x, 0.01f);
-	InspectorUI::DragFloat3("Scale", &transform.scale_.x, 0.01f);
+	bool translationChanged = InspectorUI::DragFloat3("Translation", &transform.translation_.x, 0.01f);
+	InspectorUI::AnimationFieldHook("translation", &transform.translation_.x, 3, translationChanged);
+	bool rotationChanged = InspectorUI::DragFloat3("Rotation", &transform.rotation_.x, 0.01f);
+	InspectorUI::AnimationFieldHook("rotation", &transform.rotation_.x, 3, rotationChanged);
+	bool scaleChanged = InspectorUI::DragFloat3("Scale", &transform.scale_.x, 0.01f);
+	InspectorUI::AnimationFieldHook("scale", &transform.scale_.x, 3, scaleChanged);
 
 	if (transform.scale_.x < 0.001f) {
 		transform.scale_.x = 0.001f;
@@ -68,6 +71,20 @@ void TransformComponent::DrawInspector() {
 		transform.scale_.z = 0.001f;
 	}
 #endif
+}
+
+void TransformComponent::CollectAnimatableChannels(std::vector<AnimatableChannel>& channels) {
+	// JSONキー(translation/rotation/scale)と揃えたチャンネル名にする。
+	WorldTransform& transform = GetTransform();
+	channels.push_back({"translation.x", &transform.translation_.x});
+	channels.push_back({"translation.y", &transform.translation_.y});
+	channels.push_back({"translation.z", &transform.translation_.z});
+	channels.push_back({"rotation.x", &transform.rotation_.x});
+	channels.push_back({"rotation.y", &transform.rotation_.y});
+	channels.push_back({"rotation.z", &transform.rotation_.z});
+	channels.push_back({"scale.x", &transform.scale_.x});
+	channels.push_back({"scale.y", &transform.scale_.y});
+	channels.push_back({"scale.z", &transform.scale_.z});
 }
 
 void TransformComponent::WriteJson(nlohmann::json& json) const {

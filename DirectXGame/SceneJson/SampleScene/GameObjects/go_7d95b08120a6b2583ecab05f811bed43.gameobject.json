@@ -16,7 +16,7 @@
       "properties": {
         "rotation": [
           0.0,
-          -0.0,
+          2.619992256164551,
           0.0
         ],
         "scale": [
@@ -25,8 +25,8 @@
           0.5
         ],
         "translation": [
-          -2.6457042694091797,
-          4.9477949142456055,
+          -17.67148208618164,
+          1.852910041809082,
           0.0
         ]
       },
@@ -100,6 +100,28 @@
         ]
       },
       "type": "RigidbodyComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clips": [
+          {
+            "assetId": "",
+            "path": "Animations/Sample.anim.json"
+          }
+        ],
+        "currentClip": 0,
+        "playOnStart": false,
+        "speed": 1.0
+      },
+      "type": "AnimatorComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "speed": 0.4339999854564667
+      },
+      "type": "RotatorComponent"
     }
   ]
 }

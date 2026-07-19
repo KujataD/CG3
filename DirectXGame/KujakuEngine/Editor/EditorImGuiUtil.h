@@ -12,6 +12,7 @@ constexpr const char* kProjectPrefabDragPayloadType = "KujakuProjectPrefab";
 constexpr const char* kProjectMaterialDragPayloadType = "KujakuProjectMaterial";
 constexpr const char* kProjectTextureDragPayloadType = "KujakuProjectTexture";
 constexpr const char* kProjectModelDragPayloadType = "KujakuProjectModel";
+constexpr const char* kProjectAnimClipDragPayloadType = "KujakuProjectAnimClip";
 
 // 現在のSceneの状態をUndo履歴へ積む。
 void CaptureUndo(Scene& scene, const std::string& label);

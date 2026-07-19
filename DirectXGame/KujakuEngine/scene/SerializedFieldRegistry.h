@@ -21,8 +21,18 @@
 #include <cstdint>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace KujakuEngine {
+
+/// <summary>
+/// アニメーション可能なfloatチャンネル1つ分。pathはComponent内のチャンネル名
+/// (例: "speed", "velocity.x")。Component種別のprefixはAnimator側が付ける。
+/// </summary>
+struct AnimatableChannel {
+	std::string path;
+	float* value = nullptr;
+};
 
 /// <summary>
 /// 登録された調整項目をInspector表示、JSON保存、JSON読み込みへ流すRegistry。
@@ -33,6 +43,7 @@ public:
 		DrawInspector,
 		WriteJson,
 		ReadJson,
+		CollectAnimatables,
 	};
 
 	/// <summary>
@@ -50,14 +61,25 @@ public:
 	/// </summary>
 	explicit SerializedFieldRegistry(const nlohmann::json& json) : mode_(Mode::ReadJson), readJson_(&json) {}
 
+	/// <summary>
+	/// アニメーションチャンネル収集用Registryを作成します。
+	/// float/Vector3/Vector4フィールドをチャンネルとして列挙します。
+	/// </summary>
+	explicit SerializedFieldRegistry(std::vector<AnimatableChannel>& channels) : mode_(Mode::CollectAnimatables), channels_(&channels) {}
+
 	void Float(const char* memberName, float& value, float dragSpeed, float minValue, float maxValue) {
 		std::string key = MakeJsonKey(memberName);
 		FloatNamed(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
 	}
 
 	void FloatNamed(const char* jsonKey, const char* label, float& value, float dragSpeed, float minValue, float maxValue) {
+		if (mode_ == Mode::CollectAnimatables) {
+			channels_->push_back({pathPrefix_ + jsonKey, &value});
+			return;
+		}
 		if (mode_ == Mode::DrawInspector) {
-			InspectorUI::DragFloat(label, &value, dragSpeed, minValue, maxValue);
+			bool changed = InspectorUI::DragFloat(label, &value, dragSpeed, minValue, maxValue);
+			InspectorUI::AnimationFieldHook(jsonKey, &value, 1, changed);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -203,8 +225,16 @@ public:
 	}
 
 	void Vector3Named(const char* jsonKey, const char* label, Vector3& value, float dragSpeed, float minValue, float maxValue) {
+		if (mode_ == Mode::CollectAnimatables) {
+			std::string basePath = pathPrefix_ + jsonKey;
+			channels_->push_back({basePath + ".x", &value.x});
+			channels_->push_back({basePath + ".y", &value.y});
+			channels_->push_back({basePath + ".z", &value.z});
+			return;
+		}
 		if (mode_ == Mode::DrawInspector) {
-			InspectorUI::DragFloat3(label, &value.x, dragSpeed, minValue, maxValue);
+			bool changed = InspectorUI::DragFloat3(label, &value.x, dragSpeed, minValue, maxValue);
+			InspectorUI::AnimationFieldHook(jsonKey, &value.x, 3, changed);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -232,11 +262,21 @@ public:
 	}
 
 	void Vector4Named(const char* jsonKey, const char* label, Vector4& value, float dragSpeed, float minValue, float maxValue) {
+		if (mode_ == Mode::CollectAnimatables) {
+			std::string basePath = pathPrefix_ + jsonKey;
+			channels_->push_back({basePath + ".x", &value.x});
+			channels_->push_back({basePath + ".y", &value.y});
+			channels_->push_back({basePath + ".z", &value.z});
+			channels_->push_back({basePath + ".w", &value.w});
+			return;
+		}
 		if (mode_ == Mode::DrawInspector) {
 			float values[4] = {value.x, value.y, value.z, value.w};
-			if (InspectorUI::ColorEdit4(label, values)) {
+			bool changed = InspectorUI::ColorEdit4(label, values);
+			if (changed) {
 				value = {values[0], values[1], values[2], values[3]};
 			}
+			InspectorUI::AnimationFieldHook(jsonKey, &value.x, 4, changed);
 			(void)dragSpeed;
 			(void)minValue;
 			(void)maxValue;
@@ -301,6 +341,12 @@ public:
 
 	template <class TObject>
 	void ObjectNamed(const char* jsonKey, const char* label, TObject& value) {
+		if (mode_ == Mode::CollectAnimatables) {
+			SerializedFieldRegistry childRegistry(*channels_);
+			childRegistry.pathPrefix_ = pathPrefix_ + jsonKey + ".";
+			value.RegisterSerializedFields(childRegistry);
+			return;
+		}
 		if (mode_ == Mode::DrawInspector) {
 			InspectorUI::TextUnformatted(label);
 			SerializedFieldRegistry childRegistry;
@@ -389,6 +435,8 @@ private:
 	Mode mode_ = Mode::DrawInspector;
 	nlohmann::json* writeJson_ = nullptr;
 	const nlohmann::json* readJson_ = nullptr;
+	std::vector<AnimatableChannel>* channels_ = nullptr;
+	std::string pathPrefix_;
 };
 
 } // namespace KujakuEngine
@@ -415,6 +463,10 @@ public: \
 	} \
 	void ReadJson(const nlohmann::json& json) override { \
 		KujakuEngine::SerializedFieldRegistry registry(json); \
+		RegisterSerializedFields(registry); \
+	} \
+	void CollectAnimatableChannels(std::vector<KujakuEngine::AnimatableChannel>& channels) override { \
+		KujakuEngine::SerializedFieldRegistry registry(channels); \
 		RegisterSerializedFields(registry); \
 	} \
 private: \

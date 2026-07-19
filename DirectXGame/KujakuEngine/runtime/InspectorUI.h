@@ -36,4 +36,12 @@ KUJAKU_API void TextUnformatted(const char* text);
 KUJAKU_API void TextDisabled(const char* text);
 KUJAKU_API void SameLine();
 
+/// <summary>
+/// 直前に描画したフィールドをアニメーション録画に接続します。
+/// - 録画中に値が変更されたら現在のプレイヘッドへ自動キー登録
+/// - AnimationWindowがクリップを開いている間、右クリックで"Add Keyframe"を提供
+/// countは成分数(float=1, Vector3=3, Vector4=4)。channelKeyはJSONキー名(成分suffixは自動付与)。
+/// </summary>
+KUJAKU_API void AnimationFieldHook(const char* channelKey, const float* values, int count, bool changedByWidget);
+
 } // namespace KujakuEngine::InspectorUI
