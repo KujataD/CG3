@@ -405,6 +405,10 @@ void HierarchyWindow::Draw(bool* pOpen) {
 	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
 	bool selectedObjectExists = false;
 
+	// DrawObject内のD&D(並び替え=MoveGameObjectOrder / Prefab生成など)はgameObjects_を
+	// 変更・再確保するため、range-forの参照が無効化されてクラッシュする。
+	// 子ループ(DrawObject内)と同様に、描画前にルートのポインタをスナップショットしてから反復する。
+	std::vector<GameObject*> rootObjects;
 	for (const std::unique_ptr<GameObject>& object : scene->GetGameObjects()) {
 		if (!object) {
 			continue;
@@ -412,8 +416,11 @@ void HierarchyWindow::Draw(bool* pOpen) {
 		if (!object->IsRoot()) {
 			continue;
 		}
+		rootObjects.push_back(object.get());
+	}
 
-		DrawObject(*scene, object.get(), selectedObject, selectedObjectExists);
+	for (GameObject* rootObject : rootObjects) {
+		DrawObject(*scene, rootObject, selectedObject, selectedObjectExists);
 	}
 
 	ImVec2 remainingRegion = ImGui::GetContentRegionAvail();

@@ -1,0 +1,69 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_f637c185f20508167b1b86c2f00d7802",
+  "parentInstanceId": "go_1af68e2e906d556a0d7b212c1d43e4e4",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "ShieldModel",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          -3.1415908336639404,
+          -0.37159210443496704,
+          -3.1415908336639404
+        ],
+        "scale": [
+          1.1800000667572021,
+          1.1800000667572021,
+          1.1800000667572021
+        ],
+        "translation": [
+          -1.8433704376220703,
+          -0.20496368408203125,
+          0.7525091171264648
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "material": {
+          "baseColor": [
+            0.1882845163345337,
+            0.1882845163345337,
+            0.1882845163345337,
+            1.0
+          ],
+          "name": "Shield",
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "asset_e8d3cd76cdbbf21474698ea3f08dc6b6",
+        "materialPath": "Materials/Shield.material.json",
+        "modelPath": "shield",
+        "primitive": "Model"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}

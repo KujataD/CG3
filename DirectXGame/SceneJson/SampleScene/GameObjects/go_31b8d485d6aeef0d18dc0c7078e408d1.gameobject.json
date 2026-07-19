@@ -1,0 +1,36 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_31b8d485d6aeef0d18dc0c7078e408d1",
+  "parentInstanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Weapon",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.7599998712539673,
+          0.0
+        ],
+        "scale": [
+          0.9999998807907104,
+          1.0,
+          0.9999998807907104
+        ],
+        "translation": [
+          1.762338638305664,
+          -1.134831428527832,
+          1.5542290210723877
+        ]
+      },
+      "type": "Transform"
+    }
+  ]
+}

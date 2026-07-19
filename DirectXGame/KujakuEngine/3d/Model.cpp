@@ -187,6 +187,85 @@ Model* Model::CreateCube(const std::string& textureFilePath, ShaderModel shaderM
 	return model;
 }
 
+Model* Model::CreateCapsule(const std::string& textureFilePath, ShaderModel shaderModel, float radius, float height, uint32_t subdivision) {
+	Model* model = new Model();
+
+	const uint32_t slices = (subdivision < 3) ? 3 : subdivision;         // 経度分割
+	const uint32_t stacks = (subdivision / 2 < 1) ? 1 : subdivision / 2; // 半球あたりの緯度分割
+	const float pi = std::numbers::pi_v<float>;
+
+	// spineの半長 = 全長の半分から半径を引いた分(cylinder部分の半分)。
+	float cylinderHalf = height * 0.5f - radius;
+	if (cylinderHalf < 0.0f) {
+		cylinderHalf = 0.0f;
+	}
+
+	struct RingVertex {
+		Vector3 position;
+		Vector3 normal;
+	};
+
+	// 下半球(-pi/2 → 0)→ 上半球(0 → pi/2) の順にリングを積む。
+	// 下半球末尾(赤道, y=-cylinderHalf)と上半球先頭(赤道, y=+cylinderHalf)の間がcylinder側面になる。
+	std::vector<std::vector<RingVertex>> rings;
+	auto buildHemisphere = [&](bool top) {
+		float centerY = top ? cylinderHalf : -cylinderHalf;
+		for (uint32_t s = 0; s <= stacks; ++s) {
+			float ratio = static_cast<float>(s) / static_cast<float>(stacks);
+			float phi = top ? (pi * 0.5f) * ratio : (-pi * 0.5f + (pi * 0.5f) * ratio);
+			std::vector<RingVertex> ring;
+			ring.reserve(slices + 1);
+			for (uint32_t i = 0; i <= slices; ++i) {
+				float lon = (2.0f * pi) * (static_cast<float>(i) / static_cast<float>(slices));
+				Vector3 normal = {cosf(phi) * cosf(lon), sinf(phi), cosf(phi) * sinf(lon)};
+				Vector3 position = {radius * normal.x, centerY + radius * normal.y, radius * normal.z};
+				ring.push_back({position, normal});
+			}
+			rings.push_back(std::move(ring));
+		}
+	};
+
+	buildHemisphere(false);
+	buildHemisphere(true);
+
+	std::vector<VertexData> vertices;
+	const uint32_t ringCount = static_cast<uint32_t>(rings.size());
+	auto pushVertex = [&](const RingVertex& rv, float u, float v) {
+		VertexData vertex{};
+		vertex.position = {rv.position.x, rv.position.y, rv.position.z, 1.0f};
+		vertex.texcoord = {u, v};
+		vertex.normal = rv.normal;
+		vertices.push_back(vertex);
+	};
+
+	for (uint32_t ringIndex = 0; ringIndex + 1 < ringCount; ++ringIndex) {
+		const std::vector<RingVertex>& r0 = rings[ringIndex];
+		const std::vector<RingVertex>& r1 = rings[ringIndex + 1];
+		float v0 = static_cast<float>(ringIndex) / static_cast<float>(ringCount - 1);
+		float v1 = static_cast<float>(ringIndex + 1) / static_cast<float>(ringCount - 1);
+		for (uint32_t i = 0; i < slices; ++i) {
+			float u0 = static_cast<float>(i) / static_cast<float>(slices);
+			float u1 = static_cast<float>(i + 1) / static_cast<float>(slices);
+
+			// CreateSphereと同じ巻き順で2三角形を張る。
+			pushVertex(r0[i], u0, v0);
+			pushVertex(r1[i], u0, v1);
+			pushVertex(r0[i + 1], u1, v0);
+
+			pushVertex(r0[i + 1], u1, v0);
+			pushVertex(r1[i], u0, v1);
+			pushVertex(r1[i + 1], u1, v1);
+		}
+	}
+
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
+
+	model->CreateVertexBuffer(vertices);
+	model->CreateMaterialBuffer(defaultMaterial);
+
+	return model;
+}
+
 Model* Model::CreatePlane(const std::string& textureFilePath, ShaderModel shaderModel) {
 	Model* model = new Model();
 

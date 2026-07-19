@@ -22,6 +22,7 @@ public:
 		Custom,
 		Cube,
 		Sphere,
+		Capsule,
 		Model,
 	};
 
@@ -38,7 +39,8 @@ public:
 	void SetCamera(const Camera* camera);
 
 	/// <summary>
-	/// Builtin形状とTextureを設定
+	/// Builtin形状を設定します。textureFilePathは、Material Assetを参照していない場合のみ
+	/// 埋め込みMaterialのBaseColorへ反映されます(Texture/ColorはMaterialだけで管理します)。
 	/// </summary>
 	void SetPrimitive(PrimitiveType primitive, const std::string& textureFilePath);
 
@@ -54,8 +56,6 @@ public:
 	bool UsesMaterialAsset(const std::string& materialPath) const override;
 
 	PrimitiveType GetPrimitive() const { return primitive_; }
-
-	const std::string& GetTextureFilePath() const { return textureFilePath_; }
 
 	const std::string& GetMaterialAssetId() const { return materialAssetId_; }
 
@@ -86,7 +86,6 @@ private:
 	std::unique_ptr<Model> model_;
 	const Camera* camera_ = nullptr;
 	PrimitiveType primitive_ = PrimitiveType::Custom;
-	std::string textureFilePath_ = "resources/white1x1.png";
 	std::string modelFolderPath_ = "player";
 	std::string materialAssetId_;
 	std::string materialPath_;

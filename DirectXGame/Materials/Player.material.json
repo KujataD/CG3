@@ -1,0 +1,25 @@
+{
+  "assetType": "Material",
+  "baseColor": [
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "name": "Player",
+  "textures": {
+    "BaseColor": {
+      "assetId": "",
+      "path": "resources/white1x1.png"
+    },
+    "Environment": {
+      "assetId": "",
+      "path": ""
+    },
+    "Normal": {
+      "assetId": "",
+      "path": ""
+    }
+  },
+  "version": 1
+}

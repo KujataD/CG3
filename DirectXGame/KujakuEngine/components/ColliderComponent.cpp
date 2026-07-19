@@ -157,17 +157,17 @@ bool IsCollisionBoxAndBox(const ColliderComponent& a, const ColliderComponent& b
 	return ShapeUtil::IsCollision(boxA->GetWorldAABB(), boxB->GetWorldAABB());
 }
 
-bool IsCollisionBoxAndSphere(const ColliderComponent& boxCollider, const ColliderComponent& sphereCollider) {
-	const BoxColliderComponent* box = AsBoxCollider(boxCollider);
-	if (!box) {
-		return ShapeUtil::IsCollision(boxCollider.GetWorldAABB(), sphereCollider.GetWorldSphere());
-	}
+const CapsuleColliderComponent* AsCapsuleCollider(const ColliderComponent& collider) {
+	return dynamic_cast<const CapsuleColliderComponent*>(&collider);
+}
 
-	if (box->UsesWorldOBB()) {
-		return ShapeUtil::IsCollision(box->GetWorldOBB(), sphereCollider.GetWorldSphere());
+// Sphere/CapsuleをワールドCapsuleへ変換する(球はp0==p1の退化カプセルとして扱う)。Boxには使わない。
+Capsule MakeWorldCapsule(const ColliderComponent& collider) {
+	if (const CapsuleColliderComponent* capsule = AsCapsuleCollider(collider)) {
+		return capsule->GetWorldCapsule();
 	}
-
-	return ShapeUtil::IsCollision(box->GetWorldAABB(), sphereCollider.GetWorldSphere());
+	Sphere sphere = collider.GetWorldSphere();
+	return {sphere.center, sphere.center, sphere.radius};
 }
 
 // 任意ColliderをワールドOBBへ変換する(Box以外はAABBから軸並行OBBを作る)。
@@ -186,22 +186,24 @@ OBB MakeWorldOBB(const ColliderComponent& collider) {
 }
 
 // a→b への接触情報を計算する(normal は a から b へ向かう分離方向)。
+// Sphere/Capsuleはカプセル(球は退化カプセル)、BoxはOBBへ統一して扱う。
 bool ComputeContactByShape(const ColliderComponent& a, const ColliderComponent& b, Contact& out) {
-	const bool aSphere = a.GetShapeType() == ColliderShapeType::Sphere;
-	const bool bSphere = b.GetShapeType() == ColliderShapeType::Sphere;
+	const bool aBox = a.GetShapeType() == ColliderShapeType::Box;
+	const bool bBox = b.GetShapeType() == ColliderShapeType::Box;
 
-	if (aSphere && bSphere) {
-		return ShapeUtil::ComputeContact(a.GetWorldSphere(), b.GetWorldSphere(), out);
+	if (!aBox && !bBox) {
+		// カプセル-カプセル(sphere-sphere / sphere-capsule を含む)
+		return ShapeUtil::ComputeContact(MakeWorldCapsule(a), MakeWorldCapsule(b), out);
 	}
-	if (!aSphere && !bSphere) {
+	if (aBox && bBox) {
 		return ShapeUtil::ComputeContact(MakeWorldOBB(a), MakeWorldOBB(b), out);
 	}
-	if (aSphere && !bSphere) {
-		// 球a→箱b: normal は sphere→obb = a→b
-		return ShapeUtil::ComputeContact(a.GetWorldSphere(), MakeWorldOBB(b), out);
+	if (!aBox && bBox) {
+		// カプセルa→箱b: normal は capsule→obb = a→b
+		return ShapeUtil::ComputeContact(MakeWorldCapsule(a), MakeWorldOBB(b), out);
 	}
-	// 箱a→球b: sphere(b)→obb(a) を求めると normal は b→a なので反転する
-	if (ShapeUtil::ComputeContact(b.GetWorldSphere(), MakeWorldOBB(a), out)) {
+	// 箱a→カプセルb: capsule(b)→obb(a) を求めると normal は b→a なので反転する
+	if (ShapeUtil::ComputeContact(MakeWorldCapsule(b), MakeWorldOBB(a), out)) {
 		out.normal = out.normal * -1.0f;
 		return true;
 	}
@@ -209,23 +211,21 @@ bool ComputeContactByShape(const ColliderComponent& a, const ColliderComponent& 
 }
 
 bool IntersectsByShape(const ColliderComponent& a, const ColliderComponent& b) {
-	if (a.GetShapeType() == ColliderShapeType::Sphere && b.GetShapeType() == ColliderShapeType::Sphere) {
-		return ShapeUtil::IsCollision(a.GetWorldSphere(), b.GetWorldSphere());
+	const bool aBox = a.GetShapeType() == ColliderShapeType::Box;
+	const bool bBox = b.GetShapeType() == ColliderShapeType::Box;
+
+	if (!aBox && !bBox) {
+		return ShapeUtil::IsCollision(MakeWorldCapsule(a), MakeWorldCapsule(b));
 	}
 
-	if (a.GetShapeType() == ColliderShapeType::Box && b.GetShapeType() == ColliderShapeType::Box) {
+	if (aBox && bBox) {
 		return IsCollisionBoxAndBox(a, b);
 	}
 
-	if (a.GetShapeType() == ColliderShapeType::Box && b.GetShapeType() == ColliderShapeType::Sphere) {
-		return IsCollisionBoxAndSphere(a, b);
-	}
-
-	if (a.GetShapeType() == ColliderShapeType::Sphere && b.GetShapeType() == ColliderShapeType::Box) {
-		return IsCollisionBoxAndSphere(b, a);
-	}
-
-	return false;
+	// カプセル(または球) vs 箱
+	const ColliderComponent& capsuleCollider = aBox ? b : a;
+	const ColliderComponent& boxCollider = aBox ? a : b;
+	return ShapeUtil::IsCollision(MakeWorldCapsule(capsuleCollider), MakeWorldOBB(boxCollider));
 }
 
 } // namespace
@@ -464,6 +464,114 @@ void BoxColliderComponent::WriteShapeJson(nlohmann::json& json) const {
 
 void BoxColliderComponent::ReadShapeJson(const nlohmann::json& json) {
 	SetSize(ReadVector3(json, "size", size_));
+}
+
+void CapsuleColliderComponent::SetRadius(float radius) {
+	radius_ = (radius < 0.0f) ? 0.0f : radius;
+}
+
+void CapsuleColliderComponent::SetHeight(float height) {
+	height_ = (height < 0.0f) ? 0.0f : height;
+}
+
+void CapsuleColliderComponent::SetDirection(int direction) {
+	if (direction < 0) {
+		direction = 0;
+	}
+	if (direction > 2) {
+		direction = 2;
+	}
+	direction_ = direction;
+}
+
+Capsule CapsuleColliderComponent::GetWorldCapsule() const {
+	Vector3 localAxis = {0.0f, 1.0f, 0.0f};
+	if (direction_ == 0) {
+		localAxis = {1.0f, 0.0f, 0.0f};
+	} else if (direction_ == 2) {
+		localAxis = {0.0f, 0.0f, 1.0f};
+	}
+
+	// spineの半長 = 全長の半分から半径を引いた分(cylinder部分の半分)。
+	float halfSpine = height_ * 0.5f - radius_;
+	if (halfSpine < 0.0f) {
+		halfSpine = 0.0f;
+	}
+
+	Vector3 localP0 = center_ - localAxis * halfSpine;
+	Vector3 localP1 = center_ + localAxis * halfSpine;
+
+	GameObject* owner = GetOwner();
+	if (!owner) {
+		return {localP0, localP1, radius_};
+	}
+
+	const_cast<GameObject*>(owner)->UpdateWorldTransformSelfAndAncestors();
+	const Matrix4x4& matrix = owner->GetTransform().matWorld_;
+
+	Vector3 worldP0 = Transform(localP0, matrix);
+	Vector3 worldP1 = Transform(localP1, matrix);
+
+	// 半径はカプセル軸に垂直な2軸のスケール最大で拡縮する。
+	float perpScale = 1.0f;
+	if (direction_ == 0) {
+		perpScale = (std::max)(GetWorldAxisScale(matrix, 1), GetWorldAxisScale(matrix, 2));
+	} else if (direction_ == 2) {
+		perpScale = (std::max)(GetWorldAxisScale(matrix, 0), GetWorldAxisScale(matrix, 1));
+	} else {
+		perpScale = (std::max)(GetWorldAxisScale(matrix, 0), GetWorldAxisScale(matrix, 2));
+	}
+
+	return {worldP0, worldP1, radius_ * perpScale};
+}
+
+Sphere CapsuleColliderComponent::GetWorldSphere() const {
+	Capsule capsule = GetWorldCapsule();
+	Vector3 center = (capsule.p0 + capsule.p1) * 0.5f;
+	float halfLength = Length(capsule.p1 - capsule.p0) * 0.5f;
+	return {center, halfLength + capsule.radius};
+}
+
+AABB CapsuleColliderComponent::GetWorldAABB() const {
+	Capsule capsule = GetWorldCapsule();
+	Vector3 radiusVector = {capsule.radius, capsule.radius, capsule.radius};
+	Vector3 min0 = capsule.p0 - radiusVector;
+	Vector3 max0 = capsule.p0 + radiusVector;
+	Vector3 min1 = capsule.p1 - radiusVector;
+	Vector3 max1 = capsule.p1 + radiusVector;
+
+	AABB aabb{};
+	aabb.min = {(std::min)(min0.x, min1.x), (std::min)(min0.y, min1.y), (std::min)(min0.z, min1.z)};
+	aabb.max = {(std::max)(max0.x, max1.x), (std::max)(max0.y, max1.y), (std::max)(max0.z, max1.z)};
+	return aabb;
+}
+
+void CapsuleColliderComponent::DrawShapeInspector() {
+	InspectorUI::DragFloat("Radius", &radius_, 0.01f, 0.0f, 0.0f);
+	if (radius_ < 0.0f) {
+		radius_ = 0.0f;
+	}
+	InspectorUI::DragFloat("Height", &height_, 0.01f, 0.0f, 0.0f);
+	if (height_ < 0.0f) {
+		height_ = 0.0f;
+	}
+
+	const char* directionItems[] = {"X-Axis", "Y-Axis", "Z-Axis"};
+	if (InspectorUI::Combo("Direction", &direction_, directionItems, 3)) {
+		SetDirection(direction_);
+	}
+}
+
+void CapsuleColliderComponent::WriteShapeJson(nlohmann::json& json) const {
+	json["radius"] = radius_;
+	json["height"] = height_;
+	json["direction"] = direction_;
+}
+
+void CapsuleColliderComponent::ReadShapeJson(const nlohmann::json& json) {
+	SetRadius(ReadFloat(json, "radius", radius_));
+	SetHeight(ReadFloat(json, "height", height_));
+	SetDirection(static_cast<int>(ReadUint32(json, "direction", static_cast<uint32_t>(direction_))));
 }
 
 } // namespace KujakuEngine

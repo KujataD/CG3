@@ -64,6 +64,13 @@ struct Sphere {
 	float radius;
 };
 
+// カプセル。spine(線分 p0-p1)から半径radius膨らませた形状。p0==p1のとき球と等価。
+struct Capsule {
+	Vector3 p0;    // spine端点(片側の球中心)
+	Vector3 p1;    // spine端点(反対側の球中心)
+	float radius;
+};
+
 struct Plane {
 	Vector3 normal;
 	float distance;
@@ -111,6 +118,12 @@ bool IsCollision(const OBB& obb1, const OBB& obb2);
 
 bool IsCollision(const Sphere& a, const Sphere& b);
 
+bool IsCollision(const Capsule& capsule, const Sphere& sphere);
+
+bool IsCollision(const Capsule& a, const Capsule& b);
+
+bool IsCollision(const Capsule& capsule, const OBB& obb);
+
 /// <summary>
 /// 軸が重なっているかどうか
 /// </summary>
@@ -121,6 +134,10 @@ bool IsOverlappingOnAxis(const OBB& A, const OBB& B, const Vector3& axis);
 bool ComputeContact(const Sphere& a, const Sphere& b, Contact& out);
 bool ComputeContact(const Sphere& sphere, const OBB& obb, Contact& out);
 bool ComputeContact(const OBB& a, const OBB& b, Contact& out);
+// normal は capsule から相手へ向かう分離方向(単位)。
+bool ComputeContact(const Capsule& capsule, const Sphere& sphere, Contact& out);
+bool ComputeContact(const Capsule& a, const Capsule& b, Contact& out);
+bool ComputeContact(const Capsule& capsule, const OBB& obb, Contact& out);
 
 Vector3 Reflect(const Vector3& input, const Vector3& normal);
 

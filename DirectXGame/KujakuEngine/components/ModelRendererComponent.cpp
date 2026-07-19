@@ -34,6 +34,10 @@ ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primi
 		return ModelRendererComponent::PrimitiveType::Sphere;
 	}
 
+	if (primitiveName == "Capsule") {
+		return ModelRendererComponent::PrimitiveType::Capsule;
+	}
+
 	if (primitiveName == "Model") {
 		return ModelRendererComponent::PrimitiveType::Model;
 	}
@@ -71,11 +75,10 @@ void ModelRendererComponent::SetCamera(const Camera* camera) {
 
 void ModelRendererComponent::SetPrimitive(PrimitiveType primitive, const std::string& textureFilePath) {
 	primitive_ = primitive;
-	if (!textureFilePath.empty()) {
-		textureFilePath_ = textureFilePath;
-		if (materialAssetId_.empty() && materialPath_.empty()) {
-			SetBaseColorTexturePath(material_, textureFilePath);
-		}
+	// TextureはMaterialだけで管理する。Material Assetを参照していない場合のみ、
+	// 埋め込みMaterialのBaseColorへ反映する(Unityの Instance Material 上書き相当)。
+	if (!textureFilePath.empty() && materialAssetId_.empty() && materialPath_.empty()) {
+		SetBaseColorTexturePath(material_, textureFilePath);
 	}
 	RebuildPrimitiveModel();
 }
@@ -90,7 +93,6 @@ void ModelRendererComponent::SetMaterialAsset(const std::string& materialAssetId
 		MaterialAssetData loadedMaterial{};
 		if (MaterialAsset::Load(resolvedPath, loadedMaterial, message)) {
 			material_ = loadedMaterial;
-			textureFilePath_ = GetBaseColorTexturePath(material_);
 		}
 	}
 
@@ -151,14 +153,17 @@ void ModelRendererComponent::DrawInspector() {
 	case KujakuEngine::ModelRendererComponent::PrimitiveType::Sphere:
 		primitiveIndex = 2;
 		break;
-	case KujakuEngine::ModelRendererComponent::PrimitiveType::Model:
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Capsule:
 		primitiveIndex = 3;
+		break;
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Model:
+		primitiveIndex = 4;
 		break;
 	default:
 		break;
 	}
 
-	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Model"};
+	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Capsule", "Model"};
 	constexpr int primitiveItemCount = static_cast<int>(sizeof(primitiveItems) / sizeof(primitiveItems[0]));
 	if (InspectorUI::Combo("Primitive", &primitiveIndex, primitiveItems, primitiveItemCount)) {
 		PrimitiveType selectedPrimitive = PrimitiveType::Custom;
@@ -167,28 +172,24 @@ void ModelRendererComponent::DrawInspector() {
 		} else if (primitiveIndex == 2) {
 			selectedPrimitive = PrimitiveType::Sphere;
 		} else if (primitiveIndex == 3) {
+			selectedPrimitive = PrimitiveType::Capsule;
+		} else if (primitiveIndex == 4) {
 			selectedPrimitive = PrimitiveType::Model;
 		}
-		SetPrimitive(selectedPrimitive, textureFilePath_);
+		SetPrimitive(selectedPrimitive, GetBaseColorTexturePath(material_));
 	}
 
-	std::array<char, 256> textureBuffer{};
-	std::string baseColorTexturePath = GetBaseColorTexturePath(material_);
-	strncpy_s(textureBuffer.data(), textureBuffer.size(), baseColorTexturePath.c_str(), _TRUNCATE);
-	if (InspectorUI::InputText("Texture", textureBuffer.data(), textureBuffer.size())) {
-		SetBaseColorTexturePath(material_, textureBuffer.data());
-		textureFilePath_ = GetBaseColorTexturePath(material_);
-		ApplyMaterialToModel();
-	}
+	// Texture/ColorはMaterialだけで管理するため、この欄には出さない(Material Inspectorで編集する)。
 
-	if (InspectorUI::ColorEdit4("Color", &material_.baseColor.x)) {
-		ApplyMaterialToModel();
-	}
-
-	std::array<char, 256> modelBuffer{};
-	strncpy_s(modelBuffer.data(), modelBuffer.size(), modelFolderPath_.c_str(), _TRUNCATE);
-	if (InspectorUI::InputText("Model", modelBuffer.data(), modelBuffer.size())) {
-		modelFolderPath_ = modelBuffer.data();
+	// ModelはProject(エクスプローラー)からModelファイルをドロップして差し替える。
+	std::array<char, 256> modelDropBuffer{};
+	if (InspectorUI::ModelAssetField("Model", modelFolderPath_.c_str(), modelDropBuffer.data(), modelDropBuffer.size())) {
+		// CreateFromOBJは "Resources/<name>/<name>.obj" 規約なので、ファイル名(拡張子なし)をModel名として使う。
+		std::string modelName = std::filesystem::path(modelDropBuffer.data()).stem().string();
+		if (!modelName.empty()) {
+			modelFolderPath_ = modelName;
+			SetPrimitive(PrimitiveType::Model, GetBaseColorTexturePath(material_));
+		}
 	}
 
 	InspectorUI::TextUnformatted("Material");
@@ -197,35 +198,11 @@ void ModelRendererComponent::DrawInspector() {
 	} else {
 		InspectorUI::TextUnformatted(materialPath_.c_str());
 	}
-
-	if (InspectorUI::Button("Apply")) {
-		RebuildPrimitiveModel();
-	}
-
-	if (!materialPath_.empty()) {
-		if (InspectorUI::Button("Save Material")) {
-			std::string message;
-			MaterialAsset::Save(ResolveMaterialPath(), material_, message);
-		}
-	}
-
-	if (model_) {
-		InspectorUI::TextUnformatted("Model: Assigned");
-	} else {
-		InspectorUI::TextDisabled("Model: None");
-	}
-
-	if (camera_) {
-		InspectorUI::TextUnformatted("Camera: Assigned");
-	} else {
-		InspectorUI::TextDisabled("Camera: None");
-	}
 #endif // USE_IMGUI
 }
 
 void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	json["primitive"] = GetPrimitiveName();
-	json["texture"] = textureFilePath_;
 	json["modelPath"] = modelFolderPath_;
 	json["materialAssetId"] = materialAssetId_;
 	json["materialPath"] = materialPath_;
@@ -244,18 +221,17 @@ void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 	if (json.contains("material") && json.at("material").is_object()) {
 		material_ = MaterialAsset::ReadJsonObject(json.at("material"), material_);
 	} else {
+		// 旧シーン互換: Texture/ColorがMaterialへ移行する前の "texture" を取り込む。
 		std::string texturePath = ReadString(json, "texture", GetBaseColorTexturePath(material_));
 		SetBaseColorTexturePath(material_, texturePath);
 	}
 
-	textureFilePath_ = GetBaseColorTexturePath(material_);
-	SetPrimitive(ReadPrimitiveType(primitiveName), textureFilePath_);
+	SetPrimitive(ReadPrimitiveType(primitiveName), GetBaseColorTexturePath(material_));
 }
 
 void ModelRendererComponent::RebuildPrimitiveModel() {
 	MaterialAssetData activeMaterial = GetActiveMaterial();
 	material_ = activeMaterial;
-	textureFilePath_ = GetBaseColorTexturePath(activeMaterial);
 	std::string texturePath = MaterialAsset::ResolveTexturePath(activeMaterial, MaterialTextureSlot::BaseColor).string();
 
 	if (primitive_ == PrimitiveType::Cube) {
@@ -266,6 +242,12 @@ void ModelRendererComponent::RebuildPrimitiveModel() {
 
 	if (primitive_ == PrimitiveType::Sphere) {
 		model_.reset(Model::CreateSphere(texturePath, ShaderModel::kBlingPhongReflection));
+		ApplyMaterialToModel();
+		return;
+	}
+
+	if (primitive_ == PrimitiveType::Capsule) {
+		model_.reset(Model::CreateCapsule(texturePath, ShaderModel::kBlingPhongReflection));
 		ApplyMaterialToModel();
 		return;
 	}
@@ -281,7 +263,6 @@ void ModelRendererComponent::ApplyMaterialToModel() {
 		return;
 	}
 
-	textureFilePath_ = GetBaseColorTexturePath(material_);
 	model_->SetColor(material_.baseColor);
 	model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_, MaterialTextureSlot::BaseColor));
 }
@@ -315,6 +296,10 @@ const char* ModelRendererComponent::GetPrimitiveName() const {
 
 	if (primitive_ == PrimitiveType::Sphere) {
 		return "Sphere";
+	}
+
+	if (primitive_ == PrimitiveType::Capsule) {
+		return "Capsule";
 	}
 
 	if (primitive_ == PrimitiveType::Model) {

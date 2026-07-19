@@ -1,5 +1,11 @@
 #pragma once
 
+// このumbrellaヘッダはWindows.h(DirectXTex/imgui_impl_win32/base経由)を取り込むため、
+// min/maxマクロがstd::min/std::maxやBahamutAI等のヘッダを壊さないよう先にNOMINMAXを定義する。
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 #include <cmath>
 #include <cstdint>
 #include <memory>

@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_a19672b7cae624c950caa1145e77d7e5",
-  "parentInstanceId": "",
+  "instanceId": "go_607d427a7e4f69e3303ec9858521f8b7",
+  "parentInstanceId": "go_7d95b08120a6b2583ecab05f811bed43",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Ground",
+  "name": "Weapon",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -20,14 +20,14 @@
           0.0
         ],
         "scale": [
-          38.06370544433594,
-          2.5799999237060547,
-          41.1008415222168
+          1.0,
+          1.0,
+          1.0
         ],
         "translation": [
-          0.0,
-          0.0,
-          0.0
+          2.1005759239196777,
+          -0.025377273559570313,
+          1.9266849449195433e-06
         ]
       },
       "type": "Transform"
@@ -37,16 +37,16 @@
       "properties": {
         "material": {
           "baseColor": [
-            0.2818112373352051,
-            0.875,
-            0.15692934393882751,
+            1.0,
+            1.0,
+            1.0,
             1.0
           ],
-          "name": "Ground",
+          "name": "New Material",
           "textures": {
             "BaseColor": {
               "assetId": "",
-              "path": "Resources/white1x1.png"
+              "path": "resources/white1x1.png"
             },
             "Environment": {
               "assetId": "",
@@ -58,30 +58,12 @@
             }
           }
         },
-        "materialAssetId": "asset_1ec61f2dd2d7b7e70f6297f5ce66bfdf",
-        "materialPath": "Materials/Ground.material.json",
-        "modelPath": "player",
-        "primitive": "Cube"
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "Cane",
+        "primitive": "Model"
       },
       "type": "ModelRendererComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "center": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "collisionMask": 4294967295,
-        "isTrigger": false,
-        "size": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      },
-      "type": "BoxColliderComponent"
     }
   ]
 }

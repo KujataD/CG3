@@ -354,6 +354,59 @@ void DrawSphere(const Sphere& sphere, const Vector4& color) {
 	}
 }
 
+void DrawCapsule(const Capsule& capsule, const Vector4& color) {
+	if (capsule.radius <= 0.0f) {
+		return;
+	}
+
+	const float radius = capsule.radius;
+	Vector3 axisVector = capsule.p1 - capsule.p0;
+	float axisLength = Length(axisVector);
+	Vector3 axis = (axisLength > 1e-6f) ? axisVector * (1.0f / axisLength) : Vector3{0.0f, 1.0f, 0.0f};
+
+	// axisに垂直な正規直交基底(right, forward)を作る。
+	Vector3 reference = (std::abs(axis.y) < 0.99f) ? Vector3{0.0f, 1.0f, 0.0f} : Vector3{1.0f, 0.0f, 0.0f};
+	Vector3 right = Normalize(Cross(reference, axis));
+	Vector3 forward = Cross(axis, right);
+
+	const int32_t segment = kColliderSphereSubdivision;
+	const float twoPi = 2.0f * kColliderDebugPi;
+
+	// 両端の円(axisに垂直な面)。
+	auto drawRing = [&](const Vector3& center) {
+		for (int32_t i = 0; i < segment; ++i) {
+			float t0 = twoPi * (static_cast<float>(i) / static_cast<float>(segment));
+			float t1 = twoPi * (static_cast<float>(i + 1) / static_cast<float>(segment));
+			Vector3 a = center + (right * std::cos(t0) + forward * std::sin(t0)) * radius;
+			Vector3 b = center + (right * std::cos(t1) + forward * std::sin(t1)) * radius;
+			LineRenderer::DrawLine(a, b, color);
+		}
+	};
+	drawRing(capsule.p0);
+	drawRing(capsule.p1);
+
+	// 半球のシルエット弧(0..pi の半円)。axisSignで膨らむ向きを切り替える。
+	auto drawArc = [&](const Vector3& center, const Vector3& sideDir, float axisSign) {
+		for (int32_t i = 0; i < segment; ++i) {
+			float f0 = kColliderDebugPi * (static_cast<float>(i) / static_cast<float>(segment));
+			float f1 = kColliderDebugPi * (static_cast<float>(i + 1) / static_cast<float>(segment));
+			Vector3 a = center + (sideDir * std::cos(f0) + axis * (axisSign * std::sin(f0))) * radius;
+			Vector3 b = center + (sideDir * std::cos(f1) + axis * (axisSign * std::sin(f1))) * radius;
+			LineRenderer::DrawLine(a, b, color);
+		}
+	};
+	drawArc(capsule.p1, right, 1.0f);
+	drawArc(capsule.p1, forward, 1.0f);
+	drawArc(capsule.p0, right, -1.0f);
+	drawArc(capsule.p0, forward, -1.0f);
+
+	// cylinder側面(4本)。
+	LineRenderer::DrawLine(capsule.p0 + right * radius, capsule.p1 + right * radius, color);
+	LineRenderer::DrawLine(capsule.p0 - right * radius, capsule.p1 - right * radius, color);
+	LineRenderer::DrawLine(capsule.p0 + forward * radius, capsule.p1 + forward * radius, color);
+	LineRenderer::DrawLine(capsule.p0 - forward * radius, capsule.p1 - forward * radius, color);
+}
+
 void DrawColliderDebugLines(Scene& scene) {
 	// 出し分けは呼び出し側(RenderViewのdrawEditorOverlays)が担当する。Sceneビューはプレイ中も表示。
 	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
@@ -381,6 +434,11 @@ void DrawColliderDebugLines(Scene& scene) {
 				DrawOBB(boxCollider->GetWorldOBB(), kColliderDebugColor);
 			} else {
 				DrawAABB(collider->GetWorldAABB(), kColliderDebugColor);
+			}
+		} else if (collider->GetShapeType() == ColliderShapeType::Capsule) {
+			CapsuleColliderComponent* capsuleCollider = dynamic_cast<CapsuleColliderComponent*>(collider);
+			if (capsuleCollider) {
+				DrawCapsule(capsuleCollider->GetWorldCapsule(), kColliderDebugColor);
 			}
 		}
 	}

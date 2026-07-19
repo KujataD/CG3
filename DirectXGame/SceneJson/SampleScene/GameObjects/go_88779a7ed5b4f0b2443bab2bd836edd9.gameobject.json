@@ -1,0 +1,69 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_88779a7ed5b4f0b2443bab2bd836edd9",
+  "parentInstanceId": "go_31b8d485d6aeef0d18dc0c7078e408d1",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "WeaponModel",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.5999994874000549,
+          0.14000000059604645,
+          -0.14000001549720764
+        ],
+        "scale": [
+          0.9999926090240479,
+          0.9999906420707703,
+          0.9999881386756897
+        ],
+        "translation": [
+          -0.22263097763061523,
+          -2.638169765472412,
+          -2.008049964904785
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "material": {
+          "baseColor": [
+            0.1882845163345337,
+            0.1882845163345337,
+            0.1882845163345337,
+            1.0
+          ],
+          "name": "Shield",
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "asset_e8d3cd76cdbbf21474698ea3f08dc6b6",
+        "materialPath": "Materials/Shield.material.json",
+        "modelPath": "player_weapon",
+        "primitive": "Model"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}
