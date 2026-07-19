@@ -1,0 +1,25 @@
+{
+  "assetType": "Material",
+  "baseColor": [
+    0.1882845163345337,
+    0.1882845163345337,
+    0.1882845163345337,
+    1.0
+  ],
+  "name": "Shield",
+  "textures": {
+    "BaseColor": {
+      "assetId": "",
+      "path": "resources/white1x1.png"
+    },
+    "Environment": {
+      "assetId": "",
+      "path": ""
+    },
+    "Normal": {
+      "assetId": "",
+      "path": ""
+    }
+  },
+  "version": 1
+}

@@ -34,6 +34,7 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<RigidbodyComponent>();
 	factory.RegisterComponent<SphereColliderComponent>();
 	factory.RegisterComponent<BoxColliderComponent>();
+	factory.RegisterComponent<CapsuleColliderComponent>();
 	factory.RegisterComponent<CanvasComponent>();
 	factory.RegisterComponent<RectTransformComponent>();
 	factory.RegisterComponent<ImageComponent>();

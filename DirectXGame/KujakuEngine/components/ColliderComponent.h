@@ -12,6 +12,7 @@ namespace KujakuEngine {
 enum class ColliderShapeType {
 	Sphere,
 	Box,
+	Capsule,
 };
 
 /// <summary>
@@ -176,6 +177,46 @@ protected:
 
 private:
 	Vector3 size_ = {1.0f, 1.0f, 1.0f};
+};
+
+/// <summary>
+/// カプセルCollider。Unity準拠でradius/height/direction(0=X,1=Y,2=Z)を持ちます。
+/// heightは両端の半球を含む全長で、cylinder部分の長さは height - 2*radius です。
+/// </summary>
+class KUJAKU_API CapsuleColliderComponent : public ColliderComponent {
+public:
+	const char* GetTypeName() const override { return "CapsuleColliderComponent"; }
+	ColliderShapeType GetShapeType() const override { return ColliderShapeType::Capsule; }
+
+	float GetRadius() const { return radius_; }
+	void SetRadius(float radius);
+
+	float GetHeight() const { return height_; }
+	void SetHeight(float height);
+
+	/// <summary>
+	/// カプセル軸方向(0=X,1=Y,2=Z)。
+	/// </summary>
+	int GetDirection() const { return direction_; }
+	void SetDirection(int direction);
+
+	/// <summary>
+	/// ワールド空間のカプセル(spine端点+半径)を返します。
+	/// </summary>
+	Capsule GetWorldCapsule() const;
+
+	Sphere GetWorldSphere() const override;
+	AABB GetWorldAABB() const override;
+
+protected:
+	void DrawShapeInspector() override;
+	void WriteShapeJson(nlohmann::json& json) const override;
+	void ReadShapeJson(const nlohmann::json& json) override;
+
+private:
+	float radius_ = 0.5f;
+	float height_ = 2.0f;
+	int direction_ = 1; // 既定はY軸(Unity準拠)
 };
 
 } // namespace KujakuEngine

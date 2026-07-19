@@ -25,6 +25,13 @@ KUJAKU_API bool ButtonSized(const char* label, float width, float height);
 /// </summary>
 KUJAKU_API bool ObjectField(const char* label, const char* currentName, void** outDroppedObject, bool* outCleared);
 
+/// <summary>
+/// Project(エクスプローラー)からModelアセットをドロップして参照を設定するフィールド。
+/// currentDisplay(未設定は"None")を表示し、ModelファイルがドロップされたらoutBufferへ
+/// ドロップ元パスを書き込みtrueを返す。UnityのInspectorのMeshアサイン欄に相当。
+/// </summary>
+KUJAKU_API bool ModelAssetField(const char* label, const char* currentDisplay, char* outBuffer, std::size_t outBufferSize);
+
 KUJAKU_API void TextUnformatted(const char* text);
 KUJAKU_API void TextDisabled(const char* text);
 KUJAKU_API void SameLine();

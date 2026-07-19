@@ -2,6 +2,8 @@
 
 #ifdef USE_IMGUI
 #include "../../externals/imgui/imgui.h"
+#include "EditorImGuiUtil.h"
+#include <cstring>
 #endif
 
 namespace KujakuEngine::InspectorUI {
@@ -158,6 +160,34 @@ bool ObjectField(const char* label, const char* currentName, void** outDroppedOb
 	(void)currentName;
 	(void)outDroppedObject;
 	(void)outCleared;
+	return false;
+#endif
+}
+
+bool ModelAssetField(const char* label, const char* currentDisplay, char* outBuffer, std::size_t outBufferSize) {
+#ifdef USE_IMGUI
+	bool changed = false;
+	ImGui::PushID(label);
+	const char* display = (currentDisplay && currentDisplay[0] != '\0') ? currentDisplay : "None";
+	// 参照表示ボタン(ここへProjectのModelファイルをドロップする)。
+	ImGui::Button(display, ImVec2(-60.0f, 0.0f));
+	if (ImGui::BeginDragDropTarget()) {
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kProjectModelDragPayloadType);
+		if (payload && payload->DataSize > 0 && outBuffer && outBufferSize > 0) {
+			strncpy_s(outBuffer, outBufferSize, static_cast<const char*>(payload->Data), _TRUNCATE);
+			changed = true;
+		}
+		ImGui::EndDragDropTarget();
+	}
+	ImGui::SameLine();
+	ImGui::TextUnformatted(label);
+	ImGui::PopID();
+	return changed;
+#else
+	(void)label;
+	(void)currentDisplay;
+	(void)outBuffer;
+	(void)outBufferSize;
 	return false;
 #endif
 }

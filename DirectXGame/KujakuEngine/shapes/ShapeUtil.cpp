@@ -327,6 +327,108 @@ bool IsCollision(const OBB& obb1, const OBB& obb2) {
 
 bool IsCollision(const Sphere& a, const Sphere& b) { return powf(b.center.x - a.center.x, 2) + powf(b.center.y - a.center.y, 2) + powf(b.center.z - a.center.z, 2) <= powf(b.radius + a.radius, 2); }
 
+namespace {
+
+// 線分[p0,p1]上で point に最も近い点を返す。
+Vector3 ClosestPointOnSegment(const Vector3& p0, const Vector3& p1, const Vector3& point) {
+	Vector3 ab = p1 - p0;
+	float abLenSq = Dot(ab, ab);
+	if (abLenSq <= 1e-12f) {
+		return p0;
+	}
+	float t = Dot(point - p0, ab) / abLenSq;
+	t = std::clamp(t, 0.0f, 1.0f);
+	return p0 + ab * t;
+}
+
+// 2線分間の最近点対を求める(Ericson, Real-Time Collision Detection)。
+// c1: 線分[p1,q1]上、c2: 線分[p2,q2]上。
+void ClosestPointsBetweenSegments(const Vector3& p1, const Vector3& q1, const Vector3& p2, const Vector3& q2, Vector3& c1, Vector3& c2) {
+	Vector3 d1 = q1 - p1;
+	Vector3 d2 = q2 - p2;
+	Vector3 r = p1 - p2;
+	float a = Dot(d1, d1);
+	float e = Dot(d2, d2);
+	float f = Dot(d2, r);
+	const float eps = 1e-12f;
+
+	float s = 0.0f;
+	float t = 0.0f;
+	if (a <= eps && e <= eps) {
+		s = 0.0f;
+		t = 0.0f;
+	} else if (a <= eps) {
+		s = 0.0f;
+		t = std::clamp(f / e, 0.0f, 1.0f);
+	} else {
+		float c = Dot(d1, r);
+		if (e <= eps) {
+			t = 0.0f;
+			s = std::clamp(-c / a, 0.0f, 1.0f);
+		} else {
+			float b = Dot(d1, d2);
+			float denom = a * e - b * b;
+			if (denom > eps) {
+				s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+			} else {
+				s = 0.0f;
+			}
+			t = (b * s + f) / e;
+			if (t < 0.0f) {
+				t = 0.0f;
+				s = std::clamp(-c / a, 0.0f, 1.0f);
+			} else if (t > 1.0f) {
+				t = 1.0f;
+				s = std::clamp((b - c) / a, 0.0f, 1.0f);
+			}
+		}
+	}
+
+	c1 = p1 + d1 * s;
+	c2 = p2 + d2 * t;
+}
+
+} // namespace
+
+bool IsCollision(const Capsule& capsule, const Sphere& sphere) {
+	Vector3 closest = ClosestPointOnSegment(capsule.p0, capsule.p1, sphere.center);
+	return IsCollision(Sphere{closest, capsule.radius}, sphere);
+}
+
+bool IsCollision(const Capsule& a, const Capsule& b) {
+	Vector3 c1{};
+	Vector3 c2{};
+	ClosestPointsBetweenSegments(a.p0, a.p1, b.p0, b.p1, c1, c2);
+	return IsCollision(Sphere{c1, a.radius}, Sphere{c2, b.radius});
+}
+
+bool IsCollision(const Capsule& capsule, const OBB& obb) {
+	// 近似: OBB中心にもっとも近いspine上の点を球とみなしてOBBと判定する。
+	Vector3 closest = ClosestPointOnSegment(capsule.p0, capsule.p1, obb.center);
+	return IsCollision(obb, Sphere{closest, capsule.radius});
+}
+
+bool ComputeContact(const Capsule& capsule, const Sphere& sphere, Contact& out) {
+	Vector3 closest = ClosestPointOnSegment(capsule.p0, capsule.p1, sphere.center);
+	// capsule表面の球(closest,radius)と相手球の球-球接触。normal は closest→sphere = capsule→sphere。
+	return ComputeContact(Sphere{closest, capsule.radius}, sphere, out);
+}
+
+bool ComputeContact(const Capsule& a, const Capsule& b, Contact& out) {
+	Vector3 c1{};
+	Vector3 c2{};
+	ClosestPointsBetweenSegments(a.p0, a.p1, b.p0, b.p1, c1, c2);
+	// normal は c1→c2 = a→b。
+	return ComputeContact(Sphere{c1, a.radius}, Sphere{c2, b.radius}, out);
+}
+
+bool ComputeContact(const Capsule& capsule, const OBB& obb, Contact& out) {
+	// 近似: OBB中心にもっとも近いspine上の点を球とみなしてOBBと接触計算する。
+	// ComputeContact(Sphere,OBB) の normal は sphere→obb = capsule→obb。
+	Vector3 closest = ClosestPointOnSegment(capsule.p0, capsule.p1, obb.center);
+	return ComputeContact(Sphere{closest, capsule.radius}, obb, out);
+}
+
 bool ComputeContact(const Sphere& a, const Sphere& b, Contact& out) {
 	Vector3 d = b.center - a.center;
 	float dist = Length(d);

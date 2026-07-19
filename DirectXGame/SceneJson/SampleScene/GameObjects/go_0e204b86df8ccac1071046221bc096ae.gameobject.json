@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "instanceId": "go_0e204b86df8ccac1071046221bc096ae",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Pawn",
+  "name": "Cube",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -20,14 +20,14 @@
           0.0
         ],
         "scale": [
-          0.5,
-          0.5,
-          0.5
+          1.0,
+          1.0,
+          1.0
         ],
         "translation": [
-          -5.697638511657715,
-          5.130646705627441,
-          1.2493284940719604
+          0.0,
+          3.859126091003418,
+          0.0
         ]
       },
       "type": "Transform"
@@ -42,7 +42,7 @@
             1.0,
             1.0
           ],
-          "name": "Player",
+          "name": "New Material",
           "textures": {
             "BaseColor": {
               "assetId": "",
@@ -58,39 +58,12 @@
             }
           }
         },
-        "materialAssetId": "asset_d25ba1a25e2e953e692db582bb93e4b6",
-        "materialPath": "Materials/Player.material.json",
-        "modelPath": "pawn",
-        "primitive": "Model"
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "player",
+        "primitive": "Capsule"
       },
       "type": "ModelRendererComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "bounciness": 0.0,
-        "freezePositionX": false,
-        "freezePositionY": false,
-        "freezePositionZ": false,
-        "freezeRotationX": false,
-        "freezeRotationY": false,
-        "freezeRotationZ": false,
-        "gravityScale": 1.0,
-        "isStatic": false,
-        "velocity": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "type": "RigidbodyComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "speed": 0.15000000596046448
-      },
-      "type": "Player"
     },
     {
       "enabled": true,
@@ -102,9 +75,9 @@
         ],
         "collisionMask": 4294967295,
         "direction": 1,
-        "height": 5.0,
+        "height": 2.0,
         "isTrigger": false,
-        "radius": 1.5
+        "radius": 0.5
       },
       "type": "CapsuleColliderComponent"
     }

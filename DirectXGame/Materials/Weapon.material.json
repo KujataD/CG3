@@ -1,0 +1,25 @@
+{
+  "assetType": "Material",
+  "baseColor": [
+    0.5439330339431763,
+    0.1888972371816635,
+    0.1888972371816635,
+    1.0
+  ],
+  "name": "Weapon",
+  "textures": {
+    "BaseColor": {
+      "assetId": "",
+      "path": "resources/white1x1.png"
+    },
+    "Environment": {
+      "assetId": "",
+      "path": ""
+    },
+    "Normal": {
+      "assetId": "",
+      "path": ""
+    }
+  },
+  "version": 1
+}

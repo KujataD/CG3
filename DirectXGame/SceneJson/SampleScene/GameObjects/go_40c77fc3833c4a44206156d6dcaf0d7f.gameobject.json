@@ -61,8 +61,7 @@
         "materialAssetId": "asset_c2de0b0a46b31f30616c0cffbb5b843f",
         "materialPath": "Materials/Color.material.json",
         "modelPath": "player",
-        "primitive": "Sphere",
-        "texture": ""
+        "primitive": "Sphere"
       },
       "type": "ModelRendererComponent"
     },

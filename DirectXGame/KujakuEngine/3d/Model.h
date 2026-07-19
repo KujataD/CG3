@@ -39,6 +39,12 @@ public:
 
 	static KUJAKU_API Model* CreateCube(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
+	/// <summary>
+	/// カプセル(cylinder + 両端半球)のテンプレモデルを生成する。
+	/// heightは両端の半球を含む全長で、cylinder部分の長さは height - 2*radius。
+	/// </summary>
+	static KUJAKU_API Model* CreateCapsule(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone, float radius = 0.5f, float height = 2.0f, uint32_t subdivision = 16);
+
 	static KUJAKU_API Model* CreatePlane(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);
 
 	static KUJAKU_API Model* CreateTriangle(const std::string& textureFilePath, ShaderModel shaderModel = ShaderModel::kNone);

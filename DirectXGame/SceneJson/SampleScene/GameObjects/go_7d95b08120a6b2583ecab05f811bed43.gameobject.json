@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "instanceId": "go_7d95b08120a6b2583ecab05f811bed43",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Pawn",
+  "name": "Bishop",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -25,9 +25,9 @@
           0.5
         ],
         "translation": [
-          -5.697638511657715,
-          5.130646705627441,
-          1.2493284940719604
+          -2.6457042694091797,
+          4.9477949142456055,
+          0.0
         ]
       },
       "type": "Transform"
@@ -42,7 +42,7 @@
             1.0,
             1.0
           ],
-          "name": "Player",
+          "name": "New Material",
           "textures": {
             "BaseColor": {
               "assetId": "",
@@ -58,12 +58,28 @@
             }
           }
         },
-        "materialAssetId": "asset_d25ba1a25e2e953e692db582bb93e4b6",
-        "materialPath": "Materials/Player.material.json",
-        "modelPath": "pawn",
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "bishop",
         "primitive": "Model"
       },
       "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "direction": 1,
+        "height": 5.0,
+        "isTrigger": false,
+        "radius": 1.5
+      },
+      "type": "CapsuleColliderComponent"
     },
     {
       "enabled": true,
@@ -84,29 +100,6 @@
         ]
       },
       "type": "RigidbodyComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "speed": 0.15000000596046448
-      },
-      "type": "Player"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "center": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "collisionMask": 4294967295,
-        "direction": 1,
-        "height": 5.0,
-        "isTrigger": false,
-        "radius": 1.5
-      },
-      "type": "CapsuleColliderComponent"
     }
   ]
 }

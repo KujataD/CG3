@@ -4,7 +4,7 @@
   "gameObjects": [
     {
       "instanceId": "go_54bb2aec2d051fe82a5f52fd4139f659",
-      "parentInstanceId": "",
+      "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
@@ -51,16 +51,16 @@
       "assetPath": "SceneJson/SampleScene/GameObjects/go_0b3976b031f89672059e7cd34af4cc9d.gameobject.json"
     },
     {
-      "instanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
+      "instanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
       "parentInstanceId": "",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Enemy",
+      "name": "Canvas",
       "tag": "Untagged",
       "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_40c77fc3833c4a44206156d6dcaf0d7f.gameobject.json"
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_c4f4da242ae61143627a7ca6abe2bdfb.gameobject.json"
     },
     {
       "instanceId": "go_a19672b7cae624c950caa1145e77d7e5",
@@ -75,28 +75,28 @@
       "assetPath": "SceneJson/SampleScene/GameObjects/go_a19672b7cae624c950caa1145e77d7e5.gameobject.json"
     },
     {
+      "instanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Enemy",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_40c77fc3833c4a44206156d6dcaf0d7f.gameobject.json"
+    },
+    {
       "instanceId": "go_15f788c96bf669800afa5d0d725f7df3",
       "parentInstanceId": "",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Player",
+      "name": "Pawn",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_15f788c96bf669800afa5d0d725f7df3.gameobject.json"
-    },
-    {
-      "instanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
-      "parentInstanceId": "",
-      "prefabAssetPath": "",
-      "prefabObjectId": "",
-      "prefabInstanceRootId": "",
-      "prefabInstanceRoot": false,
-      "name": "Canvas",
-      "tag": "Untagged",
-      "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_c4f4da242ae61143627a7ca6abe2bdfb.gameobject.json"
     },
     {
       "instanceId": "go_a328678cc6774d7e51942273faa4e194",
@@ -109,6 +109,102 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_a328678cc6774d7e51942273faa4e194.gameobject.json"
+    },
+    {
+      "instanceId": "go_0e204b86df8ccac1071046221bc096ae",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Cube",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_0e204b86df8ccac1071046221bc096ae.gameobject.json"
+    },
+    {
+      "instanceId": "go_88779a7ed5b4f0b2443bab2bd836edd9",
+      "parentInstanceId": "go_31b8d485d6aeef0d18dc0c7078e408d1",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "WeaponModel",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_88779a7ed5b4f0b2443bab2bd836edd9.gameobject.json"
+    },
+    {
+      "instanceId": "go_f637c185f20508167b1b86c2f00d7802",
+      "parentInstanceId": "go_1af68e2e906d556a0d7b212c1d43e4e4",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "ShieldModel",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_f637c185f20508167b1b86c2f00d7802.gameobject.json"
+    },
+    {
+      "instanceId": "go_1af68e2e906d556a0d7b212c1d43e4e4",
+      "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Shield",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_1af68e2e906d556a0d7b212c1d43e4e4.gameobject.json"
+    },
+    {
+      "instanceId": "go_31b8d485d6aeef0d18dc0c7078e408d1",
+      "parentInstanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Weapon",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_31b8d485d6aeef0d18dc0c7078e408d1.gameobject.json"
+    },
+    {
+      "instanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
+      "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HandRight",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_3f31f96a44e1cd441f989ad302b97c59.gameobject.json"
+    },
+    {
+      "instanceId": "go_7d95b08120a6b2583ecab05f811bed43",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Bishop",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_7d95b08120a6b2583ecab05f811bed43.gameobject.json"
+    },
+    {
+      "instanceId": "go_607d427a7e4f69e3303ec9858521f8b7",
+      "parentInstanceId": "go_7d95b08120a6b2583ecab05f811bed43",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Weapon",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_607d427a7e4f69e3303ec9858521f8b7.gameobject.json"
     }
   ]
 }
