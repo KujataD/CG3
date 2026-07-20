@@ -362,5 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-# 3Dモデルの.obj(Resources以下すべて)。上の *.obj でも無視されるが、意図を明示する。
-**/Resources/**/*.obj
+# 3Dモデルの.obj(Resources以下は除外)
+!**/Resources/**/*.obj
