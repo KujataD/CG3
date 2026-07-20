@@ -91,9 +91,12 @@ struct AnimationCurve {
 /// <summary>
 /// 1プロパティ分のトラック。pathは "ComponentTypeName/チャンネル名" 形式
 /// (例: "Transform/position.x", "RotatorComponent/speed")。
+/// additive=trueのトラックは、カーブ値を絶対値ではなく「再生開始時点の値への差分」として加算する
+/// (攻撃中に少し前進する等、現在位置基準のアニメーション用。カーブは0始まりの差分で作る)。
 /// </summary>
 struct AnimationTrack {
 	std::string path;
+	bool additive = false;
 	AnimationCurve curve;
 };
 

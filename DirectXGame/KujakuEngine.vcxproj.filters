@@ -294,6 +294,9 @@
     <ClCompile Include="KujakuEngine\scene\GameObject.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\MovementUtil.cpp">
+      <Filter>KujakuEngine\scene</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\scene\RayCast.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
@@ -313,6 +316,9 @@
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\components\DirectionalLightComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\OrbitCameraComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp">
@@ -460,6 +466,12 @@
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\DirectionalLightComponent.h">
       <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\OrbitCameraComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\math\Quaternion.h">
+      <Filter>KujakuEngine\math</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\ModelRendererComponent.h">
       <Filter>KujakuEngine\components</Filter>
@@ -646,6 +658,9 @@
     </ClInclude>
     <ClInclude Include="KujakuEngine\scene\GameObject.h">
       <Filter>KujakuEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\MovementUtil.h">
+      <Filter>KujakuEngine\scene</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\scene\RayCast.h">
       <Filter>KujakuEngine</Filter>

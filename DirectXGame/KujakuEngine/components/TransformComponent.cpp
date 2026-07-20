@@ -85,6 +85,9 @@ void TransformComponent::CollectAnimatableChannels(std::vector<AnimatableChannel
 	channels.push_back({"scale.x", &transform.scale_.x});
 	channels.push_back({"scale.y", &transform.scale_.y});
 	channels.push_back({"scale.z", &transform.scale_.z});
+
+	// 向き基準の移動チャンネル(moveForward/moveRight/moveUp)はここには置かない。
+	// アニメーション専用の概念のため、AnimatorComponentが仮想チャンネルとして直接解決・適用する。
 }
 
 void TransformComponent::WriteJson(nlohmann::json& json) const {

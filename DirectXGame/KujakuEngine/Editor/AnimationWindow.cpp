@@ -35,16 +35,40 @@ constexpr float kRowHeight = 22.0f;
 constexpr float kKeyHalfSize = 5.0f;
 constexpr float kTimeSnap = 0.01f;
 
-// 選択GameObjectのAnimatorComponentを返す(無ければnullptr)。
-AnimatorComponent* FindSelectedAnimator(GameObject*& outOwner) {
-	outOwner = EditorSelection::GetInstance()->GetSelectedGameObject();
-	if (!outOwner) {
+// 選択GameObject(または祖先)のAnimatorComponentを返す(無ければnullptr)。
+// Unity同様、子を選択していても親のAnimatorを編集対象にする。
+// outRecordPrefixには、選択Objectが子孫の場合の相対パスprefix("子/孫:")が入る(録画時のチャンネル名用)。
+AnimatorComponent* FindSelectedAnimator(GameObject*& outOwner, std::string* outRecordPrefix = nullptr) {
+	outOwner = nullptr;
+	if (outRecordPrefix) {
+		outRecordPrefix->clear();
+	}
+
+	GameObject* selected = EditorSelection::GetInstance()->GetSelectedGameObject();
+	if (!selected) {
 		return nullptr;
 	}
-	for (const std::unique_ptr<Component>& component : outOwner->GetComponents()) {
-		if (AnimatorComponent* animator = dynamic_cast<AnimatorComponent*>(component.get())) {
-			return animator;
+
+	for (GameObject* candidate = selected; candidate; candidate = candidate->GetParent()) {
+		AnimatorComponent* animator = candidate->GetComponent<AnimatorComponent>();
+		if (!animator) {
+			continue;
 		}
+
+		outOwner = candidate;
+		if (outRecordPrefix && candidate != selected) {
+			// 選択Object→Animator所有Objectの相対パス("子/孫:")を作る。
+			std::string relativePath;
+			for (GameObject* node = selected; node && node != candidate; node = node->GetParent()) {
+				if (relativePath.empty()) {
+					relativePath = node->GetName();
+				} else {
+					relativePath = node->GetName() + "/" + relativePath;
+				}
+			}
+			*outRecordPrefix = relativePath + ":";
+		}
+		return animator;
 	}
 	return nullptr;
 }
@@ -56,6 +80,11 @@ float SnapTime(float time) {
 // ドープシートの時間表示レンジ(秒)。クリップより少し広く、最低1秒。
 float ComputeViewDuration(const AnimationClipData& clip) {
 	return (std::max)(clip.GetDuration() * 1.15f, 1.0f);
+}
+
+// 向き基準移動の仮想チャンネル(実フィールドを持たず、Animatorが直接解決・適用する)か。
+bool IsLocalMoveChannelPath(const std::string& path) {
+	return path.ends_with("Transform/moveForward") || path.ends_with("Transform/moveRight") || path.ends_with("Transform/moveUp");
 }
 
 ImU32 KeyColor(bool selected) {
@@ -77,18 +106,34 @@ void DrawKeyDiamond(ImDrawList* drawList, const ImVec2& center, ImU32 color) {
 } // namespace
 
 void AnimationWindow::CollectChannels(GameObject& owner, const AnimatorComponent& animator, std::vector<NamedChannel>& outChannels) const {
-	std::vector<AnimatableChannel> channels;
-	for (const std::unique_ptr<Component>& component : owner.GetComponents()) {
-		if (!component || component.get() == &animator) {
-			continue;
-		}
-		channels.clear();
-		component->CollectAnimatableChannels(channels);
-		std::string prefix = std::string(component->GetTypeName()) + "/";
-		for (const AnimatableChannel& channel : channels) {
-			outChannels.push_back({prefix + channel.path, channel.value});
-		}
+	// 自身+子孫の全チャンネルを列挙する(子孫は"子/孫:Component/チャンネル"形式)。Animatorの解決と同じロジック。
+	std::vector<AnimatorChannel> channels;
+	AnimatorComponent::CollectHierarchyChannels(owner, &animator, channels);
+	for (const AnimatorChannel& channel : channels) {
+		outChannels.push_back({channel.path, channel.value});
 	}
+
+	// 向き基準移動の仮想チャンネル(moveForward/moveRight/moveUp)をAdd Track用に列挙する。
+	// 実フィールドを持たない(value=nullptr)ため、値の編集は選択キーの数値エディタで行う。
+	auto appendLocalMove = [&](auto&& self, GameObject& object, const std::string& objectPrefix) -> void {
+		std::string transformPrefix = objectPrefix + "Transform/";
+		outChannels.push_back({transformPrefix + "moveForward", nullptr});
+		outChannels.push_back({transformPrefix + "moveRight", nullptr});
+		outChannels.push_back({transformPrefix + "moveUp", nullptr});
+		for (GameObject* child : object.GetChildren()) {
+			if (!child) {
+				continue;
+			}
+			std::string childPrefix;
+			if (objectPrefix.empty()) {
+				childPrefix = child->GetName() + ":";
+			} else {
+				childPrefix = objectPrefix.substr(0, objectPrefix.size() - 1) + "/" + child->GetName() + ":";
+			}
+			self(self, *child, childPrefix);
+		}
+	};
+	appendLocalMove(appendLocalMove, owner, "");
 }
 
 float* AnimationWindow::FindChannelValue(const std::vector<NamedChannel>& channels, const std::string& path) const {
@@ -110,6 +155,8 @@ void AnimationWindow::BeginPreview(Scene& scene, AnimatorComponent& animator) {
 	previewing_ = true;
 	previewPlaying_ = false;
 	animator.ResolveBindings();
+	// 加算トラックはプレビュー開始時点の値を基準にする。
+	animator.ClearAdditiveBases();
 	animator.EvaluateAt(previewTime_);
 }
 
@@ -148,13 +195,11 @@ void AnimationWindow::EndPreview(Scene& scene) {
 	if (hasEditedClip) {
 		GameObject* restoredOwner = scene.FindGameObjectByInstanceId(previewOwnerInstanceId_);
 		if (restoredOwner) {
-			for (const std::unique_ptr<Component>& component : restoredOwner->GetComponents()) {
-				AnimatorComponent* restoredAnimator = dynamic_cast<AnimatorComponent*>(component.get());
-				if (restoredAnimator && restoredAnimator->GetClipPath() == editedClipPath) {
-					restoredAnimator->GetClip() = std::move(editedClip);
-					restoredAnimator->ResolveBindings();
-					break;
-				}
+			AnimatorComponent* restoredAnimator = restoredOwner->GetComponent<AnimatorComponent>();
+			if (restoredAnimator && restoredAnimator->GetClipPath() == editedClipPath) {
+				restoredAnimator->GetClip() = std::move(editedClip);
+				restoredAnimator->ResolveBindings();
+				restoredAnimator->ClearAdditiveBases();
 			}
 		}
 	}
@@ -203,13 +248,156 @@ void AnimationWindow::UpdatePreview(AnimatorComponent& animator) {
 	animator.EvaluateAt(previewTime_);
 }
 
+bool AnimationWindow::IsKeySelected(int trackIndex, int keyIndex) const {
+	for (const SelectedKeyRef& reference : selectedKeys_) {
+		if (reference.trackIndex == trackIndex && reference.keyIndex == keyIndex) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void AnimationWindow::CopySelectedKeys(const AnimationClipData& clip) {
+	// 選択内の最早キーを基準(offset 0)として相対時刻で保存する。
+	float baseTime = FLT_MAX;
+	for (const SelectedKeyRef& reference : selectedKeys_) {
+		if (reference.trackIndex < 0 || reference.trackIndex >= static_cast<int>(clip.tracks.size())) {
+			continue;
+		}
+		const AnimationTrack& track = clip.tracks[reference.trackIndex];
+		if (reference.keyIndex < 0 || reference.keyIndex >= static_cast<int>(track.curve.keys.size())) {
+			continue;
+		}
+		baseTime = (std::min)(baseTime, track.curve.keys[reference.keyIndex].time);
+	}
+	if (baseTime == FLT_MAX) {
+		return;
+	}
+
+	copiedKeys_.clear();
+	for (const SelectedKeyRef& reference : selectedKeys_) {
+		if (reference.trackIndex < 0 || reference.trackIndex >= static_cast<int>(clip.tracks.size())) {
+			continue;
+		}
+		const AnimationTrack& track = clip.tracks[reference.trackIndex];
+		if (reference.keyIndex < 0 || reference.keyIndex >= static_cast<int>(track.curve.keys.size())) {
+			continue;
+		}
+		const AnimationKeyframe& key = track.curve.keys[reference.keyIndex];
+		copiedKeys_.push_back({track.path, key.time - baseTime, key});
+	}
+	statusMessage_ = std::to_string(copiedKeys_.size()) + " key(s) copied.";
+}
+
+void AnimationWindow::PasteCopiedKeys(AnimationClipData& clip) {
+	if (copiedKeys_.empty()) {
+		return;
+	}
+
+	// 最早キーがプレイヘッドに来るよう、相対時刻を保ってコピー元トラックへ貼り付ける。
+	for (const CopiedKeyEntry& entry : copiedKeys_) {
+		AnimationTrack& track = clip.GetOrAddTrack(entry.trackPath);
+		AnimationKeyframe key = entry.key;
+		key.time = (std::max)(SnapTime(previewTime_ + entry.timeOffset), 0.0f);
+		track.curve.AddKey(key);
+	}
+	selectedKeys_.clear();
+	statusMessage_ = std::to_string(copiedKeys_.size()) + " key(s) pasted.";
+}
+
+void AnimationWindow::DeleteSelectedKeys(AnimationClipData& clip) {
+	// index順が崩れないよう、トラックごとにkeyIndex降順で消す。
+	std::vector<SelectedKeyRef> references = selectedKeys_;
+	std::sort(references.begin(), references.end(), [](const SelectedKeyRef& a, const SelectedKeyRef& b) {
+		if (a.trackIndex != b.trackIndex) {
+			return a.trackIndex < b.trackIndex;
+		}
+		return a.keyIndex > b.keyIndex;
+	});
+
+	for (const SelectedKeyRef& reference : references) {
+		if (reference.trackIndex < 0 || reference.trackIndex >= static_cast<int>(clip.tracks.size())) {
+			continue;
+		}
+		AnimationTrack& track = clip.tracks[reference.trackIndex];
+		if (reference.keyIndex < 0 || reference.keyIndex >= static_cast<int>(track.curve.keys.size())) {
+			continue;
+		}
+		track.curve.keys.erase(track.curve.keys.begin() + reference.keyIndex);
+	}
+	selectedKeys_.clear();
+	selectedKeyIndex_ = -1;
+}
+
+void AnimationWindow::GroupDragSelectedKeys(AnimationClipData& clip, float requestedDelta) {
+	// 全選択キーが「未選択の隣接キー」を越えない範囲にdeltaをクランプする(選択同士は一緒に動くので制約しない)。
+	float minDelta = -1.0e9f;
+	float maxDelta = 1.0e9f;
+	for (const SelectedKeyRef& reference : selectedKeys_) {
+		if (reference.trackIndex < 0 || reference.trackIndex >= static_cast<int>(clip.tracks.size())) {
+			continue;
+		}
+		AnimationTrack& track = clip.tracks[reference.trackIndex];
+		if (reference.keyIndex < 0 || reference.keyIndex >= static_cast<int>(track.curve.keys.size())) {
+			continue;
+		}
+		float keyTime = track.curve.keys[reference.keyIndex].time;
+
+		int previousIndex = reference.keyIndex - 1;
+		while (previousIndex >= 0 && IsKeySelected(reference.trackIndex, previousIndex)) {
+			--previousIndex;
+		}
+		float lowerBound = (previousIndex >= 0) ? track.curve.keys[previousIndex].time + kTimeSnap : 0.0f;
+		minDelta = (std::max)(minDelta, lowerBound - keyTime);
+
+		int nextIndex = reference.keyIndex + 1;
+		while (nextIndex < static_cast<int>(track.curve.keys.size()) && IsKeySelected(reference.trackIndex, nextIndex)) {
+			++nextIndex;
+		}
+		if (nextIndex < static_cast<int>(track.curve.keys.size())) {
+			maxDelta = (std::min)(maxDelta, track.curve.keys[nextIndex].time - kTimeSnap - keyTime);
+		}
+	}
+
+	float delta = std::clamp(SnapTime(requestedDelta), minDelta, maxDelta);
+	if (std::abs(delta) < 1.0e-6f) {
+		return;
+	}
+
+	for (const SelectedKeyRef& reference : selectedKeys_) {
+		if (reference.trackIndex < 0 || reference.trackIndex >= static_cast<int>(clip.tracks.size())) {
+			continue;
+		}
+		AnimationTrack& track = clip.tracks[reference.trackIndex];
+		if (reference.keyIndex < 0 || reference.keyIndex >= static_cast<int>(track.curve.keys.size())) {
+			continue;
+		}
+		track.curve.keys[reference.keyIndex].time += delta;
+	}
+}
+
 void AnimationWindow::AddKeyAtTime(AnimatorComponent& animator, const std::string& trackPath, const std::vector<NamedChannel>& channels, float time) {
 	AnimationTrack& track = animator.GetClip().GetOrAddTrack(trackPath);
 
 	AnimationKeyframe key;
 	key.time = (std::max)(SnapTime(time), 0.0f);
 	float* channelValue = FindChannelValue(channels, trackPath);
-	key.value = channelValue ? *channelValue : track.curve.Evaluate(key.time);
+	if (channelValue) {
+		key.value = *channelValue;
+		if (track.additive) {
+			// 加算トラックのキー値は絶対値ではなく「基準値からの差分」で記録する。
+			// (絶対値で記録すると、Rec開始地点が原点以外の場合にその座標が二重加算される)
+			float baseValue = 0.0f;
+			if (animator.TryGetAdditiveBase(trackPath, baseValue)) {
+				key.value = *channelValue - baseValue;
+			} else {
+				// 基準未キャプチャ(プレビュー外)では差分が定まらないため、カーブの現在値を維持する。
+				key.value = track.curve.Evaluate(key.time);
+			}
+		}
+	} else {
+		key.value = track.curve.Evaluate(key.time);
+	}
 
 	int keyIndex = track.curve.AddKey(key);
 	// 追加キーと前後キーのタンジェントを滑らかに整える。
@@ -316,6 +504,63 @@ void AnimationWindow::DrawClipCreation(AnimatorComponent& animator) {
 	}
 }
 
+void AnimationWindow::UpdateTimelineView(const ImVec2& canvasPosition, const ImVec2& canvasSize) {
+	ImVec2 mouse = ImGui::GetMousePos();
+	bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && mouse.x >= canvasPosition.x && mouse.x <= canvasPosition.x + canvasSize.x && mouse.y >= canvasPosition.y && mouse.y <= canvasPosition.y + canvasSize.y;
+	if (!hovered) {
+		return;
+	}
+
+	float wheel = ImGui::GetIO().MouseWheel;
+	if (wheel != 0.0f) {
+		if (ImGui::GetIO().KeyShift) {
+			// Shift+ホイール: パン(1ノッチで80px分)。
+			timelineScroll_ = (std::max)(0.0f, timelineScroll_ - wheel * 80.0f / pixelsPerSecond_);
+		} else {
+			// ホイール: マウス位置の時刻を保ったままズーム。
+			float mouseTime = (mouse.x - canvasPosition.x - 6.0f) / pixelsPerSecond_ + timelineScroll_;
+			pixelsPerSecond_ = std::clamp(pixelsPerSecond_ * (1.0f + wheel * 0.15f), 10.0f, 4000.0f);
+			timelineScroll_ = (std::max)(0.0f, mouseTime - (mouse.x - canvasPosition.x - 6.0f) / pixelsPerSecond_);
+		}
+	}
+
+	// 中ボタンドラッグ: パン。
+	if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle, 0.0f)) {
+		timelineScroll_ = (std::max)(0.0f, timelineScroll_ - ImGui::GetIO().MouseDelta.x / pixelsPerSecond_);
+	}
+}
+
+void AnimationWindow::DrawTimelineRuler(ImDrawList* drawList, const ImVec2& canvasPosition, const ImVec2& canvasSize) {
+	// ズームに応じて目盛り間隔を選ぶ(細目盛りが8px以上になる最小のステップ)。
+	static constexpr float kStepCandidates[] = {0.01f, 0.05f, 0.1f, 0.5f, 1.0f, 5.0f, 10.0f, 30.0f};
+	float minorStep = kStepCandidates[0];
+	for (float candidate : kStepCandidates) {
+		minorStep = candidate;
+		if (candidate * pixelsPerSecond_ >= 8.0f) {
+			break;
+		}
+	}
+
+	float visibleDuration = (canvasSize.x - 12.0f) / pixelsPerSecond_;
+	int firstIndex = (std::max)(0, static_cast<int>(std::floor(timelineScroll_ / minorStep)));
+	int lastIndex = static_cast<int>(std::ceil((timelineScroll_ + visibleDuration) / minorStep)) + 1;
+
+	for (int index = firstIndex; index <= lastIndex; ++index) {
+		float tick = index * minorStep;
+		float x = canvasPosition.x + 6.0f + (tick - timelineScroll_) * pixelsPerSecond_;
+		if (x < canvasPosition.x || x > canvasPosition.x + canvasSize.x) {
+			continue;
+		}
+		bool isMajor = (index % 5 == 0);
+		drawList->AddLine(ImVec2(x, canvasPosition.y + (isMajor ? 4.0f : 12.0f)), ImVec2(x, canvasPosition.y + canvasSize.y), isMajor ? IM_COL32(110, 110, 115, 255) : IM_COL32(60, 60, 64, 255), 1.0f);
+		if (isMajor) {
+			char label[16];
+			snprintf(label, sizeof(label), "%.4g", tick);
+			drawList->AddText(ImVec2(x + 3.0f, canvasPosition.y + 2.0f), IM_COL32(170, 170, 175, 255), label);
+		}
+	}
+}
+
 void AnimationWindow::AcceptClipDrop(AnimatorComponent& animator) {
 	if (!ImGui::BeginDragDropTarget()) {
 		return;
@@ -325,6 +570,7 @@ void AnimationWindow::AcceptClipDrop(AnimatorComponent& animator) {
 		animator.SetClipPath(static_cast<const char*>(payload->Data));
 		selectedTrackIndex_ = -1;
 		selectedKeyIndex_ = -1;
+		selectedKeys_.clear();
 		previewTime_ = 0.0f;
 		previewReverse_ = false;
 		statusMessage_ = "Clip added.";
@@ -354,6 +600,7 @@ void AnimationWindow::DrawClipBar(AnimatorComponent& animator) {
 				animator.SetCurrentClipIndex(index);
 				selectedTrackIndex_ = -1;
 				selectedKeyIndex_ = -1;
+				selectedKeys_.clear();
 				previewTime_ = 0.0f;
 				previewReverse_ = false;
 				statusMessage_ = "Switched clip (unsaved edits discarded).";
@@ -387,6 +634,15 @@ void AnimationWindow::DrawToolbar(Scene& scene, AnimatorComponent& animator, con
 	ImGui::SameLine();
 	if (ImGui::RadioButton("Curves", viewMode_ == 1)) {
 		viewMode_ = 1;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Fit")) {
+		// 次の描画でクリップ全体にフィットし直す。
+		pixelsPerSecond_ = 0.0f;
+		timelineScroll_ = 0.0f;
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("タイムライン表示をクリップ全体へフィット\n(ホイール=ズーム / Shift+ホイール・中ボタンドラッグ=スクロール)");
 	}
 	ImGui::SameLine();
 	ImGui::TextDisabled("|");
@@ -525,12 +781,15 @@ void AnimationWindow::DrawTrackList(AnimatorComponent& animator, const std::vect
 		ImGui::PushID(trackIndex);
 
 		bool isSelected = (selectedTrackIndex_ == trackIndex);
-		bool isBound = FindChannelValue(channels, track.path) != nullptr;
+		// 仮想チャンネル(向き基準移動)はfloat*を持たないが、Animatorが直接解決するためバインド済み扱い。
+		bool isBound = FindChannelValue(channels, track.path) != nullptr || IsLocalMoveChannelPath(track.path);
 		if (!isBound) {
 			// 解決できないトラック(Component欠落など)は赤字で警告表示。
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.4f, 1.0f));
 		}
-		if (ImGui::Selectable(track.path.c_str(), isSelected, 0, ImVec2(0.0f, kRowHeight - 4.0f))) {
+		// 加算モードのトラックは[+]マーカー付きで表示する。
+		std::string trackLabel = track.additive ? ("[+] " + track.path) : track.path;
+		if (ImGui::Selectable(trackLabel.c_str(), isSelected, 0, ImVec2(0.0f, kRowHeight - 4.0f))) {
 			if (selectedTrackIndex_ != trackIndex) {
 				selectedKeyIndex_ = -1;
 			}
@@ -541,15 +800,40 @@ void AnimationWindow::DrawTrackList(AnimatorComponent& animator, const std::vect
 		}
 
 		if (ImGui::BeginPopupContextItem("TrackContext")) {
+			if (ImGui::MenuItem("Additive", nullptr, track.additive)) {
+				// 加算モード切替。基準値を取り直す(プレビュー中は現在値が新基準になる点に注意)。
+				AnimationTrack& mutableTrack = clip.tracks[trackIndex];
+				mutableTrack.additive = !mutableTrack.additive;
+				if (mutableTrack.additive && !mutableTrack.curve.keys.empty()) {
+					// 絶対値で作られた既存キーを「開始時点(t=0)からの差分」へ正規化する。
+					// これをしないと絶対座標がそのまま加算されて二重オフセットになる。
+					float originValue = mutableTrack.curve.Evaluate(0.0f);
+					for (AnimationKeyframe& normalizeKey : mutableTrack.curve.keys) {
+						normalizeKey.value -= originValue;
+					}
+					statusMessage_ = "Additive: keys normalized to delta (t=0 origin).";
+				}
+				animator.ClearAdditiveBases();
+			}
+			ImGui::Separator();
 			if (ImGui::MenuItem("Add Key At Playhead")) {
 				// channelsはconst参照でAddKeyAtTimeが解決する。
 				AddKeyAtTime(animator, track.path, channels, previewTime_);
 			}
-			if (ImGui::MenuItem("Paste Key At Playhead", nullptr, false, hasCopiedKey_)) {
-				// コピー元の値/タンジェント/イージングを保ったままプレイヘッド時刻へ貼り付ける。
-				AnimationKeyframe pastedKey = copiedKey_;
-				pastedKey.time = (std::max)(SnapTime(previewTime_), 0.0f);
-				clip.tracks[trackIndex].curve.AddKey(pastedKey);
+			bool canPaste = !copiedKeys_.empty();
+			if (copiedKeys_.size() <= 1) {
+				// 単一コピーは「このトラックへ」貼り付ける(別トラックへの貼り付けが可能)。
+				if (ImGui::MenuItem("Paste Key At Playhead", nullptr, false, canPaste)) {
+					AnimationKeyframe pastedKey = copiedKeys_.front().key;
+					pastedKey.time = (std::max)(SnapTime(previewTime_), 0.0f);
+					clip.tracks[trackIndex].curve.AddKey(pastedKey);
+					selectedKeys_.clear();
+				}
+			} else {
+				// 複数コピーは相対時刻を保ってコピー元トラックへ貼り付ける。
+				if (ImGui::MenuItem("Paste Keys At Playhead", nullptr, false, canPaste)) {
+					PasteCopiedKeys(clip);
+				}
 			}
 			if (ImGui::MenuItem("Delete Track")) {
 				removeTrackIndex = trackIndex;
@@ -565,6 +849,32 @@ void AnimationWindow::DrawTrackList(AnimatorComponent& animator, const std::vect
 		if (selectedTrackIndex_ >= static_cast<int>(clip.tracks.size())) {
 			selectedTrackIndex_ = static_cast<int>(clip.tracks.size()) - 1;
 		}
+		// trackIndex参照が崩れるため複数選択は解除する。
+		selectedKeys_.clear();
+	}
+
+	// --- 選択キーの数値編集 ---
+	// タイムライン上での値ドラッグは不可(イージング編集専用)のため、値はここで明示的に編集する。
+	// 実フィールドを持たない仮想チャンネル(moveForward等)の値入力もここが入口になる。
+	if (selectedTrackIndex_ >= 0 && selectedTrackIndex_ < static_cast<int>(clip.tracks.size())) {
+		AnimationTrack& selectedTrack = clip.tracks[selectedTrackIndex_];
+		if (selectedKeyIndex_ >= 0 && selectedKeyIndex_ < static_cast<int>(selectedTrack.curve.keys.size())) {
+			AnimationKeyframe& key = selectedTrack.curve.keys[selectedKeyIndex_];
+			ImGui::Separator();
+			ImGui::TextDisabled("Selected Key");
+
+			float keyTime = key.time;
+			ImGui::SetNextItemWidth(90.0f);
+			if (ImGui::DragFloat("Time##SelectedKey", &keyTime, 0.01f, 0.0f, 0.0f, "%.2fs")) {
+				// 並び順を保つため前後キーの間へクランプする。
+				float minTime = (selectedKeyIndex_ > 0) ? selectedTrack.curve.keys[selectedKeyIndex_ - 1].time + kTimeSnap : 0.0f;
+				float maxTime = (selectedKeyIndex_ + 1 < static_cast<int>(selectedTrack.curve.keys.size())) ? selectedTrack.curve.keys[selectedKeyIndex_ + 1].time - kTimeSnap : 1.0e6f;
+				key.time = std::clamp(SnapTime(keyTime), minTime, maxTime);
+			}
+
+			ImGui::SetNextItemWidth(90.0f);
+			ImGui::DragFloat("Value##SelectedKey", &key.value, 0.01f);
+		}
 	}
 }
 
@@ -577,27 +887,22 @@ void AnimationWindow::DrawDopeSheet(AnimatorComponent& animator, const std::vect
 	canvasSize.x = (std::max)(canvasSize.x, 50.0f);
 	canvasSize.y = (std::max)(canvasSize.y, kRulerHeight + kRowHeight);
 
-	const float viewDuration = ComputeViewDuration(clip);
-	const float pixelsPerSecond = (canvasSize.x - 12.0f) / viewDuration;
-	auto timeToX = [&](float time) { return canvasPosition.x + 6.0f + time * pixelsPerSecond; };
-	auto xToTime = [&](float x) { return (x - canvasPosition.x - 6.0f) / pixelsPerSecond; };
+	// 初回(または明示リセット後)はクリップ長にフィットさせる。以降はズーム/スクロール値を使う。
+	if (pixelsPerSecond_ <= 0.0f) {
+		pixelsPerSecond_ = (canvasSize.x - 12.0f) / ComputeViewDuration(clip);
+		timelineScroll_ = 0.0f;
+	}
+	UpdateTimelineView(canvasPosition, canvasSize);
+
+	const float pixelsPerSecond = pixelsPerSecond_;
+	auto timeToX = [&](float time) { return canvasPosition.x + 6.0f + (time - timelineScroll_) * pixelsPerSecond; };
+	auto xToTime = [&](float x) { return (x - canvasPosition.x - 6.0f) / pixelsPerSecond + timelineScroll_; };
 
 	// 背景。
 	drawList->AddRectFilled(canvasPosition, ImVec2(canvasPosition.x + canvasSize.x, canvasPosition.y + canvasSize.y), IM_COL32(28, 28, 30, 255));
 
-	// --- 目盛り(0.1s間隔の細線 + 0.5s間隔のラベル付き太線) ---
-	for (float tick = 0.0f; tick <= viewDuration + 1.0e-4f; tick += 0.1f) {
-		bool isMajor = (std::abs(std::fmod(tick + 1.0e-4f, 0.5f)) < 1.0e-3f);
-		float x = timeToX(tick);
-		ImU32 lineColor = isMajor ? IM_COL32(110, 110, 115, 255) : IM_COL32(60, 60, 64, 255);
-		float lineTop = canvasPosition.y + (isMajor ? 4.0f : 12.0f);
-		drawList->AddLine(ImVec2(x, lineTop), ImVec2(x, canvasPosition.y + canvasSize.y), lineColor, 1.0f);
-		if (isMajor) {
-			char label[16];
-			snprintf(label, sizeof(label), "%.1f", tick);
-			drawList->AddText(ImVec2(x + 3.0f, canvasPosition.y + 2.0f), IM_COL32(170, 170, 175, 255), label);
-		}
-	}
+	// --- 目盛り(可視範囲のみ・ズーム対応) ---
+	DrawTimelineRuler(drawList, canvasPosition, canvasSize);
 
 	// --- ルーラーでのスクラブ(ドラッグで時刻変更) ---
 	ImGui::SetCursorScreenPos(canvasPosition);
@@ -608,6 +913,7 @@ void AnimationWindow::DrawDopeSheet(AnimatorComponent& animator, const std::vect
 	}
 
 	// --- 各トラック行とキー ---
+	bool keyInteracted = false; // このフレームでキー上のクリック/ドラッグがあったか(範囲選択開始の抑制用)
 	int trackCount = static_cast<int>(clip.tracks.size());
 	for (int trackIndex = 0; trackIndex < trackCount; ++trackIndex) {
 		AnimationTrack& track = clip.tracks[trackIndex];
@@ -634,6 +940,10 @@ void AnimationWindow::DrawDopeSheet(AnimatorComponent& animator, const std::vect
 				selectedKeyIndex_ = -1;
 			}
 			selectedTrackIndex_ = trackIndex;
+			// 空白クリックで複数選択を解除(Ctrl押下中は維持=範囲選択の追加用)。
+			if (!ImGui::GetIO().KeyCtrl) {
+				selectedKeys_.clear();
+			}
 		}
 
 		// キー(ひし形)。ドラッグで時刻変更(前後キーの間にクランプ)、右クリックで削除。
@@ -642,42 +952,132 @@ void AnimationWindow::DrawDopeSheet(AnimatorComponent& animator, const std::vect
 			AnimationKeyframe& key = track.curve.keys[keyIndex];
 			ImVec2 keyCenter(timeToX(key.time), rowCenterY);
 
+			// スクロール/ズームで画面外のキーは描画も判定もしない。
+			if (keyCenter.x < canvasPosition.x - 8.0f || keyCenter.x > canvasPosition.x + canvasSize.x + 8.0f) {
+				continue;
+			}
+
 			ImGui::PushID(keyIndex);
 			ImGui::SetCursorScreenPos(ImVec2(keyCenter.x - kKeyHalfSize - 2.0f, keyCenter.y - kKeyHalfSize - 2.0f));
 			ImGui::InvisibleButton("##Key", ImVec2((kKeyHalfSize + 2.0f) * 2.0f, (kKeyHalfSize + 2.0f) * 2.0f));
 
 			bool keyActive = ImGui::IsItemActive();
+			if (keyActive || ImGui::IsItemHovered()) {
+				keyInteracted = true;
+			}
+
+			// クリックで単独選択、Ctrl+クリックで選択に追加/解除。
+			if (ImGui::IsItemClicked()) {
+				if (ImGui::GetIO().KeyCtrl) {
+					if (IsKeySelected(trackIndex, keyIndex)) {
+						std::erase_if(selectedKeys_, [&](const SelectedKeyRef& r) { return r.trackIndex == trackIndex && r.keyIndex == keyIndex; });
+					} else {
+						selectedKeys_.push_back({trackIndex, keyIndex});
+					}
+				} else if (!IsKeySelected(trackIndex, keyIndex)) {
+					selectedKeys_.clear();
+					selectedKeys_.push_back({trackIndex, keyIndex});
+				}
+				selectedTrackIndex_ = trackIndex;
+				selectedKeyIndex_ = keyIndex;
+			}
+
 			if (keyActive && ImGui::IsMouseDragging(ImGuiMouseButton_Left, 0.0f)) {
 				float newTime = SnapTime(xToTime(ImGui::GetMousePos().x));
-				// 並び順を保つため前後キーの間へクランプする。
-				float minTime = (keyIndex > 0) ? track.curve.keys[keyIndex - 1].time + kTimeSnap : 0.0f;
-				float maxTime = (keyIndex + 1 < static_cast<int>(track.curve.keys.size())) ? track.curve.keys[keyIndex + 1].time - kTimeSnap : 1.0e6f;
-				key.time = std::clamp(newTime, minTime, maxTime);
+				if (selectedKeys_.size() > 1 && IsKeySelected(trackIndex, keyIndex)) {
+					// 複数選択中はまとめて移動(未選択の隣接キーを越えない範囲で)。
+					GroupDragSelectedKeys(clip, newTime - key.time);
+				} else {
+					// 並び順を保つため前後キーの間へクランプする。
+					float minTime = (keyIndex > 0) ? track.curve.keys[keyIndex - 1].time + kTimeSnap : 0.0f;
+					float maxTime = (keyIndex + 1 < static_cast<int>(track.curve.keys.size())) ? track.curve.keys[keyIndex + 1].time - kTimeSnap : 1.0e6f;
+					key.time = std::clamp(newTime, minTime, maxTime);
+				}
 			}
 
 			if (ImGui::BeginPopupContextItem("KeyContext")) {
-				if (ImGui::MenuItem("Copy Key")) {
-					copiedKey_ = key;
-					hasCopiedKey_ = true;
+				bool multiSelected = selectedKeys_.size() > 1 && IsKeySelected(trackIndex, keyIndex);
+				if (ImGui::MenuItem(multiSelected ? "Copy Selected Keys" : "Copy Key")) {
+					if (!multiSelected) {
+						selectedKeys_.clear();
+						selectedKeys_.push_back({trackIndex, keyIndex});
+					}
+					CopySelectedKeys(clip);
 				}
 				ImGui::Separator();
 				DrawKeyPresetMenuItems(track.curve, keyIndex);
 				ImGui::Separator();
-				if (ImGui::MenuItem("Delete Key")) {
+				if (multiSelected) {
+					if (ImGui::MenuItem("Delete Selected Keys")) {
+						DeleteSelectedKeys(clip);
+					}
+				} else if (ImGui::MenuItem("Delete Key")) {
 					removeKeyIndex = keyIndex;
 				}
 				ImGui::EndPopup();
 			}
 
-			DrawKeyDiamond(drawList, keyCenter, KeyColor(keyActive || trackIndex == selectedTrackIndex_));
+			DrawKeyDiamond(drawList, keyCenter, KeyColor(keyActive || IsKeySelected(trackIndex, keyIndex) || trackIndex == selectedTrackIndex_));
 			ImGui::PopID();
 		}
 
 		if (removeKeyIndex >= 0) {
 			track.curve.keys.erase(track.curve.keys.begin() + removeKeyIndex);
+			// index参照が崩れるため複数選択は解除する。
+			selectedKeys_.clear();
 		}
 
 		ImGui::PopID();
+	}
+
+	// --- 範囲選択(ラバーバンド)。空白から左ドラッグで開始し、矩形内のキーを選択する ---
+	{
+		ImVec2 mouse = ImGui::GetMousePos();
+		bool inRowsArea = mouse.x >= canvasPosition.x && mouse.x <= canvasPosition.x + canvasSize.x && mouse.y >= canvasPosition.y + kRulerHeight && mouse.y <= canvasPosition.y + canvasSize.y;
+
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && inRowsArea && !keyInteracted && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+			boxSelectPending_ = true;
+			boxSelectStartX_ = mouse.x;
+			boxSelectStartY_ = mouse.y;
+		}
+		if (boxSelectPending_ && !boxSelecting_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left, 4.0f)) {
+			boxSelecting_ = true;
+		}
+
+		if (boxSelecting_) {
+			ImVec2 rectMin((std::min)(boxSelectStartX_, mouse.x), (std::min)(boxSelectStartY_, mouse.y));
+			ImVec2 rectMax((std::max)(boxSelectStartX_, mouse.x), (std::max)(boxSelectStartY_, mouse.y));
+			drawList->AddRectFilled(rectMin, rectMax, IM_COL32(120, 170, 255, 40));
+			drawList->AddRect(rectMin, rectMax, IM_COL32(120, 170, 255, 180));
+
+			if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+				if (!ImGui::GetIO().KeyCtrl) {
+					selectedKeys_.clear();
+				}
+				for (int trackIndex = 0; trackIndex < trackCount; ++trackIndex) {
+					float rowCenterY = canvasPosition.y + kRulerHeight + trackIndex * kRowHeight + kRowHeight * 0.5f;
+					if (rowCenterY < rectMin.y || rowCenterY > rectMax.y) {
+						continue;
+					}
+					const AnimationTrack& selectTrack = clip.tracks[trackIndex];
+					for (int keyIndex = 0; keyIndex < static_cast<int>(selectTrack.curve.keys.size()); ++keyIndex) {
+						float keyX = timeToX(selectTrack.curve.keys[keyIndex].time);
+						if (keyX < rectMin.x || keyX > rectMax.x) {
+							continue;
+						}
+						if (!IsKeySelected(trackIndex, keyIndex)) {
+							selectedKeys_.push_back({trackIndex, keyIndex});
+						}
+					}
+				}
+				boxSelecting_ = false;
+				boxSelectPending_ = false;
+			}
+		}
+
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+			boxSelectPending_ = false;
+		}
 	}
 
 	// --- プレイヘッド(最前面) ---
@@ -715,12 +1115,19 @@ void AnimationWindow::DrawCurveEditor(AnimatorComponent& animator, const std::ve
 	AnimationTrack& track = clip.tracks[selectedTrackIndex_];
 	AnimationCurve& curve = track.curve;
 
-	const float viewDuration = ComputeViewDuration(clip);
-	const float pixelsPerSecond = (canvasSize.x - 12.0f) / viewDuration;
-	auto timeToX = [&](float time) { return canvasPosition.x + 6.0f + time * pixelsPerSecond; };
-	auto xToTime = [&](float x) { return (x - canvasPosition.x - 6.0f) / pixelsPerSecond; };
+	// 初回(または明示リセット後)はクリップ長にフィット。以降はズーム/スクロール値を使う。
+	if (pixelsPerSecond_ <= 0.0f) {
+		pixelsPerSecond_ = (canvasSize.x - 12.0f) / ComputeViewDuration(clip);
+		timelineScroll_ = 0.0f;
+	}
+	UpdateTimelineView(canvasPosition, canvasSize);
 
-	// --- 値レンジのオートフィット(キー値 + カーブのサンプル値から算出) ---
+	const float pixelsPerSecond = pixelsPerSecond_;
+	const float visibleDuration = (canvasSize.x - 12.0f) / pixelsPerSecond;
+	auto timeToX = [&](float time) { return canvasPosition.x + 6.0f + (time - timelineScroll_) * pixelsPerSecond; };
+	auto xToTime = [&](float x) { return (x - canvasPosition.x - 6.0f) / pixelsPerSecond + timelineScroll_; };
+
+	// --- 値レンジのオートフィット(キー値 + 可視範囲のカーブサンプル値から算出) ---
 	float minValue = FLT_MAX;
 	float maxValue = -FLT_MAX;
 	for (const AnimationKeyframe& key : curve.keys) {
@@ -729,7 +1136,7 @@ void AnimationWindow::DrawCurveEditor(AnimatorComponent& animator, const std::ve
 	}
 	constexpr int kFitSampleCount = 64;
 	for (int i = 0; i <= kFitSampleCount; ++i) {
-		float sampled = curve.Evaluate(viewDuration * static_cast<float>(i) / kFitSampleCount);
+		float sampled = curve.Evaluate(timelineScroll_ + visibleDuration * static_cast<float>(i) / kFitSampleCount);
 		minValue = (std::min)(minValue, sampled);
 		maxValue = (std::max)(maxValue, sampled);
 	}
@@ -752,17 +1159,8 @@ void AnimationWindow::DrawCurveEditor(AnimatorComponent& animator, const std::ve
 	const float pixelsPerValue = plotHeight / valueRange;
 	auto valueToY = [&](float value) { return plotTop + (maxValue - value) * pixelsPerValue; };
 
-	// --- 時間目盛り(ドープシートと同じ) ---
-	for (float tick = 0.0f; tick <= viewDuration + 1.0e-4f; tick += 0.1f) {
-		bool isMajor = (std::abs(std::fmod(tick + 1.0e-4f, 0.5f)) < 1.0e-3f);
-		float x = timeToX(tick);
-		drawList->AddLine(ImVec2(x, canvasPosition.y + (isMajor ? 4.0f : 12.0f)), ImVec2(x, canvasPosition.y + canvasSize.y), isMajor ? IM_COL32(90, 90, 95, 255) : IM_COL32(50, 50, 54, 255), 1.0f);
-		if (isMajor) {
-			char label[16];
-			snprintf(label, sizeof(label), "%.1f", tick);
-			drawList->AddText(ImVec2(x + 3.0f, canvasPosition.y + 2.0f), IM_COL32(170, 170, 175, 255), label);
-		}
-	}
+	// --- 時間目盛り(ドープシートと同じ・ズーム対応) ---
+	DrawTimelineRuler(drawList, canvasPosition, canvasSize);
 
 	// --- 値グリッド(1/2/5系列の切りの良い間隔) ---
 	{
@@ -822,6 +1220,11 @@ void AnimationWindow::DrawCurveEditor(AnimatorComponent& animator, const std::ve
 		AnimationKeyframe& key = curve.keys[keyIndex];
 		ImVec2 keyCenter(timeToX(key.time), valueToY(key.value));
 
+		// スクロール/ズームで画面外のキーは描画も判定もしない。
+		if (keyCenter.x < canvasPosition.x - 8.0f || keyCenter.x > canvasPosition.x + canvasSize.x + 8.0f) {
+			continue;
+		}
+
 		ImGui::PushID(keyIndex);
 		ImGui::SetCursorScreenPos(ImVec2(keyCenter.x - kKeyHalfSize - 2.0f, keyCenter.y - kKeyHalfSize - 2.0f));
 		ImGui::InvisibleButton("##CurveKey", ImVec2((kKeyHalfSize + 2.0f) * 2.0f, (kKeyHalfSize + 2.0f) * 2.0f));
@@ -841,8 +1244,8 @@ void AnimationWindow::DrawCurveEditor(AnimatorComponent& animator, const std::ve
 		if (ImGui::BeginPopupContextItem("CurveKeyContext")) {
 			selectedKeyIndex_ = keyIndex;
 			if (ImGui::MenuItem("Copy Key")) {
-				copiedKey_ = key;
-				hasCopiedKey_ = true;
+				copiedKeys_.clear();
+				copiedKeys_.push_back({track.path, 0.0f, key});
 			}
 			ImGui::Separator();
 			DrawKeyPresetMenuItems(curve, keyIndex);
@@ -857,8 +1260,9 @@ void AnimationWindow::DrawCurveEditor(AnimatorComponent& animator, const std::ve
 		ImGui::PopID();
 	}
 
-	// --- 選択キーのタンジェントハンドル ---
-	if (selectedKeyIndex_ >= 0 && selectedKeyIndex_ < static_cast<int>(curve.keys.size())) {
+	// --- 選択キーのタンジェントハンドル(画面内のみ) ---
+	if (selectedKeyIndex_ >= 0 && selectedKeyIndex_ < static_cast<int>(curve.keys.size()) && timeToX(curve.keys[selectedKeyIndex_].time) >= canvasPosition.x - 8.0f &&
+	    timeToX(curve.keys[selectedKeyIndex_].time) <= canvasPosition.x + canvasSize.x + 8.0f) {
 		AnimationKeyframe& key = curve.keys[selectedKeyIndex_];
 		ImVec2 keyCenter(timeToX(key.time), valueToY(key.value));
 		constexpr float kHandleLength = 55.0f;
@@ -957,7 +1361,8 @@ void AnimationWindow::Draw(bool* pOpen) {
 	}
 
 	GameObject* owner = nullptr;
-	AnimatorComponent* animator = FindSelectedAnimator(owner);
+	std::string recordPathPrefix;
+	AnimatorComponent* animator = FindSelectedAnimator(owner, &recordPathPrefix);
 
 	// プレビュー対象が選択解除/変更されたら巻き戻す。
 	if (previewing_) {
@@ -965,7 +1370,7 @@ void AnimationWindow::Draw(bool* pOpen) {
 		if (ownerChanged || !animator) {
 			EndPreview(*scene);
 			// EndPreviewでシーンが再構築されるためポインタを取り直す。
-			animator = FindSelectedAnimator(owner);
+			animator = FindSelectedAnimator(owner, &recordPathPrefix);
 		}
 	}
 
@@ -1001,11 +1406,13 @@ void AnimationWindow::Draw(bool* pOpen) {
 
 	// Inspector(このフレームで先に描画済み)から報告された変更をキーとして取り込む。
 	// 録画中の値変更と、フィールド右クリックのAdd Keyframeの両方がここへ届く。
+	// 子孫Objectを選択して編集した場合は相対パスprefix("子/孫:")を付けてトラック名にする。
 	for (const AnimationRecordedChange& change : ConsumeAnimationRecordedChanges()) {
-		if (!FindChannelValue(channels, change.path)) {
+		std::string fullPath = recordPathPrefix + change.path;
+		if (!FindChannelValue(channels, fullPath)) {
 			continue; // バインドできないチャンネルはトラック化しない。
 		}
-		AddKeyAtTime(*animator, change.path, channels, previewTime_);
+		AddKeyAtTime(*animator, fullPath, channels, previewTime_);
 	}
 
 	DrawToolbar(*scene, *animator, channels);
@@ -1026,6 +1433,22 @@ void AnimationWindow::Draw(bool* pOpen) {
 		DrawCurveEditor(*animator, channels);
 	}
 	ImGui::EndChild();
+
+	// --- キーボードショートカット(Ctrl+C=コピー / Ctrl+V=プレイヘッドへ貼り付け / Delete=選択キー削除) ---
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !io.WantTextInput) {
+			if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_C, false) && !selectedKeys_.empty()) {
+				CopySelectedKeys(animator->GetClip());
+			}
+			if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_V, false)) {
+				PasteCopiedKeys(animator->GetClip());
+			}
+			if (ImGui::IsKeyPressed(ImGuiKey_Delete, false) && !selectedKeys_.empty()) {
+				DeleteSelectedKeys(animator->GetClip());
+			}
+		}
+	}
 
 	UpdatePreview(*animator);
 

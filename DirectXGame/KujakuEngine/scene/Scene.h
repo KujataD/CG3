@@ -108,6 +108,11 @@ public:
 	KUJAKU_API GameObject* FindGameObjectByInstanceId(const std::string& instanceId) const;
 
 	/// <summary>
+	/// 名前が一致する最初のGameObjectを返します(無ければnullptr)。
+	/// </summary>
+	KUJAKU_API GameObject* FindGameObjectByName(const std::string& name) const;
+
+	/// <summary>
 	/// Scene内GameObjectのワールド行列を親子順に更新
 	/// </summary>
 	KUJAKU_API void UpdateWorldTransforms();

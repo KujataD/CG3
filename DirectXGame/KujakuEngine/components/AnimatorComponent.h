@@ -18,12 +18,31 @@ struct AnimationClipReference {
 };
 
 /// <summary>
+/// アニメーション書き込み先チャンネル1件。pathは
+/// 自身のComponent = "ComponentTypeName/チャンネル名"、
+/// 子孫のComponent = "子/孫:ComponentTypeName/チャンネル名" 形式(Unityの相対パス相当)。
+/// </summary>
+struct AnimatorChannel {
+	std::string path;
+	float* value = nullptr;
+};
+
+/// <summary>
 /// AnimationClipを再生し、同じGameObjectのComponentのプロパティへ書き込むComponent(Unity Animator相当)。
 /// 複数クリップを保持し、currentで選択中の1つを再生する。
 /// トラックpathは "ComponentTypeName/チャンネル名" 形式で、CollectAnimatableChannelsで解決する。
 /// </summary>
 class KUJAKU_API AnimatorComponent : public Component {
 public:
+	/// <summary>
+	/// 向き基準の移動チャンネル(Transform/moveForward・moveRight・moveUp)の適用先。
+	/// axis: 0=右(+X), 1=上(+Y), 2=前(+Z)。
+	/// </summary>
+	struct LocalMoveTarget {
+		GameObject* object = nullptr;
+		int axis = 0;
+	};
+
 	const char* GetTypeName() const override { return "AnimatorComponent"; }
 	bool AllowMultiple() const override { return false; }
 
@@ -95,6 +114,35 @@ public:
 
 	void MarkBindingsDirty() { bindingsDirty_ = true; }
 
+	/// <summary>
+	/// 加算(additive)トラックの基準値をクリアします。次の評価時に「その時点の現在値」を基準として取り直します。
+	/// 再生開始・プレビュー開始のタイミングで呼びます。
+	/// </summary>
+	void ClearAdditiveBases() {
+		additiveBaseValues_.clear();
+		localMoveLastValues_.clear();
+		loopCycleCount_ = 0;
+	}
+
+	/// <summary>
+	/// 加算トラックのキャプチャ済み基準値を取得します(未キャプチャならfalse)。
+	/// Editorの録画で「現在値-基準値」の差分をキーにするために使います。
+	/// </summary>
+	bool TryGetAdditiveBase(const std::string& trackPath, float& outBase) const {
+		auto found = additiveBaseValues_.find(trackPath);
+		if (found == additiveBaseValues_.end()) {
+			return false;
+		}
+		outBase = found->second;
+		return true;
+	}
+
+	/// <summary>
+	/// rootとその子孫全てのアニメーション可能チャンネルを列挙します(AnimationWindowと共用)。
+	/// excludeComponentは列挙から除外します(Animator自身を渡す)。
+	/// </summary>
+	static void CollectHierarchyChannels(GameObject& root, const Component* excludeComponent, std::vector<AnimatorChannel>& outChannels);
+
 private:
 	bool LoadClip();
 
@@ -114,6 +162,15 @@ private:
 	std::unordered_map<std::string, float*> channelMap_;
 	size_t resolvedComponentCount_ = 0;
 	bool bindingsDirty_ = true;
+
+	// 加算トラックの基準値(path→再生開始時点の値)。初回評価時に遅延キャプチャする。
+	std::unordered_map<std::string, float> additiveBaseValues_;
+	// Loop時の周回数。周回ごとに加算トラックの基準値へ1周分の差分を積む(前進が累積する)。
+	int loopCycleCount_ = 0;
+
+	// 向き基準移動チャンネルの適用先(path→対象GameObject+軸)と、前回評価時のカーブ値(増分計算用)。
+	std::unordered_map<std::string, LocalMoveTarget> localMoveTargets_;
+	std::unordered_map<std::string, float> localMoveLastValues_;
 };
 
 } // namespace KujakuEngine

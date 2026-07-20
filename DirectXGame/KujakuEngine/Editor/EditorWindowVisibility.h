@@ -14,7 +14,7 @@ struct EditorWindowVisibility {
 	bool project = true;
 	bool console = true;
 	bool performance = true;
-	bool animation = false;
+	bool animation = true;
 };
 
 } // namespace KujakuEngine

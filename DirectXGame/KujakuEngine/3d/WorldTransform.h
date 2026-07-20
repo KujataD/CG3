@@ -5,6 +5,7 @@
 #include <wrl.h>
 
 #include <math/MathUtil.h>
+#include <math/Quaternion.h>
 #include "../runtime/KujakuApi.h"
 
 namespace KujakuEngine {
@@ -36,6 +37,17 @@ public:
 
 	WorldTransform() = default;
 	~WorldTransform() = default;
+
+	/// <summary>
+	/// 回転をQuaternionとして取得します(保存形式はEulerのまま)。
+	/// 回転の合成・補間・減衰はQuaternionで計算し、書き戻しはSetRotationFromQuaternionを使います。
+	/// </summary>
+	Quaternion GetRotationQuaternion() const { return Quaternion::FromEuler(rotation_); }
+
+	/// <summary>
+	/// Quaternionの姿勢をEulerへ変換してrotation_に書き込みます。
+	/// </summary>
+	void SetRotationFromQuaternion(const Quaternion& rotation) { rotation_ = rotation.ToEuler(); }
 
 	/// <summary>
 	/// 初期化（定数バッファの生成・マッピング）

@@ -12,6 +12,9 @@ public:
 
 private:
 	void DrawObject(Scene& scene, GameObject* gameObject, GameObject* selectedObject, bool& selectedObjectExists);
+
+	// 開閉矢印のクリック時に、マウスリリースでの選択を1回だけ抑制するフラグ。
+	bool suppressSelectOnRelease_ = false;
 };
 
 } // namespace KujakuEngine

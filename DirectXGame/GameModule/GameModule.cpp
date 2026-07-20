@@ -3,6 +3,7 @@
 #include "../GameComponents/EnemyComponent.h"
 #include "../GameComponents/Player.h"
 #include "../GameComponents/PlayerAnimator.h"
+#include "../GameComponents/PlayerMoveComponent.h"
 #include <memory>
 
 namespace {
@@ -101,6 +102,7 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 	factory.RegisterComponent<EnemyComponent>(kGameModuleName);
 	factory.RegisterComponent<Player>(kGameModuleName);
 	factory.RegisterComponent<PlayerAnimator>(kGameModuleName);
+	factory.RegisterComponent<PlayerMoveComponent>(kGameModuleName);
 }
 
 extern "C" __declspec(dllexport) void UnregisterGameComponents(KujakuEngine::ComponentFactory& factory) {

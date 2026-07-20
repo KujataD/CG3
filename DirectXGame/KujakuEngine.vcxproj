@@ -123,6 +123,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\components\DebugCameraComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\DirectionalLightComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\ModelRendererComponent.cpp" />
+    <ClCompile Include="KujakuEngine\components\OrbitCameraComponent.cpp" />
+    <ClCompile Include="KujakuEngine\scene\MovementUtil.cpp" />
     <ClCompile Include="KujakuEngine\components\CanvasComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\RectTransformComponent.cpp" />
     <ClCompile Include="KujakuEngine\components\ImageComponent.cpp" />
@@ -237,6 +239,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\components\DebugCameraComponent.h" />
     <ClInclude Include="KujakuEngine\components\DirectionalLightComponent.h" />
     <ClInclude Include="KujakuEngine\components\ModelRendererComponent.h" />
+    <ClInclude Include="KujakuEngine\components\OrbitCameraComponent.h" />
+    <ClInclude Include="KujakuEngine\scene\MovementUtil.h" />
+    <ClInclude Include="KujakuEngine\math\Quaternion.h" />
     <ClInclude Include="KujakuEngine\components\CanvasComponent.h" />
     <ClInclude Include="KujakuEngine\components\RectTransformComponent.h" />
     <ClInclude Include="KujakuEngine\components\ImageComponent.h" />

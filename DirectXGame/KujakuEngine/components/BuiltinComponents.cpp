@@ -8,6 +8,7 @@
 #include "DirectionalLightComponent.h"
 #include "ImageComponent.h"
 #include "ModelRendererComponent.h"
+#include "OrbitCameraComponent.h"
 #include "PointLightComponent.h"
 #include "RectTransformComponent.h"
 #include "RigidbodyComponent.h"
@@ -30,6 +31,7 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<ModelRendererComponent>();
 	factory.RegisterComponent<CameraComponent>();
 	factory.RegisterComponent<DebugCameraComponent>();
+	factory.RegisterComponent<OrbitCameraComponent>();
 	factory.RegisterComponent<DirectionalLightComponent>();
 	factory.RegisterComponent<PointLightComponent>();
 	factory.RegisterComponent<RigidbodyComponent>();
