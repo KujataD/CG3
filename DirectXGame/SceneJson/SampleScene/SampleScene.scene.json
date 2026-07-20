@@ -205,6 +205,42 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_607d427a7e4f69e3303ec9858521f8b7.gameobject.json"
+    },
+    {
+      "instanceId": "go_c4c43d3140ef0b4b62629341f4c7c3b3",
+      "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Button",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_c4c43d3140ef0b4b62629341f4c7c3b3.gameobject.json"
+    },
+    {
+      "instanceId": "go_650c557cc938e2373286a76730582d3c",
+      "parentInstanceId": "go_c4c43d3140ef0b4b62629341f4c7c3b3",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Text",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_650c557cc938e2373286a76730582d3c.gameobject.json"
+    },
+    {
+      "instanceId": "go_23903b64d785b74011c88dba5902228c",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Sphere",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_23903b64d785b74011c88dba5902228c.gameobject.json"
     }
   ]
 }

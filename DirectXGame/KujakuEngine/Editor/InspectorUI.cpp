@@ -128,13 +128,34 @@ bool ButtonSized(const char* label, float width, float height) {
 #endif
 }
 
+#ifdef USE_IMGUI
+namespace {
+
+// 参照フィールド(ObjectField/ModelAssetField)共通:参照ボタンの右側に並べる要素
+// (Clearボタン/ラベル)の幅を実測して確保する。固定幅だとラベル(例: "Target")が
+// 右へ押し出されて見切れるため。
+float CalcReferenceFieldReservedWidth(const char* label, bool withClearButton) {
+	const ImGuiStyle& style = ImGui::GetStyle();
+	float reservedWidth = 0.0f;
+	if (withClearButton) {
+		reservedWidth += ImGui::CalcTextSize("Clear").x + style.FramePadding.x * 2.0f + style.ItemSpacing.x;
+	}
+	const float labelWidth = (label && label[0] != '\0') ? ImGui::CalcTextSize(label).x : 0.0f;
+	reservedWidth += labelWidth + style.ItemSpacing.x;
+	return reservedWidth;
+}
+
+} // namespace
+#endif
+
 bool ObjectField(const char* label, const char* currentName, void** outDroppedObject, bool* outCleared) {
 #ifdef USE_IMGUI
 	bool changed = false;
 	ImGui::PushID(label);
 	const char* display = (currentName && currentName[0] != '\0') ? currentName : "None";
+
 	// 参照表示ボタン(ここへHierarchyのGameObjectをドロップする)。
-	ImGui::Button(display, ImVec2(-60.0f, 0.0f));
+	ImGui::Button(display, ImVec2(-CalcReferenceFieldReservedWidth(label, true), 0.0f));
 	if (ImGui::BeginDragDropTarget()) {
 		// Hierarchyのドラッグペイロード(GameObject*)を受け取る。
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("KujakuHierarchyGameObject");
@@ -172,7 +193,7 @@ bool ModelAssetField(const char* label, const char* currentDisplay, char* outBuf
 	ImGui::PushID(label);
 	const char* display = (currentDisplay && currentDisplay[0] != '\0') ? currentDisplay : "None";
 	// 参照表示ボタン(ここへProjectのModelファイルをドロップする)。
-	ImGui::Button(display, ImVec2(-60.0f, 0.0f));
+	ImGui::Button(display, ImVec2(-CalcReferenceFieldReservedWidth(label, false), 0.0f));
 	if (ImGui::BeginDragDropTarget()) {
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kProjectModelDragPayloadType);
 		if (payload && payload->DataSize > 0 && outBuffer && outBufferSize > 0) {
