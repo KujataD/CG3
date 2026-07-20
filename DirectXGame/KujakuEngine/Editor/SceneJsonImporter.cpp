@@ -1,6 +1,7 @@
 #include "SceneJsonImporter.h"
 #include "../scene/ComponentFactory.h"
 #include "../scene/GameObject.h"
+#include "../scene/ObjectRef.h"
 #include "../scene/Scene.h"
 
 #ifdef _MSC_VER
@@ -362,6 +363,39 @@ void RemoveUnimportedGameObjects(Scene& scene, const std::vector<GameObject*>& i
 	}
 }
 
+// Scene を IObjectResolver として見せるアダプタ。ドメイン(ObjectRef)は Scene の具象ではなく
+// この抽象に依存する。instanceId の解決は Scene の既存APIへ委譲するだけ。
+class SceneObjectResolver : public IObjectResolver {
+public:
+	explicit SceneObjectResolver(Scene& scene) : scene_(scene) {}
+
+	GameObject* ResolveInstanceId(const std::string& instanceId) const override {
+		if (instanceId.empty()) {
+			return nullptr;
+		}
+		return scene_.FindGameObjectByInstanceId(instanceId);
+	}
+
+private:
+	Scene& scene_;
+};
+
+// 全GameObject生成後に、各Componentの参照フィールド(instanceId)を実ポインタへ解決する。
+// 親子リンクの復元(RestoreHierarchy)と同じく「全体が揃ってから結線する」二段構えの一部。
+void ResolveObjectReferences(Scene& scene, const std::vector<GameObject*>& importedObjects) {
+	SceneObjectResolver resolver(scene);
+	for (GameObject* gameObject : importedObjects) {
+		if (!gameObject) {
+			continue;
+		}
+		for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+			if (component) {
+				component->ResolveReferences(resolver);
+			}
+		}
+	}
+}
+
 void RestoreHierarchy(const std::vector<GameObject*>& importedObjects, const std::vector<PendingParentLink>& parentLinks) {
 	for (GameObject* gameObject : importedObjects) {
 		if (gameObject) {
@@ -456,6 +490,7 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ImportScene(Scene& scene, con
 
 	RemoveUnimportedGameObjects(scene, importedObjects);
 	RestoreHierarchy(importedObjects, parentLinks);
+	ResolveObjectReferences(scene, importedObjects);
 
 	result.succeeded = true;
 	result.imported = true;
@@ -514,6 +549,7 @@ SceneJsonImporter::ImportResult SceneJsonImporter::ApplySceneJsonString(Scene& s
 
 	RemoveUnimportedGameObjects(scene, importedObjects);
 	RestoreHierarchy(importedObjects, parentLinks);
+	ResolveObjectReferences(scene, importedObjects);
 
 	result.succeeded = true;
 	result.message = "Applied memory Scene JSON.";

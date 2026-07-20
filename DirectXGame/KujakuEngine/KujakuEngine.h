@@ -72,8 +72,11 @@
 #include "scene/Component.h"
 #include "scene/ComponentFactory.h"
 #include "scene/GameObject.h"
+#include "scene/InvokableMethod.h"
+#include "scene/ObjectRef.h"
 #include "scene/RayCast.h"
 #include "scene/Scene.h"
+#include "scene/UnityAction.h"
 
 namespace KujakuEngine {
 
