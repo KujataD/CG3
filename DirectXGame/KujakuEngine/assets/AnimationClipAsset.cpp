@@ -556,6 +556,9 @@ AnimationClipData AnimationClipAsset::ReadJsonObject(const nlohmann::json& json)
 
 			AnimationTrack track;
 			track.path = trackJson.at("path").get<std::string>();
+			if (trackJson.contains("additive") && trackJson.at("additive").is_boolean()) {
+				track.additive = trackJson.at("additive").get<bool>();
+			}
 
 			if (trackJson.contains("keys") && trackJson.at("keys").is_array()) {
 				for (const nlohmann::json& keyJson : trackJson.at("keys")) {
@@ -589,6 +592,9 @@ void AnimationClipAsset::WriteJsonObject(nlohmann::json& json, const AnimationCl
 	for (const AnimationTrack& track : clip.tracks) {
 		nlohmann::json trackJson;
 		trackJson["path"] = track.path;
+		if (track.additive) {
+			trackJson["additive"] = true;
+		}
 
 		nlohmann::json keysJson = nlohmann::json::array();
 		for (const AnimationKeyframe& key : track.curve.keys) {

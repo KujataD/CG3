@@ -408,6 +408,86 @@ bool IsCollision(const Capsule& capsule, const OBB& obb) {
 	return IsCollision(obb, Sphere{closest, capsule.radius});
 }
 
+bool RaycastSegment(const Segment& segment, const Sphere& sphere, float& outT) {
+	Vector3 m = segment.origin - sphere.center;
+	float c = Dot(m, m) - sphere.radius * sphere.radius;
+	if (c <= 0.0f) {
+		// 始点が球の内部。
+		outT = 0.0f;
+		return true;
+	}
+
+	float a = Dot(segment.diff, segment.diff);
+	if (a <= 1.0e-8f) {
+		return false;
+	}
+	float b = Dot(m, segment.diff);
+	if (b > 0.0f) {
+		// 球から遠ざかる向き。
+		return false;
+	}
+
+	float discriminant = b * b - a * c;
+	if (discriminant < 0.0f) {
+		return false;
+	}
+
+	float t = (-b - std::sqrt(discriminant)) / a;
+	if (t < 0.0f || t > 1.0f) {
+		return false;
+	}
+	outT = t;
+	return true;
+}
+
+bool RaycastSegment(const Segment& segment, const AABB& aabb, float& outT) {
+	// slab法。始点が内部なら tMin=0 のままヒットになる。
+	float tMin = 0.0f;
+	float tMax = 1.0f;
+
+	const float origins[3] = {segment.origin.x, segment.origin.y, segment.origin.z};
+	const float diffs[3] = {segment.diff.x, segment.diff.y, segment.diff.z};
+	const float mins[3] = {aabb.min.x, aabb.min.y, aabb.min.z};
+	const float maxs[3] = {aabb.max.x, aabb.max.y, aabb.max.z};
+
+	for (int axis = 0; axis < 3; ++axis) {
+		if (std::abs(diffs[axis]) < 1.0e-8f) {
+			if (origins[axis] < mins[axis] || origins[axis] > maxs[axis]) {
+				return false;
+			}
+			continue;
+		}
+
+		float inverse = 1.0f / diffs[axis];
+		float t1 = (mins[axis] - origins[axis]) * inverse;
+		float t2 = (maxs[axis] - origins[axis]) * inverse;
+		if (t1 > t2) {
+			std::swap(t1, t2);
+		}
+		tMin = (std::max)(tMin, t1);
+		tMax = (std::min)(tMax, t2);
+		if (tMin > tMax) {
+			return false;
+		}
+	}
+
+	outT = tMin;
+	return true;
+}
+
+bool RaycastSegment(const Segment& segment, const OBB& obb, float& outT) {
+	// 線分をOBBローカル空間へ変換して、AABBのslab法に帰着する。
+	Vector3 relative = segment.origin - obb.center;
+	Segment localSegment{};
+	localSegment.origin = {Dot(relative, obb.orientations[0]), Dot(relative, obb.orientations[1]), Dot(relative, obb.orientations[2])};
+	localSegment.diff = {Dot(segment.diff, obb.orientations[0]), Dot(segment.diff, obb.orientations[1]), Dot(segment.diff, obb.orientations[2])};
+
+	AABB localBox{};
+	localBox.min = {-obb.size.x, -obb.size.y, -obb.size.z};
+	localBox.max = {obb.size.x, obb.size.y, obb.size.z};
+	return RaycastSegment(localSegment, localBox, outT);
+}
+
 bool ComputeContact(const Capsule& capsule, const Sphere& sphere, Contact& out) {
 	Vector3 closest = ClosestPointOnSegment(capsule.p0, capsule.p1, sphere.center);
 	// capsule表面の球(closest,radius)と相手球の球-球接触。normal は closest→sphere = capsule→sphere。

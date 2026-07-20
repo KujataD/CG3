@@ -129,6 +129,12 @@ bool IsCollision(const Capsule& capsule, const OBB& obb);
 /// </summary>
 bool IsOverlappingOnAxis(const OBB& A, const OBB& B, const Vector3& axis);
 
+// 線分(origin〜origin+diff)と形状の交差を調べ、最初のヒット位置の割合t[0,1]を返す。
+// 始点が形状内部の場合は t=0 でヒット扱い。カメラの遮蔽判定などに使う。
+bool RaycastSegment(const Segment& segment, const Sphere& sphere, float& outT);
+bool RaycastSegment(const Segment& segment, const AABB& aabb, float& outT);
+bool RaycastSegment(const Segment& segment, const OBB& obb, float& outT);
+
 // 接触情報(法線・めり込み量・接触点)を計算する。交差していれば true。
 // normal は第1引数から第2引数へ向かう分離方向(単位)。詳細は Contact を参照。
 bool ComputeContact(const Sphere& a, const Sphere& b, Contact& out);

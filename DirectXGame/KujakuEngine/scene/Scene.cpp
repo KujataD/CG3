@@ -906,6 +906,9 @@ void Scene::OnEditorComponentAdded(GameObject* gameObject, Component* component)
 
 GameObject* Scene::AddGameObject(std::unique_ptr<GameObject> gameObject) {
 	GameObject* raw = gameObject.get();
+	if (raw) {
+		raw->SetScene(this);
+	}
 	gameObjects_.push_back(std::move(gameObject));
 
 	if (initialized_ && raw) {
@@ -998,6 +1001,22 @@ bool Scene::MoveGameObjectOrder(GameObject* dragged, GameObject* target, bool in
 	}
 	gameObjects_.insert(targetIt, std::move(ownedDragged));
 	return true;
+}
+
+GameObject* Scene::FindGameObjectByName(const std::string& name) const {
+	if (name.empty()) {
+		return nullptr;
+	}
+
+	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
+		if (!gameObject) {
+			continue;
+		}
+		if (gameObject->GetName() == name) {
+			return gameObject.get();
+		}
+	}
+	return nullptr;
 }
 
 GameObject* Scene::FindGameObjectByInstanceId(const std::string& instanceId) const {

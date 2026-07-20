@@ -16,8 +16,6 @@ public:
 	void OnPlayStart() override;
 
 private:
-	KujakuEngine::AnimatorComponent* FindAnimator() const;
-
 	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
 		KUJAKU_REGISTER_STRING_NAMED(clipName_, "Clip Name");
 		KUJAKU_REGISTER_FLOAT_NAMED(triggerThreshold_, "Trigger Threshold", 0.01f, 0.05f, 1.0f);
@@ -30,6 +28,8 @@ private:
 	KUJAKU_FIELD_FLOAT(triggerThreshold_, 0.5f);
 	// 有効ならR2を離した時に再生を停止する。
 	KUJAKU_FIELD_BOOL(stopOnRelease_, false);
+
+	KujakuEngine::AnimatorComponent* animator_ = nullptr;
 
 	bool wasPressed_ = false;
 };

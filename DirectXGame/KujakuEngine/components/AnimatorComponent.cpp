@@ -24,7 +24,74 @@ std::string ReadString(const nlohmann::json& json, const char* key, const std::s
 
 const std::string kEmptyString;
 
+// objectPrefixは自身なら空、子孫なら"子/孫:"。子孫を再帰的に辿ってチャンネルを集める。
+void CollectChannelsRecursive(GameObject& object, const std::string& objectPrefix, const Component* excludeComponent, std::vector<AnimatorChannel>& outChannels) {
+	std::vector<AnimatableChannel> channels;
+	for (const std::unique_ptr<Component>& component : object.GetComponents()) {
+		if (!component || component.get() == excludeComponent) {
+			continue;
+		}
+		channels.clear();
+		component->CollectAnimatableChannels(channels);
+		std::string prefix = objectPrefix + component->GetTypeName() + "/";
+		for (const AnimatableChannel& channel : channels) {
+			outChannels.push_back({prefix + channel.path, channel.value});
+		}
+	}
+
+	for (GameObject* child : object.GetChildren()) {
+		if (!child) {
+			continue;
+		}
+		std::string childPrefix;
+		if (objectPrefix.empty()) {
+			childPrefix = child->GetName() + ":";
+		} else {
+			// "親:" → "親/子:" と伸ばす。
+			childPrefix = objectPrefix.substr(0, objectPrefix.size() - 1) + "/" + child->GetName() + ":";
+		}
+		CollectChannelsRecursive(*child, childPrefix, excludeComponent, outChannels);
+	}
+}
+
+// 向き基準移動チャンネル(Transform/moveForward等)の適用先を再帰的に集める。
+// pathの形式はCollectChannelsRecursiveと同一。
+void CollectLocalMoveTargetsRecursive(GameObject& object, const std::string& objectPrefix, std::unordered_map<std::string, AnimatorComponent::LocalMoveTarget>& outTargets) {
+	std::string transformPrefix = objectPrefix + "Transform/";
+	outTargets.emplace(transformPrefix + "moveRight", AnimatorComponent::LocalMoveTarget{&object, 0});
+	outTargets.emplace(transformPrefix + "moveUp", AnimatorComponent::LocalMoveTarget{&object, 1});
+	outTargets.emplace(transformPrefix + "moveForward", AnimatorComponent::LocalMoveTarget{&object, 2});
+
+	for (GameObject* child : object.GetChildren()) {
+		if (!child) {
+			continue;
+		}
+		std::string childPrefix;
+		if (objectPrefix.empty()) {
+			childPrefix = child->GetName() + ":";
+		} else {
+			childPrefix = objectPrefix.substr(0, objectPrefix.size() - 1) + "/" + child->GetName() + ":";
+		}
+		CollectLocalMoveTargetsRecursive(*child, childPrefix, outTargets);
+	}
+}
+
+// 自身+子孫の総Component数(バインディング再解決の変化検知用)。
+size_t CountHierarchyComponents(GameObject& object) {
+	size_t count = object.GetComponents().size();
+	for (GameObject* child : object.GetChildren()) {
+		if (child) {
+			count += CountHierarchyComponents(*child);
+		}
+	}
+	return count;
+}
+
 } // namespace
+
+void AnimatorComponent::CollectHierarchyChannels(GameObject& root, const Component* excludeComponent, std::vector<AnimatorChannel>& outChannels) {
+	CollectChannelsRecursive(root, "", excludeComponent, outChannels);
+}
 
 void AnimatorComponent::Update() {
 	if (!IsGamePlaying() || !playing_ || !clipLoaded_) {
@@ -37,6 +104,34 @@ void AnimatorComponent::Update() {
 	}
 
 	time_ += Time::GetDeltaTime() * speed_;
+
+	// Loopの周回をまたいだら、加算トラックの基準値へ1周分の差分を積む(前進などが周回ごとに累積する)。
+	if (clip_.wrapMode == AnimationWrapMode::Loop) {
+		int cycle = static_cast<int>(time_ / duration);
+		if (cycle != loopCycleCount_) {
+			int cycleDelta = cycle - loopCycleCount_;
+			loopCycleCount_ = cycle;
+			for (const AnimationTrack& track : clip_.tracks) {
+				float cycleValueDelta = (track.curve.Evaluate(duration) - track.curve.Evaluate(0.0f)) * static_cast<float>(cycleDelta);
+
+				if (track.additive) {
+					auto base = additiveBaseValues_.find(track.path);
+					if (base != additiveBaseValues_.end()) {
+						base->second += cycleValueDelta;
+					}
+				}
+
+				// 向き基準移動チャンネルは、周回時にlast値を1周分戻して増分が連続するようにする
+				// (これが無いと周回の瞬間に開始位置へ引き戻される)。
+				if (localMoveTargets_.count(track.path) != 0) {
+					auto last = localMoveLastValues_.find(track.path);
+					if (last != localMoveLastValues_.end()) {
+						last->second -= cycleValueDelta;
+					}
+				}
+			}
+		}
+	}
 
 	bool finished = false;
 	float evaluateTime = clip_.WrapTime(time_, finished);
@@ -52,6 +147,7 @@ void AnimatorComponent::OnPlayStart() {
 		LoadClip();
 	}
 	ResolveBindings();
+	ClearAdditiveBases();
 	time_ = 0.0f;
 	playing_ = playOnStart_ && clipLoaded_;
 }
@@ -59,6 +155,7 @@ void AnimatorComponent::OnPlayStart() {
 void AnimatorComponent::OnPlayStop() {
 	playing_ = false;
 	time_ = 0.0f;
+	ClearAdditiveBases();
 }
 
 void AnimatorComponent::SetClipPath(const std::string& clipPath) {
@@ -103,6 +200,7 @@ bool AnimatorComponent::SetCurrentClipIndex(int index) {
 	}
 	currentClipIndex_ = index;
 	time_ = 0.0f;
+	ClearAdditiveBases();
 	return LoadClip();
 }
 
@@ -172,6 +270,8 @@ void AnimatorComponent::Play() {
 	}
 	if (clipLoaded_) {
 		time_ = 0.0f;
+		// 加算トラックは再生開始時点の値を基準にする(次の評価で遅延キャプチャ)。
+		ClearAdditiveBases();
 		playing_ = true;
 	}
 }
@@ -181,9 +281,9 @@ void AnimatorComponent::Stop() {
 }
 
 void AnimatorComponent::EvaluateAt(float time) {
-	// Component構成が変わったらチャンネルの解決をやり直す(追加/削除どちらも検知)。
+	// 自身+子孫のComponent構成が変わったらチャンネルの解決をやり直す(追加/削除/子の増減を検知)。
 	GameObject* owner = GetOwner();
-	if (owner && owner->GetComponents().size() != resolvedComponentCount_) {
+	if (owner && CountHierarchyComponents(*owner) != resolvedComponentCount_) {
 		bindingsDirty_ = true;
 	}
 	if (bindingsDirty_) {
@@ -197,7 +297,52 @@ void AnimatorComponent::EvaluateAt(float time) {
 		if (found == channelMap_.end() || !found->second) {
 			continue;
 		}
-		*found->second = track.curve.Evaluate(time);
+
+		float value = track.curve.Evaluate(time);
+		if (track.additive) {
+			// 加算モード: 初回評価時の現在値を基準として遅延キャプチャし、カーブ値を差分として足す。
+			auto base = additiveBaseValues_.find(track.path);
+			if (base == additiveBaseValues_.end()) {
+				base = additiveBaseValues_.emplace(track.path, *found->second).first;
+			}
+			value += base->second;
+		}
+		*found->second = value;
+	}
+
+	// --- 向き基準の移動チャンネル(moveForward/moveRight/moveUp) ---
+	// カーブ値の「前回評価からの増分」を、その時点の自身の向きで回してtranslationへ加算する。
+	// 移動中に旋回すると軌道が曲がる(ルートモーション風)。
+	for (const AnimationTrack& track : clip_.tracks) {
+		auto target = localMoveTargets_.find(track.path);
+		if (target == localMoveTargets_.end() || !target->second.object) {
+			continue;
+		}
+
+		float value = track.curve.Evaluate(time);
+		auto last = localMoveLastValues_.find(track.path);
+		if (last == localMoveLastValues_.end()) {
+			// 初回は基準を取るだけ(評価開始時点の値からの増分にする)。
+			localMoveLastValues_.emplace(track.path, value);
+			continue;
+		}
+		float delta = value - last->second;
+		last->second = value;
+		if (std::abs(delta) < 1.0e-7f) {
+			continue;
+		}
+
+		Vector3 localAxis = {0.0f, 0.0f, 0.0f};
+		if (target->second.axis == 0) {
+			localAxis.x = 1.0f;
+		} else if (target->second.axis == 1) {
+			localAxis.y = 1.0f;
+		} else {
+			localAxis.z = 1.0f;
+		}
+
+		WorldTransform& transform = target->second.object->GetTransform();
+		transform.translation_ += transform.GetRotationQuaternion().RotateVector(localAxis * delta);
 	}
 }
 
@@ -210,22 +355,19 @@ void AnimatorComponent::ResolveBindings() {
 	if (!owner) {
 		return;
 	}
-	resolvedComponentCount_ = owner->GetComponents().size();
+	resolvedComponentCount_ = CountHierarchyComponents(*owner);
 
-	// "ComponentTypeName/チャンネル名" → float* の対応表を作る。
-	// 同種Componentが複数ある場合は最初の1つを対象にする(AllowMultiple対応は将来)。
-	std::vector<AnimatableChannel> channels;
-	for (const std::unique_ptr<Component>& component : owner->GetComponents()) {
-		if (!component || component.get() == this) {
-			continue;
-		}
-		channels.clear();
-		component->CollectAnimatableChannels(channels);
-		std::string prefix = std::string(component->GetTypeName()) + "/";
-		for (const AnimatableChannel& channel : channels) {
-			channelMap_.try_emplace(prefix + channel.path, channel.value);
-		}
+	// 自身と子孫全てのチャンネル("[子/孫:]ComponentTypeName/チャンネル名") → float* の対応表を作る。
+	// 同種Component/同名の子が複数ある場合は最初の1つを対象にする(try_emplace)。
+	std::vector<AnimatorChannel> channels;
+	CollectHierarchyChannels(*owner, this, channels);
+	for (const AnimatorChannel& channel : channels) {
+		channelMap_.try_emplace(channel.path, channel.value);
 	}
+
+	// 向き基準移動チャンネルの適用先(GameObject+軸)も解決し直す。
+	localMoveTargets_.clear();
+	CollectLocalMoveTargetsRecursive(*owner, "", localMoveTargets_);
 }
 
 bool AnimatorComponent::LoadClip() {

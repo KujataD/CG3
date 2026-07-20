@@ -12,6 +12,8 @@
 
 namespace KujakuEngine {
 
+class Scene;
+
 /// <summary>
 /// Scene上に配置するObjectの最小単位
 /// </summary>
@@ -66,6 +68,14 @@ public:
 	/// 親を先に更新して自身のワールド行列を更新
 	/// </summary>
 	KUJAKU_API void UpdateWorldTransformSelfAndAncestors();
+
+	/// <summary>
+	/// 所属Sceneを取得します(Scene::AddGameObjectで設定される)。
+	/// Componentから他のGameObjectを探す時に使います(UnityのgameObject.scene相当)。
+	/// </summary>
+	Scene* GetScene() const { return scene_; }
+
+	void SetScene(Scene* scene) { scene_ = scene; }
 
 	/// <summary>
 	/// Scene保存/復元で使う安定IDを取得
@@ -149,12 +159,21 @@ public:
 	template <class T>
 	T* GetComponent();
 
+	/// <summary>自身と子孫からT型Componentを探します(深さ優先、無ければnullptr)。</summary>
+	template <class T>
+	T* GetComponentInChildren();
+
+	/// <summary>自身と祖先からT型Componentを探します(無ければnullptr)。</summary>
+	template <class T>
+	T* GetComponentInParent();
+
 	std::vector<std::unique_ptr<Component>>& GetComponents() { return components_; }
 
 	const std::vector<std::unique_ptr<Component>>& GetComponents() const { return components_; }
 
 private:
 	std::string instanceId_;
+	Scene* scene_ = nullptr;
 	std::string name_ = "GameObject";
 	std::string tag_ = "Untagged";
 	uint32_t layer_ = 0;
@@ -193,6 +212,49 @@ T* GameObject::GetComponent() {
 	}
 
 	return nullptr;
+}
+
+template <class T>
+T* GameObject::GetComponentInChildren() {
+	if (T* result = GetComponent<T>()) {
+		return result;
+	}
+	for (GameObject* child : children_) {
+		if (!child) {
+			continue;
+		}
+		if (T* result = child->GetComponentInChildren<T>()) {
+			return result;
+		}
+	}
+	return nullptr;
+}
+
+template <class T>
+T* GameObject::GetComponentInParent() {
+	for (GameObject* current = this; current; current = current->parent_) {
+		if (T* result = current->GetComponent<T>()) {
+			return result;
+		}
+	}
+	return nullptr;
+}
+
+// --- Component側の検索(Unityと同じく、Component内から直接呼べる) ---
+
+template <class T>
+T* Component::GetComponent() const {
+	return owner_ ? owner_->GetComponent<T>() : nullptr;
+}
+
+template <class T>
+T* Component::GetComponentInChildren() const {
+	return owner_ ? owner_->GetComponentInChildren<T>() : nullptr;
+}
+
+template <class T>
+T* Component::GetComponentInParent() const {
+	return owner_ ? owner_->GetComponentInParent<T>() : nullptr;
 }
 
 } // namespace KujakuEngine

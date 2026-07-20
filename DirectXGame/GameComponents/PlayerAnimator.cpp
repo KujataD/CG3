@@ -4,24 +4,11 @@ using namespace KujakuEngine;
 
 void PlayerAnimator::OnPlayStart() {
 	wasPressed_ = false;
-}
-
-AnimatorComponent* PlayerAnimator::FindAnimator() const {
-	GameObject* owner = GetOwner();
-	if (!owner) {
-		return nullptr;
-	}
-	for (const std::unique_ptr<Component>& component : owner->GetComponents()) {
-		if (AnimatorComponent* animator = dynamic_cast<AnimatorComponent*>(component.get())) {
-			return animator;
-		}
-	}
-	return nullptr;
+	animator_ = GetComponent<AnimatorComponent>();
 }
 
 void PlayerAnimator::Update() {
-	AnimatorComponent* animator = FindAnimator();
-	if (!animator) {
+	if (!animator_) {
 		return;
 	}
 
@@ -30,19 +17,22 @@ void PlayerAnimator::Update() {
 	bool isPressed = rightTrigger >= triggerThreshold_;
 
 	if (isPressed && !wasPressed_) {
-		// 押した瞬間に再生。Clip Name指定があればそのクリップへ切り替える。
-		if (clipName_.empty()) {
-			animator->Play();
-		} else {
-			if (!animator->PlayByName(clipName_)) {
-				// 名前が見つからない場合は選択中クリップを再生する。
-				animator->Play();
+		if (!animator_->IsPlaying()) {
+			// 押した瞬間に再生。Clip Name指定があればそのクリップへ切り替える。
+			if (clipName_.empty()) {
+				animator_->Play();
+			}
+			else {
+				if (!animator_->PlayByName(clipName_)) {
+					// 名前が見つからない場合は選択中クリップを再生する。
+					animator_->Play();
+				}
 			}
 		}
 	}
 
 	if (stopOnRelease_ && !isPressed && wasPressed_) {
-		animator->Stop();
+		animator_->Stop();
 	}
 
 	wasPressed_ = isPressed;

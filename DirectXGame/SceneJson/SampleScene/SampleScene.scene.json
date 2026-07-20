@@ -4,7 +4,7 @@
   "gameObjects": [
     {
       "instanceId": "go_54bb2aec2d051fe82a5f52fd4139f659",
-      "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+      "parentInstanceId": "",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
@@ -131,7 +131,7 @@
       "prefabInstanceRoot": false,
       "name": "WeaponModel",
       "tag": "Untagged",
-      "layer": 0,
+      "layer": 1,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_88779a7ed5b4f0b2443bab2bd836edd9.gameobject.json"
     },
     {

@@ -26,8 +26,8 @@
         ],
         "translation": [
           -5.697638511657715,
-          5.130646705627441,
-          1.2493284940719604
+          5.430646896362305,
+          4.005656719207764
         ]
       },
       "type": "Transform"
@@ -88,7 +88,8 @@
     {
       "enabled": true,
       "properties": {
-        "speed": 0.15000000596046448
+        "speed": 5.0,
+        "turnSpeed": 12.0
       },
       "type": "Player"
     },
@@ -107,6 +108,34 @@
         "radius": 1.5
       },
       "type": "CapsuleColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clips": [
+          {
+            "assetId": "",
+            "path": "Animations/PlayerAttack.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerWalk.anim.json"
+          }
+        ],
+        "currentClip": 0,
+        "playOnStart": true,
+        "speed": 1.659999966621399
+      },
+      "type": "AnimatorComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clipName": "PlayerAttack",
+        "stopOnRelease": false,
+        "triggerThreshold": 0.5
+      },
+      "type": "PlayerAnimator"
     }
   ]
 }

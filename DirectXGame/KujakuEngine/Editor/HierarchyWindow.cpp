@@ -327,8 +327,20 @@ void HierarchyWindow::DrawObject(Scene& scene, GameObject* gameObject, GameObjec
 	// 並び替えのドロップ位置判定に使うノードの矩形を、この時点で取得しておく。
 	const ImVec2 itemMin = ImGui::GetItemRectMin();
 	const ImVec2 itemMax = ImGui::GetItemRectMax();
-	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
-		EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
+
+	// 選択はマウスを「離した時」に行う(Unity同様)。
+	// 押した瞬間に選択するとD&D開始でInspectorが切り替わり、ObjectField等へドロップできなくなるため。
+	if (ImGui::IsItemClicked() && ImGui::IsItemToggledOpen()) {
+		// 開閉矢印のクリックでは選択しない。
+		suppressSelectOnRelease_ = true;
+	}
+	if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+		const ImVec2 dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+		const bool dragged = (dragDelta.x * dragDelta.x + dragDelta.y * dragDelta.y) > 9.0f;
+		if (!suppressSelectOnRelease_ && !dragged) {
+			EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
+		}
+		suppressSelectOnRelease_ = false;
 	}
 
 	if (ImGui::BeginDragDropSource()) {
@@ -440,6 +452,11 @@ void HierarchyWindow::Draw(bool* pOpen) {
 
 	if (selectedObject && !selectedObjectExists) {
 		EditorSelection::GetInstance()->Clear();
+	}
+
+	// アイテム外でリリースされた場合も、矢印クリック抑制フラグを持ち越さない。
+	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+		suppressSelectOnRelease_ = false;
 	}
 
 	ImGuiIO& io = ImGui::GetIO();

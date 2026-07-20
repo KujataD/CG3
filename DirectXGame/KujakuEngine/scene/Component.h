@@ -114,6 +114,20 @@ public:
 
 	GameObject* GetOwner() const { return owner_; }
 
+	// --- Unity風のComponent検索(定義は循環include回避のためGameObject.h側) ---
+
+	/// <summary>同じGameObjectのT型Componentを返します(無ければnullptr)。</summary>
+	template <class T>
+	T* GetComponent() const;
+
+	/// <summary>自身と子孫からT型Componentを探します(深さ優先、無ければnullptr)。</summary>
+	template <class T>
+	T* GetComponentInChildren() const;
+
+	/// <summary>自身と祖先からT型Componentを探します(無ければnullptr)。</summary>
+	template <class T>
+	T* GetComponentInParent() const;
+
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
 
 	bool IsEnabled() const { return enabled_; }
