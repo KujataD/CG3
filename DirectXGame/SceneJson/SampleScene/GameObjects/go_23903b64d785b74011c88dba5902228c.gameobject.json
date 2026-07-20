@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_a19672b7cae624c950caa1145e77d7e5",
+  "instanceId": "go_23903b64d785b74011c88dba5902228c",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Ground",
+  "name": "Sphere",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -16,13 +16,13 @@
       "properties": {
         "rotation": [
           0.0,
-          -0.0,
+          0.0,
           0.0
         ],
         "scale": [
-          38.06370544433594,
-          2.5799999237060547,
-          41.1008415222168
+          1.0,
+          1.0,
+          1.0
         ],
         "translation": [
           0.0,
@@ -42,11 +42,11 @@
             1.0,
             1.0
           ],
-          "name": "MultiMesh",
+          "name": "New Material",
           "textures": {
             "BaseColor": {
-              "assetId": "asset_f40bf50f0ffc80c17a056a955691ce34",
-              "path": "Resources/terrain/ground_sample.png"
+              "assetId": "",
+              "path": "resources/white1x1.png"
             },
             "Environment": {
               "assetId": "",
@@ -58,30 +58,13 @@
             }
           }
         },
-        "materialAssetId": "asset_4390ebf712143a2021c8e5e8b2c909eb",
-        "materialPath": "Materials/MultiMesh.material.json",
+        "materialAssetId": "",
+        "materialPath": "",
         "modelPath": "player",
-        "primitive": "Cube"
+        "primitive": "Model",
+        "texture": "resources/white1x1.png"
       },
       "type": "ModelRendererComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "center": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "collisionMask": 4294967295,
-        "isTrigger": false,
-        "size": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      },
-      "type": "BoxColliderComponent"
     }
   ]
 }

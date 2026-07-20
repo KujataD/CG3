@@ -1,7 +1,7 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_a328678cc6774d7e51942273faa4e194",
-  "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
+  "instanceId": "go_650c557cc938e2373286a76730582d3c",
+  "parentInstanceId": "go_c4c43d3140ef0b4b62629341f4c7c3b3",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
@@ -44,8 +44,8 @@
           0.5
         ],
         "anchoredPosition": [
-          -458.3321533203125,
-          -258.2733154296875
+          0.0,
+          0.0
         ],
         "pivot": [
           0.5,
@@ -57,8 +57,8 @@
           1.0
         ],
         "sizeDelta": [
-          363.335693359375,
-          203.45333862304688
+          100.0,
+          100.0
         ]
       },
       "type": "RectTransform"
@@ -66,16 +66,16 @@
     {
       "enabled": true,
       "properties": {
-        "align": 0,
+        "align": 1,
         "color": [
-          1.0,
-          0.07450980693101883,
           0.0,
-          0.9882352948188782
+          0.0,
+          0.0,
+          1.0
         ],
         "fontPath": "C:/Windows/Fonts/msgothic.ttc",
-        "fontSize": 175.5,
-        "text": "熱盛"
+        "fontSize": 46.5,
+        "text": "Load Enemy BT"
       },
       "type": "Text"
     }

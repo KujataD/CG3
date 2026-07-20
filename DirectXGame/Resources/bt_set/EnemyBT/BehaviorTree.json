@@ -2,28 +2,30 @@
   "activeTreeName": "Main",
   "trees": [
     {
+      "comments": [],
       "idBlockIndex": 0,
+      "kind": "BehaviorTree",
       "links": [
         {
-          "endPinId": 101,
-          "id": 1015,
-          "startPinId": 118
+          "endPinId": 134,
+          "id": 1022,
+          "startPinId": 133
         },
         {
-          "endPinId": 104,
-          "id": 1016,
-          "startPinId": 118
+          "endPinId": 131,
+          "id": 1023,
+          "startPinId": 133
         },
         {
-          "endPinId": 117,
-          "id": 1017,
+          "endPinId": 132,
+          "id": 1024,
           "startPinId": 100
         }
       ],
       "name": "Main",
-      "nextLinkId": 1021,
-      "nextNodeId": 19,
-      "nextPinId": 131,
+      "nextLinkId": 1025,
+      "nextNodeId": 22,
+      "nextPinId": 135,
       "nodes": [
         {
           "cooldownDuration": 1.0,
@@ -32,8 +34,8 @@
           "name": "Root",
           "outputPinId": 100,
           "position": {
-            "x": -8.0,
-            "y": -23.0
+            "x": -72.0,
+            "y": -183.0
           },
           "reactive": false,
           "repeatCount": -1,
@@ -43,13 +45,13 @@
         },
         {
           "cooldownDuration": 1.0,
-          "id": 2,
-          "inputPinId": 101,
-          "name": "MoveForward",
+          "id": 19,
+          "inputPinId": 131,
+          "name": "MoveToTarget",
           "outputPinId": 0,
           "position": {
-            "x": 88.0,
-            "y": 321.0
+            "x": 8.0,
+            "y": 209.0
           },
           "reactive": false,
           "repeatCount": -1,
@@ -59,35 +61,35 @@
         },
         {
           "cooldownDuration": 1.0,
-          "id": 4,
-          "inputPinId": 104,
+          "id": 20,
+          "inputPinId": 132,
+          "name": "Sequence",
+          "outputPinId": 133,
+          "position": {
+            "x": -72.0,
+            "y": 17.0
+          },
+          "reactive": false,
+          "repeatCount": -1,
+          "repeatPaced": false,
+          "status": "",
+          "type": "Sequence"
+        },
+        {
+          "cooldownDuration": 1.0,
+          "id": 21,
+          "inputPinId": 134,
           "name": "RotateY",
           "outputPinId": 0,
           "position": {
-            "x": -104.0,
-            "y": 321.0
+            "x": -152.0,
+            "y": 209.0
           },
           "reactive": false,
           "repeatCount": -1,
           "repeatPaced": false,
           "status": "",
           "type": "Action"
-        },
-        {
-          "cooldownDuration": 1.0,
-          "id": 11,
-          "inputPinId": 117,
-          "name": "Selector",
-          "outputPinId": 118,
-          "position": {
-            "x": -8.0,
-            "y": 137.0
-          },
-          "reactive": false,
-          "repeatCount": -1,
-          "repeatPaced": false,
-          "status": "",
-          "type": "Selector"
         }
       ],
       "runtime": {
@@ -97,59 +99,23 @@
             {
               "children": [
                 {
-                  "id": 4,
+                  "id": 21,
                   "name": "RotateY",
                   "type": "Action"
                 },
                 {
-                  "id": 2,
-                  "name": "MoveForward",
+                  "id": 19,
+                  "name": "MoveToTarget",
                   "type": "Action"
                 }
               ],
-              "id": 11,
-              "name": "Selector",
+              "id": 20,
+              "name": "Sequence",
               "reactive": false,
-              "type": "Selector"
+              "type": "Sequence"
             }
           ],
           "id": 1,
-          "name": "Root",
-          "type": "Root"
-        },
-        "version": 1
-      }
-    },
-    {
-      "idBlockIndex": 1,
-      "links": [],
-      "name": "Tree2",
-      "nextLinkId": 1001000,
-      "nextNodeId": 1000002,
-      "nextPinId": 1000101,
-      "nodes": [
-        {
-          "cooldownDuration": 1.0,
-          "id": 1000001,
-          "inputPinId": 0,
-          "name": "Root",
-          "outputPinId": 1000100,
-          "position": {
-            "x": 0.0,
-            "y": 0.0
-          },
-          "reactive": false,
-          "repeatCount": -1,
-          "repeatPaced": false,
-          "status": "",
-          "type": "Root"
-        }
-      ],
-      "runtime": {
-        "format": "BahamutAI.BehaviorTree",
-        "root": {
-          "children": [],
-          "id": 1000001,
           "name": "Root",
           "type": "Root"
         },
