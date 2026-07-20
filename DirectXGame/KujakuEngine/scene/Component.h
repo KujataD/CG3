@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../runtime/KujakuApi.h"
+#include "InvokableMethod.h"
 #include "SerializedFieldRegistry.h"
 
 #ifdef _MSC_VER
@@ -52,6 +53,20 @@ public:
 	virtual void ReadJson(const nlohmann::json& json);
 
 	virtual void OnAfterReadJson() {}
+
+	/// <summary>
+	/// シリアライズ済みのGameObject参照(ObjectRef/ComponentRef)を、instanceIdから実ポインタへ解決します。
+	/// Scene構築後(全GameObject生成後)に呼ばれます。参照を持たないComponentは何もしません。
+	/// KUJAKU_SERIALIZED_FIELDS_BEGIN を使うComponentは自動でoverrideされます。
+	/// </summary>
+	virtual void ResolveReferences(IObjectResolver& resolver) { (void)resolver; }
+
+	/// <summary>
+	/// このComponentが公開する「Inspectorから呼び出せるメソッド」を登録します。
+	/// UnityのUnityEvent(Button.onClick等)のメソッド選択肢に相当します。
+	/// 例: registry.Add("LoadBTSet", [this]() { LoadBTSet(); });
+	/// </summary>
+	virtual void RegisterInvokableMethods(InvokableMethodRegistry& registry) { (void)registry; }
 
 	/// <summary>
 	/// Component情報を共通形式のJSONとして書き出す

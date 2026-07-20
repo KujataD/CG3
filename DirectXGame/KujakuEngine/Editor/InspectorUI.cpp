@@ -129,8 +129,16 @@ bool ObjectField(const char* label, const char* currentName, void** outDroppedOb
 	bool changed = false;
 	ImGui::PushID(label);
 	const char* display = (currentName && currentName[0] != '\0') ? currentName : "None";
+
+	// 参照ボタンの右側に「Clearボタン + ラベル」を並べるので、その分の幅を実測して確保する。
+	// 固定幅だとラベル(例: "Target")が右へ押し出されて見切れるため。
+	const ImGuiStyle& style = ImGui::GetStyle();
+	const float clearWidth = ImGui::CalcTextSize("Clear").x + style.FramePadding.x * 2.0f;
+	const float labelWidth = (label && label[0] != '\0') ? ImGui::CalcTextSize(label).x : 0.0f;
+	const float reservedWidth = clearWidth + style.ItemSpacing.x + labelWidth + style.ItemSpacing.x;
+
 	// 参照表示ボタン(ここへHierarchyのGameObjectをドロップする)。
-	ImGui::Button(display, ImVec2(-60.0f, 0.0f));
+	ImGui::Button(display, ImVec2(-reservedWidth, 0.0f));
 	if (ImGui::BeginDragDropTarget()) {
 		// Hierarchyのドラッグペイロード(GameObject*)を受け取る。
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("KujakuHierarchyGameObject");

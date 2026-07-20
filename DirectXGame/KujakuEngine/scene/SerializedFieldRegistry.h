@@ -4,6 +4,7 @@
 #include "../math/Vector3.h"
 #include "../math/Vector4.h"
 #include "../runtime/KujakuApi.h"
+#include "ObjectRef.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -33,6 +34,7 @@ public:
 		DrawInspector,
 		WriteJson,
 		ReadJson,
+		ResolveReferences,
 	};
 
 	/// <summary>
@@ -49,6 +51,11 @@ public:
 	/// JSON読み込み用Registryを作成します。
 	/// </summary>
 	explicit SerializedFieldRegistry(const nlohmann::json& json) : mode_(Mode::ReadJson), readJson_(&json) {}
+
+	/// <summary>
+	/// 参照解決用Registryを作成します(instanceId → GameObject* の埋め戻し)。
+	/// </summary>
+	explicit SerializedFieldRegistry(const IObjectResolver& resolver) : mode_(Mode::ResolveReferences), resolver_(&resolver) {}
 
 	void Float(const char* memberName, float& value, float dragSpeed, float minValue, float maxValue) {
 		std::string key = MakeJsonKey(memberName);
@@ -324,6 +331,65 @@ public:
 		value.RegisterSerializedFields(childRegistry);
 	}
 
+	/// <summary>
+	/// GameObject参照フィールド(型なし)。UnityのInspectorのオブジェクト代入欄に相当。
+	/// </summary>
+	void ObjectRefField(const char* memberName, ObjectRef& ref) {
+		std::string key = MakeJsonKey(memberName);
+		ObjectRefNamed(key.c_str(), MakeDisplayName(key).c_str(), ref);
+	}
+
+	void ObjectRefNamed(const char* jsonKey, const char* label, ObjectRef& ref) {
+		if (mode_ == Mode::DrawInspector) {
+			DrawObjectField(label, ref.value, [&ref]() { ref.Clear(); }, [&ref](GameObject* dropped) { ref.Assign(dropped); });
+			return;
+		}
+		if (mode_ == Mode::WriteJson) {
+			(*writeJson_)[jsonKey] = ref.targetInstanceId;
+			return;
+		}
+		if (mode_ == Mode::ReadJson) {
+			ref.value = nullptr;
+			ReadInstanceId(jsonKey, ref.targetInstanceId);
+			return;
+		}
+		if (mode_ == Mode::ResolveReferences && resolver_) {
+			ref.Resolve(*resolver_);
+			return;
+		}
+	}
+
+	/// <summary>
+	/// 型付き参照フィールド(Unityの public T target; 相当)。型が一致するGameObjectのみ受理する。
+	/// </summary>
+	template <class T>
+	void ComponentRefField(const char* memberName, ComponentRef<T>& ref) {
+		std::string key = MakeJsonKey(memberName);
+		ComponentRefNamed(key.c_str(), MakeDisplayName(key).c_str(), ref);
+	}
+
+	template <class T>
+	void ComponentRefNamed(const char* jsonKey, const char* label, ComponentRef<T>& ref) {
+		if (mode_ == Mode::DrawInspector) {
+			DrawObjectField(label, ref.owner, [&ref]() { ref.Clear(); }, [&ref](GameObject* dropped) { ref.Assign(dropped); });
+			return;
+		}
+		if (mode_ == Mode::WriteJson) {
+			(*writeJson_)[jsonKey] = ref.targetInstanceId;
+			return;
+		}
+		if (mode_ == Mode::ReadJson) {
+			ref.owner = nullptr;
+			ref.component = nullptr;
+			ReadInstanceId(jsonKey, ref.targetInstanceId);
+			return;
+		}
+		if (mode_ == Mode::ResolveReferences && resolver_) {
+			ref.Resolve(*resolver_);
+			return;
+		}
+	}
+
 	static std::string MakeJsonKey(const char* memberName) {
 		std::string key = memberName;
 		size_t dotPosition = key.find_last_of('.');
@@ -386,9 +452,39 @@ private:
 		return readJson_->at(jsonKey).size() >= requiredSize;
 	}
 
+	void ReadInstanceId(const char* jsonKey, std::string& outInstanceId) {
+		if (!HasReadableKey(jsonKey)) {
+			return;
+		}
+		if (!readJson_->at(jsonKey).is_string()) {
+			return;
+		}
+		outInstanceId = readJson_->at(jsonKey).get<std::string>();
+	}
+
+	// オブジェクト参照フィールドのUI描画をここへ集約する。
+	// 参照モデル(ObjectRef/ComponentRef)側は「どう表示/ドロップ処理するか」を知らずに済む。
+	template <class OnClear, class OnDropped>
+	void DrawObjectField(const char* label, const GameObject* current, OnClear onClear, OnDropped onDropped) {
+		std::string currentName = GameObjectDisplayName(current);
+		void* dropped = nullptr;
+		bool cleared = false;
+		if (!InspectorUI::ObjectField(label, currentName.c_str(), &dropped, &cleared)) {
+			return;
+		}
+		if (cleared) {
+			onClear();
+			return;
+		}
+		if (dropped) {
+			onDropped(static_cast<GameObject*>(dropped));
+		}
+	}
+
 	Mode mode_ = Mode::DrawInspector;
 	nlohmann::json* writeJson_ = nullptr;
 	const nlohmann::json* readJson_ = nullptr;
+	const IObjectResolver* resolver_ = nullptr;
 };
 
 } // namespace KujakuEngine
@@ -401,6 +497,8 @@ private:
 #define KUJAKU_FIELD_VECTOR4(name, defaultValue) KujakuEngine::Vector4 name = defaultValue
 #define KUJAKU_FIELD_STRING(name, defaultValue) std::string name = defaultValue
 #define KUJAKU_FIELD_OBJECT(type, name) type name{}
+#define KUJAKU_FIELD_OBJECT_REF(name) KujakuEngine::ObjectRef name{}
+#define KUJAKU_FIELD_COMPONENT_REF(type, name) KujakuEngine::ComponentRef<type> name{}
 
 #define KUJAKU_SERIALIZED_FIELDS_BEGIN() \
 public: \
@@ -415,6 +513,10 @@ public: \
 	} \
 	void ReadJson(const nlohmann::json& json) override { \
 		KujakuEngine::SerializedFieldRegistry registry(json); \
+		RegisterSerializedFields(registry); \
+	} \
+	void ResolveReferences(KujakuEngine::IObjectResolver& resolver) override { \
+		KujakuEngine::SerializedFieldRegistry registry(resolver); \
 		RegisterSerializedFields(registry); \
 	} \
 private: \
@@ -440,3 +542,7 @@ private: \
 #define KUJAKU_REGISTER_STRING_NAMED(member, label) registry.StringNamed(KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member)
 #define KUJAKU_REGISTER_OBJECT(member) registry.Object(#member, member)
 #define KUJAKU_REGISTER_OBJECT_NAMED(member, label) registry.ObjectNamed(KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member)
+#define KUJAKU_REGISTER_OBJECT_REF(member) registry.ObjectRefField(#member, member)
+#define KUJAKU_REGISTER_OBJECT_REF_NAMED(member, label) registry.ObjectRefNamed(KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member)
+#define KUJAKU_REGISTER_COMPONENT_REF(member) registry.ComponentRefField(#member, member)
+#define KUJAKU_REGISTER_COMPONENT_REF_NAMED(member, label) registry.ComponentRefNamed(KujakuEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member)

@@ -8,6 +8,7 @@
 #include "../2d/UICanvasRenderer.h"
 #include "../base/DirectXCommon.h"
 #include "../base/Time.h"
+#include "../runtime/UIEventBus.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
 #include "../components/ColliderComponent.h"
@@ -742,6 +743,10 @@ void Scene::Finalize() {
 }
 
 void Scene::OnPlayStart() {
+	// Play毎にUIイベント購読を張り直す(Unity同様、前回のPlayのリスナーを持ち越さない)。
+	// 各ComponentはこのあとのOnPlayStartで購読するため、先にクリアしておく。
+	UIEventBus::Clear();
+
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
 		if (gameObject) {
 			gameObject->OnPlayStart();

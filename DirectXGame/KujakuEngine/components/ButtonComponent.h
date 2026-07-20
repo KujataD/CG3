@@ -2,6 +2,7 @@
 
 #include "../math/Vector4.h"
 #include "../scene/Component.h"
+#include "../scene/UnityAction.h"
 #include <array>
 #include <string>
 
@@ -27,6 +28,7 @@ public:
 	void WriteJson(nlohmann::json& json) const override;
 	void ReadJson(const nlohmann::json& json) override;
 	void OnAfterReadJson() override;
+	void ResolveReferences(IObjectResolver& resolver) override;
 
 	bool IsInteractable() const { return interactable_; }
 
@@ -38,13 +40,15 @@ public:
 
 private:
 	void SyncEventBuffer();
+	void DrawOnClickInspector();
 
 	Vector4 normalColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
 	Vector4 highlightedColor_ = {0.90f, 0.90f, 0.90f, 1.0f};
 	Vector4 pressedColor_ = {0.70f, 0.70f, 0.70f, 1.0f};
 	Vector4 disabledColor_ = {0.50f, 0.50f, 0.50f, 0.6f};
 	bool interactable_ = true;
-	std::string onClickEvent_;
+	std::string onClickEvent_;      // 旧来の名前付きイベント(UIEventBus)。後方互換のため残す。
+	UnityAction onClick_;           // UnityのButton.onClick相当(対象+Component+メソッドの永続呼び出し)。
 
 	std::array<char, 128> eventBuffer_{};
 	bool eventBufferSynced_ = false;

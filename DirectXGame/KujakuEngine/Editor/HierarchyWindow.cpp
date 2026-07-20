@@ -327,8 +327,17 @@ void HierarchyWindow::DrawObject(Scene& scene, GameObject* gameObject, GameObjec
 	// 並び替えのドロップ位置判定に使うノードの矩形を、この時点で取得しておく。
 	const ImVec2 itemMin = ImGui::GetItemRectMin();
 	const ImVec2 itemMax = ImGui::GetItemRectMax();
-	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
-		EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
+	// アイテム直後にトグル状態を確定させておく(後段のIsMouseReleased時には別アイテムの状態になり得るため)。
+	const bool toggledOpen = ImGui::IsItemToggledOpen();
+	// Unityに倣い、選択は「マウス押下(=ドラッグ開始)」ではなく「ドラッグせずにクリックを離した時」に確定する。
+	// これによりHierarchyからInspectorへドラッグしても、ドラッグ中にInspectorが対象へ切り替わらない。
+	if (!toggledOpen && ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+		const ImVec2 dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+		const float dragThreshold = ImGui::GetIO().MouseDragThreshold;
+		const bool wasDragged = (dragDelta.x * dragDelta.x + dragDelta.y * dragDelta.y) > (dragThreshold * dragThreshold);
+		if (!wasDragged) {
+			EditorSelection::GetInstance()->SetSelectedGameObject(gameObject);
+		}
 	}
 
 	if (ImGui::BeginDragDropSource()) {
