@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
-  "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "instanceId": "go_4af721716b0a89cc257b4706f26f70f7",
+  "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "HandRight",
+  "name": "Point Light",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -26,11 +26,26 @@
         ],
         "translation": [
           0.0,
-          0.0,
+          5.0,
           0.0
         ]
       },
       "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "decay": 1.0,
+        "intensity": 0.0,
+        "radius": 10.0
+      },
+      "type": "PointLightComponent"
     }
   ]
 }

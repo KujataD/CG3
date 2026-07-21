@@ -75,6 +75,10 @@ public:
 
 	Scene* GetCurrentScene() const;
 
+	// 起動時に最初に読み込むシーン名(ProjectSettings/StartupScene.txt)。未設定なら空。
+	KUJAKU_API std::string GetStartupSceneName() const;
+	KUJAKU_API void SetStartupSceneName(const std::string& sceneName);
+
 private:
 	EditorApplication() = default;
 	~EditorApplication() = default;
@@ -87,6 +91,9 @@ private:
 	void DestroyCurrentScene();
 	void SetCurrentSceneRaw(Scene* scene, GameModuleApi::DestroySceneFunc destroySceneFunc);
 	void InitializeCurrentSceneAndImportJson();
+
+	// SceneManager::ChangeSceneで予約された切り替えをフレーム先頭で実行する。
+	void ProcessPendingSceneChange();
 
 	/// <summary>
 	/// HotReload用の世代別一時ディレクトリへGameModuleをビルドする

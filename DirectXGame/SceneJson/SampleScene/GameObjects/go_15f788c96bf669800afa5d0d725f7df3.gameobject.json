@@ -25,9 +25,9 @@
           0.5
         ],
         "translation": [
-          -5.697638511657715,
-          5.430646896362305,
-          5.775656223297119
+          -4.71367073059082,
+          2.5399999618530273,
+          10.348068237304688
         ]
       },
       "type": "Transform"
@@ -127,7 +127,7 @@
           }
         ],
         "currentClip": 0,
-        "playOnStart": true,
+        "playOnStart": false,
         "speed": 1.659999966621399
       },
       "type": "AnimatorComponent"

@@ -86,6 +86,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <!-- C4251: DLLエクスポートクラスのSTLメンバ警告。engine/GameModuleは同一ツールチェーン共有のため無害。 -->
+      <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\imgui;$(ProjectDir)externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -193,6 +195,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\runtime\GameModuleLoader.cpp" />
     <ClCompile Include="KujakuEngine\runtime\AnimationRecordingState.cpp" />
     <ClCompile Include="KujakuEngine\runtime\PlayState.cpp" />
+    <ClCompile Include="KujakuEngine\runtime\SceneManager.cpp" />
     <ClCompile Include="KujakuEngine\runtime\AssetResolver.cpp" />
     <ClCompile Include="KujakuEngine\runtime\EngineContext.cpp" />
     <ClCompile Include="KujakuEngine\runtime\SelectionProvider.cpp" />
@@ -320,6 +323,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\runtime\KujakuApi.h" />
     <ClInclude Include="KujakuEngine\runtime\AnimationRecordingState.h" />
     <ClInclude Include="KujakuEngine\runtime\PlayState.h" />
+    <ClInclude Include="KujakuEngine\runtime\SceneManager.h" />
     <ClInclude Include="KujakuEngine\runtime\AssetResolver.h" />
     <ClInclude Include="KujakuEngine\runtime\EngineContext.h" />
     <ClInclude Include="KujakuEngine\runtime\IAssetResolver.h" />

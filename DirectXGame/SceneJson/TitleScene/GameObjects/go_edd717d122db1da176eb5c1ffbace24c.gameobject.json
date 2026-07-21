@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
-  "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "instanceId": "go_edd717d122db1da176eb5c1ffbace24c",
+  "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "HandRight",
+  "name": "Canvas",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -31,6 +31,19 @@
         ]
       },
       "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "matchWidthHeight": 0.5,
+        "referenceResolution": [
+          1280.0,
+          720.0
+        ],
+        "scaleWithScreenSize": true,
+        "sortOrder": 0
+      },
+      "type": "Canvas"
     }
   ]
 }

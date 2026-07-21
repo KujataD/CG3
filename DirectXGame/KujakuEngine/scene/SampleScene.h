@@ -27,9 +27,9 @@ public:
 	KUJAKU_API void Draw() override;
 
 	/// <summary>
-	/// Editor保存時に使うScene名を取得
+	/// 既定のScene名。SetSceneName未設定時に使われる(基底のGetSceneNameが参照)。
 	/// </summary>
-	const char* GetSceneName() const override { return "SampleScene"; }
+	const char* GetDefaultSceneName() const override { return "SampleScene"; }
 
 	KUJAKU_API Camera* GetEditorCamera() override;
 

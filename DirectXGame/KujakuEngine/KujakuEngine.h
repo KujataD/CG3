@@ -74,6 +74,7 @@
 
 #include "runtime/GameModule.h"
 #include "runtime/GameModuleLoader.h"
+#include "runtime/SceneManager.h"
 
 #include "scene/Component.h"
 #include "scene/ComponentFactory.h"

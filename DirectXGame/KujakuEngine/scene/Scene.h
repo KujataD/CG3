@@ -33,9 +33,21 @@ public:
 	KUJAKU_API virtual void OnPlayStop();
 
 	/// <summary>
-	/// Editor保存時に使うScene名を取得
+	/// Editor保存時に使うScene名を取得。
+	/// SetSceneName()でオーバーライドされていればそれを、無ければ派生の既定名を返す。
+	/// この名前が SceneJson/<name>/<name>.scene.json のロードパスを決める。
 	/// </summary>
-	virtual const char* GetSceneName() const { return "Scene"; }
+	virtual const char* GetSceneName() const { return sceneName_.empty() ? GetDefaultSceneName() : sceneName_.c_str(); }
+
+	/// <summary>
+	/// 派生クラスが返す既定のScene名(SetSceneName未設定時に使われる)。
+	/// </summary>
+	virtual const char* GetDefaultSceneName() const { return "Scene"; }
+
+	/// <summary>
+	/// ロード対象のScene名を上書きする。ChangeScene時に生成直後・Initialize前に設定する。
+	/// </summary>
+	KUJAKU_API void SetSceneName(const std::string& name);
 
 	virtual Camera* GetEditorCamera() { return nullptr; }
 
@@ -149,6 +161,9 @@ private:
 
 	bool initialized_ = false;
 	std::unordered_map<std::string, CollisionPairState> collisionPairStates_;
+
+	// SetSceneName()で設定されるロード対象名。空なら GetDefaultSceneName() を使う。
+	std::string sceneName_;
 };
 
 } // namespace KujakuEngine

@@ -1,6 +1,6 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_c4c43d3140ef0b4b62629341f4c7c3b3",
+  "instanceId": "go_2606f5e90d6268301303a10c0d6dc0ff",
   "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
   "prefabAssetPath": "",
   "prefabObjectId": "",
@@ -44,8 +44,8 @@
           0.5
         ],
         "anchoredPosition": [
-          -458.3321533203125,
-          302.18170166015625
+          568.5882568359375,
+          290.408203125
         ],
         "pivot": [
           0.5,
@@ -57,8 +57,8 @@
           1.0
         ],
         "sizeDelta": [
-          335.12127685546875,
-          76.4530029296875
+          100.0,
+          100.0
         ]
       },
       "type": "RectTransform"
@@ -103,13 +103,13 @@
         "onClick": {
           "calls": [
             {
-              "component": "EnemyComponent",
-              "method": "LoadBTSet",
-              "target": "go_40c77fc3833c4a44206156d6dcaf0d7f"
+              "component": "ChangeSceneManager",
+              "method": "OnClick",
+              "target": "go_31f06bc9ea0cf8d218f8ee1067ea7977"
             }
           ]
         },
-        "onClickEvent": "S",
+        "onClickEvent": "",
         "pressedColor": [
           0.699999988079071,
           0.699999988079071,
