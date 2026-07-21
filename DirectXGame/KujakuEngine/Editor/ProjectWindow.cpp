@@ -622,8 +622,9 @@ bool ProjectWindow::TryResolveModelPreview(ProjectItem& item) {
 	item.textureIndex = preview->srvIndex;
 	item.hasTexture = true;
 
-	// 同じ項目が複数回描画されても、同一フレーム内では一度だけサムネイル描画する。
-	if (!preview->requestedThisFrame) {
+	// サムネイルは初回だけ描画すればRTに残る。既に描画済みなら再描画キューに積まない(毎フレーム負荷を回避)。
+	// 同一フレーム内の重複も requestedThisFrame で防ぐ。
+	if (!preview->requestedThisFrame && !preview->thumbnailRendered) {
 		preview->requestedThisFrame = true;
 		modelPreviewsToRender_.push_back(preview);
 	}
@@ -886,6 +887,9 @@ void ProjectWindow::RenderModelPreview(ModelPreview& preview) {
 	endBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	endBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	commandList->ResourceBarrier(1, &endBarrier);
+
+	// 描画済みマーク。以降は再描画キューに積まれず、RTに残った絵をそのまま表示する。
+	preview.thumbnailRendered = true;
 }
 
 } // namespace KujakuEngine

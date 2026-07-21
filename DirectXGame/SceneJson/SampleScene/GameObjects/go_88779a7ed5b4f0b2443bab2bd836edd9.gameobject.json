@@ -35,6 +35,9 @@
     {
       "enabled": true,
       "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
         "material": {
           "baseColor": [
             0.1882845163345337,
@@ -43,6 +46,7 @@
             1.0
           ],
           "name": "Shield",
+          "shaderModel": 4,
           "textures": {
             "BaseColor": {
               "assetId": "",
@@ -80,6 +84,15 @@
         "radius": 1.0700000524520874
       },
       "type": "CapsuleColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "attack": false,
+        "damageValue": 20.0,
+        "knockback": 5.0
+      },
+      "type": "WeaponComponent"
     }
   ]
 }

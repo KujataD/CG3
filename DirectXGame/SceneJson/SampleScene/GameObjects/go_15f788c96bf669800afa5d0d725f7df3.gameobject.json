@@ -27,7 +27,7 @@
         "translation": [
           -5.697638511657715,
           5.430646896362305,
-          4.005656719207764
+          5.775656223297119
         ]
       },
       "type": "Transform"
@@ -35,6 +35,9 @@
     {
       "enabled": true,
       "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
         "material": {
           "baseColor": [
             1.0,
@@ -43,6 +46,7 @@
             1.0
           ],
           "name": "Player",
+          "shaderModel": 4,
           "textures": {
             "BaseColor": {
               "assetId": "",

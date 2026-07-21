@@ -57,6 +57,8 @@ private:
 		bool resourcesCreated = false;
 		bool loadFailed = false;
 		bool requestedThisFrame = false;
+		// サムネイルは一度描けば専用RTに残るので、初回だけ描画して以降は再描画しない(負荷軽減)。
+		bool thumbnailRendered = false;
 	};
 
 private:

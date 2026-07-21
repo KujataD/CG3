@@ -35,7 +35,7 @@ void CollectChannelsRecursive(GameObject& object, const std::string& objectPrefi
 		component->CollectAnimatableChannels(channels);
 		std::string prefix = objectPrefix + component->GetTypeName() + "/";
 		for (const AnimatableChannel& channel : channels) {
-			outChannels.push_back({prefix + channel.path, channel.value});
+			outChannels.push_back({prefix + channel.path, channel.value, channel.boolValue});
 		}
 	}
 
@@ -310,6 +310,17 @@ void AnimatorComponent::EvaluateAt(float time) {
 		*found->second = value;
 	}
 
+	// --- bool型チャンネル ---
+	// カーブ値を補間して閾値0.5で0/1に量子化する。エルミート補間で完全に1.0へ届かなくても、
+	// 0.5を超えていればtrueになるため、攻撃判定などのON/OFFが確実に切り替わる。
+	for (const AnimationTrack& track : clip_.tracks) {
+		auto found = boolChannelMap_.find(track.path);
+		if (found == boolChannelMap_.end() || !found->second) {
+			continue;
+		}
+		*found->second = track.curve.Evaluate(time) >= 0.5f;
+	}
+
 	// --- 向き基準の移動チャンネル(moveForward/moveRight/moveUp) ---
 	// カーブ値の「前回評価からの増分」を、その時点の自身の向きで回してtranslationへ加算する。
 	// 移動中に旋回すると軌道が曲がる(ルートモーション風)。
@@ -348,6 +359,7 @@ void AnimatorComponent::EvaluateAt(float time) {
 
 void AnimatorComponent::ResolveBindings() {
 	channelMap_.clear();
+	boolChannelMap_.clear();
 	bindingsDirty_ = false;
 	resolvedComponentCount_ = 0;
 
@@ -357,12 +369,16 @@ void AnimatorComponent::ResolveBindings() {
 	}
 	resolvedComponentCount_ = CountHierarchyComponents(*owner);
 
-	// 自身と子孫全てのチャンネル("[子/孫:]ComponentTypeName/チャンネル名") → float* の対応表を作る。
+	// 自身と子孫全てのチャンネル("[子/孫:]ComponentTypeName/チャンネル名") → float*/bool* の対応表を作る。
 	// 同種Component/同名の子が複数ある場合は最初の1つを対象にする(try_emplace)。
 	std::vector<AnimatorChannel> channels;
 	CollectHierarchyChannels(*owner, this, channels);
 	for (const AnimatorChannel& channel : channels) {
-		channelMap_.try_emplace(channel.path, channel.value);
+		if (channel.boolValue) {
+			boolChannelMap_.try_emplace(channel.path, channel.boolValue);
+		} else if (channel.value) {
+			channelMap_.try_emplace(channel.path, channel.value);
+		}
 	}
 
 	// 向き基準移動チャンネルの適用先(GameObject+軸)も解決し直す。

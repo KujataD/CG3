@@ -1,0 +1,73 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_7586264ee61a08973ac3c2e41e22c672",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "MultiMesh",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          -11.15115737915039,
+          6.503775596618652,
+          0.739287793636322
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
+        "material": {
+          "baseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "name": "New Material",
+          "shaderModel": 4,
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "multiMesh",
+        "primitive": "Model"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}

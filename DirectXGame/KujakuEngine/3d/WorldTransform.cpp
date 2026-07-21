@@ -44,6 +44,46 @@ void WorldTransform::UpdateMatrix(const Camera& camera, bool isBillboard) {
 	TransferMatrix(camera);
 }
 
+void WorldTransform::UpdateBillboardMatrix(const Camera& camera, float cameraLocalZ, bool flipX) {
+	// 基準位置は親のワールド「位置」のみ(回転/スケールは使わない)。
+	// 親の回転でローカルオフセットが公転してしまうのを防ぐ(HPバーが敵の自転で回るバグ対策)。
+	Vector3 basePos = translation_;
+	if (parent_) {
+		basePos = parent_->GetWorldPosition();
+	}
+
+	Matrix4x4 invView = Inverse(camera.matView);
+
+	// カメラ向きのビルボード回転(平行移動成分は除去)。
+	Matrix4x4 billboardMatrix = kBackToFrontMatrix * invView;
+	billboardMatrix.m[3][0] = 0.0f;
+	billboardMatrix.m[3][1] = 0.0f;
+	billboardMatrix.m[3][2] = 0.0f;
+
+	Matrix4x4 rotateMatrix = MakeRotateZMatrix(rotation_.z) * billboardMatrix;
+
+	// ローカルtranslation_(親からのオフセット)は、ビルボード姿勢で回して
+	// 「カメラ相対の右/上」オフセットにする。これにより敵が自転してもバーは回らない。
+	// ローカル半幅方向(x)へずらすと画面の左右、y は画面の上下に対応する。
+	Vector3 localOffset = parent_ ? translation_ : Vector3{0.0f, 0.0f, 0.0f};
+	Vector3 worldOffset = TransformNormal(localOffset, rotateMatrix);
+
+	// カメラの視線方向へcameraLocalZ分だけ手前/奥へずらす(奥行き調整)。
+	Vector3 camForward = Normalize({invView.m[2][0], invView.m[2][1], invView.m[2][2]});
+	Vector3 worldPos = basePos + worldOffset - camForward * cameraLocalZ;
+
+	// scale_は永続メンバなので、反転はローカルコピーに適用する(累積による破壊を防ぐ)。
+	Vector3 drawScale = scale_;
+	if (flipX) {
+		drawScale.x *= -1.0f;
+	}
+
+	Matrix4x4 scaleMatrix = MakeScaleMatrix(drawScale);
+	Matrix4x4 translateMatrix = MakeTranslateMatrix(worldPos);
+
+	matWorld_ = scaleMatrix * rotateMatrix * translateMatrix;
+}
+
 void WorldTransform::UpdateWorldMatrix() {
 	// ローカルTransformからワールド行列を作り、親がある場合は親のワールド行列を合成する。
 	matWorld_ = MakeAffineMatrix(scale_, rotation_, translation_);

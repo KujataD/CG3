@@ -7,6 +7,7 @@
     1.0
   ],
   "name": "MultiMesh",
+  "shaderModel": 2,
   "textures": {
     "BaseColor": {
       "assetId": "asset_f40bf50f0ffc80c17a056a955691ce34",

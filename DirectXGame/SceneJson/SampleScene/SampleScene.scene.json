@@ -237,10 +237,46 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Sphere",
+      "name": "Spher",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_23903b64d785b74011c88dba5902228c.gameobject.json"
+    },
+    {
+      "instanceId": "go_hpbar_background",
+      "parentInstanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HPBar",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hpbar_background.gameobject.json"
+    },
+    {
+      "instanceId": "go_hpbar_fill",
+      "parentInstanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HPBarFill",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hpbar_fill.gameobject.json"
+    },
+    {
+      "instanceId": "go_7586264ee61a08973ac3c2e41e22c672",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "MultiMesh",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_7586264ee61a08973ac3c2e41e22c672.gameobject.json"
     }
   ]
 }

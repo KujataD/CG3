@@ -44,6 +44,9 @@ struct MaterialTexture {
 struct MaterialAssetData {
 	std::string name = "New Material";
 	Vector4 baseColor = {1.0f, 1.0f, 1.0f, 1.0f};
+	// シェーダー方式(ShaderModel enum値)。0=None(Unlit/ライティングなし)..4=Blinn-Phong。
+	// 既定はBlinn-Phong(4)。UI等でライティングを無効にしたい場合は0を選ぶ。
+	int shaderModel = 4;
 	std::vector<MaterialTexture> textures;
 };
 

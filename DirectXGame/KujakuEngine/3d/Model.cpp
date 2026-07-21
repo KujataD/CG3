@@ -16,12 +16,14 @@ Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel)
 	std::string directoryPathFinal = "Resources/" + objname;
 	std::string filename = objname + ".obj";
 
+	// 規約は Resources/<name>/<name>.obj。存在しなければ Resources 直下(Resources/<name>.obj)を試す。
+	if (!std::filesystem::exists(directoryPathFinal + "/" + filename)) {
+		directoryPathFinal = "Resources";
+	}
+
 	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);
-	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
-	ModelUtil::ResolveTextureIndex(rawData.material);
 	model->rootLocalMatrix_ = rawData.rootNode.localMatrix;
-	model->CreateVertexBuffer(rawData.vertices);
-	model->CreateMaterialBuffer(rawData.material);
+	model->BuildSubMeshes(rawData, shaderModel);
 	return model;
 }
 
@@ -31,11 +33,8 @@ Model* Model::CreateFromGlTF(const std::string& objname, ShaderModel shaderModel
 	std::string filename = objname + ".gltf";
 
 	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);
-	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
-	ModelUtil::ResolveTextureIndex(rawData.material);
 	model->rootLocalMatrix_ = rawData.rootNode.localMatrix;
-	model->CreateVertexBuffer(rawData.vertices);
-	model->CreateMaterialBuffer(rawData.material);
+	model->BuildSubMeshes(rawData, shaderModel);
 	return model;
 }
 
@@ -49,22 +48,9 @@ Model* Model::TryCreateFromFile(const std::string& filePath, ShaderModel shaderM
 		return nullptr;
 	}
 
-	rawData.material.enableLighting = static_cast<int32_t>(shaderModel);
-	if (!rawData.material.textureFilePath.empty()) {
-		uint32_t textureIndex = 0;
-		if (TextureManager::GetInstance()->TryLoadTexture(rawData.material.textureFilePath, textureIndex)) {
-			rawData.material.textureIndex = textureIndex;
-		} else {
-			rawData.material.textureIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
-		}
-	} else {
-		rawData.material.textureIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
-	}
-
 	Model* model = new Model();
 	model->rootLocalMatrix_ = rawData.rootNode.localMatrix;
-	model->CreateVertexBuffer(rawData.vertices);
-	model->CreateMaterialBuffer(rawData.material);
+	model->BuildSubMeshes(rawData, shaderModel);
 	return model;
 }
 
@@ -119,8 +105,7 @@ Model* Model::CreateSphere(const std::string& textureFilePath, ShaderModel shade
 	// MaterialData
 	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	model->AddSubMesh(vertices, defaultMaterial);
 
 	return model;
 }
@@ -181,8 +166,7 @@ Model* Model::CreateCube(const std::string& textureFilePath, ShaderModel shaderM
 	// MaterialData
 	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	model->AddSubMesh(vertices, defaultMaterial);
 
 	return model;
 }
@@ -260,8 +244,7 @@ Model* Model::CreateCapsule(const std::string& textureFilePath, ShaderModel shad
 
 	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	model->AddSubMesh(vertices, defaultMaterial);
 
 	return model;
 }
@@ -305,8 +288,7 @@ Model* Model::CreatePlane(const std::string& textureFilePath, ShaderModel shader
 	// MaterialData
 	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	model->AddSubMesh(vertices, defaultMaterial);
 
 	return model;
 }
@@ -339,8 +321,7 @@ Model* Model::CreateTriangle(const std::string& textureFilePath, ShaderModel sha
 	// MaterialData
 	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	model->AddSubMesh(vertices, defaultMaterial);
 
 	return model;
 }
@@ -388,8 +369,7 @@ Model* Model::CreateTetrahedron(const std::string& textureFilePath, ShaderModel 
 	// MaterialData
 	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
 
-	model->CreateVertexBuffer(vertices);
-	model->CreateMaterialBuffer(defaultMaterial);
+	model->AddSubMesh(vertices, defaultMaterial);
 
 	return model;
 }
@@ -416,62 +396,78 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, Fil
 		GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3dWireframe, blendMode_);
 	}
 
-	// VBVを設定
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
-
-	// マテリアルCBuffer（RootParameter[0]: PixelShader, b0）
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
-
+	// 全サブメッシュ共通のCBufferは1回だけセットする。
 	// WVP・WorldCBuffer（RootParameter[1]: VertexShader, b0）
 	commandList->SetGraphicsRootConstantBufferView(1, worldTransform.GetConstBuffer()->GetGPUVirtualAddress());
-
-	// テクスチャSRV（RootParameter[2]: DescriptorTable）
-	auto handle = TextureManager::GetInstance()->GetSrvHandle(textureIndex_);
-	commandList->SetGraphicsRootDescriptorTable(2, handle);
-
 	// directional light
 	commandList->SetGraphicsRootConstantBufferView(3, DirectionalLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
-
 	// カメラ（RootParameter[4]: VertexShader, b2）
 	commandList->SetGraphicsRootConstantBufferView(4, camera.GetCameraForGPUResource()->GetGPUVirtualAddress());
-
-	// pointlight
+	// pointlight / spotlight
 	commandList->SetGraphicsRootConstantBufferView(5, PointLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 	commandList->SetGraphicsRootConstantBufferView(6, SpotLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
 
-	// 描画
-	commandList->DrawInstanced(vertexCount_, 1, 0, 0);
+	// サブメッシュごとに 頂点バッファ・マテリアル・テクスチャ を切り替えて描画する。
+	for (const SubMesh& subMesh : subMeshes_) {
+		commandList->IASetVertexBuffers(0, 1, &subMesh.vertexBufferView);
+		// マテリアルCBuffer（RootParameter[0]: PixelShader, b0）
+		commandList->SetGraphicsRootConstantBufferView(0, subMesh.materialResource->GetGPUVirtualAddress());
+		// テクスチャSRV（RootParameter[2]: DescriptorTable）
+		auto handle = TextureManager::GetInstance()->GetSrvHandle(subMesh.textureIndex);
+		commandList->SetGraphicsRootDescriptorTable(2, handle);
+		commandList->DrawInstanced(subMesh.vertexCount, 1, 0, 0);
+	}
 }
 
-void Model::CreateVertexBuffer(const std::vector<VertexData>& vertices) {
-	// 頂点保存
-	vertices_ = vertices;
+void Model::AddSubMesh(const std::vector<VertexData>& vertices, const MaterialData& material) {
+	// 空メッシュは0サイズバッファ生成を避けるためスキップする(読み込み失敗時の保険)。
+	if (vertices.empty()) {
+		return;
+	}
 
-	// 頂点数を取得
-	vertexCount_ = static_cast<uint32_t>(vertices.size());
+	SubMesh subMesh{};
+	subMesh.vertexCount = static_cast<uint32_t>(vertices.size());
 
-	// 頂点数分のリソース作成
-	vertexResource_ = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(VertexData) * vertexCount_);
-
-	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
-	vertexBufferView_.SizeInBytes = static_cast<UINT>(sizeof(VertexData) * vertexCount_);
-	vertexBufferView_.StrideInBytes = sizeof(VertexData);
+	// 頂点バッファ生成
+	subMesh.vertexResource = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(VertexData) * subMesh.vertexCount);
+	subMesh.vertexBufferView.BufferLocation = subMesh.vertexResource->GetGPUVirtualAddress();
+	subMesh.vertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(VertexData) * subMesh.vertexCount);
+	subMesh.vertexBufferView.StrideInBytes = sizeof(VertexData);
 
 	VertexData* vertexMap = nullptr;
-	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexMap));
-	std::memcpy(vertexMap, vertices.data(), sizeof(VertexData) * vertexCount_);
-	vertexResource_->Unmap(0, nullptr);
+	subMesh.vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexMap));
+	std::memcpy(vertexMap, vertices.data(), sizeof(VertexData) * subMesh.vertexCount);
+	subMesh.vertexResource->Unmap(0, nullptr);
+
+	// マテリアルCBuffer生成
+	subMesh.materialResource = DirectXCommon::GetInstance()->CreateBufferResource((sizeof(MaterialData) + 0xff) & ~0xff);
+	subMesh.materialResource->Map(0, nullptr, reinterpret_cast<void**>(&subMesh.materialMap));
+	subMesh.materialMap->color = material.color;
+	subMesh.materialMap->enableLighting = material.enableLighting;
+	subMesh.materialMap->uvTransform = MakeIdentity();
+	subMesh.materialMap->shininess = material.shininess;
+	subMesh.textureIndex = material.textureIndex;
+
+	// raycast/preview用の統合頂点へ追記する。
+	mergedVertices_.insert(mergedVertices_.end(), vertices.begin(), vertices.end());
+
+	subMeshes_.push_back(std::move(subMesh));
 }
 
-void Model::CreateMaterialBuffer(const MaterialData& material) {
+void Model::BuildSubMeshes(ModelData& modelData, ShaderModel shaderModel) {
+	if (!modelData.meshes.empty()) {
+		// サブメッシュ別(MultiMesh)。各パーツのマテリアル/テクスチャを個別に解決する。
+		for (MeshData& mesh : modelData.meshes) {
+			mesh.material.enableLighting = static_cast<int32_t>(shaderModel);
+			ModelUtil::ResolveTextureIndex(mesh.material);
+			AddSubMesh(mesh.vertices, mesh.material);
+		}
+		return;
+	}
 
-	materialResource_ = DirectXCommon::GetInstance()->CreateBufferResource((sizeof(MaterialData) + 0xff) & ~0xff);
-
-	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialMap_));
-	materialMap_->color = material.color;
-	materialMap_->enableLighting = material.enableLighting;
-	materialMap_->uvTransform = MakeIdentity();
-	materialMap_->shininess = material.shininess;
-	textureIndex_ = material.textureIndex;
+	// フォールバック: サブメッシュ情報が無い場合は統合頂点/代表マテリアルで1サブメッシュ。
+	modelData.material.enableLighting = static_cast<int32_t>(shaderModel);
+	ModelUtil::ResolveTextureIndex(modelData.material);
+	AddSubMesh(modelData.vertices, modelData.material);
 }
 } // namespace KujakuEngine

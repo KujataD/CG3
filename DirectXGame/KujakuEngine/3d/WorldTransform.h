@@ -30,7 +30,7 @@ public:
 	Vector3 translation_ = {0.0f, 0.0f, 0.0f};
 
 	// ワールド行列（UpdateMatrix後に有効）
-	Matrix4x4 matWorld_;
+	Matrix4x4 matWorld_ = MakeIdentity();
 
 	// 親となるワールド変換へのポインタ（階層構造用）
 	const WorldTransform* parent_ = nullptr;
@@ -55,6 +55,14 @@ public:
 	void Initialize();
 
 	KUJAKU_API void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
+
+	/// <summary>
+	/// 親階層を考慮したビルボード行列でmatWorld_を更新します。
+	/// ローカルtranslation_は親のワールド行列で変換され、平面はカメラを向きます。
+	/// cameraLocalZ: カメラの視線方向へどれだけ手前(正)/奥(負)にずらすか(奥行き調整)。
+	/// flipX: 表裏の反転(trueで裏面が手前)。
+	/// </summary>
+	KUJAKU_API void UpdateBillboardMatrix(const class Camera& camera, float cameraLocalZ, bool flipX);
 
 	/// <summary>
 	/// ワールド行列だけを更新する

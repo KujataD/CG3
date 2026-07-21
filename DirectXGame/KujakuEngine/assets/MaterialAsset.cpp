@@ -416,6 +416,10 @@ MaterialAssetData MaterialAsset::ReadJsonObject(const nlohmann::json& json, cons
 	// 旧Material JSONではcolorという名前だったため、互換用に読み取る。
 	material.baseColor = ReadVector4(json, "color", material.baseColor);
 
+	if (json.contains("shaderModel") && json.at("shaderModel").is_number_integer()) {
+		material.shaderModel = json.at("shaderModel").get<int>();
+	}
+
 	bool readNewTextures = ReadTexturesObject(json, material);
 	if (!readNewTextures) {
 		std::string legacyAssetId = ReadString(json, "textureAssetId", "");
@@ -433,6 +437,7 @@ MaterialAssetData MaterialAsset::ReadJsonObject(const nlohmann::json& json, cons
 void MaterialAsset::WriteJsonObject(nlohmann::json& json, const MaterialAssetData& material) {
 	json["name"] = material.name;
 	json["baseColor"] = {material.baseColor.x, material.baseColor.y, material.baseColor.z, material.baseColor.w};
+	json["shaderModel"] = material.shaderModel;
 
 	nlohmann::json texturesJson = nlohmann::json::object();
 	for (MaterialTextureSlot slot : GetKnownTextureSlots()) {

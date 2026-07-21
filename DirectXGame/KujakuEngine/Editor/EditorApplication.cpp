@@ -389,6 +389,8 @@ void EditorApplication::Draw() {
 		if (gameVisible) {
 			dxCommon->BeginGameRender();
 			currentScene_->RenderView(gameCamera, false);
+			// Collider可視化などRenderViewが積んだ線をGameビューRTへ描画(Sceneビューと同様にフラッシュ)。
+			LineRenderer::GetInstance()->Render(*gameCamera);
 			dxCommon->EndGameRender();
 		}
 	} else if (currentScene_ && sceneVisible) {
