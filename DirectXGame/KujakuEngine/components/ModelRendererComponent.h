@@ -23,6 +23,7 @@ public:
 		Cube,
 		Sphere,
 		Capsule,
+		Plane,
 		Model,
 	};
 
@@ -90,6 +91,9 @@ private:
 	std::string materialAssetId_;
 	std::string materialPath_;
 	MaterialAssetData material_ = MaterialAsset::CreateDefault();
+	bool billboardEnabled_ = false;
+	int billboardFaceMode_ = 0;
+	float cameraLocalZ_ = 1.0f;
 };
 
 } // namespace KujakuEngine

@@ -123,6 +123,14 @@ public:
 
 	KUJAKU_API std::string ToJson() const;
 
+	/// <summary>
+	/// ゲーム中(Gameビュー)に全GameObjectのColliderをワイヤーフレーム表示するデバッグモードの切り替え。
+	/// Sceneビューは従来通り選択オブジェクトのみ表示する。
+	/// </summary>
+	KUJAKU_API static void SetShowAllColliders(bool show);
+	KUJAKU_API static bool IsShowAllColliders();
+	KUJAKU_API static void ToggleShowAllColliders();
+
 protected:
 	/// <summary>
 	/// Sceneが所有するGameObject一覧

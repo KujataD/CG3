@@ -1,0 +1,73 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_hpbar_background",
+  "parentInstanceId": "go_40c77fc3833c4a44206156d6dcaf0d7f",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "HPBar",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.5,
+          0.10000000149011612,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          1.2000000476837158,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": true,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 0.0,
+        "material": {
+          "baseColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "name": "HPBar_BG",
+          "shaderModel": 0,
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": ""
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "",
+        "primitive": "Plane"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}

@@ -227,6 +227,47 @@
         }
       ],
       "path": "Transform/moveForward"
+    },
+    {
+      "keys": [
+        {
+          "inTangent": 0.0,
+          "outTangent": 0.0,
+          "time": 0.0,
+          "value": 0.0
+        },
+        {
+          "inTangent": 0.0,
+          "outTangent": 0.0,
+          "time": 0.7999999523162842,
+          "value": 0.0
+        },
+        {
+          "inTangent": 1.0,
+          "outTangent": 1.0,
+          "time": 0.8199999928474426,
+          "value": 1.0
+        },
+        {
+          "inTangent": 0.0,
+          "outTangent": 0.0,
+          "time": 1.1999999284744263,
+          "value": 1.0
+        },
+        {
+          "inTangent": -1.0,
+          "outTangent": -1.0,
+          "time": 1.2200000286102295,
+          "value": 0.0
+        },
+        {
+          "inTangent": 0.0,
+          "outTangent": 0.0,
+          "time": 1.5,
+          "value": 0.0
+        }
+      ],
+      "path": "HandRight/Weapon/WeaponModel:WeaponComponent/attack"
     }
   ],
   "wrapMode": "Once"

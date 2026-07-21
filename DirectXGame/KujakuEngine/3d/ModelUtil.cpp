@@ -25,8 +25,11 @@ std::string ResolveTexturePath(const std::string& directoryPath, const std::stri
 
 ModelData LoadModelFile(const std::string& directoryPath, const std::string& filename) {
 	ModelData modelData;
-	bool loaded = TryLoadModelFile(directoryPath, filename, modelData);
-	assert(loaded);
+	if (!TryLoadModelFile(directoryPath, filename, modelData)) {
+		// 読み込み失敗でもクラッシュさせず、空モデルを返す(呼び出し側は何も描画しない)。
+		std::string message = "LoadModelFile failed (empty model returned): " + directoryPath + "/" + filename + "\n";
+		OutputDebugStringA(message.c_str());
+	}
 	return modelData;
 }
 
@@ -63,12 +66,29 @@ bool TryLoadModelFile(const std::string& directoryPath, const std::string& filen
 	// RootNodeのローカル行列を保持し、描画時のモデル固有補正として利用する。
 	outModelData.rootNode = ReadNode(scene->mRootNode);
 
-	// meshを解析する
+	// 各マテリアルのDiffuseテクスチャパスを事前に解決する(mesh->mMaterialIndexで参照)。
+	std::vector<std::string> materialTexturePaths(scene->mNumMaterials);
+	for (uint32_t materialIndex = 0; materialIndex < scene->mNumMaterials; ++materialIndex) {
+		aiMaterial* material = scene->mMaterials[materialIndex];
+		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
+			aiString textureFilePath;
+			material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
+			materialTexturePaths[materialIndex] = ResolveTexturePath(directoryPath, textureFilePath.C_Str());
+		}
+	}
+
+	// meshを解析する。各サブメッシュを個別に保持しつつ、後方互換用に統合頂点も作る。
 	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
 		aiMesh* mesh = scene->mMeshes[meshIndex];
 		// ProjectのプレビューではUVなしモデルも表示したいので、足りない情報は既定値で補う。
 		bool hasNormals = mesh->HasNormals();
 		bool hasTextureCoords = mesh->HasTextureCoords(0);
+
+		MeshData subMesh{};
+		// このメッシュが参照するマテリアルのテクスチャを設定する。
+		if (mesh->mMaterialIndex < materialTexturePaths.size()) {
+			subMesh.material.textureFilePath = materialTexturePaths[mesh->mMaterialIndex];
+		}
 
 		// faceを解析する
 		for (uint32_t faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex) {
@@ -102,19 +122,18 @@ bool TryLoadModelFile(const std::string& directoryPath, const std::string& filen
 				// aiProcess_MakeLeftHandedはZ反転なので、既存のX反転に合わせて手動変換する。
 				vertex.position.x *= -1.0f;
 				vertex.normal.x *= -1.0f;
-				outModelData.vertices.push_back(vertex);
+				subMesh.vertices.push_back(vertex);
+				outModelData.vertices.push_back(vertex); // 後方互換(統合)
 			}
 		}
+
+		outModelData.meshes.push_back(std::move(subMesh));
 	}
 
-	for (uint32_t materialIndex = 0; materialIndex < scene->mNumMaterials; ++materialIndex) {
-		aiMaterial* material = scene->mMaterials[materialIndex];
-
-		// aiTextureType_DIFFUSE: テクスチャを模様として利用する
-		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
-			aiString textureFilePath;
-			material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
-			outModelData.material.textureFilePath = ResolveTexturePath(directoryPath, textureFilePath.C_Str());
+	// 後方互換: 代表マテリアルのテクスチャ(従来通り、最後の有効なテクスチャを採用)。
+	for (const std::string& texturePath : materialTexturePaths) {
+		if (!texturePath.empty()) {
+			outModelData.material.textureFilePath = texturePath;
 		}
 	}
 

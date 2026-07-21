@@ -238,16 +238,28 @@ bool DrawTextureSlotEditor(const char* label, const char* popupId, MaterialInspe
 	ImGui::EndGroup();
 
 	// プロジェクト内テクスチャ一覧(ImSearchで絞り込み)。
+	// 一覧はPopupを開いた瞬間に1回だけ再帰スキャンしてキャッシュする。
+	// (毎フレーム recursive_directory_iterator するとPopup表示中ずっと重くなるため)
 	if (ImGui::BeginPopup(popupId)) {
-		if (ImSearch::BeginSearch()) {
-			ImSearch::SearchBar("Search Texture");
+		// (表示名, フルパス) のキャッシュ。IsWindowAppearing()時のみ再構築する。
+		static std::vector<std::pair<std::string, std::filesystem::path>> cachedTextures;
+		if (ImGui::IsWindowAppearing()) {
+			cachedTextures.clear();
 			AssetDatabase& db = AssetDatabase::GetInstance();
 			for (const std::filesystem::path& texturePath : EnumerateProjectTextures()) {
 				std::string relative = db.MakeProjectRelativePath(texturePath);
 				if (relative.empty()) {
 					relative = texturePath.generic_string();
 				}
-				ImSearch::SearchableItem(relative.c_str(), [&](const char* name) {
+				cachedTextures.emplace_back(std::move(relative), texturePath);
+			}
+		}
+
+		if (ImSearch::BeginSearch()) {
+			ImSearch::SearchBar("Search Texture");
+			for (const std::pair<std::string, std::filesystem::path>& entry : cachedTextures) {
+				const std::filesystem::path& texturePath = entry.second;
+				ImSearch::SearchableItem(entry.first.c_str(), [&](const char* name) {
 					if (ImGui::Selectable(name)) {
 						ApplyTextureSelection(state, slot, buffer, texturePath);
 						changed = true;
@@ -322,6 +334,17 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 
 	bool changed = false;
 	if (ImGui::ColorEdit4("Base Color", &state.material.baseColor.x)) {
+		changed = true;
+	}
+
+	// シェーダー方式の選択(ShaderModel enumの順序に一致させる)。
+	const char* shaderItems[] = {"None (Unlit)", "Lambert", "Half Lambert", "Phong", "Blinn-Phong"};
+	int shaderIndex = state.material.shaderModel;
+	if (shaderIndex < 0 || shaderIndex >= static_cast<int>(IM_ARRAYSIZE(shaderItems))) {
+		shaderIndex = 0;
+	}
+	if (ImGui::Combo("Shader Model", &shaderIndex, shaderItems, IM_ARRAYSIZE(shaderItems))) {
+		state.material.shaderModel = shaderIndex;
 		changed = true;
 	}
 

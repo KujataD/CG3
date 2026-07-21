@@ -38,9 +38,20 @@ struct Node {
 	std::vector<Node> children;
 };
 
-struct ModelData {
+/// <summary>
+/// 1サブメッシュ分の頂点とマテリアル。MultiMesh(複数メッシュ/マテリアル)のパーツ単位。
+/// </summary>
+struct MeshData {
 	std::vector<VertexData> vertices;
 	MaterialData material;
+};
+
+struct ModelData {
+	// 後方互換: 全メッシュを統合した頂点と代表マテリアル(ParticleModel/InstancingModelが使用)。
+	std::vector<VertexData> vertices;
+	MaterialData material;
+	// サブメッシュ別データ。Modelのマルチメッシュ描画で使用。
+	std::vector<MeshData> meshes;
 	Node rootNode;
 };
 

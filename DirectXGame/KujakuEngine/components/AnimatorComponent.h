@@ -25,6 +25,8 @@ struct AnimationClipReference {
 struct AnimatorChannel {
 	std::string path;
 	float* value = nullptr;
+	// bool型チャンネル(補間せずカーブ値>=0.5でtrue)。valueとどちらか一方を設定する。
+	bool* boolValue = nullptr;
 };
 
 /// <summary>
@@ -160,6 +162,8 @@ private:
 	// チャンネルpath→書き込み先。トラックのカーブは評価のたびにclip_から直接参照する
 	// (カーブへのポインタはトラック追加/削除でダングリングするため保持しない)。
 	std::unordered_map<std::string, float*> channelMap_;
+	// bool型チャンネルpath→書き込み先(補間せずカーブ値>=0.5でtrue)。
+	std::unordered_map<std::string, bool*> boolChannelMap_;
 	size_t resolvedComponentCount_ = 0;
 	bool bindingsDirty_ = true;
 

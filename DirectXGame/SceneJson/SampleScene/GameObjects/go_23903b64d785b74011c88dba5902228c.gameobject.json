@@ -6,7 +6,7 @@
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Sphere",
+  "name": "Spher",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -35,6 +35,9 @@
     {
       "enabled": true,
       "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
         "material": {
           "baseColor": [
             1.0,
@@ -43,6 +46,7 @@
             1.0
           ],
           "name": "New Material",
+          "shaderModel": 4,
           "textures": {
             "BaseColor": {
               "assetId": "",
@@ -61,8 +65,7 @@
         "materialAssetId": "",
         "materialPath": "",
         "modelPath": "player",
-        "primitive": "Model",
-        "texture": "resources/white1x1.png"
+        "primitive": "Model"
       },
       "type": "ModelRendererComponent"
     }

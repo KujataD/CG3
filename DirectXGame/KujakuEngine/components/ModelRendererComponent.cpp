@@ -38,6 +38,10 @@ ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primi
 		return ModelRendererComponent::PrimitiveType::Capsule;
 	}
 
+	if (primitiveName == "Plane") {
+		return ModelRendererComponent::PrimitiveType::Plane;
+	}
+
 	if (primitiveName == "Model") {
 		return ModelRendererComponent::PrimitiveType::Model;
 	}
@@ -137,7 +141,14 @@ void ModelRendererComponent::Draw() {
 		return;
 	}
 
-	owner->GetTransform().UpdateMatrix(*camera_);
+	if (billboardEnabled_) {
+		// 親階層に追従し、カメラを向くビルボード行列でmatWorld_を更新する。
+		// scale_を直接いじらないため、毎フレーム累積してNaN化する不具合は起きない。
+		owner->GetTransform().UpdateBillboardMatrix(*camera_, cameraLocalZ_, billboardFaceMode_ == 1);
+	} else {
+		owner->GetTransform().UpdateMatrix(*camera_);
+	}
+
 	model_->Draw(owner->GetTransform(), *camera_);
 }
 
@@ -156,14 +167,17 @@ void ModelRendererComponent::DrawInspector() {
 	case KujakuEngine::ModelRendererComponent::PrimitiveType::Capsule:
 		primitiveIndex = 3;
 		break;
-	case KujakuEngine::ModelRendererComponent::PrimitiveType::Model:
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Plane:
 		primitiveIndex = 4;
+		break;
+	case KujakuEngine::ModelRendererComponent::PrimitiveType::Model:
+		primitiveIndex = 5;
 		break;
 	default:
 		break;
 	}
 
-	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Capsule", "Model"};
+	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Capsule", "Plane", "Model"};
 	constexpr int primitiveItemCount = static_cast<int>(sizeof(primitiveItems) / sizeof(primitiveItems[0]));
 	if (InspectorUI::Combo("Primitive", &primitiveIndex, primitiveItems, primitiveItemCount)) {
 		PrimitiveType selectedPrimitive = PrimitiveType::Custom;
@@ -174,6 +188,8 @@ void ModelRendererComponent::DrawInspector() {
 		} else if (primitiveIndex == 3) {
 			selectedPrimitive = PrimitiveType::Capsule;
 		} else if (primitiveIndex == 4) {
+			selectedPrimitive = PrimitiveType::Plane;
+		} else if (primitiveIndex == 5) {
 			selectedPrimitive = PrimitiveType::Model;
 		}
 		SetPrimitive(selectedPrimitive, GetBaseColorTexturePath(material_));
@@ -198,6 +214,20 @@ void ModelRendererComponent::DrawInspector() {
 	} else {
 		InspectorUI::TextUnformatted(materialPath_.c_str());
 	}
+
+	InspectorUI::TextUnformatted("--- Billboard ---");
+	InspectorUI::Checkbox("Billboard Enabled", &billboardEnabled_);
+
+	if (billboardEnabled_) {
+		int faceModeIndex = billboardFaceMode_;
+		const char* faceModeItems[] = {"Front", "Back"};
+		if (InspectorUI::Combo("Face Mode", &faceModeIndex, faceModeItems, 2)) {
+			billboardFaceMode_ = faceModeIndex;
+		}
+
+		// カメラの視線方向へのオフセット量。正で手前、負で奥。0で親位置のまま。
+		InspectorUI::DragFloat("Camera Local Z", &cameraLocalZ_, 0.01f, -5.0f, 5.0f);
+	}
 #endif // USE_IMGUI
 }
 
@@ -206,6 +236,9 @@ void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	json["modelPath"] = modelFolderPath_;
 	json["materialAssetId"] = materialAssetId_;
 	json["materialPath"] = materialPath_;
+	json["billboardEnabled"] = billboardEnabled_;
+	json["billboardFaceMode"] = billboardFaceMode_;
+	json["cameraLocalZ"] = cameraLocalZ_;
 
 	nlohmann::json materialJson;
 	MaterialAsset::WriteJsonObject(materialJson, material_);
@@ -217,6 +250,18 @@ void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 	modelFolderPath_ = ReadString(json, "modelPath", modelFolderPath_);
 	materialAssetId_ = ReadString(json, "materialAssetId", materialAssetId_);
 	materialPath_ = ReadString(json, "materialPath", materialPath_);
+
+	if (json.contains("billboardEnabled") && json.at("billboardEnabled").is_boolean()) {
+		billboardEnabled_ = json.at("billboardEnabled").get<bool>();
+	}
+
+	if (json.contains("billboardFaceMode") && json.at("billboardFaceMode").is_number_integer()) {
+		billboardFaceMode_ = json.at("billboardFaceMode").get<int>();
+	}
+
+	if (json.contains("cameraLocalZ") && json.at("cameraLocalZ").is_number()) {
+		cameraLocalZ_ = json.at("cameraLocalZ").get<float>();
+	}
 
 	if (json.contains("material") && json.at("material").is_object()) {
 		material_ = MaterialAsset::ReadJsonObject(json.at("material"), material_);
@@ -252,6 +297,12 @@ void ModelRendererComponent::RebuildPrimitiveModel() {
 		return;
 	}
 
+	if (primitive_ == PrimitiveType::Plane) {
+		model_.reset(Model::CreatePlane(texturePath, ShaderModel::kBlingPhongReflection));
+		ApplyMaterialToModel();
+		return;
+	}
+
 	if (primitive_ == PrimitiveType::Model) {
 		model_.reset(Model::CreateFromOBJ(modelFolderPath_, ShaderModel::kBlingPhongReflection));
 		ApplyMaterialToModel();
@@ -263,8 +314,19 @@ void ModelRendererComponent::ApplyMaterialToModel() {
 		return;
 	}
 
-	model_->SetColor(material_.baseColor);
-	model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_, MaterialTextureSlot::BaseColor));
+	// シェーダー方式(ライティング)はMaterialの選択を常に全サブメッシュへ反映する。
+	model_->SetShaderModel(static_cast<ShaderModel>(material_.shaderModel));
+
+	// 色/テクスチャの上書き方針(方式B):
+	//  - Material Assetを参照している場合は、Unityの共有Material同様に全サブメッシュを一括上書き。
+	//  - 参照なし(埋め込み)でも、単一メッシュ(プリミティブや単一OBJ)は従来通りbaseColor/textureを適用。
+	//  - 参照なし かつ MultiMesh のときだけ、モデル側のパーツ別マテリアル/テクスチャを尊重する。
+	bool hasMaterialAsset = !materialAssetId_.empty() || !materialPath_.empty();
+	bool isMultiMesh = model_->GetSubMeshCount() > 1;
+	if (hasMaterialAsset || !isMultiMesh) {
+		model_->SetColor(material_.baseColor);
+		model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_, MaterialTextureSlot::BaseColor));
+	}
 }
 
 MaterialAssetData ModelRendererComponent::GetActiveMaterial() const {
@@ -300,6 +362,10 @@ const char* ModelRendererComponent::GetPrimitiveName() const {
 
 	if (primitive_ == PrimitiveType::Capsule) {
 		return "Capsule";
+	}
+
+	if (primitive_ == PrimitiveType::Plane) {
+		return "Plane";
 	}
 
 	if (primitive_ == PrimitiveType::Model) {

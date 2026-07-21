@@ -33,6 +33,8 @@ namespace KujakuEngine {
 struct AnimatableChannel {
 	std::string path;
 	float* value = nullptr;
+	// bool型チャンネル(補間せずカーブ値>=0.5でtrue)。valueとどちらか一方を設定する。
+	bool* boolValue = nullptr;
 };
 
 /// <summary>
@@ -176,8 +178,18 @@ public:
 	}
 
 	void BoolNamed(const char* jsonKey, const char* label, bool& value) {
+		if (mode_ == Mode::CollectAnimatables) {
+			AnimatableChannel channel;
+			channel.path = pathPrefix_ + jsonKey;
+			channel.boolValue = &value;
+			channels_->push_back(channel);
+			return;
+		}
 		if (mode_ == Mode::DrawInspector) {
-			InspectorUI::Checkbox(label, &value);
+			bool changed = InspectorUI::Checkbox(label, &value);
+			// bool成分1つをアニメーション録画へ接続する(値は0/1のfloatとして扱う)。
+			float animValue = value ? 1.0f : 0.0f;
+			InspectorUI::AnimationFieldHook(jsonKey, &animValue, 1, changed);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {

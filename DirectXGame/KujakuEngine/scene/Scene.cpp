@@ -8,6 +8,7 @@
 #include "../2d/UICanvasRenderer.h"
 #include "../base/DirectXCommon.h"
 #include "../base/Time.h"
+#include "../input/Input.h"
 #include "../runtime/UIEventBus.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
@@ -35,6 +36,9 @@ constexpr Vector4 kCameraFrustumColor = {0.85f, 0.85f, 0.95f, 1.0f};
 
 // グローバル重力(Unity既定に合わせる)。RigidbodyのgravityScale倍で各動的ボディに適用する。
 constexpr Vector3 kRigidbodyGravity = {0.0f, -9.81f, 0.0f};
+
+// ゲーム中に全Colliderを可視化するデバッグモードのフラグ(Scene全体で共有)。
+bool g_showAllColliders = false;
 
 struct EditorBillboardDrawCache {
 	std::unordered_map<std::string, std::unique_ptr<Model>> models;
@@ -408,6 +412,40 @@ void DrawCapsule(const Capsule& capsule, const Vector4& color) {
 	LineRenderer::DrawLine(capsule.p0 - forward * radius, capsule.p1 - forward * radius, color);
 }
 
+// Trigger Colliderは通常Colliderと色を変えて描く(黄=Trigger, 緑=通常)。
+constexpr Vector4 kTriggerColliderDebugColor = {1.0f, 0.85f, 0.1f, 1.0f};
+
+// 1つのGameObjectが持つColliderをすべてワイヤーフレームで描く。
+void DrawGameObjectColliders(GameObject& gameObject) {
+	for (const std::unique_ptr<Component>& component : gameObject.GetComponents()) {
+		if (!component || !component->IsEnabled()) {
+			continue;
+		}
+
+		ColliderComponent* collider = dynamic_cast<ColliderComponent*>(component.get());
+		if (!collider) {
+			continue;
+		}
+
+		const Vector4& color = collider->IsTrigger() ? kTriggerColliderDebugColor : kColliderDebugColor;
+		if (collider->GetShapeType() == ColliderShapeType::Sphere) {
+			DrawSphere(collider->GetWorldSphere(), color);
+		} else if (collider->GetShapeType() == ColliderShapeType::Box) {
+			BoxColliderComponent* boxCollider = dynamic_cast<BoxColliderComponent*>(collider);
+			if (boxCollider && boxCollider->UsesWorldOBB()) {
+				DrawOBB(boxCollider->GetWorldOBB(), color);
+			} else {
+				DrawAABB(collider->GetWorldAABB(), color);
+			}
+		} else if (collider->GetShapeType() == ColliderShapeType::Capsule) {
+			CapsuleColliderComponent* capsuleCollider = dynamic_cast<CapsuleColliderComponent*>(collider);
+			if (capsuleCollider) {
+				DrawCapsule(capsuleCollider->GetWorldCapsule(), color);
+			}
+		}
+	}
+}
+
 void DrawColliderDebugLines(Scene& scene) {
 	// 出し分けは呼び出し側(RenderViewのdrawEditorOverlays)が担当する。Sceneビューはプレイ中も表示。
 	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
@@ -418,30 +456,16 @@ void DrawColliderDebugLines(Scene& scene) {
 		return;
 	}
 
-	for (const std::unique_ptr<Component>& component : selectedObject->GetComponents()) {
-		if (!component || !component->IsEnabled()) {
-			continue;
-		}
+	DrawGameObjectColliders(*selectedObject);
+}
 
-		ColliderComponent* collider = dynamic_cast<ColliderComponent*>(component.get());
-		if (!collider) {
+// シーン内の全アクティブGameObjectのColliderを描く(ゲーム中の当たり判定確認用)。
+void DrawAllColliderDebugLines(Scene& scene) {
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
 			continue;
 		}
-		if (collider->GetShapeType() == ColliderShapeType::Sphere) {
-			DrawSphere(collider->GetWorldSphere(), kColliderDebugColor);
-		} else if (collider->GetShapeType() == ColliderShapeType::Box) {
-			BoxColliderComponent* boxCollider = dynamic_cast<BoxColliderComponent*>(collider);
-			if (boxCollider && boxCollider->UsesWorldOBB()) {
-				DrawOBB(boxCollider->GetWorldOBB(), kColliderDebugColor);
-			} else {
-				DrawAABB(collider->GetWorldAABB(), kColliderDebugColor);
-			}
-		} else if (collider->GetShapeType() == ColliderShapeType::Capsule) {
-			CapsuleColliderComponent* capsuleCollider = dynamic_cast<CapsuleColliderComponent*>(collider);
-			if (capsuleCollider) {
-				DrawCapsule(capsuleCollider->GetWorldCapsule(), kColliderDebugColor);
-			}
-		}
+		DrawGameObjectColliders(*gameObject);
 	}
 }
 
@@ -726,6 +750,11 @@ void Scene::Initialize() {
 }
 
 void Scene::Update() {
+	// F1で全Collider可視化デバッグモードをトグルする。
+	if (Input::GetKeyTrigger(DIK_F1)) {
+		ToggleShowAllColliders();
+	}
+
 	// ゲームロジック(Component::Update)がSetVeloc/移動を行う → 速度積分 → 衝突検出+応答 の順。
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
 		if (gameObject && gameObject->IsRoot()) {
@@ -775,6 +804,11 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 		DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
 	}
 
+	// 全Collider可視化モードがONなら、Sceneビュー/Gameビュー問わず全Colliderを描く。
+	if (g_showAllColliders) {
+		DrawAllColliderDebugLines(*this);
+	}
+
 	// スクリーン空間UI(Canvas)の描画。drawEditorOverlays==true はSceneビュー、false はGameビュー。
 	// Gameビューは常にUIを描く。SceneビューはUI(Canvasまたはその子孫)を選択中のときだけ描く。
 	bool drawUI = !drawEditorOverlays;
@@ -787,6 +821,12 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 		DrawSceneCanvases(*this, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()));
 	}
 }
+
+void Scene::SetShowAllColliders(bool show) { g_showAllColliders = show; }
+
+bool Scene::IsShowAllColliders() { return g_showAllColliders; }
+
+void Scene::ToggleShowAllColliders() { g_showAllColliders = !g_showAllColliders; }
 
 void Scene::Finalize() {
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {

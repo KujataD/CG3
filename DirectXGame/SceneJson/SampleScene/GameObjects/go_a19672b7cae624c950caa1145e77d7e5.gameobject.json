@@ -35,6 +35,9 @@
     {
       "enabled": true,
       "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
         "material": {
           "baseColor": [
             1.0,
@@ -43,6 +46,7 @@
             1.0
           ],
           "name": "MultiMesh",
+          "shaderModel": 2,
           "textures": {
             "BaseColor": {
               "assetId": "asset_f40bf50f0ffc80c17a056a955691ce34",
@@ -58,7 +62,7 @@
             }
           }
         },
-        "materialAssetId": "asset_4390ebf712143a2021c8e5e8b2c909eb",
+        "materialAssetId": "asset_86e5eb1ca8376a1143723b191b0acf53",
         "materialPath": "Materials/MultiMesh.material.json",
         "modelPath": "player",
         "primitive": "Cube"

@@ -63,45 +63,122 @@ PixelShaderOutput main(VertexShaderOutput input)
     { // Lightingする場合
     
         if (gMaterial.enableLighting == 1)
-        { // lambertModel
-            float cos = saturate(dot(normalize(input.normal), -normalize(gDirectionalLight.direction)));
-    
-            output.color.rgb = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
+        { // lambertModel (DirectionalLight + PointLight + SpotLight の拡散反射)
+            float32_t3 normal = normalize(input.normal);
+
+            // DirectionalLight
+            float cos = saturate(dot(normal, -normalize(gDirectionalLight.direction)));
+            float32_t3 result = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
+
+            // PointLights (拡散反射)
+            for (int32_t i = 0; i < pointLightCount; i++)
+            {
+                float32_t3 pointLightDirection = normalize(pointLights[i].position - input.worldPosition);
+                float32_t pointLightCos = saturate(dot(normal, pointLightDirection));
+                float32_t distance = length(pointLights[i].position - input.worldPosition);
+                float32_t factor = pow(saturate(-distance / pointLights[i].radius + 1.0f), pointLights[i].decay);
+                result += gMaterial.color.rgb * textureColor.rgb * pointLights[i].color.rgb * pointLightCos * pointLights[i].intensity * factor;
+            }
+
+            // SpotLight (拡散反射)
+            if (gSpotLight.intensity > 0.0f)
+            {
+                float32_t3 spotLightDirection = normalize(gSpotLight.position - input.worldPosition);
+                float32_t spotLightCos = saturate(dot(normal, spotLightDirection));
+                float32_t3 spotLightDirectionOnSurface = normalize(input.worldPosition - gSpotLight.position);
+                float32_t cosAngle = dot(spotLightDirectionOnSurface, normalize(gSpotLight.direction));
+                float32_t falloffFactor = saturate((cosAngle - gSpotLight.cosAngle) / (gSpotLight.cosFalloffStart - gSpotLight.cosAngle));
+                float32_t distance = length(gSpotLight.position - input.worldPosition);
+                float32_t attenuationFactor = pow(saturate(-distance / gSpotLight.distance + 1.0f), gSpotLight.decay);
+                result += gMaterial.color.rgb * textureColor.rgb * gSpotLight.color.rgb * spotLightCos * gSpotLight.intensity * attenuationFactor * falloffFactor;
+            }
+
+            output.color.rgb = result;
             output.color.a = gMaterial.color.a * textureColor.a;
         }
         else if (gMaterial.enableLighting == 2)
-        { // halfLambertModel
-            
-            float NdotL = dot(normalize(input.normal), -normalize(gDirectionalLight.direction));
+        { // halfLambertModel (DirectionalLight + PointLight + SpotLight の拡散反射)
+            float32_t3 normal = normalize(input.normal);
+
+            // DirectionalLight
+            float NdotL = dot(normal, -normalize(gDirectionalLight.direction));
             float cos = pow(NdotL * 0.5f + 0.5f, 2.0f);
-    
-            output.color.rgb = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
+            float32_t3 result = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
+
+            // PointLights (ハーフランバート拡散)
+            for (int32_t i = 0; i < pointLightCount; i++)
+            {
+                float32_t3 pointLightDirection = normalize(pointLights[i].position - input.worldPosition);
+                float32_t pointNdotL = dot(normal, pointLightDirection);
+                float32_t pointLightCos = pow(pointNdotL * 0.5f + 0.5f, 2.0f);
+                float32_t distance = length(pointLights[i].position - input.worldPosition);
+                float32_t factor = pow(saturate(-distance / pointLights[i].radius + 1.0f), pointLights[i].decay);
+                result += gMaterial.color.rgb * textureColor.rgb * pointLights[i].color.rgb * pointLightCos * pointLights[i].intensity * factor;
+            }
+
+            // SpotLight (ハーフランバート拡散)
+            if (gSpotLight.intensity > 0.0f)
+            {
+                float32_t3 spotLightDirection = normalize(gSpotLight.position - input.worldPosition);
+                float32_t spotNdotL = dot(normal, spotLightDirection);
+                float32_t spotLightCos = pow(spotNdotL * 0.5f + 0.5f, 2.0f);
+                float32_t3 spotLightDirectionOnSurface = normalize(input.worldPosition - gSpotLight.position);
+                float32_t cosAngle = dot(spotLightDirectionOnSurface, normalize(gSpotLight.direction));
+                float32_t falloffFactor = saturate((cosAngle - gSpotLight.cosAngle) / (gSpotLight.cosFalloffStart - gSpotLight.cosAngle));
+                float32_t distance = length(gSpotLight.position - input.worldPosition);
+                float32_t attenuationFactor = pow(saturate(-distance / gSpotLight.distance + 1.0f), gSpotLight.decay);
+                result += gMaterial.color.rgb * textureColor.rgb * gSpotLight.color.rgb * spotLightCos * gSpotLight.intensity * attenuationFactor * falloffFactor;
+            }
+
+            output.color.rgb = result;
             output.color.a = gMaterial.color.a * textureColor.a;
         }
         else if (gMaterial.enableLighting == 3)
-        { // PhongReflectionModel
-           
-            float NdotL = dot(normalize(input.normal), -normalize(gDirectionalLight.direction));
-            float cos = pow(NdotL * 0.5f + 0.5f, 2.0f);
+        { // PhongReflectionModel (ランバート拡散 + Phong鏡面 + PointLight + SpotLight)
+            float32_t3 normal = normalize(input.normal);
             // カメラへの方向を算出する。数式のv
             float32_t3 toEye = normalize(gCamera.worldPosition - input.worldPosition);
-    
-            // 入射角の反射ベクトルを求める。数式のr
-            float32_t3 reflectLight = reflect(normalize(gDirectionalLight.direction), normalize(input.normal));
-    
-            // 内積をとって、saturateして、shininessを階乗すると鏡面反射の強度が求まる
-            float32_t RdotE = dot(reflectLight, toEye);
-            float32_t specularPow = pow(saturate(RdotE), gMaterial.shininess); // 反射強度
-            
-            // 拡散反射
+
+            // --- DirectionalLight ---
+            // 拡散はランバート(saturate)にする。ハーフランバートだと裏面も明るく影が出ないため。
+            float cos = saturate(dot(normal, -normalize(gDirectionalLight.direction)));
+            float32_t3 reflectLight = reflect(normalize(gDirectionalLight.direction), normal);
+            float32_t specularPow = pow(saturate(dot(reflectLight, toEye)), gMaterial.shininess);
             float32_t3 diffuse = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
-            // 鏡面反射
             float32_t3 specular = gDirectionalLight.color.rgb * gDirectionalLight.intensity * specularPow * float32_t3(1.0f, 1.0f, 1.0f);
-            // 拡散反射+鏡面反射
-            output.color.rgb = diffuse + specular;
-            // アルファは今まで通り
+            float32_t3 result = diffuse + specular;
+
+            // --- PointLights ---
+            for (int32_t i = 0; i < pointLightCount; i++)
+            {
+                float32_t3 pointLightDirection = normalize(pointLights[i].position - input.worldPosition);
+                float32_t pointLightCos = saturate(dot(normal, pointLightDirection));
+                float32_t3 pointReflect = reflect(-pointLightDirection, normal);
+                float32_t pointSpecularPow = pow(saturate(dot(pointReflect, toEye)), gMaterial.shininess);
+                float32_t distance = length(pointLights[i].position - input.worldPosition);
+                float32_t factor = pow(saturate(-distance / pointLights[i].radius + 1.0f), pointLights[i].decay);
+                result += gMaterial.color.rgb * textureColor.rgb * pointLights[i].color.rgb * pointLightCos * pointLights[i].intensity * factor;
+                result += pointLights[i].color.rgb * pointLights[i].intensity * pointSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * factor;
+            }
+
+            // --- SpotLight ---
+            if (gSpotLight.intensity > 0.0f)
+            {
+                float32_t3 spotLightDirection = normalize(gSpotLight.position - input.worldPosition);
+                float32_t spotLightCos = saturate(dot(normal, spotLightDirection));
+                float32_t3 spotReflect = reflect(-spotLightDirection, normal);
+                float32_t spotSpecularPow = pow(saturate(dot(spotReflect, toEye)), gMaterial.shininess);
+                float32_t3 spotLightDirectionOnSurface = normalize(input.worldPosition - gSpotLight.position);
+                float32_t cosAngle = dot(spotLightDirectionOnSurface, normalize(gSpotLight.direction));
+                float32_t falloffFactor = saturate((cosAngle - gSpotLight.cosAngle) / (gSpotLight.cosFalloffStart - gSpotLight.cosAngle));
+                float32_t distance = length(gSpotLight.position - input.worldPosition);
+                float32_t attenuationFactor = pow(saturate(-distance / gSpotLight.distance + 1.0f), gSpotLight.decay);
+                result += gMaterial.color.rgb * textureColor.rgb * gSpotLight.color.rgb * spotLightCos * gSpotLight.intensity * attenuationFactor * falloffFactor;
+                result += gSpotLight.color.rgb * gSpotLight.intensity * spotSpecularPow * float32_t3(1.0f, 1.0f, 1.0f) * attenuationFactor * falloffFactor;
+            }
+
+            output.color.rgb = result;
             output.color.a = gMaterial.color.a * textureColor.a;
-            
         }
         else if (gMaterial.enableLighting == 4)
         { // BlingPhongReflectionModel
