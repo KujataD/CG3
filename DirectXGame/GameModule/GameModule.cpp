@@ -9,6 +9,7 @@
 #include "../GameComponents/PlayerHealth.h"
 #include "../GameComponents/EnemyWeapon.h"
 #include "../GameComponents/HPBarUpdater.h"
+#include "../GameComponents/ChangeSceneManager.h"
 #include <memory>
 
 namespace {
@@ -112,6 +113,7 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 	factory.RegisterComponent<EnemyHealth>(kGameModuleName);
 	factory.RegisterComponent<HPBarUpdater>(kGameModuleName);
 	factory.RegisterComponent<EnemyWeapon>(kGameModuleName);
+	factory.RegisterComponent<ChangeSceneManager>(kGameModuleName);
 }
 
 extern "C" __declspec(dllexport) void UnregisterGameComponents(KujakuEngine::ComponentFactory& factory) {

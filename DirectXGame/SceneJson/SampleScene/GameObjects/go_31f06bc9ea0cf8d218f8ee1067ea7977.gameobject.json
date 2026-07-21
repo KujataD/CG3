@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
-  "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "instanceId": "go_31f06bc9ea0cf8d218f8ee1067ea7977",
+  "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "HandRight",
+  "name": "GameManager",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -31,6 +31,13 @@
         ]
       },
       "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "sceneName": "TitleScene"
+      },
+      "type": "ChangeSceneManager"
     }
   ]
 }

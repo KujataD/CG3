@@ -1,0 +1,114 @@
+{
+  "assetType": "Scene",
+  "name": "TitleScene",
+  "gameObjects": [
+    {
+      "instanceId": "go_53e62e8c4a725c7c29f3c0f862e6b5c2",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Main Camera",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_53e62e8c4a725c7c29f3c0f862e6b5c2.gameobject.json"
+    },
+    {
+      "instanceId": "go_c7803eb4becadabe63c0c8e4188121ea",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Editor Debug Camera",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_c7803eb4becadabe63c0c8e4188121ea.gameobject.json"
+    },
+    {
+      "instanceId": "go_dbc95535f16ab9c86de47d24bf5d13fe",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Directional Light",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_dbc95535f16ab9c86de47d24bf5d13fe.gameobject.json"
+    },
+    {
+      "instanceId": "go_4af721716b0a89cc257b4706f26f70f7",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Point Light",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_4af721716b0a89cc257b4706f26f70f7.gameobject.json"
+    },
+    {
+      "instanceId": "go_edd717d122db1da176eb5c1ffbace24c",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Canvas",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_edd717d122db1da176eb5c1ffbace24c.gameobject.json"
+    },
+    {
+      "instanceId": "go_9a676f05bf4c5ca14d33607a7e0e38e2",
+      "parentInstanceId": "go_edd717d122db1da176eb5c1ffbace24c",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Text",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_9a676f05bf4c5ca14d33607a7e0e38e2.gameobject.json"
+    },
+    {
+      "instanceId": "go_76c567a0b42290033b626bd64fc4707f",
+      "parentInstanceId": "go_edd717d122db1da176eb5c1ffbace24c",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "StartButton",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_76c567a0b42290033b626bd64fc4707f.gameobject.json"
+    },
+    {
+      "instanceId": "go_c3f6832ee3d337c861fb99916432b4d5",
+      "parentInstanceId": "go_76c567a0b42290033b626bd64fc4707f",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Text",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_c3f6832ee3d337c861fb99916432b4d5.gameobject.json"
+    },
+    {
+      "instanceId": "go_dd3c6c59f2d0851c6e9eef3298917d4c",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "SceneManager",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_dd3c6c59f2d0851c6e9eef3298917d4c.gameobject.json"
+    }
+  ]
+}

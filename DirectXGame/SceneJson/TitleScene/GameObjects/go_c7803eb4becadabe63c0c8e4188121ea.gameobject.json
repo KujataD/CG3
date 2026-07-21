@@ -1,6 +1,6 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
+  "instanceId": "go_c7803eb4becadabe63c0c8e4188121ea",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
@@ -15,8 +15,8 @@
       "enabled": true,
       "properties": {
         "rotation": [
-          -11.980064392089844,
-          28.180137634277344,
+          0.17600002884864807,
+          0.2760000228881836,
           0.0
         ],
         "scale": [
@@ -25,9 +25,9 @@
           1.0
         ],
         "translation": [
-          -7.239343166351318,
-          16.70002555847168,
-          26.63764190673828
+          -2.8165345191955566,
+          5.199997425079346,
+          -24.669111251831055
         ]
       },
       "type": "Transform"

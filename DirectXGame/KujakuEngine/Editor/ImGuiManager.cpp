@@ -12,12 +12,14 @@
 #include "../base/DirectXCommon.h"
 #include "../base/WinApp.h"
 #include "../runtime/PlayState.h"
+#include "../runtime/SceneManager.h"
 #include "../scene/ComponentFactory.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <string>
 
 namespace KujakuEngine {
@@ -227,6 +229,85 @@ void ImGuiManager::DrawEditor() {
 		// 非表示中は録画/プレビュー/Add Keyframeコンテキストを解除しておく。
 		animationWindow_.NotifyHidden();
 	}
+	if (windowVisibility_.scenes) {
+		DrawSceneListWindow();
+	}
+#endif // USE_IMGUI
+}
+
+void ImGuiManager::DrawSceneListWindow() {
+#ifdef USE_IMGUI
+	if (!ImGui::Begin("Scenes", &windowVisibility_.scenes)) {
+		ImGui::End();
+		return;
+	}
+
+	const std::filesystem::path sceneRoot = projectWindow_.GetProjectRoot() / "SceneJson";
+
+	// 起動時に読み込む最初のシーン(左のラジオで設定)。
+	const std::string startupScene = EditorApplication::GetInstance()->GetStartupSceneName();
+
+	ImGui::TextDisabled("Radio = startup scene / Name = open (ChangeScene)");
+	ImGui::Separator();
+
+	// SceneJson/<name>/<name>.scene.json を持つフォルダを列挙して一覧表示する。
+	if (std::filesystem::exists(sceneRoot)) {
+		std::error_code errorCode;
+		for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(sceneRoot, errorCode)) {
+			if (errorCode) {
+				break;
+			}
+			if (!entry.is_directory()) {
+				continue;
+			}
+			const std::string sceneName = entry.path().filename().string();
+			const std::filesystem::path sceneFile = entry.path() / (sceneName + ".scene.json");
+			if (!std::filesystem::exists(sceneFile)) {
+				continue;
+			}
+
+			ImGui::PushID(sceneName.c_str());
+			// ラジオボタンで「起動シーン」を設定する(Unityの Build Settings 先頭シーン相当)。
+			const bool isStartup = (sceneName == startupScene);
+			if (ImGui::RadioButton("##startup", isStartup)) {
+				EditorApplication::GetInstance()->SetStartupSceneName(sceneName);
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Set as startup scene");
+			}
+			ImGui::SameLine();
+			// 名前クリックでそのシーンを開く(次フレーム境界で切替: 編集中は開くだけ, Play中はInitialize→OnPlayStart)。
+			if (ImGui::Selectable(sceneName.c_str())) {
+				ChangeScene(sceneName);
+			}
+			ImGui::PopID();
+		}
+	} else {
+		ImGui::TextDisabled("(no SceneJson folder)");
+	}
+
+	ImGui::Separator();
+
+	// 新規シーン作成: 空の <name>.scene.json を作ってそのまま開く。
+	static char newSceneName[128] = "";
+	ImGui::SetNextItemWidth(160.0f);
+	ImGui::InputText("##NewSceneName", newSceneName, sizeof(newSceneName));
+	ImGui::SameLine();
+	if (ImGui::Button("Create New") && newSceneName[0] != '\0') {
+		const std::string sceneName = newSceneName;
+		const std::filesystem::path sceneDir = sceneRoot / sceneName;
+		std::error_code errorCode;
+		std::filesystem::create_directories(sceneDir, errorCode);
+		const std::filesystem::path sceneFile = sceneDir / (sceneName + ".scene.json");
+		if (!std::filesystem::exists(sceneFile)) {
+			std::ofstream ofs(sceneFile);
+			ofs << "{\n  \"assetType\": \"Scene\",\n  \"name\": \"" << sceneName << "\",\n  \"gameObjects\": []\n}\n";
+		}
+		ChangeScene(sceneName);
+		newSceneName[0] = '\0';
+	}
+
+	ImGui::End();
 #endif // USE_IMGUI
 }
 
@@ -346,6 +427,7 @@ void ImGuiManager::DrawMainMenuBar() {
 		ImGui::MenuItem("Console", nullptr, &windowVisibility_.console);
 		ImGui::MenuItem("Performance", nullptr, &windowVisibility_.performance);
 		ImGui::MenuItem("Animation", nullptr, &windowVisibility_.animation);
+		ImGui::MenuItem("Scenes", nullptr, &windowVisibility_.scenes);
 		ImGui::Separator();
 		if (ImGui::MenuItem("Reset Layout")) {
 			dockSpace_.ResetLayout();

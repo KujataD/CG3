@@ -62,6 +62,9 @@ private:
 	/// </summary>
 	void DrawToolbar();
 
+	// Unity風のシーン一覧・切替(ChangeScene)・新規作成を行うウィンドウ。
+	void DrawSceneListWindow();
+
 private:
 	EditorDockSpace dockSpace_;
 	EditorWindowVisibility windowVisibility_;

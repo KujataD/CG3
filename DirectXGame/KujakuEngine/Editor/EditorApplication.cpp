@@ -3,6 +3,7 @@
 #include "AssetDatabase.h"
 #include "../runtime/AssetResolver.h"
 #include "../runtime/PlayState.h"
+#include "../runtime/SceneManager.h"
 #include "../runtime/SelectionProvider.h"
 #include "../runtime/TagRegistry.h"
 #include "../scene/ComponentFactory.h"
@@ -30,6 +31,7 @@
 #endif
 #include <Windows.h>
 #include <filesystem>
+#include <fstream>
 #include <sstream>
 #include <system_error>
 #include <utility>
@@ -283,6 +285,11 @@ void EditorApplication::Initialize() {
 		if (api.CreateScene) {
 			Scene* scene = api.CreateScene();
 			if (scene) {
+				// 起動シーンが設定されていれば、その名前でロードする(未設定なら派生の既定シーン)。
+				std::string startupScene = GetStartupSceneName();
+				if (!startupScene.empty()) {
+					scene->SetSceneName(startupScene);
+				}
 				SetCurrentSceneRaw(scene, api.DestroyScene);
 			}
 		}
@@ -307,6 +314,9 @@ void EditorApplication::BeginFrame() {
 }
 
 void EditorApplication::Update() {
+	// フレーム先頭でシーン切り替え予約を処理する(破棄中の反復や自己解放を避けるため描画/更新の前に)。
+	ProcessPendingSceneChange();
+
 #ifdef USE_IMGUI
 	// Editor UIはEditorApplicationを入口として更新する。
 	ImGuiManager::GetInstance()->DrawEditor();
@@ -743,6 +753,73 @@ void EditorApplication::SetCurrentSceneRaw(Scene* scene, GameModuleApi::DestroyS
 	currentScene_ = scene;
 	destroyCurrentSceneFunc_ = destroySceneFunc;
 	InitializeCurrentSceneAndImportJson();
+}
+
+std::string EditorApplication::GetStartupSceneName() const {
+	std::filesystem::path file = DetectEditorProjectRoot() / "ProjectSettings" / "StartupScene.txt";
+	std::ifstream ifs(file);
+	if (!ifs) {
+		return "";
+	}
+	std::string sceneName;
+	std::getline(ifs, sceneName);
+	return sceneName;
+}
+
+void EditorApplication::SetStartupSceneName(const std::string& sceneName) {
+	std::filesystem::path dir = DetectEditorProjectRoot() / "ProjectSettings";
+	std::error_code errorCode;
+	std::filesystem::create_directories(dir, errorCode);
+	std::ofstream ofs(dir / "StartupScene.txt", std::ios::trunc);
+	if (ofs) {
+		ofs << sceneName;
+	}
+	AddConsoleLog("[SceneManager] Startup scene set: " + sceneName);
+}
+
+void EditorApplication::ProcessPendingSceneChange() {
+	std::string targetName;
+	if (!ConsumePendingSceneChange(targetName)) {
+		return; // 予約なし
+	}
+
+	// Prefab編集中はシーンポインタを別物に差し替えているため切り替えない。
+	if (editorMode_ == EditorMode::PrefabEdit) {
+		AddConsoleLog("[SceneManager] Ignored ChangeScene during Prefab Edit.");
+		return;
+	}
+
+	// DLL由来のCreateScene/DestroySceneが無い(GameModule未ロード)場合は安全に無視する。
+	if (!gameModuleLoader_.IsLoaded()) {
+		AddConsoleLog("[SceneManager] No GameModule loaded; cannot ChangeScene.");
+		return;
+	}
+	const GameModuleApi& api = gameModuleLoader_.GetApi();
+	if (!api.CreateScene) {
+		AddConsoleLog("[SceneManager] CreateScene unavailable.");
+		return;
+	}
+
+	// 破棄でPlay状態フラグが変わる前に、実行中かどうかを控えておく。
+	const bool wasPlaying = IsPlaying();
+
+	Scene* newScene = api.CreateScene();
+	if (!newScene) {
+		AddConsoleLog("[SceneManager] CreateScene returned null.");
+		return;
+	}
+
+	// Initialize/Importよりも前に名前を設定する(GetSceneNameがロードパスを決めるため)。
+	newScene->SetSceneName(targetName);
+	// 旧Sceneは捕捉済みのdestroyCurrentSceneFunc_で破棄され、新Sceneは Initialize()+ImportScene(name) される。
+	SetCurrentSceneRaw(newScene, api.DestroyScene);
+
+	// 実行中に切り替えた場合のみ、Initializeの後にOnPlayStartを発火する(順序保証)。
+	if (wasPlaying && currentScene_) {
+		currentScene_->OnPlayStart();
+	}
+
+	AddConsoleLog("[SceneManager] Changed scene: " + targetName);
 }
 
 void EditorApplication::InitializeCurrentSceneAndImportJson() {

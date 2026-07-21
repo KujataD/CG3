@@ -828,6 +828,8 @@ bool Scene::IsShowAllColliders() { return g_showAllColliders; }
 
 void Scene::ToggleShowAllColliders() { g_showAllColliders = !g_showAllColliders; }
 
+void Scene::SetSceneName(const std::string& name) { sceneName_ = name; }
+
 void Scene::Finalize() {
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
 		if (gameObject) {

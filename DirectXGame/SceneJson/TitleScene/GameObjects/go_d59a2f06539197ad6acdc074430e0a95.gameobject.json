@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_c4c43d3140ef0b4b62629341f4c7c3b3",
-  "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
+  "instanceId": "go_d59a2f06539197ad6acdc074430e0a95",
+  "parentInstanceId": "go_edd717d122db1da176eb5c1ffbace24c",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Button",
+  "name": "Image",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -44,8 +44,8 @@
           0.5
         ],
         "anchoredPosition": [
-          -458.3321533203125,
-          302.18170166015625
+          0.0,
+          0.0
         ],
         "pivot": [
           0.5,
@@ -57,8 +57,8 @@
           1.0
         ],
         "sizeDelta": [
-          335.12127685546875,
-          76.4530029296875
+          100.0,
+          100.0
         ]
       },
       "type": "RectTransform"
@@ -77,47 +77,6 @@
         "texturePath": "Resources/white1x1.png"
       },
       "type": "Image"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "disabledColor": [
-          0.5,
-          0.5,
-          0.5,
-          0.6000000238418579
-        ],
-        "highlightedColor": [
-          0.8999999761581421,
-          0.8999999761581421,
-          0.8999999761581421,
-          1.0
-        ],
-        "interactable": true,
-        "normalColor": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "onClick": {
-          "calls": [
-            {
-              "component": "EnemyComponent",
-              "method": "LoadBTSet",
-              "target": "go_40c77fc3833c4a44206156d6dcaf0d7f"
-            }
-          ]
-        },
-        "onClickEvent": "S",
-        "pressedColor": [
-          0.699999988079071,
-          0.699999988079071,
-          0.699999988079071,
-          1.0
-        ]
-      },
-      "type": "Button"
     }
   ]
 }
