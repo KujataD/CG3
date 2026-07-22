@@ -35,5 +35,6 @@ private:
 	std::unordered_map<KujakuEngine::GameObject*, float> hitCooldowns_;
 	bool prevAttack_ = false;
 
-	void ApplyDamageToPlayer(KujakuEngine::GameObject* target);
+	// ダメージ+ノックバックを適用する。無敵中などでヒット不成立ならfalse(ヒット履歴に残さない)。
+	bool ApplyDamageToPlayer(KujakuEngine::GameObject* target);
 };

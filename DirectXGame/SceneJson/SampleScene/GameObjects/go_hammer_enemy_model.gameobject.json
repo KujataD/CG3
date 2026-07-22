@@ -75,18 +75,26 @@
         "clips": [
           {
             "assetId": "",
-            "path": "Animations/HammerSpin.anim.json"
+            "path": "Animations/HammerSpinRaise.anim.json"
           },
           {
             "assetId": "",
-            "path": "Animations/HammerSlam.anim.json"
+            "path": "Animations/HammerSpinSwing.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/HammerSlamRaise.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/HammerSlamSwing.anim.json"
           },
           {
             "assetId": "",
             "path": "Animations/HammerRecoil.anim.json"
           }
         ],
-        "currentClip": 0,
+        "currentClip": 3,
         "playOnStart": false,
         "speed": 1.0
       },

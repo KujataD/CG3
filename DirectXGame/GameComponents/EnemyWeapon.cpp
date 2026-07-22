@@ -53,15 +53,22 @@ void EnemyWeapon::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
 		return;
 	}
 
-	ApplyDamageToPlayer(otherObj);
-	hitCooldowns_[otherObj] = hitInterval_;
+	// 無敵中はヒット不成立(履歴にも残さず、無敵が切れたら即座に当たり得る)。
+	if (ApplyDamageToPlayer(otherObj)) {
+		hitCooldowns_[otherObj] = hitInterval_;
+	}
 }
 
-void EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
+bool EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
 	// 敵の武器なのでダメージ対象はPlayer(PlayerHealth持ち)のみ。
 	auto health = target->GetComponent<PlayerHealth>();
 	if (!health) {
-		return;
+		return false;
+	}
+
+	// 無敵中(回避中など)はダメージもノックバックも入らない。
+	if (health->IsInvincible()) {
+		return false;
 	}
 
 	health->TakeDamage(damageValue_);
@@ -69,7 +76,7 @@ void EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
 	// ノックバック: 敵本体→プレイヤーの水平方向へ吹き飛ばし、しばらく行動不能にする。
 	Player* player = target->GetComponent<Player>();
 	if (!player) {
-		return;
+		return true;
 	}
 
 	GameObject* weaponOwner = GetOwner();
@@ -86,4 +93,5 @@ void EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
 	}
 
 	player->ApplyKnockback(direction * knockback_, stunDuration_);
+	return true;
 }

@@ -107,6 +107,11 @@
               "component": "EnemyComponent",
               "method": "LoadBTSet",
               "target": "go_40c77fc3833c4a44206156d6dcaf0d7f"
+            },
+            {
+              "component": "HammerEnemyComponent",
+              "method": "LoadBTSet",
+              "target": "go_hammer_enemy"
             }
           ]
         },

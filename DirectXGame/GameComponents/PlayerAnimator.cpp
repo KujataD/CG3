@@ -20,8 +20,8 @@ void PlayerAnimator::Update() {
 		return;
 	}
 
-	// 硬直中(被弾のけぞり中)は攻撃入力を受け付けない(のけぞりアニメーションを上書きしない)。
-	if (player_ && player_->IsStunned()) {
+	// 行動不能中(被弾のけぞり・回避・回避クールダウン)は攻撃入力を受け付けない。
+	if (player_ && player_->IsActionLocked()) {
 		wasPressed_ = false;
 		return;
 	}
