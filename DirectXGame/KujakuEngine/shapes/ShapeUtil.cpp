@@ -488,6 +488,80 @@ bool RaycastSegment(const Segment& segment, const OBB& obb, float& outT) {
 	return RaycastSegment(localSegment, localBox, outT);
 }
 
+bool RaycastSegment(const Segment& segment, const Capsule& capsule, float& outT) {
+	// カプセル = spine線分[p0,p1]から半径radius膨らませた形状。
+	// 「無限円柱の側面(spine範囲内)」と「両端の球」の最も手前のヒットを採用する。
+	const float radius = capsule.radius;
+
+	// 始点がカプセル内部なら即ヒット(めり込み扱い)。
+	Vector3 startClosest = ClosestPointOnSegment(capsule.p0, capsule.p1, segment.origin);
+	if (Dot(segment.origin - startClosest, segment.origin - startClosest) <= radius * radius) {
+		outT = 0.0f;
+		return true;
+	}
+
+	float bestT = 1.0f;
+	bool hit = false;
+
+	// --- 円柱側面(spine軸に沿った本体部分) ---
+	Vector3 d = capsule.p1 - capsule.p0; // spine方向(非正規化)
+	Vector3 m = segment.origin - capsule.p0;
+	Vector3 n = segment.diff;
+	float dd = Dot(d, d);
+
+	if (dd > 1.0e-12f) {
+		float nd = Dot(n, d);
+		float md = Dot(m, d);
+		float nn = Dot(n, n);
+		float mn = Dot(m, n);
+		float mm = Dot(m, m);
+
+		// (|w|^2)dd - (w·d)^2 = r^2 dd を t の2次方程式に展開(w = m + t n)。
+		float a = nn * dd - nd * nd;
+		float b = mn * dd - md * nd;
+		float c = mm * dd - md * md - radius * radius * dd;
+
+		if (std::abs(a) > 1.0e-8f) {
+			float discriminant = b * b - a * c;
+			if (discriminant >= 0.0f) {
+				float sqrtDisc = std::sqrt(discriminant);
+				// 手前側の根から順に試す。
+				float roots[2] = {(-b - sqrtDisc) / a, (-b + sqrtDisc) / a};
+				for (float t : roots) {
+					if (t < 0.0f || t > 1.0f || t >= bestT) {
+						continue;
+					}
+					// spine上の投影位置が[0,1](端点の内側)かを確認する。
+					float axial = (md + t * nd) / dd;
+					if (axial < 0.0f || axial > 1.0f) {
+						continue;
+					}
+					bestT = t;
+					hit = true;
+					break;
+				}
+			}
+		}
+	}
+
+	// --- 両端の半球(端点を中心とした球はカプセルの一部) ---
+	float capT = 0.0f;
+	if (RaycastSegment(segment, Sphere{capsule.p0, radius}, capT) && capT < bestT) {
+		bestT = capT;
+		hit = true;
+	}
+	if (RaycastSegment(segment, Sphere{capsule.p1, radius}, capT) && capT < bestT) {
+		bestT = capT;
+		hit = true;
+	}
+
+	if (hit) {
+		outT = bestT;
+		return true;
+	}
+	return false;
+}
+
 bool ComputeContact(const Capsule& capsule, const Sphere& sphere, Contact& out) {
 	Vector3 closest = ClosestPointOnSegment(capsule.p0, capsule.p1, sphere.center);
 	// capsule表面の球(closest,radius)と相手球の球-球接触。normal は closest→sphere = capsule→sphere。

@@ -1,0 +1,120 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_hammer_head",
+  "parentInstanceId": "go_hammer_pivot",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "HammerHead",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.100000023841858,
+          1.100000023841858,
+          1.5
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          3.5
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
+        "material": {
+          "baseColor": [
+            0.4000000059604645,
+            0.4000000059604645,
+            0.44999998807907104,
+            1.0
+          ],
+          "name": "HammerHead",
+          "shaderModel": 4,
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "player",
+        "primitive": "Cube"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": true,
+        "size": [
+          1.2000000476837158,
+          1.2000000476837158,
+          1.2000000476837158
+        ]
+      },
+      "type": "BoxColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "attack": false,
+        "damageValue": 15.0,
+        "hitInterval": 0.5,
+        "knockback": 5.0,
+        "stunDuration": 0.6
+      },
+      "type": "EnemyWeapon"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          -1.090000033378601
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": true,
+        "size": [
+          0.30000001192092896,
+          0.2800000011920929,
+          1.2000000476837158
+        ]
+      },
+      "type": "BoxColliderComponent"
+    }
+  ]
+}

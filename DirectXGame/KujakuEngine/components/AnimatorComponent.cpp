@@ -54,13 +54,20 @@ void CollectChannelsRecursive(GameObject& object, const std::string& objectPrefi
 	}
 }
 
-// 向き基準移動チャンネル(Transform/moveForward等)の適用先を再帰的に集める。
-// pathの形式はCollectChannelsRecursiveと同一。
-void CollectLocalMoveTargetsRecursive(GameObject& object, const std::string& objectPrefix, std::unordered_map<std::string, AnimatorComponent::LocalMoveTarget>& outTargets) {
+// 向き基準移動チャンネル(Transform/moveForward等)とローカル回転チャンネル(Transform/localRotation.x等)の
+// 適用先を再帰的に集める。pathの形式はCollectChannelsRecursiveと同一。
+void CollectLocalMoveTargetsRecursive(
+    GameObject& object,
+    const std::string& objectPrefix,
+    std::unordered_map<std::string, AnimatorComponent::LocalMoveTarget>& outMoveTargets,
+    std::unordered_map<std::string, AnimatorComponent::LocalMoveTarget>& outRotationTargets) {
 	std::string transformPrefix = objectPrefix + "Transform/";
-	outTargets.emplace(transformPrefix + "moveRight", AnimatorComponent::LocalMoveTarget{&object, 0});
-	outTargets.emplace(transformPrefix + "moveUp", AnimatorComponent::LocalMoveTarget{&object, 1});
-	outTargets.emplace(transformPrefix + "moveForward", AnimatorComponent::LocalMoveTarget{&object, 2});
+	outMoveTargets.emplace(transformPrefix + "moveRight", AnimatorComponent::LocalMoveTarget{&object, 0});
+	outMoveTargets.emplace(transformPrefix + "moveUp", AnimatorComponent::LocalMoveTarget{&object, 1});
+	outMoveTargets.emplace(transformPrefix + "moveForward", AnimatorComponent::LocalMoveTarget{&object, 2});
+	outRotationTargets.emplace(transformPrefix + "localRotation.x", AnimatorComponent::LocalMoveTarget{&object, 0});
+	outRotationTargets.emplace(transformPrefix + "localRotation.y", AnimatorComponent::LocalMoveTarget{&object, 1});
+	outRotationTargets.emplace(transformPrefix + "localRotation.z", AnimatorComponent::LocalMoveTarget{&object, 2});
 
 	for (GameObject* child : object.GetChildren()) {
 		if (!child) {
@@ -72,7 +79,7 @@ void CollectLocalMoveTargetsRecursive(GameObject& object, const std::string& obj
 		} else {
 			childPrefix = objectPrefix.substr(0, objectPrefix.size() - 1) + "/" + child->GetName() + ":";
 		}
-		CollectLocalMoveTargetsRecursive(*child, childPrefix, outTargets);
+		CollectLocalMoveTargetsRecursive(*child, childPrefix, outMoveTargets, outRotationTargets);
 	}
 }
 
@@ -129,17 +136,29 @@ void AnimatorComponent::Update() {
 						last->second -= cycleValueDelta;
 					}
 				}
+
+				// ローカル回転チャンネルも同様に、周回時の増分を連続させる。
+				if (localRotationTargets_.count(track.path) != 0) {
+					auto last = localRotationLastValues_.find(track.path);
+					if (last != localRotationLastValues_.end()) {
+						last->second -= cycleValueDelta;
+					}
+				}
 			}
 		}
 	}
 
 	bool finished = false;
 	float evaluateTime = clip_.WrapTime(time_, finished);
-	if (finished) {
-		playing_ = false;
-	}
 
 	EvaluateAt(evaluateTime);
+
+	if (finished) {
+		// 再生終了: アニメーションが書き込んだ値を再生開始時の状態へ戻す(加算系は対象外)。
+		playing_ = false;
+		RestoreOriginalValues();
+		RevertLocalRotations();
+	}
 }
 
 void AnimatorComponent::OnPlayStart() {
@@ -200,6 +219,10 @@ bool AnimatorComponent::SetCurrentClipIndex(int index) {
 	}
 	currentClipIndex_ = index;
 	time_ = 0.0f;
+	// クリップ切替時は、前クリップが書き込んだ値とローカル回転を元へ戻してから基準を破棄する。
+	// (これをしないと切替時点の途中ポーズが残り、次回の再生開始時に「元の状態」として誤記録される)
+	RestoreOriginalValues();
+	RevertLocalRotations();
 	ClearAdditiveBases();
 	return LoadClip();
 }
@@ -270,6 +293,10 @@ void AnimatorComponent::Play() {
 	}
 	if (clipLoaded_) {
 		time_ = 0.0f;
+		// 前回再生の途中で残った書き込み値・ローカル回転を元へ戻してから基準を取り直す
+		// (中断・切替時に前クリップの状態が残らないように)。
+		RestoreOriginalValues();
+		RevertLocalRotations();
 		// 加算トラックは再生開始時点の値を基準にする(次の評価で遅延キャプチャ)。
 		ClearAdditiveBases();
 		playing_ = true;
@@ -278,6 +305,57 @@ void AnimatorComponent::Play() {
 
 void AnimatorComponent::Stop() {
 	playing_ = false;
+	RestoreOriginalValues();
+	RevertLocalRotations();
+}
+
+void AnimatorComponent::RestoreOriginalValues() {
+	for (const auto& [path, baseValue] : restoreBaseValues_) {
+		auto found = channelMap_.find(path);
+		if (found != channelMap_.end() && found->second) {
+			*found->second = baseValue;
+		}
+	}
+	for (const auto& [path, baseValue] : restoreBaseBoolValues_) {
+		auto found = boolChannelMap_.find(path);
+		if (found != boolChannelMap_.end() && found->second) {
+			*found->second = baseValue;
+		}
+	}
+	restoreBaseValues_.clear();
+	restoreBaseBoolValues_.clear();
+}
+
+void AnimatorComponent::RevertLocalRotations() {
+	for (const auto& [path, lastValue] : localRotationLastValues_) {
+		auto base = localRotationBaseValues_.find(path);
+		auto target = localRotationTargets_.find(path);
+		if (base == localRotationBaseValues_.end() || target == localRotationTargets_.end() || !target->second.object) {
+			continue;
+		}
+
+		// 適用済みの正味回転 = 最終評価値 - 初回基準値。逆回転で打ち消す。
+		float appliedTotal = lastValue - base->second;
+		if (std::abs(appliedTotal) < 1.0e-7f) {
+			continue;
+		}
+
+		Vector3 localAxis = {0.0f, 0.0f, 0.0f};
+		if (target->second.axis == 0) {
+			localAxis.x = 1.0f;
+		} else if (target->second.axis == 1) {
+			localAxis.y = 1.0f;
+		} else {
+			localAxis.z = 1.0f;
+		}
+
+		WorldTransform& transform = target->second.object->GetTransform();
+		Quaternion undoRotation = Quaternion::MakeRotateAxisAngle(localAxis, -appliedTotal);
+		transform.SetRotationFromQuaternion((transform.GetRotationQuaternion() * undoRotation).Normalized());
+	}
+
+	localRotationLastValues_.clear();
+	localRotationBaseValues_.clear();
 }
 
 void AnimatorComponent::EvaluateAt(float time) {
@@ -306,6 +384,9 @@ void AnimatorComponent::EvaluateAt(float time) {
 				base = additiveBaseValues_.emplace(track.path, *found->second).first;
 			}
 			value += base->second;
+		} else {
+			// 通常トラック: 最初に書き込む直前の値を記憶しておき、再生終了時に元へ戻す。
+			restoreBaseValues_.try_emplace(track.path, *found->second);
 		}
 		*found->second = value;
 	}
@@ -318,6 +399,8 @@ void AnimatorComponent::EvaluateAt(float time) {
 		if (found == boolChannelMap_.end() || !found->second) {
 			continue;
 		}
+		// 最初に書き込む直前の値を記憶しておき、再生終了時に元へ戻す(攻撃判定の消し忘れ防止にもなる)。
+		restoreBaseBoolValues_.try_emplace(track.path, *found->second);
 		*found->second = track.curve.Evaluate(time) >= 0.5f;
 	}
 
@@ -355,6 +438,44 @@ void AnimatorComponent::EvaluateAt(float time) {
 		WorldTransform& transform = target->second.object->GetTransform();
 		transform.translation_ += transform.GetRotationQuaternion().RotateVector(localAxis * delta);
 	}
+
+	// --- ローカル回転チャンネル(localRotation.x/.y/.z) ---
+	// カーブ値[rad]の「前回評価からの増分」を、今向いている方向を基準としたローカル軸回転として
+	// 現在の姿勢へ合成する(のけぞり等、向きに依存しない相対回転に使う)。
+	// 規約: 「aを適用してからb」= b*a なので、ローカル軸の追加回転は q * Δq(Δqを先に適用)。
+	for (const AnimationTrack& track : clip_.tracks) {
+		auto target = localRotationTargets_.find(track.path);
+		if (target == localRotationTargets_.end() || !target->second.object) {
+			continue;
+		}
+
+		float value = track.curve.Evaluate(time);
+		auto last = localRotationLastValues_.find(track.path);
+		if (last == localRotationLastValues_.end()) {
+			// 初回は基準を取るだけ(評価開始時点の値からの増分にする)。基準値は中断時の巻き戻しにも使う。
+			localRotationLastValues_.emplace(track.path, value);
+			localRotationBaseValues_.emplace(track.path, value);
+			continue;
+		}
+		float delta = value - last->second;
+		last->second = value;
+		if (std::abs(delta) < 1.0e-7f) {
+			continue;
+		}
+
+		Vector3 localAxis = {0.0f, 0.0f, 0.0f};
+		if (target->second.axis == 0) {
+			localAxis.x = 1.0f;
+		} else if (target->second.axis == 1) {
+			localAxis.y = 1.0f;
+		} else {
+			localAxis.z = 1.0f;
+		}
+
+		WorldTransform& transform = target->second.object->GetTransform();
+		Quaternion deltaRotation = Quaternion::MakeRotateAxisAngle(localAxis, delta);
+		transform.SetRotationFromQuaternion((transform.GetRotationQuaternion() * deltaRotation).Normalized());
+	}
 }
 
 void AnimatorComponent::ResolveBindings() {
@@ -381,9 +502,10 @@ void AnimatorComponent::ResolveBindings() {
 		}
 	}
 
-	// 向き基準移動チャンネルの適用先(GameObject+軸)も解決し直す。
+	// 向き基準移動/ローカル回転チャンネルの適用先(GameObject+軸)も解決し直す。
 	localMoveTargets_.clear();
-	CollectLocalMoveTargetsRecursive(*owner, "", localMoveTargets_);
+	localRotationTargets_.clear();
+	CollectLocalMoveTargetsRecursive(*owner, "", localMoveTargets_, localRotationTargets_);
 }
 
 bool AnimatorComponent::LoadClip() {

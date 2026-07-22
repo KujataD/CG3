@@ -82,9 +82,12 @@ float ComputeViewDuration(const AnimationClipData& clip) {
 	return (std::max)(clip.GetDuration() * 1.15f, 1.0f);
 }
 
-// 向き基準移動の仮想チャンネル(実フィールドを持たず、Animatorが直接解決・適用する)か。
+// 向き基準移動/ローカル回転の仮想チャンネル(実フィールドを持たず、Animatorが直接解決・適用する)か。
 bool IsLocalMoveChannelPath(const std::string& path) {
-	return path.ends_with("Transform/moveForward") || path.ends_with("Transform/moveRight") || path.ends_with("Transform/moveUp");
+	if (path.ends_with("Transform/moveForward") || path.ends_with("Transform/moveRight") || path.ends_with("Transform/moveUp")) {
+		return true;
+	}
+	return path.ends_with("Transform/localRotation.x") || path.ends_with("Transform/localRotation.y") || path.ends_with("Transform/localRotation.z");
 }
 
 ImU32 KeyColor(bool selected) {
@@ -113,13 +116,16 @@ void AnimationWindow::CollectChannels(GameObject& owner, const AnimatorComponent
 		outChannels.push_back({channel.path, channel.value});
 	}
 
-	// 向き基準移動の仮想チャンネル(moveForward/moveRight/moveUp)をAdd Track用に列挙する。
+	// 向き基準移動/ローカル回転の仮想チャンネルをAdd Track用に列挙する。
 	// 実フィールドを持たない(value=nullptr)ため、値の編集は選択キーの数値エディタで行う。
 	auto appendLocalMove = [&](auto&& self, GameObject& object, const std::string& objectPrefix) -> void {
 		std::string transformPrefix = objectPrefix + "Transform/";
 		outChannels.push_back({transformPrefix + "moveForward", nullptr});
 		outChannels.push_back({transformPrefix + "moveRight", nullptr});
 		outChannels.push_back({transformPrefix + "moveUp", nullptr});
+		outChannels.push_back({transformPrefix + "localRotation.x", nullptr});
+		outChannels.push_back({transformPrefix + "localRotation.y", nullptr});
+		outChannels.push_back({transformPrefix + "localRotation.z", nullptr});
 		for (GameObject* child : object.GetChildren()) {
 			if (!child) {
 				continue;

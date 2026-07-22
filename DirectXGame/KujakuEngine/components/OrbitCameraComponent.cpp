@@ -160,8 +160,16 @@ float OrbitCameraComponent::ComputeOccludedDistance(Scene& scene, GameObject* ca
 				} else {
 					colliderHit = ShapeUtil::RaycastSegment(segment, collider->GetWorldAABB(), t);
 				}
+			} else if (collider->GetShapeType() == ColliderShapeType::Capsule) {
+				// Capsuleは実形状で判定する(外接球近似だとHeightを増やしただけで誤ヒットするため)。
+				CapsuleColliderComponent* capsule = dynamic_cast<CapsuleColliderComponent*>(collider);
+				if (capsule) {
+					colliderHit = ShapeUtil::RaycastSegment(segment, capsule->GetWorldCapsule(), t);
+				} else {
+					colliderHit = ShapeUtil::RaycastSegment(segment, collider->GetWorldSphere(), t);
+				}
 			} else {
-				// Sphere。Capsuleは外接球で近似する(カメラ用途では十分)。
+				// Sphere。
 				colliderHit = ShapeUtil::RaycastSegment(segment, collider->GetWorldSphere(), t);
 			}
 

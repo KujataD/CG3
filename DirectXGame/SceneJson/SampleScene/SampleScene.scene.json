@@ -99,6 +99,18 @@
       "assetPath": "SceneJson/SampleScene/GameObjects/go_15f788c96bf669800afa5d0d725f7df3.gameobject.json"
     },
     {
+      "instanceId": "go_pawn_model",
+      "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "PawnModel",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_pawn_model.gameobject.json"
+    },
+    {
       "instanceId": "go_a328678cc6774d7e51942273faa4e194",
       "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
       "prefabAssetPath": "",
@@ -148,7 +160,7 @@
     },
     {
       "instanceId": "go_1af68e2e906d556a0d7b212c1d43e4e4",
-      "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+      "parentInstanceId": "go_pawn_model",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
@@ -172,7 +184,7 @@
     },
     {
       "instanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
-      "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+      "parentInstanceId": "go_pawn_model",
       "prefabAssetPath": "",
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
@@ -313,6 +325,114 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_1468d1e0689227c60a34b308bfa82429.gameobject.json"
+    },
+    {
+      "instanceId": "go_player_hpbar_bg",
+      "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "PlayerHPBarBG",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_player_hpbar_bg.gameobject.json"
+    },
+    {
+      "instanceId": "go_player_hpbar_fill",
+      "parentInstanceId": "go_player_hpbar_bg",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "PlayerHPBarFill",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_player_hpbar_fill.gameobject.json"
+    },
+    {
+      "instanceId": "go_hammer_enemy",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HammerEnemy",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hammer_enemy.gameobject.json"
+    },
+    {
+      "instanceId": "go_hammer_enemy_model",
+      "parentInstanceId": "go_hammer_enemy",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HammerEnemyModel",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hammer_enemy_model.gameobject.json"
+    },
+    {
+      "instanceId": "go_hammer_pivot",
+      "parentInstanceId": "go_hammer_enemy_model",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HammerPivot",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hammer_pivot.gameobject.json"
+    },
+    {
+      "instanceId": "go_hammer_hpbar_bg",
+      "parentInstanceId": "go_hammer_enemy",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HPBar",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hammer_hpbar_bg.gameobject.json"
+    },
+    {
+      "instanceId": "go_hammer_hpbar_fill",
+      "parentInstanceId": "go_hammer_enemy",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HPBarFill",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hammer_hpbar_fill.gameobject.json"
+    },
+    {
+      "instanceId": "go_hammer_handle",
+      "parentInstanceId": "go_hammer_pivot",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HammerHandle",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hammer_handle.gameobject.json"
+    },
+    {
+      "instanceId": "go_hammer_head",
+      "parentInstanceId": "go_hammer_pivot",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "HammerHead",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_hammer_head.gameobject.json"
     }
   ]
 }

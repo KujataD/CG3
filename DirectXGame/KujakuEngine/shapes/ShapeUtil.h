@@ -134,6 +134,7 @@ bool IsOverlappingOnAxis(const OBB& A, const OBB& B, const Vector3& axis);
 bool RaycastSegment(const Segment& segment, const Sphere& sphere, float& outT);
 bool RaycastSegment(const Segment& segment, const AABB& aabb, float& outT);
 bool RaycastSegment(const Segment& segment, const OBB& obb, float& outT);
+bool RaycastSegment(const Segment& segment, const Capsule& capsule, float& outT);
 
 // 接触情報(法線・めり込み量・接触点)を計算する。交差していれば true。
 // normal は第1引数から第2引数へ向かう分離方向(単位)。詳細は Contact を参照。

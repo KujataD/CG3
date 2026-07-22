@@ -2,10 +2,12 @@
 #include <KujakuEngine.h>
 #include <components/AnimatorComponent.h>
 
+class Player;
+
 /// <summary>
 /// コントローラーのR2(右トリガー)でAnimatorのアニメーションを再生するゲームComponent。
 /// 同じGameObjectのAnimatorComponentを使う。Clip Nameを指定するとそのクリップへ切り替えて再生し、
-/// 空なら選択中クリップを再生する。
+/// 空なら選択中クリップを再生する。硬直中(被弾のけぞり中)は入力を受け付けない。
 /// </summary>
 class PlayerAnimator : public KujakuEngine::Component {
 public:
@@ -30,6 +32,7 @@ private:
 	KUJAKU_FIELD_BOOL(stopOnRelease_, false);
 
 	KujakuEngine::AnimatorComponent* animator_ = nullptr;
+	Player* player_ = nullptr;
 
 	bool wasPressed_ = false;
 };

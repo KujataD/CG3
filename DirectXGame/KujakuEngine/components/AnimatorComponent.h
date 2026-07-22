@@ -37,7 +37,8 @@ struct AnimatorChannel {
 class KUJAKU_API AnimatorComponent : public Component {
 public:
 	/// <summary>
-	/// 向き基準の移動チャンネル(Transform/moveForward・moveRight・moveUp)の適用先。
+	/// 向き基準の移動チャンネル(Transform/moveForward・moveRight・moveUp)と
+	/// ローカル回転チャンネル(Transform/localRotation.x・y・z)の適用先。
 	/// axis: 0=右(+X), 1=上(+Y), 2=前(+Z)。
 	/// </summary>
 	struct LocalMoveTarget {
@@ -123,6 +124,10 @@ public:
 	void ClearAdditiveBases() {
 		additiveBaseValues_.clear();
 		localMoveLastValues_.clear();
+		localRotationLastValues_.clear();
+		localRotationBaseValues_.clear();
+		restoreBaseValues_.clear();
+		restoreBaseBoolValues_.clear();
 		loopCycleCount_ = 0;
 	}
 
@@ -175,6 +180,30 @@ private:
 	// 向き基準移動チャンネルの適用先(path→対象GameObject+軸)と、前回評価時のカーブ値(増分計算用)。
 	std::unordered_map<std::string, LocalMoveTarget> localMoveTargets_;
 	std::unordered_map<std::string, float> localMoveLastValues_;
+
+	// ローカル回転チャンネル(Transform/localRotation.x等)の適用先と前回評価値。
+	// カーブ値[rad]の増分を「今向いている方向を基準としたローカル軸回転」として現在の姿勢へ合成する。
+	std::unordered_map<std::string, LocalMoveTarget> localRotationTargets_;
+	std::unordered_map<std::string, float> localRotationLastValues_;
+	// 初回評価時のカーブ値(path→基準値)。再生中断時に「適用済み正味回転」を巻き戻すのに使う。
+	std::unordered_map<std::string, float> localRotationBaseValues_;
+
+	// 通常(非加算)トラックが最初に書き込む直前の値(path→再生開始時の値)。
+	// 再生終了/停止時に元の状態へ戻すために使う。加算トラック・仮想チャンネルは対象外。
+	std::unordered_map<std::string, float> restoreBaseValues_;
+	std::unordered_map<std::string, bool> restoreBaseBoolValues_;
+
+	/// <summary>
+	/// 適用済みローカル回転の正味分を巻き戻す。クリップ途中で再生し直す際に、
+	/// のけぞり等の傾きが姿勢へ焼き付いて累積しないようにする(Play/Stop/再生終了から呼ぶ)。
+	/// </summary>
+	void RevertLocalRotations();
+
+	/// <summary>
+	/// 通常(非加算)トラックが書き込んだ値を再生開始時の状態へ戻す。
+	/// 加算トラック・moveForward等・localRotationの加算系は対象外(それぞれの機構に任せる)。
+	/// </summary>
+	void RestoreOriginalValues();
 };
 
 } // namespace KujakuEngine

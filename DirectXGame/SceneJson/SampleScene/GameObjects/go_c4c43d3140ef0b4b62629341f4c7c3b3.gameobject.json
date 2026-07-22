@@ -72,6 +72,7 @@
           1.0,
           1.0
         ],
+        "fillAmount": 1.0,
         "raycastTarget": true,
         "textureAssetId": "",
         "texturePath": "Resources/white1x1.png"
