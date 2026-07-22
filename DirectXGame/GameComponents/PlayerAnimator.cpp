@@ -32,7 +32,8 @@ void PlayerAnimator::Update() {
 
 	if (isPressed && !wasPressed_) {
 		if (!animator_->IsPlaying()) {
-			// 押した瞬間に再生。Clip Name指定xxがあればそのクリップへ切り替える。	
+			// 押した瞬間に再生。Clip Name指定があればそのクリップへ切り替える。
+			if (clipName_.empty()) {
 				animator_->Play();
 			}
 			else {
