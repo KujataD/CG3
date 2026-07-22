@@ -1,7 +1,7 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_3f31f96a44e1cd441f989ad302b97c59",
-  "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "parentInstanceId": "go_pawn_model",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",

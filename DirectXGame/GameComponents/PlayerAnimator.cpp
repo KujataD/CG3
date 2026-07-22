@@ -1,14 +1,28 @@
 #include "PlayerAnimator.h"
+#include "Player.h"
 
 using namespace KujakuEngine;
 
 void PlayerAnimator::OnPlayStart() {
 	wasPressed_ = false;
 	animator_ = GetComponent<AnimatorComponent>();
+
+	// PlayerはコリジョンとともにPawn最上位へ、本Componentはモデル(子)側に分離されているため、
+	// 自身に無ければ親を遡って探す。
+	player_ = GetComponent<Player>();
+	for (KujakuEngine::GameObject* ancestor = GetOwner() ? GetOwner()->GetParent() : nullptr; !player_ && ancestor; ancestor = ancestor->GetParent()) {
+		player_ = ancestor->GetComponent<Player>();
+	}
 }
 
 void PlayerAnimator::Update() {
 	if (!animator_) {
+		return;
+	}
+
+	// 硬直中(被弾のけぞり中)は攻撃入力を受け付けない(のけぞりアニメーションを上書きしない)。
+	if (player_ && player_->IsStunned()) {
+		wasPressed_ = false;
 		return;
 	}
 
@@ -18,8 +32,7 @@ void PlayerAnimator::Update() {
 
 	if (isPressed && !wasPressed_) {
 		if (!animator_->IsPlaying()) {
-			// 押した瞬間に再生。Clip Name指定があればそのクリップへ切り替える。
-			if (clipName_.empty()) {
+			// 押した瞬間に再生。Clip Name指定xxがあればそのクリップへ切り替える。	
 				animator_->Play();
 			}
 			else {

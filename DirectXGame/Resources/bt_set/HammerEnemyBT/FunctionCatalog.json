@@ -1,0 +1,71 @@
+{
+  "actions": [
+    {
+      "category": "Movement",
+      "description": "プレイヤーへ歩いて近づく",
+      "kind": "action",
+      "name": "MoveToPlayer",
+      "params": [
+        {
+          "default": 2.0,
+          "description": "歩行速度(m/s)",
+          "name": "speed",
+          "type": "float"
+        },
+        {
+          "default": 4.0,
+          "description": "この距離まで近づいたらSuccess",
+          "name": "stopDistance",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Movement",
+      "description": "プレイヤーの方向へ旋回する",
+      "kind": "action",
+      "name": "FacePlayer",
+      "params": [
+        {
+          "default": 6.0,
+          "description": "旋回速度(rad/s)",
+          "name": "turnSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Sense",
+      "description": "プレイヤーが範囲内ならSuccess",
+      "kind": "action",
+      "name": "IsPlayerInRange",
+      "params": [
+        {
+          "default": 6.0,
+          "description": "判定距離",
+          "name": "range",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "パターン1: ハンマーを取り出して振りかぶり、自身を中心に2秒間回転切り",
+      "kind": "action",
+      "name": "SpinAttack",
+      "params": []
+    },
+    {
+      "category": "Attack",
+      "description": "パターン2: 振りかぶり→溜め→プレイヤーへ歩きながら上段からたたきつけ",
+      "kind": "action",
+      "name": "SlamAttack",
+      "params": []
+    }
+  ],
+  "conditions": [],
+  "decorators": [],
+  "format": "BahamutAI.FunctionCatalog",
+  "services": [],
+  "version": 1
+}

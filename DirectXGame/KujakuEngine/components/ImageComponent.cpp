@@ -2,6 +2,7 @@
 
 #include "../base/TextureManager.h"
 #include "../runtime/InspectorUI.h"
+#include <algorithm>
 #include <cstring>
 
 namespace KujakuEngine {
@@ -66,6 +67,10 @@ void ImageComponent::Prepare() {
 	EnsureTextureLoaded();
 }
 
+void ImageComponent::SetFillAmount(float fillAmount) {
+	fillAmount_ = std::clamp(fillAmount, 0.0f, 1.0f);
+}
+
 void ImageComponent::DrawUI(const UIRect& canvasRect, float scaleFactor) {
 	if (!quadInitialized_) {
 		quad_.Initialize();
@@ -77,7 +82,14 @@ void ImageComponent::DrawUI(const UIRect& canvasRect, float scaleFactor) {
 		textureIndex_ = TextureManager::GetInstance()->GetDefaultWhiteTexture();
 	}
 
-	quad_.SetRect(canvasRect.x * scaleFactor, canvasRect.y * scaleFactor, canvasRect.width * scaleFactor, canvasRect.height * scaleFactor);
+	// Fill: 左端固定で横幅とUVをfill率だけ縮める(UnityのImage.fillAmount水平相当)。
+	float fill = std::clamp(fillAmount_, 0.0f, 1.0f);
+	if (fill <= 0.0f) {
+		return;
+	}
+
+	quad_.SetRect(canvasRect.x * scaleFactor, canvasRect.y * scaleFactor, canvasRect.width * scaleFactor * fill, canvasRect.height * scaleFactor);
+	quad_.SetUV({0.0f, 0.0f}, {fill, 1.0f});
 	quad_.SetColor(color_);
 	quad_.SetTexture(textureIndex_);
 	quad_.Draw();
@@ -92,6 +104,9 @@ void ImageComponent::DrawInspector() {
 		textureResolved_ = false;
 	}
 	InspectorUI::Checkbox("Raycast Target", &raycastTarget_);
+	if (InspectorUI::DragFloat("Fill Amount", &fillAmount_, 0.01f, 0.0f, 1.0f)) {
+		fillAmount_ = std::clamp(fillAmount_, 0.0f, 1.0f);
+	}
 #endif // USE_IMGUI
 }
 
@@ -100,6 +115,7 @@ void ImageComponent::WriteJson(nlohmann::json& json) const {
 	json["texturePath"] = texturePath_;
 	json["color"] = {color_.x, color_.y, color_.z, color_.w};
 	json["raycastTarget"] = raycastTarget_;
+	json["fillAmount"] = fillAmount_;
 }
 
 void ImageComponent::ReadJson(const nlohmann::json& json) {
@@ -108,6 +124,9 @@ void ImageComponent::ReadJson(const nlohmann::json& json) {
 	color_ = ReadVector4(json, "color", color_);
 	if (json.contains("raycastTarget") && json.at("raycastTarget").is_boolean()) {
 		raycastTarget_ = json.at("raycastTarget").get<bool>();
+	}
+	if (json.contains("fillAmount") && json.at("fillAmount").is_number()) {
+		fillAmount_ = std::clamp(json.at("fillAmount").get<float>(), 0.0f, 1.0f);
 	}
 	textureResolved_ = false;
 }

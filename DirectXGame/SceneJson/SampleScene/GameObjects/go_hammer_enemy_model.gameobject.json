@@ -1,0 +1,96 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_hammer_enemy_model",
+  "parentInstanceId": "go_hammer_enemy",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "HammerEnemyModel",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
+        "material": {
+          "baseColor": [
+            0.8999999761581421,
+            0.30000001192092896,
+            0.20000000298023224,
+            1.0
+          ],
+          "name": "HammerEnemy",
+          "shaderModel": 4,
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "player",
+        "primitive": "Capsule"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clips": [
+          {
+            "assetId": "",
+            "path": "Animations/HammerSpin.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/HammerSlam.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/HammerRecoil.anim.json"
+          }
+        ],
+        "currentClip": 0,
+        "playOnStart": false,
+        "speed": 1.0
+      },
+      "type": "AnimatorComponent"
+    }
+  ]
+}

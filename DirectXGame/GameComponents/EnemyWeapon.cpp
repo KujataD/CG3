@@ -1,16 +1,41 @@
 #include "EnemyWeapon.h"
-#include "EnemyHealth.h"
+#include "Player.h"
+#include "PlayerHealth.h"
+
+using namespace KujakuEngine;
+
+namespace {
+
+// 武器の最上位親(敵本体)を返す。ノックバック方向の基準にする。
+GameObject* GetRootObject(GameObject* object) {
+	while (object && object->GetParent()) {
+		object = object->GetParent();
+	}
+	return object;
+}
+
+} // namespace
 
 void EnemyWeapon::Initialize() {
 }
 
 void EnemyWeapon::Update() {
-	// attackがOFF→ON(新しい攻撃振りの開始)になった瞬間だけヒット履歴をクリアする。
-	// これにより「1振りで敵1体につき1回だけ」ダメージが入る(多段ヒット防止)。
+	// attackがOFF→ON(新しい攻撃振りの開始)になった瞬間はヒット履歴をリセットし、即ヒットできるようにする。
 	if (attack_ && !prevAttack_) {
-		hitThisSwing_.clear();
+		hitCooldowns_.clear();
 	}
 	prevAttack_ = attack_;
+
+	// 対象ごとの再ヒットクールダウンを進める。
+	float deltaTime = Time::GetDeltaTime();
+	for (auto it = hitCooldowns_.begin(); it != hitCooldowns_.end();) {
+		it->second -= deltaTime;
+		if (it->second <= 0.0f) {
+			it = hitCooldowns_.erase(it);
+		} else {
+			++it;
+		}
+	}
 }
 
 void EnemyWeapon::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
@@ -23,20 +48,42 @@ void EnemyWeapon::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
 		return;
 	}
 
-	// この攻撃振りで既にダメージ済みなら二重に与えない。
-	if (hitThisSwing_.count(otherObj) > 0) {
+	// 再ヒット間隔中はダメージを与えない(アニメーション中でも間隔が空けば何度でも当たる)。
+	if (hitCooldowns_.count(otherObj) > 0) {
 		return;
 	}
 
-	ApplyDamageToEnemy(otherObj);
-	hitThisSwing_.insert(otherObj);
+	ApplyDamageToPlayer(otherObj);
+	hitCooldowns_[otherObj] = hitInterval_;
 }
 
-void EnemyWeapon::ApplyDamageToEnemy(KujakuEngine::GameObject* enemy) {
-	auto health = enemy->GetComponent<EnemyHealth>();
+void EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
+	// 敵の武器なのでダメージ対象はPlayer(PlayerHealth持ち)のみ。
+	auto health = target->GetComponent<PlayerHealth>();
 	if (!health) {
 		return;
 	}
 
 	health->TakeDamage(damageValue_);
+
+	// ノックバック: 敵本体→プレイヤーの水平方向へ吹き飛ばし、しばらく行動不能にする。
+	Player* player = target->GetComponent<Player>();
+	if (!player) {
+		return;
+	}
+
+	GameObject* weaponOwner = GetOwner();
+	GameObject* enemyRoot = GetRootObject(weaponOwner);
+
+	Vector3 direction = {0.0f, 0.0f, 1.0f};
+	if (enemyRoot) {
+		Vector3 toTarget = target->GetTransform().translation_ - enemyRoot->GetTransform().translation_;
+		toTarget.y = 0.0f;
+		float length = Length(toTarget);
+		if (length > 0.0001f) {
+			direction = toTarget / length;
+		}
+	}
+
+	player->ApplyKnockback(direction * knockback_, stunDuration_);
 }

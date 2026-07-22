@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KujakuEngine.h>
-#include <unordered_set>
+#include <unordered_map>
 
 class EnemyWeapon : public KujakuEngine::Component {
 public:
@@ -17,16 +17,23 @@ private:
 		KUJAKU_REGISTER_BOOL(attack_);
 		KUJAKU_REGISTER_FLOAT(damageValue_, 1.0f, 0.0f, 0.0f);
 		KUJAKU_REGISTER_FLOAT(knockback_, 0.1f, 0.0f, 0.0f);
+		KUJAKU_REGISTER_FLOAT(hitInterval_, 0.05f, 0.0f, 0.0f);
+		KUJAKU_REGISTER_FLOAT(stunDuration_, 0.05f, 0.0f, 0.0f);
 	}
 
 	KUJAKU_FIELD_BOOL(attack_, false);
 	KUJAKU_FIELD_FLOAT(damageValue_, 10);
+	// ノックバックの初速[unit/s]。
 	KUJAKU_FIELD_FLOAT(knockback_, 5);
+	// 同一対象への再ヒット間隔[s]。1回のアニメーション中でも、この間隔ごとに当たるたびダメージが入る。
+	KUJAKU_FIELD_FLOAT(hitInterval_, 0.5f);
+	// ヒット時にプレイヤーが動けなくなる時間[s]。
+	KUJAKU_FIELD_FLOAT(stunDuration_, 0.6f);
 
-	// 1回の攻撃振り(attackがOFF→ONの間)でダメージ済みの敵。振り開始時にクリアする。
-	// OnTriggerStayは毎フレーム呼ばれるため、これが無いと1振りで多段ヒットしてしまう。
-	std::unordered_set<KujakuEngine::GameObject*> hitThisSwing_;
+	// 対象ごとの再ヒットまでの残り時間。OnTriggerStayは毎フレーム呼ばれるため、
+	// これが無いと接触中に毎フレームダメージが入ってしまう。攻撃振り開始時にクリアする。
+	std::unordered_map<KujakuEngine::GameObject*, float> hitCooldowns_;
 	bool prevAttack_ = false;
 
-	void ApplyDamageToEnemy(KujakuEngine::GameObject* enemy);
+	void ApplyDamageToPlayer(KujakuEngine::GameObject* target);
 };

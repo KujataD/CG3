@@ -1,0 +1,101 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_hammer_enemy",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "HammerEnemy",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          3.0,
+          2.299999952316284,
+          -3.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "bounciness": 0.0,
+        "freezePositionX": false,
+        "freezePositionY": false,
+        "freezePositionZ": false,
+        "freezeRotationX": false,
+        "freezeRotationY": false,
+        "freezeRotationZ": false,
+        "gravityScale": 1.0,
+        "isStatic": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "RigidbodyComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "direction": 1,
+        "height": 3.0,
+        "isTrigger": false,
+        "radius": 0.8999999761581421
+      },
+      "type": "CapsuleColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "health": 100.0,
+        "maxHealth": 100.0
+      },
+      "type": "HealthComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "HPBarUpdater"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "playerName": "Pawn",
+        "recoilDuration": 0.5,
+        "recoilDuringSlam": true,
+        "recoilDuringSpin": false,
+        "recoilEnabled": true,
+        "slamWalkEnd": 1.899999976158142,
+        "slamWalkSpeed": 4.0,
+        "slamWalkStart": 1.399999976158142,
+        "turnSpeed": 6.0,
+        "walkSpeed": 3.0999999046325684
+      },
+      "type": "HammerEnemyComponent"
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "activeTreeName": "Main",
+  "trees": [
+    {
+      "comments": [],
+      "idBlockIndex": 0,
+      "kind": "BehaviorTree",
+      "links": [
+        {
+          "endPinId": 101,
+          "id": 1001,
+          "startPinId": 100
+        },
+        {
+          "endPinId": 103,
+          "id": 1002,
+          "startPinId": 102
+        },
+        {
+          "endPinId": 107,
+          "id": 1003,
+          "startPinId": 102
+        },
+        {
+          "endPinId": 105,
+          "id": 1004,
+          "startPinId": 104
+        },
+        {
+          "endPinId": 106,
+          "id": 1005,
+          "startPinId": 104
+        }
+      ],
+      "name": "Main",
+      "nextLinkId": 1006,
+      "nextNodeId": 7,
+      "nextPinId": 108,
+      "nodes": [
+        {
+          "cooldownDuration": 1.0,
+          "id": 1,
+          "inputPinId": 0,
+          "name": "Root",
+          "outputPinId": 100,
+          "position": {
+            "x": -80.0,
+            "y": -200.0
+          },
+          "reactive": false,
+          "repeatCount": -1,
+          "repeatPaced": false,
+          "status": "",
+          "type": "Root"
+        },
+        {
+          "cooldownDuration": 1.0,
+          "id": 2,
+          "inputPinId": 101,
+          "name": "Selector",
+          "outputPinId": 102,
+          "position": {
+            "x": -80.0,
+            "y": -60.0
+          },
+          "reactive": false,
+          "repeatCount": -1,
+          "repeatPaced": false,
+          "status": "",
+          "type": "Selector"
+        },
+        {
+          "cooldownDuration": 1.0,
+          "id": 3,
+          "inputPinId": 103,
+          "name": "Sequence",
+          "outputPinId": 104,
+          "position": {
+            "x": -200.0,
+            "y": 80.0
+          },
+          "reactive": false,
+          "repeatCount": -1,
+          "repeatPaced": false,
+          "status": "",
+          "type": "Sequence"
+        },
+        {
+          "cooldownDuration": 1.0,
+          "id": 4,
+          "inputPinId": 105,
+          "name": "IsPlayerInRange",
+          "outputPinId": 0,
+          "position": {
+            "x": -280.0,
+            "y": 220.0
+          },
+          "reactive": false,
+          "repeatCount": -1,
+          "repeatPaced": false,
+          "status": "",
+          "type": "Action"
+        },
+        {
+          "cooldownDuration": 1.0,
+          "id": 5,
+          "inputPinId": 106,
+          "name": "SpinAttack",
+          "outputPinId": 0,
+          "position": {
+            "x": -120.0,
+            "y": 220.0
+          },
+          "reactive": false,
+          "repeatCount": -1,
+          "repeatPaced": false,
+          "status": "",
+          "type": "Action"
+        },
+        {
+          "cooldownDuration": 1.0,
+          "id": 6,
+          "inputPinId": 107,
+          "name": "MoveToPlayer",
+          "outputPinId": 0,
+          "position": {
+            "x": 40.0,
+            "y": 80.0
+          },
+          "reactive": false,
+          "repeatCount": -1,
+          "repeatPaced": false,
+          "status": "",
+          "type": "Action"
+        }
+      ],
+      "runtime": {
+        "format": "BahamutAI.BehaviorTree",
+        "root": {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "id": 4,
+                      "name": "IsPlayerInRange",
+                      "type": "Action"
+                    },
+                    {
+                      "id": 5,
+                      "name": "SpinAttack",
+                      "type": "Action"
+                    }
+                  ],
+                  "id": 3,
+                  "name": "Sequence",
+                  "reactive": false,
+                  "type": "Sequence"
+                },
+                {
+                  "id": 6,
+                  "name": "MoveToPlayer",
+                  "type": "Action"
+                }
+              ],
+              "id": 2,
+              "name": "Selector",
+              "reactive": false,
+              "type": "Selector"
+            }
+          ],
+          "id": 1,
+          "name": "Root",
+          "type": "Root"
+        },
+        "version": 1
+      }
+    }
+  ]
+}

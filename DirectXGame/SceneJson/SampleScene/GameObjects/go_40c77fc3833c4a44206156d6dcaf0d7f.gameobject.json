@@ -98,7 +98,7 @@
       "type": "RigidbodyComponent"
     },
     {
-      "enabled": true,
+      "enabled": false,
       "properties": {
         "center": [
           0.0,
@@ -123,6 +123,32 @@
       "enabled": true,
       "properties": {},
       "type": "HPBarUpdater"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clips": [],
+        "currentClip": -1,
+        "playOnStart": true,
+        "speed": 1.0
+      },
+      "type": "AnimatorComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "direction": 0,
+        "height": 3.950000047683716,
+        "isTrigger": false,
+        "radius": 1.0800000429153442
+      },
+      "type": "CapsuleColliderComponent"
     }
   ]
 }

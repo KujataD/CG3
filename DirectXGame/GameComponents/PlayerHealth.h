@@ -5,7 +5,8 @@
 
 class PlayerHealth : public KujakuEngine::Component {
 public:
-	const char* GetTypeName() const override { return "HealthComponent"; }
+	// EnemyHealthが"HealthComponent"名で登録済みのため、衝突しない固有名にする。
+	const char* GetTypeName() const override { return "PlayerHealth"; }
 
 	void Initialize() override;
 

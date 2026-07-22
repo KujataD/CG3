@@ -3,6 +3,7 @@
 #include "../2d/UIQuad.h"
 #include "../2d/UIRect.h"
 #include "../math/Vector4.h"
+#include "../runtime/KujakuApi.h"
 #include "../scene/Component.h"
 #include <array>
 #include <cstdint>
@@ -13,7 +14,7 @@ namespace KujakuEngine {
 /// <summary>
 /// UIのSprite描画(UnityのImage相当)。RectTransformの矩形にテクスチャを色付きで描く。
 /// </summary>
-class ImageComponent : public Component {
+class KUJAKU_API ImageComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "Image"; }
 	bool AllowMultiple() const override { return false; }
@@ -35,6 +36,10 @@ public:
 	void SetColor(const Vector4& color) { color_ = color; }
 	const Vector4& GetColor() const { return color_; }
 
+	/// <summary>横方向Fill率[0,1]。1未満で左端固定のまま右から欠ける(UnityのImage.fillAmount相当)。</summary>
+	void SetFillAmount(float fillAmount);
+	float GetFillAmount() const { return fillAmount_; }
+
 private:
 	void EnsureTextureLoaded();
 	void SyncPathBuffer();
@@ -43,6 +48,7 @@ private:
 	std::string texturePath_ = "Resources/white1x1.png";
 	Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};
 	bool raycastTarget_ = true;
+	float fillAmount_ = 1.0f;
 
 	std::array<char, 256> pathBuffer_{};
 	UIQuad quad_;
