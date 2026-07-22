@@ -63,6 +63,30 @@
       "assetPath": "SceneJson/SampleScene/GameObjects/go_c4f4da242ae61143627a7ca6abe2bdfb.gameobject.json"
     },
     {
+      "instanceId": "go_cf666e7624a4b45667b36536d014e386",
+      "parentInstanceId": "go_d30a54762824186d6985781852ff72eb",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "YOUDIED",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_cf666e7624a4b45667b36536d014e386.gameobject.json"
+    },
+    {
+      "instanceId": "go_d30a54762824186d6985781852ff72eb",
+      "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "DeathMessage",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_d30a54762824186d6985781852ff72eb.gameobject.json"
+    },
+    {
       "instanceId": "go_a19672b7cae624c950caa1145e77d7e5",
       "parentInstanceId": "",
       "prefabAssetPath": "",
@@ -109,18 +133,6 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_pawn_model.gameobject.json"
-    },
-    {
-      "instanceId": "go_a328678cc6774d7e51942273faa4e194",
-      "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
-      "prefabAssetPath": "",
-      "prefabObjectId": "",
-      "prefabInstanceRootId": "",
-      "prefabInstanceRoot": false,
-      "name": "Text",
-      "tag": "Untagged",
-      "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_a328678cc6774d7e51942273faa4e194.gameobject.json"
     },
     {
       "instanceId": "go_0e204b86df8ccac1071046221bc096ae",

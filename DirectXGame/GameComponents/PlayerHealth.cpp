@@ -10,6 +10,11 @@ void PlayerHealth::TakeDamage(float damage) {
 		return;
 	}
 
+	// 無敵中(回避中など)はダメージを受けない。
+	if (invincible_) {
+		return;
+	}
+
 	health_ = std::max(0.0f, health_ - damage);
 
 	if (onHealthChanged_) {

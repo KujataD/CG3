@@ -91,10 +91,10 @@
       "enabled": true,
       "properties": {
         "attack": false,
-        "damageValue": 15.0,
+        "damageValue": 20.0,
         "hitInterval": 0.5,
         "knockback": 5.0,
-        "stunDuration": 0.6
+        "stunDuration": 0.6000000238418579
       },
       "type": "EnemyWeapon"
     },

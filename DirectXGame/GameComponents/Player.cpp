@@ -1,10 +1,14 @@
 #include "Player.h"
+#include "PlayerHealth.h"
 
 #include <scene/MovementUtil.h>
 
 using namespace KujakuEngine;
 
 namespace {
+
+// フレーム数指定(60fps基準)を秒へ変換する係数。
+constexpr float kFrameSeconds = 1.0f / 60.0f;
 
 // 自身または子孫からAnimatorComponentを探す(モデルは子のPawnModelに分離されている)。
 AnimatorComponent* FindAnimatorRecursive(GameObject* object) {
@@ -30,6 +34,10 @@ void Player::Initialize() {
 void Player::OnPlayStart() {
 	animator_ = FindAnimatorRecursive(owner_);
 	modelObject_ = animator_ ? animator_->GetOwner() : nullptr;
+	health_ = GetComponent<PlayerHealth>();
+	dodgeTimer_ = 0.0f;
+	dodgeCooldownTimer_ = 0.0f;
+	invincibleTimer_ = 0.0f;
 }
 
 void Player::Update() {
@@ -38,13 +46,83 @@ void Player::Update() {
 	// アニメーションのルートモーション(攻撃の踏み込み等)をコライダー側の最上位へ反映する。
 	TransferModelRootMotion();
 
+	// 無敵時間は状態に関わらず進める(回避が中断されても無敵だけ残らないように)。
+	TickInvincibility(deltaTime);
+
+	// 回避クールダウンは常に進める(クールダウン中も移動や攻撃は可能。再回避だけ不可)。
+	if (dodgeCooldownTimer_ > 0.0f) {
+		dodgeCooldownTimer_ -= deltaTime;
+		if (dodgeCooldownTimer_ < 0.0f) {
+			dodgeCooldownTimer_ = 0.0f;
+		}
+	}
+
+	// 回避中: 前転しながら向いている方向へ前進。移動含め他の行動はできない。
+	if (dodgeTimer_ > 0.0f) {
+		UpdateDodge(deltaTime);
+		return;
+	}
+
 	// 硬直中は入力移動を受け付けず、ノックバックで滑るだけ。
 	if (stunTimer_ > 0.0f) {
 		UpdateKnockback(deltaTime);
 		return;
 	}
 
+	// 回避入力(Aボタン / Space)。クールダウン中は受け付けない。
+	if (dodgeCooldownTimer_ <= 0.0f && (Input::GetControllerButtonTrigger(XINPUT_GAMEPAD_A) || Input::GetKeyTrigger(DIK_SPACE))) {
+		StartDodge();
+		return;
+	}
+
 	Move();
+}
+
+void Player::StartDodge() {
+	dodgeTimer_ = static_cast<float>(dodgeDurationFrames_) * kFrameSeconds;
+	invincibleTimer_ = static_cast<float>(invincibleFrames_) * kFrameSeconds;
+
+	if (health_ && invincibleTimer_ > 0.0f) {
+		health_->SetInvincible(true);
+	}
+
+	// 前転アニメーション(モデルのみ回転。コライダーは直立のまま)。
+	if (animator_) {
+		animator_->PlayByName("PlayerRoll");
+	}
+}
+
+void Player::UpdateDodge(float deltaTime) {
+	dodgeTimer_ -= deltaTime;
+
+	// 向いている方向(ルートの前方)へ前進する。
+	if (owner_) {
+		WorldTransform& transform = owner_->GetTransform();
+		Vector3 forward = transform.GetRotationQuaternion().RotateVector({0.0f, 0.0f, 1.0f});
+		forward.y = 0.0f;
+		float length = Length(forward);
+		if (length > 0.0001f) {
+			transform.translation_ += forward * (dodgeSpeed_ * deltaTime / length);
+		}
+	}
+
+	if (dodgeTimer_ <= 0.0f) {
+		dodgeTimer_ = 0.0f;
+		dodgeCooldownTimer_ = static_cast<float>(dodgeCooldownFrames_) * kFrameSeconds;
+	}
+}
+
+void Player::TickInvincibility(float deltaTime) {
+	if (invincibleTimer_ <= 0.0f) {
+		return;
+	}
+	invincibleTimer_ -= deltaTime;
+	if (invincibleTimer_ <= 0.0f) {
+		invincibleTimer_ = 0.0f;
+		if (health_) {
+			health_->SetInvincible(false);
+		}
+	}
 }
 
 void Player::TransferModelRootMotion() {
@@ -74,6 +152,12 @@ void Player::TransferModelRootMotion() {
 }
 
 void Player::ApplyKnockback(const Vector3& velocity, float stunDuration) {
+	// 回避中(無敵切れ後)に被弾したら回避を中断してクールダウンへ移行する。
+	if (dodgeTimer_ > 0.0f) {
+		dodgeTimer_ = 0.0f;
+		dodgeCooldownTimer_ = static_cast<float>(dodgeCooldownFrames_) * kFrameSeconds;
+	}
+
 	knockbackVelocity_ = velocity;
 	if (stunDuration > stunTimer_) {
 		stunTimer_ = stunDuration;

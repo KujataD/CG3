@@ -2,20 +2,20 @@
   "actions": [
     {
       "category": "Movement",
-      "description": "プレイヤーへ歩いて近づく",
+      "description": "プレイヤーへ旋回しつつ1Tickぶん歩く(移動部分のみ。停止条件はIsPlayerInRangeで組む)",
       "kind": "action",
-      "name": "MoveToPlayer",
+      "name": "StepToPlayer",
       "params": [
         {
-          "default": 2.0,
+          "default": 3.0,
           "description": "歩行速度(m/s)",
           "name": "speed",
           "type": "float"
         },
         {
-          "default": 4.0,
-          "description": "この距離まで近づいたらSuccess",
-          "name": "stopDistance",
+          "default": 6.0,
+          "description": "旋回速度(rad/s)",
+          "name": "turnSpeed",
           "type": "float"
         }
       ]
@@ -35,9 +35,99 @@
       ]
     },
     {
-      "category": "Sense",
-      "description": "プレイヤーが範囲内ならSuccess",
+      "category": "Attack",
+      "description": "回転攻撃の振り上げ。ハンマーを取り出して構える",
       "kind": "action",
+      "name": "SpinRaise",
+      "params": [
+        {
+          "default": 1.0,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "回転切り本体。自身を中心にハンマーを回転させる(攻撃判定ON)",
+      "kind": "action",
+      "name": "SpinSwing",
+      "params": [
+        {
+          "default": 2.0,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "たたきつけの振り上げ+溜め。プレイヤーを向き続ける",
+      "kind": "action",
+      "name": "SlamRaise",
+      "params": [
+        {
+          "default": 1.399999976158142,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 6.0,
+          "description": "旋回速度(rad/s)",
+          "name": "turnSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "振り下し。プレイヤーへ歩きながらたたきつける(攻撃判定ON)",
+      "kind": "action",
+      "name": "SlamSwing",
+      "params": [
+        {
+          "default": 0.5,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 4.0,
+          "description": "前進速度(m/s)",
+          "name": "walkSpeed",
+          "type": "float"
+        },
+        {
+          "default": 6.0,
+          "description": "旋回速度(rad/s)",
+          "name": "turnSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "後隙。duration経過後にハンマーを収納して攻撃を終了する",
+      "kind": "action",
+      "name": "Recovery",
+      "params": [
+        {
+          "default": 0.5,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "category": "Sense",
+      "description": "プレイヤーが範囲内か",
+      "kind": "condition",
       "name": "IsPlayerInRange",
       "params": [
         {
@@ -47,23 +137,8 @@
           "type": "float"
         }
       ]
-    },
-    {
-      "category": "Attack",
-      "description": "パターン1: ハンマーを取り出して振りかぶり、自身を中心に2秒間回転切り",
-      "kind": "action",
-      "name": "SpinAttack",
-      "params": []
-    },
-    {
-      "category": "Attack",
-      "description": "パターン2: 振りかぶり→溜め→プレイヤーへ歩きながら上段からたたきつけ",
-      "kind": "action",
-      "name": "SlamAttack",
-      "params": []
     }
   ],
-  "conditions": [],
   "decorators": [],
   "format": "BahamutAI.FunctionCatalog",
   "services": [],

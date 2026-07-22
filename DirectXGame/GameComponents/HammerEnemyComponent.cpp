@@ -1,4 +1,4 @@
-#include "HammerEnemyComponent.h"
+﻿#include "HammerEnemyComponent.h"
 
 #include "../KujakuEngine/components/AnimatorComponent.h"
 #include "EnemyHealth.h"
@@ -9,9 +9,12 @@ namespace {
 
 constexpr const char* kBTSetFolder = "Resources/bt_set/HammerEnemyBT";
 
-// 攻撃アニメーションのクリップ名(Animations/*.anim.jsonのnameと一致させる)。
-constexpr const char* kSpinClipName = "HammerSpin";
-constexpr const char* kSlamClipName = "HammerSlam";
+// 攻撃フェーズごとのクリップ名(Animations/*.anim.jsonのnameと一致させる)。
+// 各クリップは末尾を長くホールドしてあり、フェーズのdurationはBTのParamsで決める。
+constexpr const char* kSpinRaiseClipName = "HammerSpinRaise";
+constexpr const char* kSpinSwingClipName = "HammerSpinSwing";
+constexpr const char* kSlamRaiseClipName = "HammerSlamRaise";
+constexpr const char* kSlamSwingClipName = "HammerSlamSwing";
 constexpr const char* kRecoilClipName = "HammerRecoil";
 
 // ハンマーの回転中心となる子孫オブジェクト名。
@@ -70,33 +73,53 @@ void HammerEnemyComponent::Initialize() {
 	// BTのアクション登録。FunctionCatalogへ同時登録するとBahamutAIEditorのAction一覧に反映される。
 	BahamutAI::FunctionCatalog catalog;
 
-	BahamutAI::RegisterAction(
-	    btFactory_, catalog,
-	    BahamutAI::ActionDef("MoveToPlayer").Category("Movement").Description("プレイヤーへ歩いて近づく").Float("speed", {2.0f}, "歩行速度(m/s)").Float("stopDistance", {4.0f}, "この距離まで近づいたらSuccess"),
-	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return MoveToPlayer(context, params); });
+	// --- Condition: その場でtrue/falseを返す判定。移動の停止条件などツリー側の分岐に使う ---
 
-	BahamutAI::RegisterAction(
-	    btFactory_, catalog,
-	    BahamutAI::ActionDef("FacePlayer").Category("Movement").Description("プレイヤーの方向へ旋回する").Float("turnSpeed", {6.0f}, "旋回速度(rad/s)"),
-	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return FacePlayer(context, params); });
-
-	BahamutAI::RegisterAction(
-	    btFactory_, catalog,
-	    BahamutAI::ActionDef("IsPlayerInRange").Category("Sense").Description("プレイヤーが範囲内ならSuccess").Float("range", {6.0f}, "判定距離"),
+	BahamutAI::RegisterCondition(
+	    btFactory_, catalog, BahamutAI::ConditionDef("IsPlayerInRange").Category("Sense").Description("プレイヤーが範囲内か").Float("range", {6.0f}, "判定距離"),
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
 		    (void)context;
 		    return IsPlayerInRange(params);
 	    });
 
-	BahamutAI::RegisterAction(
-	    btFactory_, catalog,
-	    BahamutAI::ActionDef("SpinAttack").Category("Attack").Description("パターン1: ハンマーを取り出して振りかぶり、自身を中心に2秒間回転切り"),
-	    [this](BahamutAI::AIContext& context) { return SpinAttack(context); });
+	// --- Movement ---
 
 	BahamutAI::RegisterAction(
 	    btFactory_, catalog,
-	    BahamutAI::ActionDef("SlamAttack").Category("Attack").Description("パターン2: 振りかぶり→溜め→プレイヤーへ歩きながら上段からたたきつけ"),
-	    [this](BahamutAI::AIContext& context) { return SlamAttack(context); });
+	    BahamutAI::ActionDef("StepToPlayer")
+	        .Category("Movement")
+	        .Description("プレイヤーへ旋回しつつ1Tickぶん歩く(移動部分のみ。停止条件はIsPlayerInRangeで組む)")
+	        .Float("speed", {3.0f}, "歩行速度(m/s)")
+	        .Float("turnSpeed", {6.0f}, "旋回速度(rad/s)"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return StepToPlayer(context, params); });
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog, BahamutAI::ActionDef("FacePlayer").Category("Movement").Description("プレイヤーの方向へ旋回する").Float("turnSpeed", {6.0f}, "旋回速度(rad/s)"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return FacePlayer(context, params); });
+
+	// --- 攻撃フェーズ。Sequenceで 振り上げ→振り下し(回転)→後隙 と組み合わせて1つの攻撃を構成する ---
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog, BahamutAI::ActionDef("SpinRaise").Category("Attack").Description("回転攻撃の振り上げ。ハンマーを取り出して構える").Float("duration", {1.0f}, "フェーズの長さ(s)"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return SpinRaise(context, params); });
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog, BahamutAI::ActionDef("SpinSwing").Category("Attack").Description("回転切り本体。自身を中心にハンマーを回転させる(攻撃判定ON)").Float("duration", {2.0f}, "フェーズの長さ(s)"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return SpinSwing(context, params); });
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog,
+	    BahamutAI::ActionDef("SlamRaise").Category("Attack").Description("たたきつけの振り上げ+溜め。プレイヤーを向き続ける").Float("duration", {1.4f}, "フェーズの長さ(s)").Float("turnSpeed", {6.0f}, "旋回速度(rad/s)"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return SlamRaise(context, params); });
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog,
+	    BahamutAI::ActionDef("SlamSwing").Category("Attack").Description("振り下し。プレイヤーへ歩きながらたたきつける(攻撃判定ON)").Float("duration", {0.5f}, "フェーズの長さ(s)").Float("walkSpeed", {4.0f}, "前進速度(m/s)").Float("turnSpeed", {6.0f}, "旋回速度(rad/s)"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return SlamSwing(context, params); });
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog, BahamutAI::ActionDef("Recovery").Category("Attack").Description("後隙。duration経過後にハンマーを収納して攻撃を終了する").Float("duration", {0.5f}, "フェーズの長さ(s)"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return Recovery(context, params); });
 
 	catalog.SaveToBTSetFolder(kBTSetFolder);
 }
@@ -112,7 +135,8 @@ void HammerEnemyComponent::OnPlayStart() {
 	// ハンマーは攻撃時だけ取り出す。開始時は収納。
 	spinActive_ = false;
 	slamActive_ = false;
-	slamTimer_ = 0.0f;
+	currentPhase_.clear();
+	phaseTimer_ = 0.0f;
 	recoilTimer_ = 0.0f;
 	SetHammerVisible(false);
 
@@ -160,7 +184,19 @@ void HammerEnemyComponent::LoadBTSet() {
 // BT Actions
 // ---------------------------------------------------------------------------
 
-BahamutAI::BTStatus HammerEnemyComponent::MoveToPlayer(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+bool HammerEnemyComponent::IsPlayerInRange(const BahamutAI::NodeParams& params) {
+	GameObject* player = FindPlayer();
+	if (!owner_ || !player) {
+		return false;
+	}
+
+	float range = params.GetFloat("range", 6.0f);
+	Vector3 toPlayer = player->GetTransform().translation_ - owner_->GetTransform().translation_;
+	toPlayer.y = 0.0f;
+	return Length(toPlayer) <= range;
+}
+
+BahamutAI::BTStatus HammerEnemyComponent::StepToPlayer(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
 	if (IsRecoiling()) {
 		return BahamutAI::BTStatus::Failure;
 	}
@@ -169,19 +205,12 @@ BahamutAI::BTStatus HammerEnemyComponent::MoveToPlayer(BahamutAI::AIContext& con
 		return BahamutAI::BTStatus::Failure;
 	}
 
-	float speed = params.GetFloat("speed", walkSpeed_);
-	float stopDistance = params.GetFloat("stopDistance", 4.0f);
-
+	// 移動部分のみ: 旋回しつつ1Tickぶん前進して常にSuccess。
+	// 「どこまで近づいたら止まるか」の条件部分はツリー側でIsPlayerInRangeと組み合わせる。
+	RotateTowardsPlayer(params.GetFloat("turnSpeed", 6.0f), context.deltaTime);
 	Vector3 toPlayer = player->GetTransform().translation_ - owner_->GetTransform().translation_;
-	toPlayer.y = 0.0f;
-	float distance = Length(toPlayer);
-	if (distance <= stopDistance) {
-		return BahamutAI::BTStatus::Success;
-	}
-
-	RotateTowardsPlayer(turnSpeed_, context.deltaTime);
-	MoveTowardsPlayer(speed, context.deltaTime);
-	return BahamutAI::BTStatus::Running;
+	MoveTowards(toPlayer, params.GetFloat("speed", 3.0f), context.deltaTime);
+	return BahamutAI::BTStatus::Success;
 }
 
 BahamutAI::BTStatus HammerEnemyComponent::FacePlayer(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
@@ -193,28 +222,47 @@ BahamutAI::BTStatus HammerEnemyComponent::FacePlayer(BahamutAI::AIContext& conte
 		return BahamutAI::BTStatus::Failure;
 	}
 
-	float turnSpeed = params.GetFloat("turnSpeed", turnSpeed_);
+	float turnSpeed = params.GetFloat("turnSpeed", 6.0f);
 	if (RotateTowardsPlayer(turnSpeed, context.deltaTime)) {
 		return BahamutAI::BTStatus::Success;
 	}
 	return BahamutAI::BTStatus::Running;
 }
 
-BahamutAI::BTStatus HammerEnemyComponent::IsPlayerInRange(const BahamutAI::NodeParams& params) {
-	GameObject* player = FindPlayer();
-	if (!owner_ || !player) {
-		return BahamutAI::BTStatus::Failure;
-	}
-
-	float range = params.GetFloat("range", 6.0f);
-	Vector3 toPlayer = player->GetTransform().translation_ - owner_->GetTransform().translation_;
-	toPlayer.y = 0.0f;
-	return (Length(toPlayer) <= range) ? BahamutAI::BTStatus::Success : BahamutAI::BTStatus::Failure;
+BahamutAI::BTStatus HammerEnemyComponent::SpinRaise(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+	return TickAttackPhase("SpinRaise", kSpinRaiseClipName, AttackKind::Spin, params.GetFloat("duration", 1.0f), 0.0f, 0.0f, context.deltaTime);
 }
 
-BahamutAI::BTStatus HammerEnemyComponent::SpinAttack(BahamutAI::AIContext& context) {
-	(void)context;
+BahamutAI::BTStatus HammerEnemyComponent::SpinSwing(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+	return TickAttackPhase("SpinSwing", kSpinSwingClipName, AttackKind::Spin, params.GetFloat("duration", 2.0f), 0.0f, 0.0f, context.deltaTime);
+}
 
+BahamutAI::BTStatus HammerEnemyComponent::SlamRaise(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+	// 振り上げ+溜め: その場でプレイヤーへ向き続ける。
+	return TickAttackPhase("SlamRaise", kSlamRaiseClipName, AttackKind::Slam, params.GetFloat("duration", 1.4f), params.GetFloat("turnSpeed", 6.0f), 0.0f, context.deltaTime);
+}
+
+BahamutAI::BTStatus HammerEnemyComponent::SlamSwing(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+	// 振り下し: プレイヤーの方向へ歩きながらたたきつける。
+	return TickAttackPhase(
+	    "SlamSwing", kSlamSwingClipName, AttackKind::Slam, params.GetFloat("duration", 0.5f), params.GetFloat("turnSpeed", 6.0f), params.GetFloat("walkSpeed", 4.0f), context.deltaTime);
+}
+
+BahamutAI::BTStatus HammerEnemyComponent::Recovery(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+	// 後隙: 現行クリップの終端ポーズを保ったまま待ち、経過したらハンマーを収納して攻撃終了。
+	BahamutAI::BTStatus status = TickAttackPhase("Recovery", nullptr, AttackKind::Keep, params.GetFloat("duration", 0.5f), 0.0f, 0.0f, context.deltaTime);
+	if (status == BahamutAI::BTStatus::Success) {
+		if (AnimatorComponent* animator = GetAnimator()) {
+			// 停止で書き込み値が元へ戻る(ハンマーは収納済みなので見えない)。
+			animator->Stop();
+		}
+		FinishAttack();
+	}
+	return status;
+}
+
+BahamutAI::BTStatus HammerEnemyComponent::TickAttackPhase(
+    const char* phaseName, const char* clipName, AttackKind kind, float duration, float turnSpeed, float walkSpeed, float deltaTime) {
 	if (IsRecoiling()) {
 		return BahamutAI::BTStatus::Failure;
 	}
@@ -223,64 +271,44 @@ BahamutAI::BTStatus HammerEnemyComponent::SpinAttack(BahamutAI::AIContext& conte
 		return BahamutAI::BTStatus::Failure;
 	}
 
-	if (!spinActive_) {
-		// 予備動作開始: ハンマーを取り出してクリップ再生。
+	// フェーズ開始(前回と別フェーズなら開始扱い。クリップ切替で前フェーズの書き込みは自動復元される)。
+	if (currentPhase_ != phaseName) {
 		SetHammerVisible(true);
-		if (!animator->PlayByName(kSpinClipName)) {
+		if (clipName && !animator->PlayByName(clipName)) {
 			FinishAttack();
 			return BahamutAI::BTStatus::Failure;
 		}
-		spinActive_ = true;
-		return BahamutAI::BTStatus::Running;
-	}
-
-	// クリップ(振りかぶり→2秒回転→戻し)が終わるまでRunning。
-	if (animator->IsPlaying()) {
-		return BahamutAI::BTStatus::Running;
-	}
-
-	FinishAttack();
-	return BahamutAI::BTStatus::Success;
-}
-
-BahamutAI::BTStatus HammerEnemyComponent::SlamAttack(BahamutAI::AIContext& context) {
-	if (IsRecoiling()) {
-		return BahamutAI::BTStatus::Failure;
-	}
-	AnimatorComponent* animator = GetAnimator();
-	if (!owner_ || !animator) {
-		return BahamutAI::BTStatus::Failure;
-	}
-
-	if (!slamActive_) {
-		// 予備動作開始: ハンマーを取り出して振りかぶりクリップ再生。
-		SetHammerVisible(true);
-		if (!animator->PlayByName(kSlamClipName)) {
-			FinishAttack();
-			return BahamutAI::BTStatus::Failure;
+		currentPhase_ = phaseName;
+		phaseTimer_ = 0.0f;
+		if (kind == AttackKind::Spin) {
+			spinActive_ = true;
+			slamActive_ = false;
+		} else if (kind == AttackKind::Slam) {
+			slamActive_ = true;
+			spinActive_ = false;
 		}
-		slamActive_ = true;
-		slamTimer_ = 0.0f;
-		return BahamutAI::BTStatus::Running;
 	}
 
-	slamTimer_ += context.deltaTime;
+	phaseTimer_ += deltaTime;
 
-	if (slamTimer_ < slamWalkStart_) {
-		// 振りかぶり〜溜め: その場でプレイヤーへ向き続ける。
-		RotateTowardsPlayer(turnSpeed_, context.deltaTime);
-	} else if (slamTimer_ <= slamWalkEnd_) {
-		// たたきつけ: プレイヤーの方向へ歩きながら振り下ろす。
-		RotateTowardsPlayer(turnSpeed_, context.deltaTime);
-		MoveTowardsPlayer(slamWalkSpeed_, context.deltaTime);
+	if (turnSpeed > 0.0f) {
+		RotateTowardsPlayer(turnSpeed, deltaTime);
+	}
+	if (walkSpeed > 0.0f) {
+		GameObject* player = FindPlayer();
+		if (player) {
+			Vector3 toPlayer = player->GetTransform().translation_ - owner_->GetTransform().translation_;
+			MoveTowards(toPlayer, walkSpeed, deltaTime);
+		}
 	}
 
-	if (animator->IsPlaying()) {
-		return BahamutAI::BTStatus::Running;
+	if (phaseTimer_ >= duration) {
+		// フェーズ完了。ハンマー収納や姿勢の後始末は次フェーズ(またはRecovery)に任せる。
+		currentPhase_.clear();
+		phaseTimer_ = 0.0f;
+		return BahamutAI::BTStatus::Success;
 	}
-
-	FinishAttack();
-	return BahamutAI::BTStatus::Success;
+	return BahamutAI::BTStatus::Running;
 }
 
 // ---------------------------------------------------------------------------
@@ -341,7 +369,6 @@ bool HammerEnemyComponent::RotateTowardsPlayer(float turnSpeed, float deltaTime)
 	if (!owner_ || !player) {
 		return false;
 	}
-
 	Vector3 toPlayer = player->GetTransform().translation_ - owner_->GetTransform().translation_;
 	toPlayer.y = 0.0f;
 	if (Length(toPlayer) <= 0.0001f) {
@@ -363,7 +390,7 @@ bool HammerEnemyComponent::RotateTowardsPlayer(float turnSpeed, float deltaTime)
 	return false;
 }
 
-void HammerEnemyComponent::MoveTowardsPlayer(float speed, float deltaTime) {
+void HammerEnemyComponent::MoveTowards(Vector3 desired, float speed, float deltaTime) {
 	GameObject* player = FindPlayer();
 	if (!owner_ || !player) {
 		return;
@@ -382,6 +409,7 @@ void HammerEnemyComponent::MoveTowardsPlayer(float speed, float deltaTime) {
 void HammerEnemyComponent::FinishAttack() {
 	spinActive_ = false;
 	slamActive_ = false;
-	slamTimer_ = 0.0f;
+	currentPhase_.clear();
+	phaseTimer_ = 0.0f;
 	SetHammerVisible(false);
 }

@@ -11,20 +11,31 @@ class AnimatorComponent;
 
 /// <summary>
 /// ハンマーを持つ敵。BehaviorTree(BahamutAI)で行動する。
-/// ツリー本体はBahamutAIEditorで作成し、ここではActionの実装と登録だけを行う。
+/// ツリー本体はBahamutAIEditorで作成し、ここではCondition/Actionの実装と登録だけを行う。
+/// 調整パラメータはすべてBTノードのParamsで指定する(コンポーネント側には持たない)。
 ///
-/// 登録アクション:
-///   MoveToPlayer   : プレイヤーへ歩いて近づく(speed / stopDistance)
+/// 登録Condition(その場でtrue/false):
+///   IsPlayerInRange : プレイヤーが範囲内か(range)。移動の停止判定にも使う
+///
+/// 登録Action:
+///   StepToPlayer   : プレイヤーへ旋回しつつ1Tickぶん歩く。毎回Successを返す(speed / turnSpeed)。
+///                    停止判定は持たない(条件部分はIsPlayerInRangeで組む)
 ///   FacePlayer     : プレイヤーの方向へ旋回する(turnSpeed)
-///   IsPlayerInRange: プレイヤーが範囲内ならSuccess(range)
-///   SpinAttack     : パターン1 回転ハンマー(振りかぶり→2秒回転切り)
-///   SlamAttack     : パターン2 上段たたきつけ(振りかぶり→溜め→歩きながらたたきつけ)
+///   --- 攻撃フェーズ(Sequenceで組み合わせて1つの攻撃を構成する) ---
+///   SpinRaise      : 回転攻撃の振り上げ(duration)
+///   SpinSwing      : 回転切り本体。攻撃判定ON(duration)
+///   SlamRaise      : たたきつけの振り上げ+溜め。プレイヤーを向き続ける(duration / turnSpeed)
+///   SlamSwing      : 振り下し。歩きながらたたきつけ、攻撃判定ON(duration / walkSpeed / turnSpeed)
+///   Recovery       : 後隙。duration経過後にハンマーを収納して攻撃終了(duration)
 ///
-/// ハンマー(子孫オブジェクト"HammerPivot")は攻撃中だけSetActiveで取り出す。
-/// 攻撃アニメーションはHammerPivotの回転をキーフレームし、EnemyWeapon.attackで判定をON/OFFする。
+/// 接近の例: Sequence[ Selector[ IsPlayerInRange(3), StepToPlayer ], FacePlayer ]
+///   (3以内でなければ1歩近づく。ループはRootの毎Tick再評価に任せる)
+///
+/// ハンマー(子孫オブジェクト"HammerPivot")は攻撃フェーズ中だけSetActiveで取り出す。
+/// 各フェーズクリップは末尾を長くホールドしてあり、フェーズ遷移(クリップ切替)で継ぎ目なく繋がる。
 ///
 /// 被弾時はのけぞり(HammerRecoil)を再生する。のけぞるかどうかは状態ごとのパラメータで制御し、
-/// 既定では回転攻撃(SpinAttack)中はのけぞらない。のけぞり中は行動アクションがFailureを返す。
+/// 既定では回転攻撃中はのけぞらない。のけぞり中は行動アクションがFailureを返す。
 /// </summary>
 class HammerEnemyComponent : public KujakuEngine::Component {
 public:
@@ -39,12 +50,32 @@ public:
 private:
 	void LoadBTSet();
 
+	// 攻撃フェーズが所属する攻撃種別(のけぞり可否パラメータの判定に使う)。
+	enum class AttackKind {
+		Keep, // 現在の種別を維持(Recovery用)
+		Spin,
+		Slam,
+	};
+
+	// --- BT Conditions (bool) ---
+	bool IsPlayerInRange(const BahamutAI::NodeParams& params);
+
 	// --- BT Actions ---
-	BahamutAI::BTStatus MoveToPlayer(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
+	// 移動部分のみ。停止の条件部分はIsPlayerInRangeでツリー側に組む。Runningは返さず毎TickSuccess。
+	BahamutAI::BTStatus StepToPlayer(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
 	BahamutAI::BTStatus FacePlayer(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
-	BahamutAI::BTStatus IsPlayerInRange(const BahamutAI::NodeParams& params);
-	BahamutAI::BTStatus SpinAttack(BahamutAI::AIContext& context);
-	BahamutAI::BTStatus SlamAttack(BahamutAI::AIContext& context);
+	BahamutAI::BTStatus SpinRaise(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
+	BahamutAI::BTStatus SpinSwing(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
+	BahamutAI::BTStatus SlamRaise(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
+	BahamutAI::BTStatus SlamSwing(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
+	BahamutAI::BTStatus Recovery(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
+
+	/// <summary>
+	/// 攻撃フェーズ共通処理。初回Tickでハンマーを取り出しクリップを再生(clipName=nullptrなら現行クリップ継続)、
+	/// duration経過までRunning、経過したらSuccessを返す。turnSpeed/walkSpeedが正なら毎Tickプレイヤーへ旋回/前進する。
+	/// </summary>
+	BahamutAI::BTStatus TickAttackPhase(
+	    const char* phaseName, const char* clipName, AttackKind kind, float duration, float turnSpeed, float walkSpeed, float deltaTime);
 
 	// --- helpers ---
 	KujakuEngine::GameObject* FindPlayer();
@@ -57,19 +88,14 @@ private:
 	void SetHammerVisible(bool visible);
 	/// プレイヤーへYawだけ旋回する。deltaTimeぶん回して、ほぼ向いていればtrue。
 	bool RotateTowardsPlayer(float turnSpeed, float deltaTime);
+	void MoveTowards(KujakuEngine::Vector3 desired, float speed, float deltaTime);
 	/// 現在の向きへ関係なく、プレイヤーへ直線的にdeltaTimeぶん歩く。
-	void MoveTowardsPlayer(float speed, float deltaTime);
 	/// 攻撃終了/中断時の後始末(ハンマー収納・フラグリセット)。
 	void FinishAttack();
 
 private:
 	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
 		KUJAKU_REGISTER_STRING(playerName_);
-		KUJAKU_REGISTER_FLOAT(walkSpeed_, 0.05f, 0.0f, 0.0f);
-		KUJAKU_REGISTER_FLOAT(turnSpeed_, 0.05f, 0.0f, 0.0f);
-		KUJAKU_REGISTER_FLOAT(slamWalkStart_, 0.01f, 0.0f, 0.0f);
-		KUJAKU_REGISTER_FLOAT(slamWalkEnd_, 0.01f, 0.0f, 0.0f);
-		KUJAKU_REGISTER_FLOAT(slamWalkSpeed_, 0.05f, 0.0f, 0.0f);
 		KUJAKU_REGISTER_BOOL_NAMED(recoilEnabled_, "Recoil Enabled");
 		KUJAKU_REGISTER_BOOL_NAMED(recoilDuringSpin_, "Recoil During Spin");
 		KUJAKU_REGISTER_BOOL_NAMED(recoilDuringSlam_, "Recoil During Slam");
@@ -77,14 +103,8 @@ private:
 	}
 
 	// プレイヤー(PlayerHealth持ち)のGameObject名。シーンから検索する。
+	// ※アクションの調整値(速度・時間など)はBTノードのParamsで指定する。ここには持たない。
 	KUJAKU_FIELD_STRING(playerName_, "Pawn");
-	KUJAKU_FIELD_FLOAT(walkSpeed_, 2.0f);
-	KUJAKU_FIELD_FLOAT(turnSpeed_, 6.0f);
-	// SlamAttack中にプレイヤーへ歩き出す/歩き終わる時刻(クリップ先頭からの秒)。
-	// HammerSlam.anim.jsonの「溜め終わり→たたきつけ」区間に合わせる。
-	KUJAKU_FIELD_FLOAT(slamWalkStart_, 1.4f);
-	KUJAKU_FIELD_FLOAT(slamWalkEnd_, 1.9f);
-	KUJAKU_FIELD_FLOAT(slamWalkSpeed_, 4.0f);
 
 	// --- のけぞり制御 ---
 	// のけぞり自体の有効/無効。
@@ -108,11 +128,14 @@ private:
 	// このEnemy固有のBlackboard(AIContextに渡す)
 	BahamutAI::Blackboard localBlackboard_;
 
-	// --- 攻撃アクションの実行状態 ---
-	// SpinAttack/SlamAttackはRunningをまたぐため、開始済みかを覚えておく。
+	// --- 攻撃フェーズの実行状態 ---
+	// 実行中フェーズ名(空=非攻撃中)。フェーズアクションはRunningをまたぐため、開始済みかをこれで判定する。
+	std::string currentPhase_;
+	// 現在フェーズの経過時間[s]。
+	float phaseTimer_ = 0.0f;
+	// のけぞり可否判定用: 現在どの攻撃種別の最中か。
 	bool spinActive_ = false;
 	bool slamActive_ = false;
-	float slamTimer_ = 0.0f;
 
 	// のけぞりの残り硬直時間[s]。0より大きい間は行動アクションがFailureを返す。
 	float recoilTimer_ = 0.0f;

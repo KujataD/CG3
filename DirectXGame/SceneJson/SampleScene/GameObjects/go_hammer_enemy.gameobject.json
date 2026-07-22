@@ -71,8 +71,8 @@
     {
       "enabled": true,
       "properties": {
-        "health": 100.0,
-        "maxHealth": 100.0
+        "health": 300.0,
+        "maxHealth": 300.0
       },
       "type": "HealthComponent"
     },
@@ -86,14 +86,9 @@
       "properties": {
         "playerName": "Pawn",
         "recoilDuration": 0.5,
-        "recoilDuringSlam": true,
+        "recoilDuringSlam": false,
         "recoilDuringSpin": false,
-        "recoilEnabled": true,
-        "slamWalkEnd": 1.899999976158142,
-        "slamWalkSpeed": 4.0,
-        "slamWalkStart": 1.399999976158142,
-        "turnSpeed": 6.0,
-        "walkSpeed": 3.0999999046325684
+        "recoilEnabled": true
       },
       "type": "HammerEnemyComponent"
     }

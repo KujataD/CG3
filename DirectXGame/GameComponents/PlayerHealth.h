@@ -14,6 +14,10 @@ public:
 	float GetHealthPercent() const;
 	bool IsAlive() const;
 
+	/// <summary>無敵(回避中など)。trueの間TakeDamageを無視する。</summary>
+	void SetInvincible(bool invincible) { invincible_ = invincible; }
+	bool IsInvincible() const { return invincible_; }
+
 	void SetOnHealthChanged(std::function<void(float)> cb);
 	void SetOnDeath(std::function<void()> cb);
 
@@ -28,4 +32,7 @@ private:
 
 	std::function<void(float)> onHealthChanged_;
 	std::function<void()> onDeath_;
+
+	// 無敵中か(シリアライズしないランタイム状態)。
+	bool invincible_ = false;
 };
