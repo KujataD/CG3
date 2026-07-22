@@ -163,6 +163,10 @@ public:
 	uint32_t GetSwapChainBufferCount() const { return kSwapChainBufferCount; }
 	void SetBackBufferRenderTarget();
 
+	// VSync(Presentの垂直同期)をランタイムで切り替える。VSync起因のFPS低下(60→30の階段)の切り分け用。
+	void SetVSyncEnabled(bool enabled) { vsyncEnabled_ = enabled; }
+	bool IsVSyncEnabled() const { return vsyncEnabled_; }
+
 	// --- set ---
 	void SetClearColor(Vector4 color) {
 		clearColor_[0] = color.x;
@@ -258,6 +262,7 @@ private:
 	uint64_t fenceValue_ = 0;
 	uint64_t fenceValues_[kSwapChainBufferCount] = {};
 	HANDLE fenceEvent_ = nullptr;
+	bool vsyncEnabled_ = true;
 
 	uint32_t descriptorSizeSRV_;
 	uint32_t descriptorSizeRTV_;

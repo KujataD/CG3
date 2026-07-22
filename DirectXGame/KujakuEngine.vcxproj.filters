@@ -213,6 +213,9 @@
     <ClCompile Include="KujakuEngine\Editor\SceneJsonImporter.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\base\FrameProfiler.cpp">
+      <Filter>KujakuEngine\base</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\base\Logger.cpp">
       <Filter>KujakuEngine\base</Filter>
     </ClCompile>
@@ -583,6 +586,9 @@
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\SceneJsonImporter.h">
       <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\base\FrameProfiler.h">
+      <Filter>KujakuEngine\base</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\base\Logger.h">
       <Filter>KujakuEngine\base</Filter>

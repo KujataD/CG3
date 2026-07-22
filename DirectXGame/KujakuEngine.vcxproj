@@ -177,6 +177,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\3d\SpotLight.cpp" />
     <ClCompile Include="KujakuEngine\3d\WorldTransform.cpp" />
     <ClCompile Include="KujakuEngine\base\DirectXCommon.cpp" />
+    <ClCompile Include="KujakuEngine\base\FrameProfiler.cpp" />
     <ClCompile Include="KujakuEngine\base\GlobalVariables.cpp" />
     <ClCompile Include="KujakuEngine\base\Logger.cpp" />
     <ClCompile Include="KujakuEngine\base\StringUtil.cpp" />
@@ -302,6 +303,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\3d\WorldTransform.h" />
     <ClInclude Include="KujakuEngine\base\DirectXCommon.h" />
     <ClInclude Include="KujakuEngine\base\GlobalVariables.h" />
+    <ClInclude Include="KujakuEngine\base\FrameProfiler.h" />
     <ClInclude Include="KujakuEngine\base\Logger.h" />
     <ClInclude Include="KujakuEngine\base\StringUtil.h" />
     <ClInclude Include="KujakuEngine\base\TextureManager.h" />

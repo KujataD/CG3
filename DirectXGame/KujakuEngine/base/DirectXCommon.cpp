@@ -1,4 +1,5 @@
 #include "DirectXCommon.h"
+#include "FrameProfiler.h"
 #include "Logger.h"
 #include "StringUtil.h"
 #include <cassert>
@@ -634,11 +635,12 @@ void DirectXCommon::PostDraw() {
 	ID3D12CommandList* commandLists[] = {commandList_.Get()};
 	commandQueue_->ExecuteCommandLists(1, commandLists);
 
-	// GPUとOSに画面の交換を行うよう通知する
-	swapChain_->Present(1, 0);
+	// Present〜フェンス待ちまでがGPU待ちストール(VSync含む)。計測してPerformanceWindowへ出す。
+	FrameProfiler::Begin(FrameProfiler::kPresentWait);
 
-	// VSync待ちによるPostDrawの周期的スパイクを避けるため、同期を切ってPresentする
-	// swapChain_->Present(0, 0);
+	// GPUとOSに画面の交換を行うよう通知する。
+	// vsyncEnabled_=false(PerformanceWindowで切替可)なら同期を切ってPresentし、VSync起因の落ち込みを切り分けられる。
+	swapChain_->Present(vsyncEnabled_ ? 1 : 0, 0);
 
 	// Fenceの値を更新
 	fenceValue_++;
@@ -657,11 +659,13 @@ void DirectXCommon::PostDraw() {
 
 	// 次に使うバックバッファ用の処理がGPUで終わっていなければ待機
 	if (fence_->GetCompletedValue() < fenceValues_[backBufferIndex_]) {
-		// 指定したSignalにたどりついていないので、たどり着くまで待つようにイベント 
+		// 指定したSignalにたどりついていないので、たどり着くまで待つようにイベント
 		fence_->SetEventOnCompletion(fenceValues_[backBufferIndex_], fenceEvent_);
 		// イベント待つ
 		WaitForSingleObject(fenceEvent_, INFINITE);
 	}
+
+	FrameProfiler::End(FrameProfiler::kPresentWait);
 
 	// 次のフレーム用のコマンドリストを準備
 	//hr = commandAllocator_->Reset();
