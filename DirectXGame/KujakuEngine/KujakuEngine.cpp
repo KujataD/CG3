@@ -1,5 +1,6 @@
 #include "KujakuEngine.h"
 #include "Editor/ImGuiManager.h"
+#include "base/FrameProfiler.h"
 #include "components/BuiltinComponents.h"
 #include <objbase.h>
 
@@ -63,6 +64,9 @@ void Finalize() {
 }
 
 bool Update() {
+
+	// 前フレームの区間計測を確定し、今フレームの計測を開始する
+	FrameProfiler::NewFrame();
 
 	// ウィンドウメッセージを処理し、終了リクエストなら false を返す
 	if (WinApp::GetInstance()->ProcessMessage()) {

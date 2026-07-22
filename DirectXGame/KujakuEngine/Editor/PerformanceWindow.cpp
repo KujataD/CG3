@@ -2,6 +2,7 @@
 
 #include "../../externals/imgui/imgui.h"
 #include "../base/DirectXCommon.h"
+#include "../base/FrameProfiler.h"
 #include "../runtime/PlayState.h"
 
 namespace KujakuEngine {
@@ -23,6 +24,32 @@ void PerformanceWindow::Draw(bool* pOpen) {
 
 	// 直近のフレーム時間の履歴グラフ(0〜33.3ms=30fpsラインまで)。
 	ImGui::PlotLines("##FrameTimeMs", frameTimeHistoryMs_, kHistoryCount, historyOffset_, "Frame ms", 0.0f, 33.3f, ImVec2(0.0f, 60.0f));
+
+	ImGui::Separator();
+
+	// 区間ごとのCPU時間(平滑化値)。PresentWaitが支配的ならGPU待ち/VSync律速、
+	// それ以外が大きければCPU律速と切り分けられる。
+	ImGui::Text("CPU sections (ms, smoothed):");
+	float accountedMs = 0.0f;
+	for (int i = 0; i < FrameProfiler::kSectionCount; i++) {
+		const FrameProfiler::Section section = static_cast<FrameProfiler::Section>(i);
+		const float ms = FrameProfiler::GetSmoothedMs(section);
+		ImGui::Text("  %-12s: %6.2f", FrameProfiler::GetName(section), ms);
+		// CollisionはSceneUpdateに内包されるので合計へは足さない。
+		if (section != FrameProfiler::kCollision) {
+			accountedMs += ms;
+		}
+	}
+	ImGui::Text("  %-12s: %6.2f", "Other", frameMs - accountedMs);
+
+	ImGui::Separator();
+
+	// VSync切替(60→30の階段状の落ち込みがVSync起因かをその場で切り分けられる)。
+	DirectXCommon* dxCommonForVSync = DirectXCommon::GetInstance();
+	bool vsync = dxCommonForVSync->IsVSyncEnabled();
+	if (ImGui::Checkbox("VSync", &vsync)) {
+		dxCommonForVSync->SetVSyncEnabled(vsync);
+	}
 
 	ImGui::Separator();
 

@@ -24,6 +24,7 @@
 #include "../3d/PointLight.h"
 #include "../3d/SpotLight.h"
 #include "../base/DirectXCommon.h"
+#include "../base/FrameProfiler.h"
 #include "../scene/GameObject.h"
 #include "../scene/IRaycastTarget.h"
 #ifndef NOMINMAX
@@ -319,10 +320,14 @@ void EditorApplication::Update() {
 
 #ifdef USE_IMGUI
 	// Editor UIはEditorApplicationを入口として更新する。
-	ImGuiManager::GetInstance()->DrawEditor();
+	{
+		FrameProfiler::Scope profile(FrameProfiler::kEditorUI);
+		ImGuiManager::GetInstance()->DrawEditor();
+	}
 #endif // USE_IMGUI
 
 	if (ShouldUpdateGame() && currentScene_) {
+		FrameProfiler::Scope profile(FrameProfiler::kSceneUpdate);
 		currentScene_->Update();
 	}
 
@@ -382,6 +387,7 @@ void EditorApplication::Draw() {
 
 		// Sceneビュー(デバッグカメラ + 編集オーバーレイ)。
 		if (sceneVisible) {
+			FrameProfiler::Scope profile(FrameProfiler::kSceneViewRender);
 			Camera* sceneCamera = currentScene_->GetSceneViewCamera();
 			dxCommon->BeginSceneRender();
 			currentScene_->RenderView(sceneCamera, true);
@@ -397,6 +403,7 @@ void EditorApplication::Draw() {
 
 		// Gameビュー(メインカメラ・オーバーレイ無し)。
 		if (gameVisible) {
+			FrameProfiler::Scope profile(FrameProfiler::kGameViewRender);
 			dxCommon->BeginGameRender();
 			currentScene_->RenderView(gameCamera, false);
 			// Collider可視化などRenderViewが積んだ線をGameビューRTへ描画(Sceneビューと同様にフラッシュ)。
@@ -405,6 +412,7 @@ void EditorApplication::Draw() {
 		}
 	} else if (currentScene_ && sceneVisible) {
 		// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
+		FrameProfiler::Scope profile(FrameProfiler::kSceneViewRender);
 		dxCommon->BeginSceneRender();
 		currentScene_->Draw();
 		Camera* renderCamera = currentScene_->GetEditorCamera();
@@ -420,6 +428,7 @@ void EditorApplication::Draw() {
 #else
 	// エディタUI無し(ゲーム単体): メインカメラでバックバッファへ直接描く。
 	if (currentScene_) {
+		FrameProfiler::Scope profile(FrameProfiler::kGameViewRender);
 		currentScene_->PrepareFrame();
 		Camera* camera = currentScene_->GetGameViewCamera();
 		if (!camera) {
@@ -439,7 +448,10 @@ void EditorApplication::Draw() {
 
 void EditorApplication::EndFrame() {
 #ifdef USE_IMGUI
-	ImGuiManager::GetInstance()->End();
+	{
+		FrameProfiler::Scope profile(FrameProfiler::kImGuiRender);
+		ImGuiManager::GetInstance()->End();
+	}
 #endif // USE_IMGUI
 
 	DirectXCommon::GetInstance()->PostDraw();

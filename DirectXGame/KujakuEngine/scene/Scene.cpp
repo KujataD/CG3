@@ -7,6 +7,7 @@
 #include "../3d/WorldTransform.h"
 #include "../2d/UICanvasRenderer.h"
 #include "../base/DirectXCommon.h"
+#include "../base/FrameProfiler.h"
 #include "../base/Time.h"
 #include "../input/Input.h"
 #include "../runtime/UIEventBus.h"
@@ -765,7 +766,10 @@ void Scene::Update() {
 	IntegrateRigidbodies(*this, Time::GetDeltaTime());
 
 	UpdateWorldTransforms();
-	UpdateCollisions();
+	{
+		FrameProfiler::Scope profile(FrameProfiler::kCollision);
+		UpdateCollisions();
+	}
 }
 
 void Scene::RefreshEditorBillboards() { PrepareEditorBillboards(*this); }

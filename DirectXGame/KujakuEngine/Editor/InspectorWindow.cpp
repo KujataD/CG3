@@ -89,12 +89,14 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow, bool* pOpen) {
 		return;
 	}
 
-	std::string inspectorBeforeJson = scene->ToJson();
-
 	std::array<char, 128> nameBuffer{};
 	std::snprintf(nameBuffer.data(), nameBuffer.size(), "%s", selected->GetName().c_str());
 	if (ImGui::InputText("Name", nameBuffer.data(), nameBuffer.size())) {
 		selected->SetName(nameBuffer.data());
+	}
+	if (ImGui::IsItemDeactivatedAfterEdit() && !inspectorEditing_) {
+		CaptureUndo(*scene, "Inspector");
+		inspectorEditing_ = true;
 	}
 
 	// Tag: 登録リストから選択(Unity風)。末尾の "Add Tag..." で新規追加できる。
@@ -107,6 +109,10 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow, bool* pOpen) {
 			bool isSelected = (tag == selected->GetTag());
 			if (ImGui::Selectable(tag.c_str(), isSelected)) {
 				selected->SetTag(tag);
+				if (!inspectorEditing_) {
+					CaptureUndo(*scene, "Inspector");
+					inspectorEditing_ = true;
+				}
 			}
 			if (isSelected) {
 				ImGui::SetItemDefaultFocus();
@@ -147,10 +153,18 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow, bool* pOpen) {
 		}
 		selected->SetLayer(static_cast<uint32_t>(layer));
 	}
+	if (ImGui::IsItemDeactivatedAfterEdit() && !inspectorEditing_) {
+		CaptureUndo(*scene, "Inspector");
+		inspectorEditing_ = true;
+	}
 
 	bool active = selected->IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
 		selected->SetActive(active);
+	}
+	if (ImGui::IsItemDeactivatedAfterEdit() && !inspectorEditing_) {
+		CaptureUndo(*scene, "Inspector");
+		inspectorEditing_ = true;
 	}
 
 	if (selected->IsPrefabInstance()) {
@@ -287,10 +301,6 @@ void InspectorWindow::Draw(ProjectWindow& projectWindow, bool* pOpen) {
 		ImGui::EndPopup();
 	}
 
-	if (inspectorBeforeJson != scene->ToJson() && !inspectorEditing_) {
-		CaptureUndo(*scene, "Inspector", inspectorBeforeJson);
-		inspectorEditing_ = true;
-	}
 	if (!ImGui::IsAnyItemActive()) {
 		inspectorEditing_ = false;
 	}
