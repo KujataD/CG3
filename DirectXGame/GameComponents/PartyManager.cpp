@@ -1,5 +1,6 @@
 #include "PartyManager.h"
 #include "AllyAIBrain.h"
+#include "PartySelection.h"
 #include "Player.h"
 
 #include <components/OrbitCameraComponent.h>
@@ -11,6 +12,16 @@ void PartyManager::OnPlayStart() {
 	ally_ = nullptr;
 	if (!owner_ || !owner_->GetScene()) {
 		return;
+	}
+
+	// キャラ選択シーンからの持ち込みがあれば、Inspector設定より優先する。
+	// 選ばれた方をリーダーへ、Inspector上のリーダーだった方を味方へ回す。
+	std::string selected = PartySelection::ConsumeLeaderName();
+	if (!selected.empty() && selected != leaderName_) {
+		if (selected == allyName_) {
+			allyName_ = leaderName_;
+		}
+		leaderName_ = selected;
 	}
 
 	Scene* scene = owner_->GetScene();

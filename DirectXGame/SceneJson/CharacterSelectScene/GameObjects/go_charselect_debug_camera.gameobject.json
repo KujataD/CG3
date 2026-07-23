@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_dd3c6c59f2d0851c6e9eef3298917d4c",
+  "instanceId": "go_charselect_debug_camera",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "SceneManager",
+  "name": "Editor Debug Camera",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -15,8 +15,8 @@
       "enabled": true,
       "properties": {
         "rotation": [
-          0.0,
-          0.0,
+          0.01600000075995922,
+          -0.01600000075995922,
           0.0
         ],
         "scale": [
@@ -25,9 +25,9 @@
           1.0
         ],
         "translation": [
-          0.0,
-          0.0,
-          0.0
+          0.01599944569170475,
+          0.6000000238418579,
+          -10.899889945983887
         ]
       },
       "type": "Transform"
@@ -35,9 +35,17 @@
     {
       "enabled": true,
       "properties": {
-        "sceneName": "CharacterSelectScene"
+        "aspectRatio": 1.7777777910232544,
+        "farZ": 1000.0,
+        "fovAngleY": 0.6000000238418579,
+        "nearZ": 0.10000000149011612
       },
-      "type": "ChangeSceneManager"
+      "type": "CameraComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "DebugCameraComponent"
     }
   ]
 }

@@ -1,0 +1,83 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_charselect_bishop",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "BishopDisplay",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          -3.1415908336639404,
+          -8.74227694680485e-08,
+          -3.1415908336639404
+        ],
+        "scale": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "translation": [
+          1.7999999523162842,
+          -0.2022024393081665,
+          2.8619930958484474e-07
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
+        "material": {
+          "baseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "bloomIntensity": 1.0,
+          "bloomSoftKnee": 0.5,
+          "bloomThreshold": 0.0,
+          "emissiveColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "emissiveEnabled": false,
+          "emissiveIntensity": 1.0,
+          "name": "Player",
+          "shaderModel": 4,
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "asset_d25ba1a25e2e953e692db582bb93e4b6",
+        "materialPath": "Materials/Player.material.json",
+        "modelPath": "bishop",
+        "primitive": "Model"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}

@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_dd3c6c59f2d0851c6e9eef3298917d4c",
+  "instanceId": "go_charselect_canvas",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "SceneManager",
+  "name": "Canvas",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -35,9 +35,15 @@
     {
       "enabled": true,
       "properties": {
-        "sceneName": "CharacterSelectScene"
+        "matchWidthHeight": 0.5,
+        "referenceResolution": [
+          1280.0,
+          720.0
+        ],
+        "scaleWithScreenSize": true,
+        "sortOrder": 0
       },
-      "type": "ChangeSceneManager"
+      "type": "Canvas"
     }
   ]
 }
