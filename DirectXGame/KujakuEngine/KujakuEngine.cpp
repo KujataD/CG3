@@ -2,6 +2,8 @@
 #include "Editor/ImGuiManager.h"
 #include "base/FrameProfiler.h"
 #include "components/BuiltinComponents.h"
+#include "postprocess/PostEffectPipeline.h"
+#include "postprocess/PostProcess.h"
 #include <objbase.h>
 
 namespace KujakuEngine {
@@ -29,6 +31,10 @@ void Initialize(const std::wstring& title, Vector4 color, bool enableDebugLayer)
 
 	// グラフィックスパイプラインの初期化
 	GraphicsPipeline::GetInstance()->Initialize();
+
+	// ポストプロセス(ブルーム/露出/トーンマップ)の初期化。DXCを共用するためGraphicsPipelineの後。
+	PostEffectPipeline::GetInstance()->Initialize();
+	PostProcess::GetInstance()->Initialize();
 
 	// Light初期化
 	DirectionalLight::GetInstance()->Initialize();

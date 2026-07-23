@@ -23,11 +23,24 @@ struct VertexData {
 };
 
 struct MaterialData {
+	// --- ここからCB転送部。HLSL側 Object3d.PS.hlsl の Material と完全一致させること ---
+	// HLSLのパッキングでは shininess(offset96) の直後に float3 が同じ16Bレジスタへ詰められるため、
+	// emissiveColor は offset100、emissiveIntensity は offset112 となりC++の自然配置と一致する。
 	Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f};
 	int32_t enableLighting = 0;
 	float pad[3] = {};
 	Matrix4x4 uvTransform;
 	float shininess = 40.0f;
+	// エミッション(自己発光)。emissiveEnabled!=0のときだけ加算される(マテリアルのEmissionチェック)。
+	// 強度>1でHDR輝度を出力しブルームを誘発する。
+	Vector3 emissiveColor = {1.0f, 1.0f, 1.0f};
+	float emissiveIntensity = 1.0f;
+	int32_t emissiveEnabled = 0;
+	// 露出光(ブルーム)のマテリアル別パラメータ。エミッション専用RT(SV_TARGET1)への書き込みを制御する。
+	float bloomIntensity = 1.0f; // 滲みの強さ(エミッションRTへ書く値のスケール。0で滲まない)
+	float bloomThreshold = 0.0f; // この輝度以上のエミッションだけが滲む(0=全て滲む)
+	float bloomSoftKnee = 0.5f;  // 閾値の柔らかさ(0=ハード)
+	// --- ここまでCB転送部 ---
 	std::string textureFilePath;
 	uint32_t textureIndex;
 };
@@ -111,6 +124,12 @@ public:
 
 	void Finalize();
 
+	/// <summary>
+	/// HLSLを実行時コンパイルする。PostEffectPipeline等、他のPSO生成クラスからも共用する
+	/// (DXCインスタンスの重複生成を避けるためここへ集約)。
+	/// </summary>
+	IDxcBlob* CompileShader(const std::wstring& filePath, const wchar_t* profile);
+
 private:
 	GraphicsPipeline() = default;
 	~GraphicsPipeline() = default;
@@ -118,8 +137,6 @@ private:
 	GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
 
 	void InitializeDXC();
-
-	IDxcBlob* CompileShader(const std::wstring& filePath, const wchar_t* profile);
 
 	void CreateObject3dRootSignature();
 

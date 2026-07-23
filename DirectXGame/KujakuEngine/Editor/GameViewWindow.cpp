@@ -2,6 +2,7 @@
 
 #include "../../externals/imgui/imgui.h"
 #include "../base/DirectXCommon.h"
+#include "../postprocess/PostProcess.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/UIInput.h"
 #include <d3d12.h>
@@ -27,10 +28,10 @@ void GameViewWindow::Draw(bool* pOpen) {
 		contentSize.y = 1.0f;
 	}
 
-	// メインカメラで描いたGame用RenderTextureのSRVをImGuiへ渡す。
-	// 描画本体はEditorApplicationのBeginGameRender〜EndGameRenderで行われる。
+	// メインカメラで描いたGameビューの、ポストプロセス(ブルーム/トーンマップ)適用済みSRVをImGuiへ渡す。
+	// 描画本体はEditorApplicationのBeginGameRender〜EndGameRender+PostProcess::Renderで行われる。
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = dxCommon->GetGameRenderSrvHandle();
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = PostProcess::GetInstance()->GetDisplaySrvHandle(DirectXCommon::kGameViewIndex);
 
 	// Game用RenderTextureは固定解像度。アスペクト比を保ってレターボックス表示する。
 	float gameAspect = 16.0f / 9.0f;

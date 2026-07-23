@@ -232,6 +232,9 @@ void ImGuiManager::DrawEditor() {
 	if (windowVisibility_.scenes) {
 		DrawSceneListWindow();
 	}
+	if (windowVisibility_.rendering) {
+		renderingWindow_.Draw(&windowVisibility_.rendering);
+	}
 #endif // USE_IMGUI
 }
 
@@ -428,6 +431,7 @@ void ImGuiManager::DrawMainMenuBar() {
 		ImGui::MenuItem("Performance", nullptr, &windowVisibility_.performance);
 		ImGui::MenuItem("Animation", nullptr, &windowVisibility_.animation);
 		ImGui::MenuItem("Scenes", nullptr, &windowVisibility_.scenes);
+		ImGui::MenuItem("Rendering", nullptr, &windowVisibility_.rendering);
 		ImGui::Separator();
 		if (ImGui::MenuItem("Reset Layout")) {
 			dockSpace_.ResetLayout();

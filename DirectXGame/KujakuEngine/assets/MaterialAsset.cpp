@@ -32,6 +32,26 @@ std::string ReadString(const nlohmann::json& value, const char* key, const std::
 
 std::filesystem::path ResolveProjectPath(const std::filesystem::path& path);
 
+Vector3 ReadVector3(const nlohmann::json& value, const char* key, const Vector3& defaultValue) {
+	if (!value.contains(key)) {
+		return defaultValue;
+	}
+	if (!value.at(key).is_array()) {
+		return defaultValue;
+	}
+	if (value.at(key).size() < 3) {
+		return defaultValue;
+	}
+
+	Vector3 result = defaultValue;
+	for (size_t index = 0; index < 3; ++index) {
+		if (value.at(key).at(index).is_number()) {
+			(&result.x)[index] = value.at(key).at(index).get<float>();
+		}
+	}
+	return result;
+}
+
 Vector4 ReadVector4(const nlohmann::json& value, const char* key, const Vector4& defaultValue) {
 	if (!value.contains(key)) {
 		return defaultValue;
@@ -420,6 +440,26 @@ MaterialAssetData MaterialAsset::ReadJsonObject(const nlohmann::json& json, cons
 		material.shaderModel = json.at("shaderModel").get<int>();
 	}
 
+	// エミッション(キーが無い旧Material JSONはデフォルト=OFFのまま)。
+	if (json.contains("emissiveEnabled") && json.at("emissiveEnabled").is_boolean()) {
+		material.emissiveEnabled = json.at("emissiveEnabled").get<bool>();
+	}
+	material.emissiveColor = ReadVector3(json, "emissiveColor", material.emissiveColor);
+	if (json.contains("emissiveIntensity") && json.at("emissiveIntensity").is_number()) {
+		material.emissiveIntensity = json.at("emissiveIntensity").get<float>();
+	}
+
+	// 露出光(ブルーム)のマテリアル別設定(キーが無い場合はデフォルト値)。
+	if (json.contains("bloomIntensity") && json.at("bloomIntensity").is_number()) {
+		material.bloomIntensity = json.at("bloomIntensity").get<float>();
+	}
+	if (json.contains("bloomThreshold") && json.at("bloomThreshold").is_number()) {
+		material.bloomThreshold = json.at("bloomThreshold").get<float>();
+	}
+	if (json.contains("bloomSoftKnee") && json.at("bloomSoftKnee").is_number()) {
+		material.bloomSoftKnee = json.at("bloomSoftKnee").get<float>();
+	}
+
 	bool readNewTextures = ReadTexturesObject(json, material);
 	if (!readNewTextures) {
 		std::string legacyAssetId = ReadString(json, "textureAssetId", "");
@@ -438,6 +478,12 @@ void MaterialAsset::WriteJsonObject(nlohmann::json& json, const MaterialAssetDat
 	json["name"] = material.name;
 	json["baseColor"] = {material.baseColor.x, material.baseColor.y, material.baseColor.z, material.baseColor.w};
 	json["shaderModel"] = material.shaderModel;
+	json["emissiveEnabled"] = material.emissiveEnabled;
+	json["emissiveColor"] = {material.emissiveColor.x, material.emissiveColor.y, material.emissiveColor.z};
+	json["emissiveIntensity"] = material.emissiveIntensity;
+	json["bloomIntensity"] = material.bloomIntensity;
+	json["bloomThreshold"] = material.bloomThreshold;
+	json["bloomSoftKnee"] = material.bloomSoftKnee;
 
 	nlohmann::json texturesJson = nlohmann::json::object();
 	for (MaterialTextureSlot slot : GetKnownTextureSlots()) {

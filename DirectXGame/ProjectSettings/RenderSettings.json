@@ -1,0 +1,17 @@
+{
+  "bloomEnabled": true,
+  "bloomIntensity": 0.6499999761581421,
+  "bloomSoftKnee": 0.5,
+  "bloomThreshold": 1.0,
+  "colorFilter": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "contrast": 1.0,
+  "exposure": 1.0,
+  "saturation": 1.0,
+  "tonemapper": 2,
+  "vignetteIntensity": 0.0,
+  "vignetteSmoothness": 0.4000000059604645
+}

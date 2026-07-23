@@ -446,6 +446,13 @@ void Model::AddSubMesh(const std::vector<VertexData>& vertices, const MaterialDa
 	subMesh.materialMap->enableLighting = material.enableLighting;
 	subMesh.materialMap->uvTransform = MakeIdentity();
 	subMesh.materialMap->shininess = material.shininess;
+	// Map先はUploadヒープの生メモリなのでCB転送部は必ず明示的に初期化する。
+	subMesh.materialMap->emissiveColor = material.emissiveColor;
+	subMesh.materialMap->emissiveIntensity = material.emissiveIntensity;
+	subMesh.materialMap->emissiveEnabled = material.emissiveEnabled;
+	subMesh.materialMap->bloomIntensity = material.bloomIntensity;
+	subMesh.materialMap->bloomThreshold = material.bloomThreshold;
+	subMesh.materialMap->bloomSoftKnee = material.bloomSoftKnee;
 	subMesh.textureIndex = material.textureIndex;
 
 	// raycast/preview用の統合頂点へ追記する。

@@ -4,6 +4,7 @@
 #include "../runtime/AssetResolver.h"
 #include "../runtime/InspectorUI.h"
 #include "../scene/GameObject.h"
+#include "../scene/SerializedFieldRegistry.h"
 #include <array>
 #include <cstring>
 #include <filesystem>
@@ -133,6 +134,36 @@ bool ModelRendererComponent::UsesMaterialAsset(const std::string& materialPath) 
 	}
 
 	return targetPath.lexically_normal() == currentPath.lexically_normal();
+}
+
+void ModelRendererComponent::Update() {
+	if (!model_) {
+		return;
+	}
+
+	// ランタイム上書き(被弾フラッシュ等)が有効なら最優先で適用する(Emissionチェックに関係なく光らせる)。
+	if (emissiveOverrideActive_) {
+		model_->SetEmissive(emissiveOverrideColor_, emissiveOverrideIntensity_, true);
+		model_->SetEmissiveBloom(material_.bloomIntensity, material_.bloomThreshold, material_.bloomSoftKnee);
+		return;
+	}
+
+	// AnimatorComponentがmaterial_のemissiveチャンネルを書き換えるため、毎フレームモデルへ反映する。
+	// 適用条件はApplyMaterialToModelの色/テクスチャと同じ(パーツ別マテリアル尊重時は触らない)。
+	bool hasMaterialAsset = !materialAssetId_.empty() || !materialPath_.empty();
+	bool isMultiMesh = model_->GetSubMeshCount() > 1;
+	if (hasMaterialAsset || !isMultiMesh) {
+		model_->SetEmissive(material_.emissiveColor, material_.emissiveIntensity, material_.emissiveEnabled);
+		model_->SetEmissiveBloom(material_.bloomIntensity, material_.bloomThreshold, material_.bloomSoftKnee);
+	}
+}
+
+void ModelRendererComponent::CollectAnimatableChannels(std::vector<AnimatableChannel>& channels) {
+	// 発光の明滅(ランプ/チャージ演出等)をAnimationWindowのカーブで作れるように公開する。
+	channels.push_back({"emissiveIntensity", &material_.emissiveIntensity, nullptr});
+	channels.push_back({"emissiveColor.r", &material_.emissiveColor.x, nullptr});
+	channels.push_back({"emissiveColor.g", &material_.emissiveColor.y, nullptr});
+	channels.push_back({"emissiveColor.b", &material_.emissiveColor.z, nullptr});
 }
 
 void ModelRendererComponent::Draw() {
@@ -326,6 +357,8 @@ void ModelRendererComponent::ApplyMaterialToModel() {
 	if (hasMaterialAsset || !isMultiMesh) {
 		model_->SetColor(material_.baseColor);
 		model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_, MaterialTextureSlot::BaseColor));
+		model_->SetEmissive(material_.emissiveColor, material_.emissiveIntensity, material_.emissiveEnabled);
+		model_->SetEmissiveBloom(material_.bloomIntensity, material_.bloomThreshold, material_.bloomSoftKnee);
 	}
 }
 

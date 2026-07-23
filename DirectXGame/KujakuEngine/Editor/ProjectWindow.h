@@ -53,6 +53,10 @@ private:
 		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle{};
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU{};
 		uint32_t srvIndex = 0;
+		// シーン描画PSOがMRT(RTVFormats[1]=エミッション)前提のため、プレビューにもダミーの
+		// エミッションRTを持たせてフォーマットを一致させる(表示には使わない)。
+		Microsoft::WRL::ComPtr<ID3D12Resource> emissionResource;
+		D3D12_CPU_DESCRIPTOR_HANDLE emissionRtvHandle{};
 
 		bool resourcesCreated = false;
 		bool loadFailed = false;

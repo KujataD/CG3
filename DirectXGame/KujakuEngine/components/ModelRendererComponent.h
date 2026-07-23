@@ -66,7 +66,27 @@ public:
 
 	const Model* GetRayCastModel() const override { return model_.get(); }
 
+	void Update() override;
+
 	void Draw() override;
+
+	/// <summary>
+	/// アニメーション可能チャンネル(emissiveIntensity/emissiveColor.r,g,b)を公開する。
+	/// AnimationWindowでカーブを打つと発光の明滅などが作れる。
+	/// </summary>
+	void CollectAnimatableChannels(std::vector<AnimatableChannel>& channels) override;
+
+	/// <summary>
+	/// ランタイム発光上書き(被弾フラッシュ等の演出用)。マテリアルアセットには影響しない。
+	/// Clearするまで毎フレームこの値がモデルへ適用される。
+	/// </summary>
+	void SetEmissiveOverride(const Vector3& color, float intensity) {
+		emissiveOverrideColor_ = color;
+		emissiveOverrideIntensity_ = intensity;
+		emissiveOverrideActive_ = true;
+	}
+	void ClearEmissiveOverride() { emissiveOverrideActive_ = false; }
+	bool HasEmissiveOverride() const { return emissiveOverrideActive_; }
 
 	void DrawInspector() override;
 
@@ -94,6 +114,10 @@ private:
 	bool billboardEnabled_ = false;
 	int billboardFaceMode_ = 0;
 	float cameraLocalZ_ = 1.0f;
+	// ランタイム発光上書き(演出用の一時値。シリアライズしない)。
+	Vector3 emissiveOverrideColor_ = {0.0f, 0.0f, 0.0f};
+	float emissiveOverrideIntensity_ = 1.0f;
+	bool emissiveOverrideActive_ = false;
 };
 
 } // namespace KujakuEngine

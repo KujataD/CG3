@@ -673,13 +673,15 @@ bool ProjectWindow::CreateModelPreviewResources(ModelPreview& preview) {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12Device* device = dxCommon->GetDevice();
 
+	// プレビューはkObject3d PSO(HDRフォーマット固定)で描くため、RTもHDRに合わせる。
+	// FLOAT値はImGui経由でリニア→sRGBエンコードされて表示されるので、トーンマップ無しでも見た目はほぼ従来通り。
 	D3D12_RESOURCE_DESC colorDesc{};
 	colorDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	colorDesc.Width = modelPreviewSize_;
 	colorDesc.Height = modelPreviewSize_;
 	colorDesc.DepthOrArraySize = 1;
 	colorDesc.MipLevels = 1;
-	colorDesc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+	colorDesc.Format = DirectXCommon::kSceneColorFormat;
 	colorDesc.SampleDesc.Count = 1;
 	colorDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
@@ -687,7 +689,7 @@ bool ProjectWindow::CreateModelPreviewResources(ModelPreview& preview) {
 	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 
 	D3D12_CLEAR_VALUE colorClearValue{};
-	colorClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	colorClearValue.Format = DirectXCommon::kSceneColorFormat;
 	colorClearValue.Color[0] = 0.08f;
 	colorClearValue.Color[1] = 0.08f;
 	colorClearValue.Color[2] = 0.09f;
@@ -710,7 +712,7 @@ bool ProjectWindow::CreateModelPreviewResources(ModelPreview& preview) {
 	preview.rtvHandle.ptr += static_cast<SIZE_T>(dxCommon->GetDescriptorSizeRTV()) * rtvIndex;
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	rtvDesc.Format = DirectXCommon::kSceneColorFormat;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	device->CreateRenderTargetView(preview.colorResource.Get(), &rtvDesc, preview.rtvHandle);
 
@@ -722,11 +724,40 @@ bool ProjectWindow::CreateModelPreviewResources(ModelPreview& preview) {
 	preview.srvIndex = srvIndex;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	srvDesc.Format = DirectXCommon::kSceneColorFormat;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 	device->CreateShaderResourceView(preview.colorResource.Get(), &srvDesc, srvHandleCPU);
+
+	// エミッション用ダミーRT(MRT slot1)。PSOのRTVFormats[1]と一致させるために必要。
+	D3D12_RESOURCE_DESC emissionDesc = colorDesc;
+	emissionDesc.Format = DirectXCommon::kSceneEmissionFormat;
+
+	D3D12_CLEAR_VALUE emissionClearValue{};
+	emissionClearValue.Format = DirectXCommon::kSceneEmissionFormat;
+	emissionClearValue.Color[3] = 1.0f;
+
+	hr = device->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&emissionDesc,
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		&emissionClearValue,
+		IID_PPV_ARGS(&preview.emissionResource));
+	if (FAILED(hr)) {
+		OutputDebugStringA("Failed to create Project model preview emission resource.\n");
+		return false;
+	}
+
+	uint32_t emissionRtvIndex = dxCommon->AllocateRtvIndex();
+	preview.emissionRtvHandle = dxCommon->GetRtvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	preview.emissionRtvHandle.ptr += static_cast<SIZE_T>(dxCommon->GetDescriptorSizeRTV()) * emissionRtvIndex;
+
+	D3D12_RENDER_TARGET_VIEW_DESC emissionRtvDesc{};
+	emissionRtvDesc.Format = DirectXCommon::kSceneEmissionFormat;
+	emissionRtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	device->CreateRenderTargetView(preview.emissionResource.Get(), &emissionRtvDesc, preview.emissionRtvHandle);
 
 	D3D12_RESOURCE_DESC depthDesc{};
 	depthDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -851,7 +882,9 @@ void ProjectWindow::RenderModelPreview(ModelPreview& preview) {
 	beginBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	commandList->ResourceBarrier(1, &beginBarrier);
 
-	commandList->OMSetRenderTargets(1, &preview.rtvHandle, false, &preview.dsvHandle);
+	// MRT: [0]=カラー / [1]=エミッション(ダミー)。シーン描画PSOのRTVFormatsと形を合わせる。
+	D3D12_CPU_DESCRIPTOR_HANDLE previewRtvHandles[2] = {preview.rtvHandle, preview.emissionRtvHandle};
+	commandList->OMSetRenderTargets(2, previewRtvHandles, false, &preview.dsvHandle);
 
 	const float clearColor[4] = { 0.08f, 0.08f, 0.09f, 1.0f };
 	commandList->ClearRenderTargetView(preview.rtvHandle, clearColor, 0, nullptr);

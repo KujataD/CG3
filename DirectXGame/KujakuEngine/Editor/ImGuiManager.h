@@ -10,6 +10,7 @@
 #include "InspectorWindow.h"
 #include "PerformanceWindow.h"
 #include "ProjectWindow.h"
+#include "RenderingWindow.h"
 #include "SceneViewWindow.h"
 #include <string>
 
@@ -75,6 +76,7 @@ private:
 	SceneViewWindow sceneView_;
 	GameViewWindow gameView_;
 	PerformanceWindow performanceWindow_;
+	RenderingWindow renderingWindow_;
 };
 
 } // namespace KujakuEngine

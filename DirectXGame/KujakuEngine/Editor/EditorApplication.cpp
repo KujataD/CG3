@@ -25,6 +25,7 @@
 #include "../3d/SpotLight.h"
 #include "../base/DirectXCommon.h"
 #include "../base/FrameProfiler.h"
+#include "../postprocess/PostProcess.h"
 #include "../scene/GameObject.h"
 #include "../scene/IRaycastTarget.h"
 #ifndef NOMINMAX
@@ -276,6 +277,9 @@ void EditorApplication::Initialize() {
 	// プロジェクト共有のTag登録リストを読み込む(ProjectSettings/Tags.json)。
 	TagRegistry::GetInstance().LoadFromProjectRoot(DetectEditorProjectRoot());
 
+	// レンダリング設定(ブルーム/露出/トーンマップ)を読み込む(ProjectSettings/RenderSettings.json)。
+	PostProcess::GetInstance()->LoadSettingsFromProjectRoot(DetectEditorProjectRoot());
+
 	editorMode_ = EditorMode::Edit;
 	AddConsoleLog("Editor Mode: Edit");
 
@@ -397,6 +401,8 @@ void EditorApplication::Draw() {
 				LineRenderer::GetInstance()->Clear();
 			}
 			dxCommon->EndSceneRender();
+			// HDRシーンRTへブルーム+トーンマップを適用(SceneViewWindowはこの結果を表示する)。
+			PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture());
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}
@@ -409,6 +415,8 @@ void EditorApplication::Draw() {
 			// Collider可視化などRenderViewが積んだ線をGameビューRTへ描画(Sceneビューと同様にフラッシュ)。
 			LineRenderer::GetInstance()->Render(*gameCamera);
 			dxCommon->EndGameRender();
+			// HDRシーンRTへブルーム+トーンマップを適用(GameViewWindowはこの結果を表示する)。
+			PostProcess::GetInstance()->Render(DirectXCommon::kGameViewIndex, dxCommon->GetGameRenderTexture());
 		}
 	} else if (currentScene_ && sceneVisible) {
 		// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
@@ -422,11 +430,14 @@ void EditorApplication::Draw() {
 			LineRenderer::GetInstance()->Clear();
 		}
 		dxCommon->EndSceneRender();
+		// 単一ビュー(Prefab編集等)でもトーンマップは必ず通す(HDR RTは直接表示できないため)。
+		PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture());
 	} else {
 		LineRenderer::GetInstance()->Clear();
 	}
 #else
-	// エディタUI無し(ゲーム単体): メインカメラでバックバッファへ直接描く。
+	// エディタUI無し(ゲーム単体): メインカメラでGame用HDR RTへ描き、
+	// ブルーム+トーンマップをバックバッファへ直接出力する(PSOがHDRフォーマット固定のため直描きは不可)。
 	if (currentScene_) {
 		FrameProfiler::Scope profile(FrameProfiler::kGameViewRender);
 		currentScene_->PrepareFrame();
@@ -435,8 +446,11 @@ void EditorApplication::Draw() {
 			camera = currentScene_->GetSceneViewCamera();
 		}
 		if (camera) {
+			dxCommon->BeginGameRender();
 			currentScene_->RenderView(camera, false);
 			LineRenderer::GetInstance()->Render(*camera);
+			dxCommon->EndGameRender();
+			PostProcess::GetInstance()->RenderToBackBuffer(dxCommon->GetGameRenderTexture());
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}
