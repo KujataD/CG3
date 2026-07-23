@@ -1,5 +1,5 @@
 #include "EnemyWeapon.h"
-#include "Player.h"
+#include "CharacterMotor.h"
 #include "PlayerHealth.h"
 
 using namespace KujakuEngine;
@@ -74,8 +74,9 @@ bool EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
 	health->TakeDamage(damageValue_);
 
 	// ノックバック: 敵本体→プレイヤーの水平方向へ吹き飛ばし、しばらく行動不能にする。
-	Player* player = target->GetComponent<Player>();
-	if (!player) {
+	// 体(CharacterMotor)へ直接与える。頭脳が入力かAIかに関わらず同じ挙動になる。
+	CharacterMotor* motor = target->GetComponent<CharacterMotor>();
+	if (!motor) {
 		return true;
 	}
 
@@ -92,6 +93,6 @@ bool EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
 		}
 	}
 
-	player->ApplyKnockback(direction * knockback_, stunDuration_);
+	motor->ApplyKnockback(direction * knockback_, stunDuration_);
 	return true;
 }

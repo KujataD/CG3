@@ -7,10 +7,8 @@ constexpr const char* kBTSetFolder = "Resources/bt_set/EnemyBT";
 using namespace KujakuEngine;
 
 void EnemyComponent::Initialize() {
-	// 作業ディレクトリはDirectXGame/なので "Resources/..." で参照する。
-
-	// BTのアクション登録。
-	// FunctionCatalogにも同時登録することで、BahamutAIEditorのAction一覧に名前が反映される。
+	// BTアクション登録
+	// ---------------------------------------------
 	BahamutAI::FunctionCatalog catalog;
 
 	BahamutAI::RegisterAction(

@@ -1,0 +1,45 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_party_manager",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "PartyManager",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "allyName": "Pawn",
+        "cameraName": "Main Camera",
+        "leaderName": "Bishop"
+      },
+      "type": "PartyManager"
+    }
+  ]
+}

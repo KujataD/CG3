@@ -1,23 +1,23 @@
 {
   "assetType": "Material",
   "baseColor": [
-    0.284518837928772,
-    0.284518837928772,
-    0.284518837928772,
+    0.3499999940395355,
+    0.6000000238418579,
+    1.0,
     1.0
   ],
-  "bloomIntensity": 3.8499999046325684,
-  "bloomSoftKnee": 0.5370000004768372,
+  "bloomIntensity": 1.0,
+  "bloomSoftKnee": 0.5,
   "bloomThreshold": 0.0,
   "emissiveColor": [
-    0.003361284267157316,
     0.0,
-    0.050209224224090576
+    0.4602513313293457,
+    1.0
   ],
   "emissiveEnabled": true,
-  "emissiveIntensity": 1.0,
-  "name": "Shield",
-  "shaderModel": 4,
+  "emissiveIntensity": 4.0,
+  "name": "MagicBolt",
+  "shaderModel": 0,
   "textures": {
     "BaseColor": {
       "assetId": "",

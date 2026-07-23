@@ -1,6 +1,12 @@
 #include "../KujakuEngine/KujakuEngine.h"
 #include "../KujakuEngine/scene/SampleScene.h"
+#include "../GameComponents/AllyAIBrain.h"
+#include "../GameComponents/CharacterMotor.h"
 #include "../GameComponents/EnemyComponent.h"
+#include "../GameComponents/MagicAbilitySet.h"
+#include "../GameComponents/MagicProjectile.h"
+#include "../GameComponents/MeleeAbilitySet.h"
+#include "../GameComponents/PartyManager.h"
 #include "../GameComponents/Player.h"
 #include "../GameComponents/PlayerAnimator.h"
 #include "../GameComponents/PlayerMoveComponent.h"
@@ -108,7 +114,13 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 	factory.RegisterComponent<MoveForwardComponent>(kGameModuleName);
 	factory.RegisterComponent<BlinkComponent>(kGameModuleName);
 	factory.RegisterComponent<EnemyComponent>(kGameModuleName);
+	factory.RegisterComponent<CharacterMotor>(kGameModuleName);
 	factory.RegisterComponent<Player>(kGameModuleName);
+	factory.RegisterComponent<AllyAIBrain>(kGameModuleName);
+	factory.RegisterComponent<PartyManager>(kGameModuleName);
+	factory.RegisterComponent<MeleeAbilitySet>(kGameModuleName);
+	factory.RegisterComponent<MagicAbilitySet>(kGameModuleName);
+	factory.RegisterComponent<MagicProjectile>(kGameModuleName);
 	factory.RegisterComponent<PlayerAnimator>(kGameModuleName);
 	factory.RegisterComponent<PlayerMoveComponent>(kGameModuleName);
 	factory.RegisterComponent<WeaponComponent>(kGameModuleName);

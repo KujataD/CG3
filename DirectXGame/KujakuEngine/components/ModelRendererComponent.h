@@ -16,7 +16,8 @@ class Model;
 /// <summary>
 /// ModelをGameObjectのTransformで描画するComponent
 /// </summary>
-class ModelRendererComponent : public Component, public IRaycastTarget, public IMaterialTarget {
+/// <remarks>ゲームDLL(GameModule)からランタイム生成できるようKUJAKU_APIでエクスポートする。</remarks>
+class KUJAKU_API ModelRendererComponent : public Component, public IRaycastTarget, public IMaterialTarget {
 public:
 	enum class PrimitiveType {
 		Custom,
