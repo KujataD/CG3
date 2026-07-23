@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_dd3c6c59f2d0851c6e9eef3298917d4c",
+  "instanceId": "go_c4dc6354ad8af8fd626f0af3e0da8e97",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "SceneManager",
+  "name": "Point Light",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -26,7 +26,7 @@
         ],
         "translation": [
           0.0,
-          0.0,
+          5.0,
           0.0
         ]
       },
@@ -35,9 +35,17 @@
     {
       "enabled": true,
       "properties": {
-        "sceneName": "CharacterSelectScene"
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "decay": 1.0,
+        "intensity": 0.0,
+        "radius": 10.0
       },
-      "type": "ChangeSceneManager"
+      "type": "PointLightComponent"
     }
   ]
 }

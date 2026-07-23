@@ -2,6 +2,7 @@
 #include "../KujakuEngine/scene/SampleScene.h"
 #include "../GameComponents/AllyAIBrain.h"
 #include "../GameComponents/CharacterMotor.h"
+#include "../GameComponents/CharacterSelectManager.h"
 #include "../GameComponents/EnemyComponent.h"
 #include "../GameComponents/MagicAbilitySet.h"
 #include "../GameComponents/MagicProjectile.h"
@@ -118,6 +119,7 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 	factory.RegisterComponent<Player>(kGameModuleName);
 	factory.RegisterComponent<AllyAIBrain>(kGameModuleName);
 	factory.RegisterComponent<PartyManager>(kGameModuleName);
+	factory.RegisterComponent<CharacterSelectManager>(kGameModuleName);
 	factory.RegisterComponent<MeleeAbilitySet>(kGameModuleName);
 	factory.RegisterComponent<MagicAbilitySet>(kGameModuleName);
 	factory.RegisterComponent<MagicProjectile>(kGameModuleName);

@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_dd3c6c59f2d0851c6e9eef3298917d4c",
+  "instanceId": "go_charselect_manager",
   "parentInstanceId": "",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "SceneManager",
+  "name": "CharacterSelectManager",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -35,9 +35,11 @@
     {
       "enabled": true,
       "properties": {
-        "sceneName": "CharacterSelectScene"
+        "bishopName": "Bishop",
+        "nextSceneName": "SampleScene",
+        "pawnName": "Pawn"
       },
-      "type": "ChangeSceneManager"
+      "type": "CharacterSelectManager"
     }
   ]
 }

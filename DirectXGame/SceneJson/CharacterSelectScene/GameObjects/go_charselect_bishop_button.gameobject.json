@@ -1,0 +1,124 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_charselect_bishop_button",
+  "parentInstanceId": "go_charselect_canvas",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "BishopSelectButton",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchoredPosition": [
+          300.0,
+          -230.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "rotationZ": 0.0,
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "sizeDelta": [
+          240.0,
+          80.0
+        ]
+      },
+      "type": "RectTransform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          0.501960813999176
+        ],
+        "fillAmount": 1.0,
+        "raycastTarget": true,
+        "textureAssetId": "",
+        "texturePath": "Resources/white1x1.png"
+      },
+      "type": "Image"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "disabledColor": [
+          0.5,
+          0.5,
+          0.5,
+          0.6000000238418579
+        ],
+        "highlightedColor": [
+          1.0,
+          1.0,
+          1.0,
+          0.7882353067398071
+        ],
+        "interactable": true,
+        "normalColor": [
+          1.0,
+          1.0,
+          1.0,
+          0.501960813999176
+        ],
+        "onClick": {
+          "calls": [
+            {
+              "component": "CharacterSelectManager",
+              "method": "SelectBishop",
+              "target": "go_charselect_manager"
+            }
+          ]
+        },
+        "onClickEvent": "",
+        "pressedColor": [
+          1.0,
+          1.0,
+          1.0,
+          0.8666666746139526
+        ]
+      },
+      "type": "Button"
+    }
+  ]
+}

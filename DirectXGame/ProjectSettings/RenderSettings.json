@@ -1,8 +1,6 @@
 {
   "bloomEnabled": true,
-  "bloomIntensity": 0.6499999761581421,
-  "bloomSoftKnee": 0.5,
-  "bloomThreshold": 1.0,
+  "bloomIntensity": 0.47999998927116394,
   "colorFilter": [
     1.0,
     1.0,
