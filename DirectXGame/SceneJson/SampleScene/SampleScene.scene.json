@@ -118,7 +118,7 @@
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
       "name": "Pawn",
-      "tag": "Untagged",
+      "tag": "Ally",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_15f788c96bf669800afa5d0d725f7df3.gameobject.json"
     },
@@ -214,9 +214,33 @@
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
       "name": "Bishop",
-      "tag": "Untagged",
+      "tag": "Ally",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_7d95b08120a6b2583ecab05f811bed43.gameobject.json"
+    },
+    {
+      "instanceId": "go_bishop_model",
+      "parentInstanceId": "go_7d95b08120a6b2583ecab05f811bed43",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "BishopModel",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_bishop_model.gameobject.json"
+    },
+    {
+      "instanceId": "go_party_manager",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "PartyManager",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_party_manager.gameobject.json"
     },
     {
       "instanceId": "go_607d427a7e4f69e3303ec9858521f8b7",

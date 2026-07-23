@@ -2,7 +2,7 @@
 #include <KujakuEngine.h>
 #include <components/AnimatorComponent.h>
 
-class Player;
+class CharacterMotor;
 
 /// <summary>
 /// コントローラーのR2(右トリガー)でAnimatorのアニメーションを再生するゲームComponent。
@@ -32,7 +32,7 @@ private:
 	KUJAKU_FIELD_BOOL(stopOnRelease_, false);
 
 	KujakuEngine::AnimatorComponent* animator_ = nullptr;
-	Player* player_ = nullptr;
+	CharacterMotor* motor_ = nullptr;
 
 	bool wasPressed_ = false;
 };

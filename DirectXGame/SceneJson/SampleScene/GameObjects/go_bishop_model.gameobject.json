@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
-  "instanceId": "go_f637c185f20508167b1b86c2f00d7802",
-  "parentInstanceId": "go_1af68e2e906d556a0d7b212c1d43e4e4",
+  "instanceId": "go_bishop_model",
+  "parentInstanceId": "go_7d95b08120a6b2583ecab05f811bed43",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "ShieldModel",
+  "name": "BishopModel",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -15,19 +15,19 @@
       "enabled": true,
       "properties": {
         "rotation": [
-          0.777999997138977,
-          -0.37159210443496704,
-          -3.1415908336639404
+          0.0,
+          0.0,
+          0.0
         ],
         "scale": [
-          1.1800000667572021,
-          1.1800000667572021,
-          1.1800000667572021
+          1.0,
+          1.0,
+          1.0
         ],
         "translation": [
-          -1.8433704376220703,
-          -0.20496368408203125,
-          0.7525091171264648
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "type": "Transform"
@@ -40,22 +40,22 @@
         "cameraLocalZ": 1.0,
         "material": {
           "baseColor": [
-            0.284518837928772,
-            0.284518837928772,
-            0.284518837928772,
+            1.0,
+            1.0,
+            1.0,
             1.0
           ],
-          "bloomIntensity": 3.8499999046325684,
-          "bloomSoftKnee": 0.5370000004768372,
+          "bloomIntensity": 1.0,
+          "bloomSoftKnee": 0.5,
           "bloomThreshold": 0.0,
           "emissiveColor": [
-            0.003361284267157316,
             0.0,
-            0.050209224224090576
+            0.0,
+            0.0
           ],
-          "emissiveEnabled": true,
+          "emissiveEnabled": false,
           "emissiveIntensity": 1.0,
-          "name": "Shield",
+          "name": "New Material",
           "shaderModel": 4,
           "textures": {
             "BaseColor": {
@@ -72,12 +72,35 @@
             }
           }
         },
-        "materialAssetId": "asset_e8d3cd76cdbbf21474698ea3f08dc6b6",
-        "materialPath": "Materials/Shield.material.json",
-        "modelPath": "shield",
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "bishop",
         "primitive": "Model"
       },
       "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clips": [
+          {
+            "assetId": "",
+            "path": "Animations/Sample.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerRoll.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerRecoil.anim.json"
+          }
+        ],
+        "currentClip": 0,
+        "playOnStart": false,
+        "speed": 1.0
+      },
+      "type": "AnimatorComponent"
     }
   ]
 }

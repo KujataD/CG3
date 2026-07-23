@@ -2,6 +2,7 @@
 
 #include "../KujakuEngine/components/AnimatorComponent.h"
 #include "EnemyHealth.h"
+#include "PlayerHealth.h"
 #include <cmath>
 #include <numbers>
 
@@ -319,7 +320,30 @@ KujakuEngine::GameObject* HammerEnemyComponent::FindPlayer() {
 	if (!owner_ || !owner_->GetScene()) {
 		return nullptr;
 	}
-	return owner_->GetScene()->FindGameObjectByName(playerName_);
+
+	// targetTag_の付いた生存キャラ(PlayerHealth持ち)のうち、最も近いものを狙う。
+	// プレイアブル2人+味方NPC参戦の構成のため、名前固定ではなくタグで選ぶ。
+	// 片方が倒れたら自動的にもう片方へターゲットが移る。
+	GameObject* nearest = nullptr;
+	float nearestDistSq = 0.0f;
+	const Vector3 selfPosition = owner_->GetTransform().translation_;
+	for (const auto& object : owner_->GetScene()->GetGameObjects()) {
+		if (!object || !object->IsActiveInHierarchy() || object->GetTag() != targetTag_) {
+			continue;
+		}
+		PlayerHealth* health = object->GetComponent<PlayerHealth>();
+		if (!health || !health->IsAlive()) {
+			continue;
+		}
+		Vector3 diff = object->GetTransform().translation_ - selfPosition;
+		diff.y = 0.0f;
+		float distSq = diff.x * diff.x + diff.z * diff.z;
+		if (!nearest || distSq < nearestDistSq) {
+			nearest = object.get();
+			nearestDistSq = distSq;
+		}
+	}
+	return nearest;
 }
 
 KujakuEngine::GameObject* HammerEnemyComponent::FindHammerPivot() {

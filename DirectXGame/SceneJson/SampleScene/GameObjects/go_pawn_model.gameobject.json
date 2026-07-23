@@ -105,15 +105,6 @@
         "speed": 1.0
       },
       "type": "AnimatorComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "clipName": "PlayerAttack",
-        "stopOnRelease": false,
-        "triggerThreshold": 0.5
-      },
-      "type": "PlayerAnimator"
     }
   ]
 }

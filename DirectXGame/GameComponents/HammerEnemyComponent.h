@@ -95,16 +95,17 @@ private:
 
 private:
 	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_STRING(playerName_);
+		KUJAKU_REGISTER_STRING_NAMED(targetTag_, "Target Tag");
 		KUJAKU_REGISTER_BOOL_NAMED(recoilEnabled_, "Recoil Enabled");
 		KUJAKU_REGISTER_BOOL_NAMED(recoilDuringSpin_, "Recoil During Spin");
 		KUJAKU_REGISTER_BOOL_NAMED(recoilDuringSlam_, "Recoil During Slam");
 		KUJAKU_REGISTER_FLOAT_NAMED(recoilDuration_, "Recoil Duration", 0.05f, 0.0f, 5.0f);
 	}
 
-	// プレイヤー(PlayerHealth持ち)のGameObject名。シーンから検索する。
+	// 攻撃対象のタグ。このタグが付いた生存キャラ(PlayerHealth持ち)のうち最寄りを狙う。
+	// プレイアブル2人+味方NPC構成のため名前ではなくタグで選ぶ。
 	// ※アクションの調整値(速度・時間など)はBTノードのParamsで指定する。ここには持たない。
-	KUJAKU_FIELD_STRING(playerName_, "Pawn");
+	KUJAKU_FIELD_STRING(targetTag_, "Ally");
 
 	// --- のけぞり制御 ---
 	// のけぞり自体の有効/無効。

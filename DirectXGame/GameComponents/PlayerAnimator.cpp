@@ -1,5 +1,5 @@
 #include "PlayerAnimator.h"
-#include "Player.h"
+#include "CharacterMotor.h"
 
 using namespace KujakuEngine;
 
@@ -7,12 +7,9 @@ void PlayerAnimator::OnPlayStart() {
 	wasPressed_ = false;
 	animator_ = GetComponent<AnimatorComponent>();
 
-	// PlayerはコリジョンとともにPawn最上位へ、本Componentはモデル(子)側に分離されているため、
+	// CharacterMotorはコリジョンとともに最上位へ、本Componentはモデル(子)側に分離されているため、
 	// 自身に無ければ親を遡って探す。
-	player_ = GetComponent<Player>();
-	for (KujakuEngine::GameObject* ancestor = GetOwner() ? GetOwner()->GetParent() : nullptr; !player_ && ancestor; ancestor = ancestor->GetParent()) {
-		player_ = ancestor->GetComponent<Player>();
-	}
+	motor_ = GetComponentInParent<CharacterMotor>();
 }
 
 void PlayerAnimator::Update() {
@@ -20,8 +17,8 @@ void PlayerAnimator::Update() {
 		return;
 	}
 
-	// 行動不能中(被弾のけぞり・回避・回避クールダウン)は攻撃入力を受け付けない。
-	if (player_ && player_->IsActionLocked()) {
+	// 行動不能中(被弾のけぞり・回避中)は攻撃入力を受け付けない。
+	if (motor_ && motor_->IsActionLocked()) {
 		wasPressed_ = false;
 		return;
 	}

@@ -7,7 +7,7 @@
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
   "name": "Bishop",
-  "tag": "Untagged",
+  "tag": "Ally",
   "layer": 0,
   "active": true,
   "components": [
@@ -16,7 +16,7 @@
       "properties": {
         "rotation": [
           0.0,
-          282.5506896972656,
+          0.0,
           0.0
         ],
         "scale": [
@@ -31,69 +31,6 @@
         ]
       },
       "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "billboardEnabled": false,
-        "billboardFaceMode": 0,
-        "cameraLocalZ": 1.0,
-        "material": {
-          "baseColor": [
-            1.0,
-            1.0,
-            1.0,
-            1.0
-          ],
-          "bloomIntensity": 1.0,
-          "bloomSoftKnee": 0.5,
-          "bloomThreshold": 0.0,
-          "emissiveColor": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "emissiveEnabled": false,
-          "emissiveIntensity": 1.0,
-          "name": "New Material",
-          "shaderModel": 4,
-          "textures": {
-            "BaseColor": {
-              "assetId": "",
-              "path": "resources/white1x1.png"
-            },
-            "Environment": {
-              "assetId": "",
-              "path": ""
-            },
-            "Normal": {
-              "assetId": "",
-              "path": ""
-            }
-          }
-        },
-        "materialAssetId": "",
-        "materialPath": "",
-        "modelPath": "bishop",
-        "primitive": "Model"
-      },
-      "type": "ModelRendererComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "center": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "collisionMask": 4294967295,
-        "direction": 1,
-        "height": 5.0,
-        "isTrigger": false,
-        "radius": 1.5
-      },
-      "type": "CapsuleColliderComponent"
     },
     {
       "enabled": true,
@@ -118,24 +55,67 @@
     {
       "enabled": true,
       "properties": {
-        "clips": [
-          {
-            "assetId": "",
-            "path": "Animations/Sample.anim.json"
-          }
+        "center": [
+          0.0,
+          0.0,
+          0.0
         ],
-        "currentClip": 0,
-        "playOnStart": false,
-        "speed": 1.0
+        "collisionMask": 4294967295,
+        "direction": 1,
+        "height": 5.0,
+        "isTrigger": false,
+        "radius": 1.5
       },
-      "type": "AnimatorComponent"
+      "type": "CapsuleColliderComponent"
     },
     {
       "enabled": true,
       "properties": {
-        "speed": 0.4339999854564667
+        "dodgeClipName": "PlayerRoll",
+        "dodgeCooldownFrames": 5,
+        "dodgeDurationFrames": 30,
+        "dodgeSpeed": 12.0,
+        "invincibleFrames": 27,
+        "knockbackDamping": 6.0,
+        "recoilClipName": "PlayerRecoil",
+        "speed": 5.0,
+        "turnSpeed": 12.0
       },
-      "type": "RotatorComponent"
+      "type": "CharacterMotor"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "triggerThreshold": 0.5
+      },
+      "type": "Player"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "AllyAIBrain"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "castClipName": "",
+        "cooldownSeconds": 1.0,
+        "muzzleForward": 1.2000000476837158,
+        "muzzleHeight": 0.5,
+        "projectileDamage": 10.0,
+        "projectileLifetime": 3.0,
+        "projectilePrefabPath": "Prefabs/MagicBolt.prefab.json",
+        "projectileSpeed": 15.0
+      },
+      "type": "MagicAbilitySet"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "health": 100.0,
+        "maxHealth": 100.0
+      },
+      "type": "PlayerHealth"
     }
   ]
 }

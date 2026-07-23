@@ -4,6 +4,7 @@
     "Player",
     "Enemy",
     "MainCamera",
-    "aaa"
+    "aaa",
+    "Ally"
   ]
 }

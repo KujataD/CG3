@@ -7,7 +7,7 @@
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
   "name": "Pawn",
-  "tag": "Untagged",
+  "tag": "Ally",
   "layer": 0,
   "active": true,
   "components": [
@@ -55,15 +55,36 @@
     {
       "enabled": true,
       "properties": {
+        "dodgeClipName": "PlayerRoll",
         "dodgeCooldownFrames": 5,
         "dodgeDurationFrames": 30,
         "dodgeSpeed": 12.0,
         "invincibleFrames": 27,
         "knockbackDamping": 6.0,
+        "recoilClipName": "PlayerRecoil",
         "speed": 5.0,
         "turnSpeed": 12.0
       },
+      "type": "CharacterMotor"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "triggerThreshold": 0.5
+      },
       "type": "Player"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "AllyAIBrain"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "attackClipName": "PlayerAttack"
+      },
+      "type": "MeleeAbilitySet"
     },
     {
       "enabled": true,

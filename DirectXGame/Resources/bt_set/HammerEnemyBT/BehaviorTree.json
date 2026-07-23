@@ -93,21 +93,6 @@
           "startPinId": 311
         },
         {
-          "endPinId": 349,
-          "id": 1227,
-          "startPinId": 347
-        },
-        {
-          "endPinId": 348,
-          "id": 1228,
-          "startPinId": 350
-        },
-        {
-          "endPinId": 351,
-          "id": 1229,
-          "startPinId": 350
-        },
-        {
           "endPinId": 334,
           "id": 1230,
           "startPinId": 329
@@ -398,8 +383,8 @@
             "duration": 0.7
           },
           "position": {
-            "x": 420.0,
-            "y": 1041.0
+            "x": 228.0,
+            "y": 897.0
           },
           "reactive": false,
           "repeatCount": -1,
@@ -491,77 +476,6 @@
           "position": {
             "x": 566.0,
             "y": 208.0
-          },
-          "reactive": false,
-          "repeatCount": -1,
-          "repeatPaced": false,
-          "status": "",
-          "type": "Action"
-        },
-        {
-          "cooldownDuration": 1.0,
-          "id": 23,
-          "inputPinId": 346,
-          "name": "RandomSelector",
-          "outputPinId": 347,
-          "position": {
-            "x": 296.0,
-            "y": 713.0
-          },
-          "reactive": false,
-          "repeatCount": -1,
-          "repeatPaced": false,
-          "status": "",
-          "type": "RandomSelector"
-        },
-        {
-          "cooldownDuration": 1.0,
-          "id": 24,
-          "inputPinId": 348,
-          "name": "SpinSwing",
-          "outputPinId": 0,
-          "params": {
-            "duration": 1.9900000095367432
-          },
-          "position": {
-            "x": 100.0,
-            "y": 1185.0
-          },
-          "reactive": false,
-          "repeatCount": -1,
-          "repeatPaced": false,
-          "status": "",
-          "type": "Action"
-        },
-        {
-          "cooldownDuration": 1.0,
-          "id": 25,
-          "inputPinId": 349,
-          "name": "Parallel",
-          "outputPinId": 350,
-          "position": {
-            "x": 232.0,
-            "y": 961.0
-          },
-          "reactive": true,
-          "repeatCount": -1,
-          "repeatPaced": false,
-          "status": "",
-          "type": "Parallel"
-        },
-        {
-          "cooldownDuration": 1.0,
-          "id": 26,
-          "inputPinId": 351,
-          "name": "StepToPlayer",
-          "outputPinId": 0,
-          "params": {
-            "speed": 8.010000228881836,
-            "turnSpeed": 0.0
-          },
-          "position": {
-            "x": 356.0,
-            "y": 1185.0
           },
           "reactive": false,
           "repeatCount": -1,
