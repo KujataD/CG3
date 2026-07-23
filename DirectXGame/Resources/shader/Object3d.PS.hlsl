@@ -9,13 +9,21 @@ struct Material
     int32_t enableLighting;
     float32_t4x4 uvTransform;
     float32_t shininess;
+    float32_t3 emissiveColor;    // 自己発光色(リニア)
+    float32_t emissiveIntensity; // 発光強度(>1でHDR輝度になりブルームが乗る)
+    int32_t emissiveEnabled;     // マテリアルのEmissionチェック(0=発光しない)
+    float32_t bloomIntensity;    // 露出光(滲み)の強さ(エミッションRTへ書く値のスケール)
+    float32_t bloomThreshold;    // この輝度以上のエミッションだけが滲む(0=全て)
+    float32_t bloomSoftKnee;     // 閾値の柔らかさ(0=ハード)
 };
 
 ConstantBuffer<Material> gMaterial : register(b0);
 struct PixelShaderOutput
 {
     float32_t4 color : SV_TARGET0;
-
+    // エミッション専用RT(MRT)。ここに書いた値だけがブルーム(露出光)の入力になるため、
+    // Emissionチェックの無いマテリアルや、単に明るいだけのピクセルは滲まない。
+    float32_t4 emission : SV_TARGET1;
 };
 ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
 ConstantBuffer<Camera> gCamera : register(b2);
@@ -58,6 +66,8 @@ PixelShaderOutput main(VertexShaderOutput input)
     float32_t4 transformedUV = mul(float32_t4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
     float32_t4 textureColor = gTexture.Sample(gSampler, transformedUV.xy);
     PixelShaderOutput output;
+    // エミッションRTは既定で書き込みなし(黒)。Emissionチェック付きマテリアルだけが下で上書きする。
+    output.emission = float32_t4(0.0f, 0.0f, 0.0f, 1.0f);
     // ライティング各処理
     if (gMaterial.enableLighting != 0)
     { // Lightingする場合
@@ -270,7 +280,25 @@ PixelShaderOutput main(VertexShaderOutput input)
     { //Lightingしない場合。前回までと同じ演算
         output.color = gMaterial.color * textureColor;
     }
-    
+
+    // エミッション(自己発光)。Emissionチェックが付いたマテリアルだけ、
+    // ライティングの有無に関わらず加算する(αには影響させない)。
+    if (gMaterial.emissiveEnabled != 0)
+    {
+        float32_t3 emissive = gMaterial.emissiveColor * gMaterial.emissiveIntensity;
+        output.color.rgb += emissive;
+
+        // 露出光(ブルーム)へ回す成分。マテリアル別の閾値(soft knee付き)で絞り、滲み強度を掛けて
+        // エミッション専用RTへ書く。ブルームチェーンはこのRTだけを入力にする。
+        float32_t brightness = max(emissive.r, max(emissive.g, emissive.b));
+        float32_t knee = gMaterial.bloomThreshold * gMaterial.bloomSoftKnee;
+        float32_t soft = clamp(brightness - gMaterial.bloomThreshold + knee, 0.0f, 2.0f * knee);
+        soft = soft * soft / (4.0f * knee + 1e-4f);
+        float32_t contribution = max(soft, brightness - gMaterial.bloomThreshold) / max(brightness, 1e-4f);
+        // FLOAT16/R11G11B10の飽和対策クランプ。
+        output.emission.rgb = min(emissive * contribution * gMaterial.bloomIntensity, 65000.0f);
+    }
+
     if (textureColor.a <= 0.5)
     {
         discard;

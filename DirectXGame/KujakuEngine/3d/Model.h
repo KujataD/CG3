@@ -91,6 +91,28 @@ public:
 			}
 		}
 	}
+	// エミッション(自己発光)を全サブメッシュへ一括適用する。enabled=falseなら発光しない。
+	// 強度>1でHDR輝度になりブルームが乗る。
+	void SetEmissive(const Vector3& color, float intensity, bool enabled) {
+		for (SubMesh& subMesh : subMeshes_) {
+			if (subMesh.materialMap) {
+				subMesh.materialMap->emissiveColor = color;
+				subMesh.materialMap->emissiveIntensity = intensity;
+				subMesh.materialMap->emissiveEnabled = enabled ? 1 : 0;
+			}
+		}
+	}
+	// 露出光(ブルーム)のマテリアル別パラメータを全サブメッシュへ一括適用する。
+	// エミッションRTへの書き込み(=滲み方)だけを制御し、発光色そのものには影響しない。
+	void SetEmissiveBloom(float bloomIntensity, float bloomThreshold, float bloomSoftKnee) {
+		for (SubMesh& subMesh : subMeshes_) {
+			if (subMesh.materialMap) {
+				subMesh.materialMap->bloomIntensity = bloomIntensity;
+				subMesh.materialMap->bloomThreshold = bloomThreshold;
+				subMesh.materialMap->bloomSoftKnee = bloomSoftKnee;
+			}
+		}
+	}
 
 	// --- get ---
 

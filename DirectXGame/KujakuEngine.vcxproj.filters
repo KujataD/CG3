@@ -64,10 +64,19 @@
     <Filter Include="KujakuEngine\assets">
       <UniqueIdentifier>{b1819ac8-7f61-43e1-a565-df0cb53a59d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="KujakuEngine\postprocess">
+      <UniqueIdentifier>{3f6d9a15-52c4-4de1-9a7b-6b1f28a4c901}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\postprocess\PostEffectPipeline.cpp">
+      <Filter>KujakuEngine\postprocess</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\postprocess\PostProcess.cpp">
+      <Filter>KujakuEngine\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="externals\imgui\imgui.cpp">
       <Filter>imgui</Filter>
@@ -199,6 +208,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\GameViewWindow.cpp">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\RenderingWindow.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\Editor\PerformanceWindow.cpp">
@@ -371,6 +383,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="KujakuEngine\postprocess\PostEffectPipeline.h">
+      <Filter>KujakuEngine\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\postprocess\PostProcess.h">
+      <Filter>KujakuEngine\postprocess</Filter>
+    </ClInclude>
     <ClInclude Include="externals\imgui\imconfig.h">
       <Filter>imgui</Filter>
     </ClInclude>
@@ -573,6 +591,9 @@
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\GameViewWindow.h">
+      <Filter>KujakuEngine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\RenderingWindow.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\Editor\PerformanceWindow.h">

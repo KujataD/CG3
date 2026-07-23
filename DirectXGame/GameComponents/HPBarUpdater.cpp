@@ -53,7 +53,6 @@ void HPBarUpdater::ApplyHealthToBar() {
 	// 基準スケールにHP率を掛けて横方向に縮める(背景と同じ基準幅を維持)。
 	transform.scale_.x = baseScaleX_ * healthPercent;
 
-	// バー左端を固定したまま右から減らす。平面はローカル半幅1なので、
-	// 中心を左へ baseScaleX_*(1-p) ずらすと左端が動かない。
+	// バー左端を固定したまま右から減らす。
 	transform.translation_.x = basePosX_ - baseScaleX_ * (1.0f - healthPercent);
 }

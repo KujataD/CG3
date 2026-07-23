@@ -45,6 +45,16 @@
             1.0,
             1.0
           ],
+          "bloomIntensity": 1.0,
+          "bloomSoftKnee": 0.5,
+          "bloomThreshold": 0.0,
+          "emissiveColor": [
+            0.0,
+            1.0,
+            1.0
+          ],
+          "emissiveEnabled": false,
+          "emissiveIntensity": 3.0,
           "name": "Color",
           "shaderModel": 4,
           "textures": {

@@ -55,7 +55,7 @@
     {
       "enabled": true,
       "properties": {
-        "dodgeCooldownFrames": 10,
+        "dodgeCooldownFrames": 5,
         "dodgeDurationFrames": 30,
         "dodgeSpeed": 12.0,
         "invincibleFrames": 27,

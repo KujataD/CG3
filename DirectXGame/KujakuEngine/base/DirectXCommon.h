@@ -28,6 +28,12 @@ struct RenderTexture {
 	// ImGui::Imageで読むためのSRV(CPU=作成用/GPU=ImGuiへ渡す)。
 	D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU{};
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU{};
+	// エミッション専用RT(MRTのSV_TARGET1)。emissionEnabledなマテリアルの発光のみが書かれ、
+	// ブルームはこちらだけを入力にする。
+	Microsoft::WRL::ComPtr<ID3D12Resource> emissionResource;
+	D3D12_CPU_DESCRIPTOR_HANDLE emissionRtvHandle{};
+	D3D12_CPU_DESCRIPTOR_HANDLE emissionSrvHandleCPU{};
+	D3D12_GPU_DESCRIPTOR_HANDLE emissionSrvHandleGPU{};
 	int32_t width = 0;
 	int32_t height = 0;
 };
@@ -37,6 +43,16 @@ struct RenderTexture {
 /// </summary>
 class DirectXCommon {
 public:
+	// シーン描画(HDR)用カラーフォーマット。1.0超の輝度(エミッション等)を保持し、
+	// ポストプロセス(ブルーム/トーンマップ)の入力になる。全シーン描画PSOのRTVFormats[0]と共有する。
+	static constexpr DXGI_FORMAT kSceneColorFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	// エミッション専用RT(RTVFormats[1])のフォーマット。emissionEnabledなマテリアルの発光だけが
+	// ここに書かれ、ブルームはこのRTのみを入力にする(明るいだけのピクセルは滲まない)。
+	// 正値のみ・α不要なのでR11G11B10。ブルーム縮小チェーンとも共有する。
+	static constexpr DXGI_FORMAT kSceneEmissionFormat = DXGI_FORMAT_R11G11B10_FLOAT;
+	// トーンマップ後のLDR出力用フォーマット(SwapChainバックバッファのRTVと同一系列)。
+	static constexpr DXGI_FORMAT kResolveColorFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
 	static DirectXCommon* GetInstance();
 
 	/// <param name="winApp">ウィンドウ管理クラスのポインタ</param>
@@ -145,6 +161,10 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGameRenderSrvHandle() const { return gameRenderTexture_.srvHandleGPU; }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetGameRenderDsvHandle() const { return gameRenderTexture_.dsvHandle; }
 
+	// ポストプロセス(PostProcess)がHDRシーンRTを入力として読むための参照。
+	const RenderTexture& GetSceneRenderTexture() const { return sceneRenderTexture_; }
+	const RenderTexture& GetGameRenderTexture() const { return gameRenderTexture_; }
+
 	// ImGui::Imageへ渡すScene用RenderTextureのGPU側SRVハンドル。
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSceneRenderSrvHandle() const { return sceneRenderTexture_.srvHandleGPU; }
 	int32_t GetSceneRenderWidth() const { return sceneRenderTexture_.width; }
@@ -162,6 +182,9 @@ public:
 
 	uint32_t GetSwapChainBufferCount() const { return kSwapChainBufferCount; }
 	void SetBackBufferRenderTarget();
+
+	// 現在のバックバッファに対応するRTVを取得する(エディタ無しビルドのトーンマップ直描き用)。
+	D3D12_CPU_DESCRIPTOR_HANDLE GetBackBufferRtvHandle() const;
 
 	// VSync(Presentの垂直同期)をランタイムで切り替える。VSync起因のFPS低下(60→30の階段)の切り分け用。
 	void SetVSyncEnabled(bool enabled) { vsyncEnabled_ = enabled; }
@@ -216,9 +239,6 @@ private:
 	void CreateFence();
 
 	void WaitForGpu();
-
-	// 現在のバックバッファに対応するRTVを取得する。
-	D3D12_CPU_DESCRIPTOR_HANDLE GetBackBufferRtvHandle() const;
 
 private:
 	static const uint32_t kSwapChainBufferCount = 3;

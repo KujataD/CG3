@@ -86,8 +86,8 @@
       "properties": {
         "playerName": "Pawn",
         "recoilDuration": 0.5,
-        "recoilDuringSlam": false,
-        "recoilDuringSpin": false,
+        "recoilDuringSlam": true,
+        "recoilDuringSpin": true,
         "recoilEnabled": true
       },
       "type": "HammerEnemyComponent"

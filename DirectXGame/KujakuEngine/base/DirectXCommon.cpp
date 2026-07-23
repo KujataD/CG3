@@ -254,6 +254,17 @@ void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, in
 	target.srvHandleGPU = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
 	target.srvHandleGPU.ptr += descriptorSizeSRV_ * srvIndex;
 
+	// エミッション専用RT(MRT slot1)用のRTV/SRVスロットも確保する。
+	uint32_t emissionRtvIndex = AllocateRtvIndex();
+	target.emissionRtvHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.emissionRtvHandle.ptr += descriptorSizeRTV_ * emissionRtvIndex;
+
+	uint32_t emissionSrvIndex = AllocateSrvIndex();
+	target.emissionSrvHandleCPU = srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.emissionSrvHandleCPU.ptr += descriptorSizeSRV_ * emissionSrvIndex;
+	target.emissionSrvHandleGPU = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
+	target.emissionSrvHandleGPU.ptr += descriptorSizeSRV_ * emissionSrvIndex;
+
 	RecreateRenderTextureResources(target);
 }
 
@@ -264,18 +275,20 @@ void DirectXCommon::RecreateRenderTextureResources(RenderTexture& target) {
 	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 
 	// --- カラー ---
+	// HDR(1.0超の輝度)を保持するためR16G16B16A16_FLOAT。FLOATフォーマットに_SRGB版は無いため、
+	// リソース/ClearValue/RTV/SRVすべて同一フォーマットで扱う(sRGB変換は最終トーンマップパスで行う)。
 	D3D12_RESOURCE_DESC colorDesc{};
 	colorDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	colorDesc.Width = target.width;
 	colorDesc.Height = target.height;
 	colorDesc.DepthOrArraySize = 1;
 	colorDesc.MipLevels = 1;
-	colorDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	colorDesc.Format = kSceneColorFormat;
 	colorDesc.SampleDesc.Count = 1;
 	colorDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	D3D12_CLEAR_VALUE clearValue{};
-	clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	clearValue.Format = kSceneColorFormat;
 	clearValue.Color[0] = clearColor_[0];
 	clearValue.Color[1] = clearColor_[1];
 	clearValue.Color[2] = clearColor_[2];
@@ -292,16 +305,50 @@ void DirectXCommon::RecreateRenderTextureResources(RenderTexture& target) {
 	assert(SUCCEEDED(hr));
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	rtvDesc.Format = kSceneColorFormat;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	device_->CreateRenderTargetView(target.colorResource.Get(), &rtvDesc, target.rtvHandle);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	srvDesc.Format = kSceneColorFormat;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 	device_->CreateShaderResourceView(target.colorResource.Get(), &srvDesc, target.srvHandleCPU);
+
+	// --- エミッション(MRT slot1) ---
+	// emissionEnabledなマテリアルの発光のみが書かれる。毎フレーム黒にクリアする。
+	D3D12_RESOURCE_DESC emissionDesc = colorDesc;
+	emissionDesc.Format = kSceneEmissionFormat;
+
+	D3D12_CLEAR_VALUE emissionClearValue{};
+	emissionClearValue.Format = kSceneEmissionFormat;
+	emissionClearValue.Color[0] = 0.0f;
+	emissionClearValue.Color[1] = 0.0f;
+	emissionClearValue.Color[2] = 0.0f;
+	emissionClearValue.Color[3] = 1.0f;
+
+	target.emissionResource.Reset();
+	hr = device_->CreateCommittedResource(
+	    &heapProperties,
+	    D3D12_HEAP_FLAG_NONE,
+	    &emissionDesc,
+	    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+	    &emissionClearValue,
+	    IID_PPV_ARGS(&target.emissionResource));
+	assert(SUCCEEDED(hr));
+
+	D3D12_RENDER_TARGET_VIEW_DESC emissionRtvDesc{};
+	emissionRtvDesc.Format = kSceneEmissionFormat;
+	emissionRtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	device_->CreateRenderTargetView(target.emissionResource.Get(), &emissionRtvDesc, target.emissionRtvHandle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC emissionSrvDesc{};
+	emissionSrvDesc.Format = kSceneEmissionFormat;
+	emissionSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	emissionSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	emissionSrvDesc.Texture2D.MipLevels = 1;
+	device_->CreateShaderResourceView(target.emissionResource.Get(), &emissionSrvDesc, target.emissionSrvHandleCPU);
 
 	// --- 深度 ---
 	D3D12_RESOURCE_DESC depthDesc{};
@@ -565,20 +612,26 @@ void DirectXCommon::EndGameRender() { EndRenderTexture(gameRenderTexture_); }
 
 void DirectXCommon::BeginRenderTexture(RenderTexture& target) {
 	// RenderTextureは通常ImGuiから読まれる状態にしている。
-	// ここから描画を書き込むため、RENDER_TARGET状態へ遷移する。
-	D3D12_RESOURCE_BARRIER barrier{};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = target.colorResource.Get();
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	commandList_->ResourceBarrier(1, &barrier);
+	// ここから描画を書き込むため、カラー/エミッション両方をRENDER_TARGET状態へ遷移する。
+	D3D12_RESOURCE_BARRIER barriers[2]{};
+	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barriers[0].Transition.pResource = target.colorResource.Get();
+	barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barriers[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barriers[1] = barriers[0];
+	barriers[1].Transition.pResource = target.emissionResource.Get();
+	commandList_->ResourceBarrier(2, barriers);
 
 	// 以降のDraw呼び出しがこのRenderTextureへ描かれるように、描画先を差し替える。
-	commandList_->OMSetRenderTargets(1, &target.rtvHandle, false, &target.dsvHandle);
-	// 毎フレーム、色と深度を初期化する。
+	// MRT: [0]=通常色 / [1]=エミッション(emissionEnabledなマテリアルのみがSV_TARGET1へ書く)。
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2] = {target.rtvHandle, target.emissionRtvHandle};
+	commandList_->OMSetRenderTargets(2, rtvHandles, false, &target.dsvHandle);
+	// 毎フレーム、色と深度を初期化する。エミッションは黒(発光なし)へ。
 	commandList_->ClearRenderTargetView(target.rtvHandle, clearColor_, 0, nullptr);
+	const float emissionClear[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	commandList_->ClearRenderTargetView(target.emissionRtvHandle, emissionClear, 0, nullptr);
 	commandList_->ClearDepthStencilView(target.dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	// Viewport/ScissorをRenderTexture全体に合わせる。ここが小さいと描画が途中で切れる。
@@ -600,15 +653,17 @@ void DirectXCommon::BeginRenderTexture(RenderTexture& target) {
 }
 
 void DirectXCommon::EndRenderTexture(RenderTexture& target) {
-	// 描画が終わったので、ImGui::Imageから読める状態へ戻す。
-	D3D12_RESOURCE_BARRIER barrier{};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = target.colorResource.Get();
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	commandList_->ResourceBarrier(1, &barrier);
+	// 描画が終わったので、ImGui::Image/ポストプロセスから読める状態へ戻す(カラー+エミッション)。
+	D3D12_RESOURCE_BARRIER barriers[2]{};
+	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barriers[0].Transition.pResource = target.colorResource.Get();
+	barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	barriers[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barriers[1] = barriers[0];
+	barriers[1].Transition.pResource = target.emissionResource.Get();
+	commandList_->ResourceBarrier(2, barriers);
 
 	// この後のImGui描画はSwapChainバックバッファへ出したいので、描画先を戻す。
 	SetBackBufferRenderTarget();

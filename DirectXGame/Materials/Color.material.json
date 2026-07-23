@@ -7,6 +7,13 @@
     1.0
   ],
   "name": "Color",
+  "emissiveEnabled": false,
+  "emissiveColor": [
+    0.0,
+    1.0,
+    1.0
+  ],
+  "emissiveIntensity": 3.0,
   "textures": {
     "BaseColor": {
       "assetId": "",

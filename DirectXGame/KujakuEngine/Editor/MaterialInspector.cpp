@@ -337,6 +337,32 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 		changed = true;
 	}
 
+	// エミッション(自己発光)。チェックを付けたマテリアルだけ発光する(Unityと同じopt-in方式)。
+	// 強度>1でHDR輝度になり、ブルーム(閾値以上)で滲む。
+	if (ImGui::Checkbox("Emission", &state.material.emissiveEnabled)) {
+		changed = true;
+	}
+	if (state.material.emissiveEnabled) {
+		ImGui::Indent();
+		if (ImGui::ColorEdit3("Emissive Color", &state.material.emissiveColor.x)) {
+			changed = true;
+		}
+		if (ImGui::DragFloat("Emissive Intensity", &state.material.emissiveIntensity, 0.05f, 0.0f, 100.0f)) {
+			changed = true;
+		}
+		// 露出光(ブルーム)のマテリアル別設定。発光の滲み方だけを制御する。
+		if (ImGui::DragFloat("Bloom Intensity", &state.material.bloomIntensity, 0.05f, 0.0f, 10.0f)) {
+			changed = true;
+		}
+		if (ImGui::DragFloat("Bloom Threshold", &state.material.bloomThreshold, 0.01f, 0.0f, 10.0f)) {
+			changed = true;
+		}
+		if (ImGui::SliderFloat("Bloom Soft Knee", &state.material.bloomSoftKnee, 0.0f, 1.0f)) {
+			changed = true;
+		}
+		ImGui::Unindent();
+	}
+
 	// シェーダー方式の選択(ShaderModel enumの順序に一致させる)。
 	const char* shaderItems[] = {"None (Unlit)", "Lambert", "Half Lambert", "Phong", "Blinn-Phong"};
 	int shaderIndex = state.material.shaderModel;

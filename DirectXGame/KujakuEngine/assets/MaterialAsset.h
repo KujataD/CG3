@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../math/Vector3.h"
 #include "../math/Vector4.h"
 #include "../runtime/KujakuApi.h"
 
@@ -47,6 +48,16 @@ struct MaterialAssetData {
 	// シェーダー方式(ShaderModel enum値)。0=None(Unlit/ライティングなし)..4=Blinn-Phong。
 	// 既定はBlinn-Phong(4)。UI等でライティングを無効にしたい場合は0を選ぶ。
 	int shaderModel = 4;
+	// エミッション(自己発光)。emissiveEnabledがtrueのマテリアルだけ、
+	// ライティングと無関係に emissiveColor × emissiveIntensity を加算する(Unityの Emission チェックと同じ)。
+	// 既定はOFFで既存アセットと互換。強度>1でHDR輝度になりブルームが乗る。
+	bool emissiveEnabled = false;
+	Vector3 emissiveColor = {1.0f, 1.0f, 1.0f};
+	float emissiveIntensity = 1.0f;
+	// 露出光(ブルーム)のマテリアル別設定。エミッションの滲み方だけを制御する。
+	float bloomIntensity = 1.0f; // 滲みの強さ(0で発光はするが滲まない)
+	float bloomThreshold = 0.0f; // この輝度以上のエミッションだけが滲む(0=全て滲む)
+	float bloomSoftKnee = 0.5f;  // 閾値の柔らかさ(0=ハード)
 	std::vector<MaterialTexture> textures;
 };
 

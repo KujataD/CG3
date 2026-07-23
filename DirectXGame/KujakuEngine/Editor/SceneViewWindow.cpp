@@ -8,6 +8,7 @@
 #include "../base/TextureManager.h"
 #include "../components/CanvasComponent.h"
 #include "../components/RectTransformComponent.h"
+#include "../postprocess/PostProcess.h"
 #include "../runtime/PlayState.h"
 #include "../math/MathUtil.h"
 #include "../math/Vector2.h"
@@ -378,12 +379,12 @@ void SceneViewWindow::Draw(const std::filesystem::path& projectRoot, bool* pOpen
 		contentSize.y = 1.0f;
 	}
 
-	// DirectXCommonが作ったScene用RenderTexture(デバッグカメラ描画)のSRVをImGuiへ渡す。
+	// Sceneビューの、ポストプロセス(ブルーム/トーンマップ)適用済みSRVをImGuiへ渡す。
 	// Scene RTはGameビューと同じく固定解像度(1280x720)。表示側でアスペクト比を保ってレターボックス表示する。
 	// (表示サイズ追従は毎フレームのGPU待ち/作り直しで不安定だったため固定に戻した)
-	// 描画本体はEditorApplicationでBeginSceneRenderからEndSceneRenderの間に行われる。
+	// 描画本体はEditorApplicationでBeginSceneRenderからEndSceneRender+PostProcess::Renderで行われる。
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = dxCommon->GetSceneRenderSrvHandle();
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = PostProcess::GetInstance()->GetDisplaySrvHandle(DirectXCommon::kSceneViewIndex);
 
 	float gameAspect = 16.0f / 9.0f;
 	if (dxCommon->GetSceneRenderHeight() > 0) {

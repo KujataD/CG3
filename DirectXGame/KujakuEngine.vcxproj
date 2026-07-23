@@ -161,6 +161,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\Editor\SceneJsonExporter.cpp" />
     <ClCompile Include="KujakuEngine\Editor\GameViewWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\PerformanceWindow.cpp" />
+    <ClCompile Include="KujakuEngine\Editor\RenderingWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\SceneViewWindow.cpp" />
     <ClCompile Include="KujakuEngine\Editor\SceneJsonImporter.cpp" />
     <ClCompile Include="KujakuEngine\3d\AxisIndicator.cpp" />
@@ -184,6 +185,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="KujakuEngine\base\TextureManager.cpp" />
     <ClCompile Include="KujakuEngine\base\Time.cpp" />
     <ClCompile Include="KujakuEngine\base\WinApp.cpp" />
+    <ClCompile Include="KujakuEngine\postprocess\PostEffectPipeline.cpp" />
+    <ClCompile Include="KujakuEngine\postprocess\PostProcess.cpp" />
     <ClCompile Include="KujakuEngine\input\Input.cpp" />
     <ClCompile Include="KujakuEngine\KujakuEngine.cpp" />
     <ClCompile Include="KujakuEngine\math\Easing.cpp" />
@@ -285,6 +288,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\Editor\SceneJsonExporter.h" />
     <ClInclude Include="KujakuEngine\Editor\GameViewWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\PerformanceWindow.h" />
+    <ClInclude Include="KujakuEngine\Editor\RenderingWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\SceneViewWindow.h" />
     <ClInclude Include="KujakuEngine\Editor\SceneJsonImporter.h" />
     <ClInclude Include="externals\ImGuizmo-1.9\src\ImGuizmo.h" />
@@ -309,6 +313,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="KujakuEngine\base\TextureManager.h" />
     <ClInclude Include="KujakuEngine\base\Time.h" />
     <ClInclude Include="KujakuEngine\base\WinApp.h" />
+    <ClInclude Include="KujakuEngine\postprocess\PostEffectPipeline.h" />
+    <ClInclude Include="KujakuEngine\postprocess\PostProcess.h" />
     <ClInclude Include="KujakuEngine\input\Input.h" />
     <ClInclude Include="KujakuEngine\KujakuEngine.h" />
     <ClInclude Include="KujakuEngine\KujakuEngineEditor.h" />
@@ -363,6 +369,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   <ItemGroup>
     <None Include="Resources\shader\Line.PS.hlsl" />
     <None Include="Resources\shader\Line.VS.hlsl" />
+    <None Include="Resources\shader\PostEffect.hlsli" />
+    <None Include="Resources\shader\Fullscreen.VS.hlsl" />
+    <None Include="Resources\shader\BloomDownsample.PS.hlsl" />
+    <None Include="Resources\shader\BloomUpsample.PS.hlsl" />
+    <None Include="Resources\shader\Tonemap.PS.hlsl" />
     <None Include="KujakuEngine\shader\Object3d.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
