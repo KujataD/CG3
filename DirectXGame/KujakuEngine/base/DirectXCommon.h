@@ -25,6 +25,9 @@ struct RenderTexture {
 	// 描き込み用RTV/DSV(CPUハンドル)。
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{};
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle{};
+	// 深度をポストプロセス(フォグ等)からテクスチャとして読むためのSRV。
+	D3D12_CPU_DESCRIPTOR_HANDLE depthSrvHandleCPU{};
+	D3D12_GPU_DESCRIPTOR_HANDLE depthSrvHandleGPU{};
 	// ImGui::Imageで読むためのSRV(CPU=作成用/GPU=ImGuiへ渡す)。
 	D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU{};
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU{};

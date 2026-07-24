@@ -23,8 +23,10 @@ void Player::Update() {
 
 	// 攻撃入力(R2)
 	bool isAttackPressed = Input::GetRightTrigger() >= triggerThreshold_;
-	if (isAttackPressed && !wasAttackPressed_ && abilitySet_) {
-		abilitySet_->TryUse(0);
+	if (!wasAttackPressed_ && abilitySet_) {	
+		if (isAttackPressed || Input::GetKeyTrigger(DIK_K)) {
+			abilitySet_->TryUse(0);
+		}
 	}
 	wasAttackPressed_ = isAttackPressed;
 

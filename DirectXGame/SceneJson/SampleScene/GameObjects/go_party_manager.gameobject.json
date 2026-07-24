@@ -35,9 +35,9 @@
     {
       "enabled": true,
       "properties": {
-        "allyName": "Pawn",
+        "allyName": "Bishop",
         "cameraName": "Main Camera",
-        "leaderName": "Bishop"
+        "leaderName": "Pawn"
       },
       "type": "PartyManager"
     }
