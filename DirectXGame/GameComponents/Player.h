@@ -4,15 +4,6 @@
 class IAbilitySet;
 class CharacterMotor;
 
-/// <summary>
-/// 手動操作の「頭脳」。パッド/キーボード入力を読んで、同じGameObjectの
-/// CharacterMotor(体)とIAbilitySet(技)を動かす。実処理はすべてそちら側にあり、
-/// ここは入力の変換だけを行う。
-///   移動: 左スティック / WASD    回避: Aボタン / Space    攻撃: R2(右トリガー)
-///
-/// NPC(味方AI)として動かすときは、このComponentを無効化してAllyAIBrainを有効化する
-/// (PartyManagerが切り替える)。体・技のAPIは共通なのでキャラの挙動は変わらない。
-/// </summary>
 class Player : public KujakuEngine::Component {
 public:
 	const char* GetTypeName() const override { return "Player"; }

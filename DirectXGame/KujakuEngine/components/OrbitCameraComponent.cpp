@@ -65,7 +65,22 @@ void OrbitCameraComponent::Update() {
 	float deltaTime = Time::GetDeltaTime();
 
 	// --- 右スティック → yaw/pitch(スティック上=見下ろしへ回り込み。Invert Yで反転) ---
+	// 上下左右キーも右スティックと同じ入力として合成する。
 	Vector2 stick = Input::GetRightStick();
+	if (Input::GetKey(DIK_LEFT)) {
+		stick.x -= 1.0f;
+	}
+	if (Input::GetKey(DIK_RIGHT)) {
+		stick.x += 1.0f;
+	}
+	if (Input::GetKey(DIK_UP)) {
+		stick.y += 1.0f;
+	}
+	if (Input::GetKey(DIK_DOWN)) {
+		stick.y -= 1.0f;
+	}
+	stick.x = std::clamp(stick.x, -1.0f, 1.0f);
+	stick.y = std::clamp(stick.y, -1.0f, 1.0f);
 	yaw_ = WrapYawAngle(yaw_ + stick.x * sensitivityX_ * deltaTime);
 	float pitchInput = invertY_ ? -stick.y : stick.y;
 	pitch_ = std::clamp(pitch_ + pitchInput * sensitivityY_ * deltaTime, pitchMin_, pitchMax_);

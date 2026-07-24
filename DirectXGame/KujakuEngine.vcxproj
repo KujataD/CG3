@@ -374,6 +374,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <None Include="Resources\shader\BloomDownsample.PS.hlsl" />
     <None Include="Resources\shader\BloomUpsample.PS.hlsl" />
     <None Include="Resources\shader\Tonemap.PS.hlsl" />
+    <None Include="Resources\shader\Fog.PS.hlsl" />
     <None Include="KujakuEngine\shader\Object3d.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

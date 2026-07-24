@@ -11,6 +11,7 @@ namespace KujakuEngine {
 // ポストプロセスのパス種別。
 // 明部抽出(BrightPass)は廃止: 閾値処理はObject3d.PSがマテリアル別にエミッションRTへ書く時点で行う。
 enum class PostEffectType {
+	kFog,             // 距離+高さフォグ、SpotLightによる霧の色付け(HDRシーンへ適用、ブルームより前)
 	kBloomDownsample, // 13タップダウンサンプル(初段はエミッションRT→1/2解像度)
 	kBloomUpsample,   // 3x3テントアップサンプル(加算ブレンドで1段上へ累積)
 	kTonemap,         // ブルーム合成+露出+トーンマップ(出力: LDR sRGB)
@@ -33,6 +34,22 @@ struct PostConstants {
 	float colorFilter[4] = {1.0f, 1.0f, 1.0f, 1.0f}; // 乗算カラーフィルタ
 };
 
+// フォグパス専用のルート定数。
+// HLSL側 Resources/shader/Fog.PS.hlsl の FogConstants と完全に一致させること。
+struct FogConstants {
+	float invViewProjection[16]; // ビュープロジェクション逆行列(深度→ワールド座標復元用)
+	float cameraWorldPosition[3];
+	float enabled = 0.0f;  // 0/1(HLSL側の分岐を単純にするためfloatで持つ)
+	float fogColor[3] = {1.0f, 1.0f, 1.0f};
+	float density = 0.0f;       // 距離ベースの指数フォグ密度係数
+	float heightFalloff = 0.0f; // 高さによる密度減衰
+	float heightBase = 0.0f;    // この高さを基準に上ほど薄くなる
+	float startDistance = 0.0f; // このカメラ距離までフォグを効かせない
+	float maxDistance = 1.0f;   // レイマーチの最大距離(遠景クランプ)
+	float spotScatter = 0.0f;   // スポットライトが霧を照らす強さ(演出用係数)
+	float padding[3] = {};
+};
+
 /// <summary>
 /// ポストプロセス用パイプライン管理クラス。
 /// フルスクリーン三角形VS + 各ポストパスのRootSignature/PSOを生成・保持する。
@@ -45,8 +62,10 @@ public:
 
 	// ルートパラメータ番号。全パス共通のRootSignatureを使う。
 	static const uint32_t kRootParamTexture0 = 0; // t0 主入力
-	static const uint32_t kRootParamTexture1 = 1; // t1 副入力(Tonemapのブルーム)
-	static const uint32_t kRootParamConstants = 2; // b0 ルート定数
+	static const uint32_t kRootParamTexture1 = 1; // t1 副入力(Tonemapのブルーム/Fogの深度)
+	static const uint32_t kRootParamConstants = 2; // b0 ルート定数(PostConstants)
+	static const uint32_t kRootParamFogConstants = 3; // b1 ルート定数(FogConstants。Fogパスのみ使用)
+	static const uint32_t kRootParamSpotLightCBV = 4; // b4 SpotLightData(CBV。Fogパスのみ使用)
 
 	static PostEffectPipeline* GetInstance();
 
@@ -61,6 +80,11 @@ public:
 	/// 呼び出し側でOMSetRenderTargets/Viewport/SRVテーブルを設定した後、DrawInstanced(3,1,0,0)する。
 	/// </summary>
 	void SetCommandList(PostEffectType type, const PostConstants& constants);
+
+	/// <summary>
+	/// Fogパス専用のルート定数(b1)とSpotLightのCBV(b4)を積む。SetCommandList(kFog, ...)の後に呼ぶこと。
+	/// </summary>
+	void SetFogConstants(const FogConstants& constants, D3D12_GPU_VIRTUAL_ADDRESS spotLightCbvAddress);
 
 	bool IsInitialized() const { return initialized_; }
 

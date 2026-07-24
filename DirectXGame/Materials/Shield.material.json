@@ -6,13 +6,13 @@
     0.284518837928772,
     1.0
   ],
-  "bloomIntensity": 3.8499999046325684,
+  "bloomIntensity": 5.449999809265137,
   "bloomSoftKnee": 0.5370000004768372,
   "bloomThreshold": 0.0,
   "emissiveColor": [
-    0.003361284267157316,
     0.0,
-    0.050209224224090576
+    0.05146980285644531,
+    0.8786610960960388
   ],
   "emissiveEnabled": true,
   "emissiveIntensity": 1.0,

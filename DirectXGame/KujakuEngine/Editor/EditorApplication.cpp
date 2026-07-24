@@ -401,8 +401,8 @@ void EditorApplication::Draw() {
 				LineRenderer::GetInstance()->Clear();
 			}
 			dxCommon->EndSceneRender();
-			// HDRシーンRTへブルーム+トーンマップを適用(SceneViewWindowはこの結果を表示する)。
-			PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture());
+			// HDRシーンRTへフォグ+ブルーム+トーンマップを適用(SceneViewWindowはこの結果を表示する)。
+			PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture(), sceneCamera);
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}
@@ -415,8 +415,8 @@ void EditorApplication::Draw() {
 			// Collider可視化などRenderViewが積んだ線をGameビューRTへ描画(Sceneビューと同様にフラッシュ)。
 			LineRenderer::GetInstance()->Render(*gameCamera);
 			dxCommon->EndGameRender();
-			// HDRシーンRTへブルーム+トーンマップを適用(GameViewWindowはこの結果を表示する)。
-			PostProcess::GetInstance()->Render(DirectXCommon::kGameViewIndex, dxCommon->GetGameRenderTexture());
+			// HDRシーンRTへフォグ+ブルーム+トーンマップを適用(GameViewWindowはこの結果を表示する)。
+			PostProcess::GetInstance()->Render(DirectXCommon::kGameViewIndex, dxCommon->GetGameRenderTexture(), gameCamera);
 		}
 	} else if (currentScene_ && sceneVisible) {
 		// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
@@ -431,7 +431,7 @@ void EditorApplication::Draw() {
 		}
 		dxCommon->EndSceneRender();
 		// 単一ビュー(Prefab編集等)でもトーンマップは必ず通す(HDR RTは直接表示できないため)。
-		PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture());
+		PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture(), renderCamera);
 	} else {
 		LineRenderer::GetInstance()->Clear();
 	}
@@ -450,7 +450,7 @@ void EditorApplication::Draw() {
 			currentScene_->RenderView(camera, false);
 			LineRenderer::GetInstance()->Render(*camera);
 			dxCommon->EndGameRender();
-			PostProcess::GetInstance()->RenderToBackBuffer(dxCommon->GetGameRenderTexture());
+			PostProcess::GetInstance()->RenderToBackBuffer(dxCommon->GetGameRenderTexture(), camera);
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}

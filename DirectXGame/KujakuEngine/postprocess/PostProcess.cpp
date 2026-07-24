@@ -12,7 +12,11 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <fstream>
+
+#include "../3d/Camera.h"
+#include "../3d/SpotLight.h"
 
 namespace KujakuEngine {
 
@@ -63,6 +67,20 @@ void PostProcess::LoadSettingsFromProjectRoot(const std::filesystem::path& proje
 		}
 		readFloat("vignetteIntensity", settings_.vignetteIntensity);
 		readFloat("vignetteSmoothness", settings_.vignetteSmoothness);
+		if (json.contains("fogEnabled") && json.at("fogEnabled").is_boolean()) {
+			settings_.fogEnabled = json.at("fogEnabled").get<bool>();
+		}
+		if (json.contains("fogColor") && json.at("fogColor").is_array() && json.at("fogColor").size() >= 3) {
+			settings_.fogColor.x = json.at("fogColor").at(0).get<float>();
+			settings_.fogColor.y = json.at("fogColor").at(1).get<float>();
+			settings_.fogColor.z = json.at("fogColor").at(2).get<float>();
+		}
+		readFloat("fogDensity", settings_.fogDensity);
+		readFloat("fogHeightFalloff", settings_.fogHeightFalloff);
+		readFloat("fogHeightBase", settings_.fogHeightBase);
+		readFloat("fogStartDistance", settings_.fogStartDistance);
+		readFloat("fogMaxDistance", settings_.fogMaxDistance);
+		readFloat("fogSpotScatter", settings_.fogSpotScatter);
 	} catch (...) {
 		// 読み込み失敗はデフォルト設定のままとし、致命扱いにしない(Tags.jsonと同じ方針)。
 	}
@@ -84,6 +102,14 @@ void PostProcess::SaveSettings() const {
 		json["colorFilter"] = {settings_.colorFilter.x, settings_.colorFilter.y, settings_.colorFilter.z};
 		json["vignetteIntensity"] = settings_.vignetteIntensity;
 		json["vignetteSmoothness"] = settings_.vignetteSmoothness;
+		json["fogEnabled"] = settings_.fogEnabled;
+		json["fogColor"] = {settings_.fogColor.x, settings_.fogColor.y, settings_.fogColor.z};
+		json["fogDensity"] = settings_.fogDensity;
+		json["fogHeightFalloff"] = settings_.fogHeightFalloff;
+		json["fogHeightBase"] = settings_.fogHeightBase;
+		json["fogStartDistance"] = settings_.fogStartDistance;
+		json["fogMaxDistance"] = settings_.fogMaxDistance;
+		json["fogSpotScatter"] = settings_.fogSpotScatter;
 		std::ofstream ofs(settingsPath_);
 		if (ofs) {
 			ofs << json.dump(2);
@@ -121,6 +147,9 @@ void PostProcess::EnsureTargets(ViewTargets& targets, int32_t width, int32_t hei
 	// Resolve(トーンマップ後LDR)はsourceと同解像度。
 	// リソースはUNORM、View/出力は_SRGB(リニア値をHWでsRGBエンコードし、ImGuiのSRVでデコードする既存RTと同じ流儀)。
 	RecreateTarget(targets.resolve, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, DirectXCommon::kResolveColorFormat);
+
+	// フォグ適用後のHDRシーン(トーンマップの入力)。sourceと同解像度・同フォーマット。
+	RecreateTarget(targets.fogScratch, width, height, DirectXCommon::kSceneColorFormat, DirectXCommon::kSceneColorFormat);
 
 	// ブルーム縮小チェーン(1/2〜1/16)。最小辺が8px未満になる段は作らない。
 	targets.activeMipCount = 0;
@@ -304,21 +333,56 @@ void PostProcess::RenderBloomChain(ViewTargets& targets, const RenderTexture& so
 	}
 }
 
-void PostProcess::DrawTonemap(const RenderTexture& source, const ViewTargets& targets, bool bloomActive) {
+void PostProcess::DrawFog(const RenderTexture& source, ViewTargets& targets, const Camera* camera) {
+	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
+	PostEffectPipeline* pipeline = PostEffectPipeline::GetInstance();
+
+	PostTarget& dst = targets.fogScratch;
+	TransitionTarget(dst, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	commandList->OMSetRenderTargets(1, &dst.rtvHandle, false, nullptr);
+	SetViewportScissor(dst.width, dst.height);
+
+	// フォグ定数を組み立てる。逆VP行列は深度→ワールド座標復元用。
+	FogConstants fogConstants;
+	Matrix4x4 invViewProjection = Inverse(camera->matView * camera->matProjection);
+	std::memcpy(fogConstants.invViewProjection, invViewProjection.m, sizeof(fogConstants.invViewProjection));
+	fogConstants.cameraWorldPosition[0] = camera->translation_.x;
+	fogConstants.cameraWorldPosition[1] = camera->translation_.y;
+	fogConstants.cameraWorldPosition[2] = camera->translation_.z;
+	fogConstants.enabled = 1.0f;
+	fogConstants.fogColor[0] = settings_.fogColor.x;
+	fogConstants.fogColor[1] = settings_.fogColor.y;
+	fogConstants.fogColor[2] = settings_.fogColor.z;
+	fogConstants.density = settings_.fogDensity;
+	fogConstants.heightFalloff = settings_.fogHeightFalloff;
+	fogConstants.heightBase = settings_.fogHeightBase;
+	fogConstants.startDistance = settings_.fogStartDistance;
+	fogConstants.maxDistance = settings_.fogMaxDistance;
+	fogConstants.spotScatter = settings_.fogSpotScatter;
+
+	pipeline->SetCommandList(PostEffectType::kFog, MakeConstants());
+	pipeline->SetFogConstants(fogConstants, SpotLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootDescriptorTable(PostEffectPipeline::kRootParamTexture0, source.srvHandleGPU);
+	commandList->SetGraphicsRootDescriptorTable(PostEffectPipeline::kRootParamTexture1, source.depthSrvHandleGPU);
+	commandList->DrawInstanced(3, 1, 0, 0);
+	TransitionTarget(dst, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+}
+
+void PostProcess::DrawTonemap(D3D12_GPU_DESCRIPTOR_HANDLE sceneSrv, const ViewTargets& targets, bool bloomActive) {
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
 	PostEffectPipeline* pipeline = PostEffectPipeline::GetInstance();
 
 	PostConstants constants = MakeConstants();
 	constants.bloomIntensity = bloomActive ? settings_.bloomIntensity : 0.0f;
 	pipeline->SetCommandList(PostEffectType::kTonemap, constants);
-	commandList->SetGraphicsRootDescriptorTable(PostEffectPipeline::kRootParamTexture0, source.srvHandleGPU);
-	// ブルーム無効時はt1を読まない(intensity=0)が、未バインドを避けるためsourceを入れておく。
-	D3D12_GPU_DESCRIPTOR_HANDLE bloomSrv = bloomActive ? targets.bloomMips[0].srvHandleGPU : source.srvHandleGPU;
+	commandList->SetGraphicsRootDescriptorTable(PostEffectPipeline::kRootParamTexture0, sceneSrv);
+	// ブルーム無効時はt1を読まない(intensity=0)が、未バインドを避けるためsceneSrvを入れておく。
+	D3D12_GPU_DESCRIPTOR_HANDLE bloomSrv = bloomActive ? targets.bloomMips[0].srvHandleGPU : sceneSrv;
 	commandList->SetGraphicsRootDescriptorTable(PostEffectPipeline::kRootParamTexture1, bloomSrv);
 	commandList->DrawInstanced(3, 1, 0, 0);
 }
 
-void PostProcess::Render(uint32_t viewIndex, const RenderTexture& source) {
+void PostProcess::Render(uint32_t viewIndex, const RenderTexture& source, const Camera* camera) {
 	assert(viewIndex < DirectXCommon::kRenderViewCount);
 	if (!PostEffectPipeline::GetInstance()->IsInitialized()) {
 		return;
@@ -334,25 +398,31 @@ void PostProcess::Render(uint32_t viewIndex, const RenderTexture& source) {
 		RenderBloomChain(targets, source);
 	}
 
-	// --- トーンマップ: HDRシーン+ブルーム → Resolve RT(LDR) ---
+	// --- フォグ: HDRシーン+深度 → fogScratch(HDR) ---
+	const bool fogActive = settings_.fogEnabled && camera != nullptr;
+	if (fogActive) {
+		DrawFog(source, targets, camera);
+	}
+
+	// --- トーンマップ: HDRシーン(フォグ適用済みならfogScratch)+ブルーム → Resolve RT(LDR) ---
 	TransitionTarget(targets.resolve, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	commandList->OMSetRenderTargets(1, &targets.resolve.rtvHandle, false, nullptr);
 	SetViewportScissor(targets.resolve.width, targets.resolve.height);
-	DrawTonemap(source, targets, bloomActive);
+	DrawTonemap(fogActive ? targets.fogScratch.srvHandleGPU : source.srvHandleGPU, targets, bloomActive);
 	TransitionTarget(targets.resolve, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	// この後のImGui描画のため、描画先をバックバッファへ戻す(EndRenderTextureと同じ規約)。
 	dxCommon->SetBackBufferRenderTarget();
 }
 
-void PostProcess::RenderToBackBuffer(const RenderTexture& source) {
+void PostProcess::RenderToBackBuffer(const RenderTexture& source, const Camera* camera) {
 	if (!PostEffectPipeline::GetInstance()->IsInitialized()) {
 		return;
 	}
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
-	// エディタ無しビルドはGameビューのターゲットを使う(中間RTはブルーム用のみ使用)。
+	// エディタ無しビルドはGameビューのターゲットを使う(中間RTはブルーム/フォグ用のみ使用)。
 	ViewTargets& targets = viewTargets_[DirectXCommon::kGameViewIndex];
 	EnsureTargets(targets, source.width, source.height);
 
@@ -361,11 +431,16 @@ void PostProcess::RenderToBackBuffer(const RenderTexture& source) {
 		RenderBloomChain(targets, source);
 	}
 
+	const bool fogActive = settings_.fogEnabled && camera != nullptr;
+	if (fogActive) {
+		DrawFog(source, targets, camera);
+	}
+
 	// バックバッファはPreDrawでRENDER_TARGET状態になっている。DSVは使わないので外して積む。
 	D3D12_CPU_DESCRIPTOR_HANDLE backBufferRtv = dxCommon->GetBackBufferRtvHandle();
 	commandList->OMSetRenderTargets(1, &backBufferRtv, false, nullptr);
 	SetViewportScissor(dxCommon->GetBackBufferWidth(), dxCommon->GetBackBufferHeight());
-	DrawTonemap(source, targets, bloomActive);
+	DrawTonemap(fogActive ? targets.fogScratch.srvHandleGPU : source.srvHandleGPU, targets, bloomActive);
 
 	// 後続処理(ImGui等)のために描画先とビューポートを通常状態へ戻す。
 	dxCommon->SetBackBufferRenderTarget();

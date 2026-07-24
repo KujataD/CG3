@@ -42,6 +42,16 @@ void RenderingWindow::Draw(bool* pOpen) {
 	changed |= ImGui::SliderFloat("Vignette Intensity", &settings.vignetteIntensity, 0.0f, 1.0f);
 	changed |= ImGui::SliderFloat("Vignette Smoothness", &settings.vignetteSmoothness, 0.01f, 1.0f);
 
+	ImGui::SeparatorText("Fog");
+	changed |= ImGui::Checkbox("Fog Enabled", &settings.fogEnabled);
+	changed |= ImGui::ColorEdit3("Fog Color", &settings.fogColor.x);
+	changed |= ImGui::DragFloat("Density", &settings.fogDensity, 0.001f, 0.0f, 1.0f);
+	changed |= ImGui::DragFloat("Height Falloff", &settings.fogHeightFalloff, 0.005f, 0.0f, 2.0f);
+	changed |= ImGui::DragFloat("Height Base", &settings.fogHeightBase, 0.1f, -100.0f, 100.0f);
+	changed |= ImGui::DragFloat("Start Distance", &settings.fogStartDistance, 0.1f, 0.0f, 100.0f);
+	changed |= ImGui::DragFloat("Max Distance", &settings.fogMaxDistance, 0.5f, 1.0f, 1000.0f);
+	changed |= ImGui::DragFloat("Spot Scatter", &settings.fogSpotScatter, 0.01f, 0.0f, 10.0f);
+
 	// フェードは演出用のランタイム状態なので保存対象外。動作確認用に現在値だけ表示する。
 	if (postProcess->GetFadeAmount() > 0.0f) {
 		ImGui::Separator();

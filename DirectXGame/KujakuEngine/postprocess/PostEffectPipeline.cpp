@@ -8,6 +8,8 @@ namespace KujakuEngine {
 
 // ルート定数のDWORD数はHLSL側PostConstantsと一致している必要がある。
 static_assert(sizeof(PostConstants) == 20 * sizeof(uint32_t), "PostConstants must match PostEffect.hlsli layout (20 DWORDs).");
+// FogConstantsも同様にResources/shader/Fog.PS.hlslのFogConstantsと一致させること。
+static_assert(sizeof(FogConstants) == 32 * sizeof(uint32_t), "FogConstants must match Fog.PS.hlsl layout (32 DWORDs).");
 
 PostEffectPipeline* PostEffectPipeline::GetInstance() {
 	static PostEffectPipeline instance;
@@ -37,7 +39,7 @@ void PostEffectPipeline::CreateRootSignature() {
 	descriptorRange1[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	descriptorRange1[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	D3D12_ROOT_PARAMETER rootParameters[3] = {};
+	D3D12_ROOT_PARAMETER rootParameters[5] = {};
 	rootParameters[kRootParamTexture0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameters[kRootParamTexture0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[kRootParamTexture0].DescriptorTable.pDescriptorRanges = descriptorRange0;
@@ -52,6 +54,17 @@ void PostEffectPipeline::CreateRootSignature() {
 	rootParameters[kRootParamConstants].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[kRootParamConstants].Constants.ShaderRegister = 0;
 	rootParameters[kRootParamConstants].Constants.Num32BitValues = sizeof(PostConstants) / sizeof(uint32_t);
+
+	// Fogパス専用(b1)。他パスのシェーダーはb1を参照しないため共有RootSignatureに足しても影響しない。
+	rootParameters[kRootParamFogConstants].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameters[kRootParamFogConstants].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[kRootParamFogConstants].Constants.ShaderRegister = 1;
+	rootParameters[kRootParamFogConstants].Constants.Num32BitValues = sizeof(FogConstants) / sizeof(uint32_t);
+
+	// Fogパス専用(b4)。SpotLightの既存定数バッファをそのまま指すroot descriptor CBV。
+	rootParameters[kRootParamSpotLightCBV].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[kRootParamSpotLightCBV].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[kRootParamSpotLightCBV].Descriptor.ShaderRegister = 4;
 
 	// ダウン/アップサンプルはバイリニア前提。画面端のはみ出しはCLAMPで抑える。
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
@@ -104,6 +117,7 @@ void PostEffectPipeline::CreatePipelineStates() {
 		bool additiveBlend;
 	};
 	const PassDesc passes[] = {
+	    {PostEffectType::kFog,             L"Resources/shader/Fog.PS.hlsl",             DirectXCommon::kSceneColorFormat,    false},
 	    {PostEffectType::kBloomDownsample, L"Resources/shader/BloomDownsample.PS.hlsl", kBloomFormat,                        false},
 	    {PostEffectType::kBloomUpsample,   L"Resources/shader/BloomUpsample.PS.hlsl",   kBloomFormat,                        true },
 	    {PostEffectType::kTonemap,         L"Resources/shader/Tonemap.PS.hlsl",         DirectXCommon::kResolveColorFormat,  false},
@@ -167,6 +181,12 @@ void PostEffectPipeline::SetCommandList(PostEffectType type, const PostConstants
 	commandList->SetPipelineState(pipelineStates_[static_cast<int32_t>(type)].Get());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->SetGraphicsRoot32BitConstants(kRootParamConstants, sizeof(PostConstants) / sizeof(uint32_t), &constants, 0);
+}
+
+void PostEffectPipeline::SetFogConstants(const FogConstants& constants, D3D12_GPU_VIRTUAL_ADDRESS spotLightCbvAddress) {
+	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
+	commandList->SetGraphicsRoot32BitConstants(kRootParamFogConstants, sizeof(FogConstants) / sizeof(uint32_t), &constants, 0);
+	commandList->SetGraphicsRootConstantBufferView(kRootParamSpotLightCBV, spotLightCbvAddress);
 }
 
 } // namespace KujakuEngine

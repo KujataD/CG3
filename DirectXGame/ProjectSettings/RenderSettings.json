@@ -1,6 +1,6 @@
 {
   "bloomEnabled": true,
-  "bloomIntensity": 0.47999998927116394,
+  "bloomIntensity": 0.5699999928474426,
   "colorFilter": [
     1.0,
     1.0,
@@ -8,6 +8,18 @@
   ],
   "contrast": 1.0,
   "exposure": 1.0,
+  "fogColor": [
+    0.5,
+    0.550000011920929,
+    0.6000000238418579
+  ],
+  "fogDensity": 0.017000000923871994,
+  "fogEnabled": true,
+  "fogHeightBase": 6.599999904632568,
+  "fogHeightFalloff": 0.1599999964237213,
+  "fogMaxDistance": 82.0,
+  "fogSpotScatter": 1.0399999618530273,
+  "fogStartDistance": 6.5,
   "saturation": 1.0,
   "tonemapper": 2,
   "vignetteIntensity": 0.0,

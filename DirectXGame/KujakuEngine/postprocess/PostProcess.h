@@ -13,6 +13,8 @@
 
 namespace KujakuEngine {
 
+class Camera;
+
 // ポストプロセス全体の調整パラメータ。
 // RenderingWindowから編集し、ProjectSettings/RenderSettings.jsonへ保存する。
 struct PostProcessSettings {
@@ -29,6 +31,15 @@ struct PostProcessSettings {
 	Vector4 colorFilter = {1.0f, 1.0f, 1.0f, 1.0f}; // rgbのみ使用
 	float vignetteIntensity = 0.0f;
 	float vignetteSmoothness = 0.4f;
+	// --- フォグ(距離+高さ+SpotLight散乱) ---
+	bool fogEnabled = false;
+	Vector3 fogColor = {0.5f, 0.55f, 0.6f}; // 環境光としての霧色(リニア)
+	float fogDensity = 0.02f;               // 距離ベースの指数フォグ密度
+	float fogHeightFalloff = 0.1f;          // 高さによる密度減衰(0で均一)
+	float fogHeightBase = 0.0f;             // この高さより上ほど薄くなる
+	float fogStartDistance = 1.0f;          // このカメラ距離まではフォグなし
+	float fogMaxDistance = 80.0f;           // レイマーチの最大距離
+	float fogSpotScatter = 1.0f;            // SpotLightが霧を照らす強さ
 };
 
 /// <summary>
@@ -57,17 +68,17 @@ public:
 	KUJAKU_API void SaveSettings() const;
 
 	/// <summary>
-	/// sourceに描かれたHDRシーンへブルーム+トーンマップを適用し、ビュー専用のResolve RT(LDR)へ出力する。
+	/// sourceに描かれたHDRシーンへフォグ+ブルーム+トーンマップを適用し、ビュー専用のResolve RT(LDR)へ出力する。
 	/// EndSceneRender/EndGameRenderの直後に呼ぶこと(sourceはPIXEL_SHADER_RESOURCE状態)。
-	/// 終了時に描画先はバックバッファへ戻る。
+	/// 終了時に描画先はバックバッファへ戻る。cameraはフォグの深度復元用(nullptrならフォグをスキップ)。
 	/// </summary>
-	void Render(uint32_t viewIndex, const RenderTexture& source);
+	void Render(uint32_t viewIndex, const RenderTexture& source, const Camera* camera = nullptr);
 
 	/// <summary>
-	/// エディタ無しビルド用: ブルーム適用後、最終トーンマップをSwapChainバックバッファへ直接出力する。
+	/// エディタ無しビルド用: フォグ+ブルーム適用後、最終トーンマップをSwapChainバックバッファへ直接出力する。
 	/// PreDraw後(バックバッファがRENDER_TARGET状態)に呼ぶこと。
 	/// </summary>
-	void RenderToBackBuffer(const RenderTexture& source);
+	void RenderToBackBuffer(const RenderTexture& source, const Camera* camera = nullptr);
 
 	/// <summary>
 	/// ImGui::Imageで表示する、ポスト適用済みRT(LDR)のSRVハンドル。
@@ -106,6 +117,7 @@ private:
 	struct ViewTargets {
 		PostTarget bloomMips[kMaxBloomMipCount];
 		uint32_t activeMipCount = 0;
+		PostTarget fogScratch; // フォグ適用後のHDRシーン(トーンマップの入力になる)
 		PostTarget resolve; // トーンマップ後のLDR出力(ImGui::Imageが表示する)
 		int32_t sourceWidth = 0; // 生成時のsourceサイズ(リサイズ検知用)
 		int32_t sourceHeight = 0;
@@ -123,8 +135,11 @@ private:
 	void TransitionTarget(PostTarget& target, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
 	// 指定サイズのViewport/Scissorを積む。
 	void SetViewportScissor(int32_t width, int32_t height);
+	// フォグパスを実行する(source+深度→fogScratch)。カメラの逆VP行列で深度からワールド座標を復元する。
+	void DrawFog(const RenderTexture& source, ViewTargets& targets, const Camera* camera);
 	// トーンマップパスを積む(出力先RTV/サイズは呼び出し側で設定済みであること)。
-	void DrawTonemap(const RenderTexture& source, const ViewTargets& targets, bool bloomActive);
+	// sceneSrvはHDRシーンの入力(フォグ適用済みならfogScratch、そうでなければsource)。
+	void DrawTonemap(D3D12_GPU_DESCRIPTOR_HANDLE sceneSrv, const ViewTargets& targets, bool bloomActive);
 
 private:
 	PostProcessSettings settings_;

@@ -265,6 +265,13 @@ void DirectXCommon::CreateRenderTexture(RenderTexture& target, int32_t width, in
 	target.emissionSrvHandleGPU = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
 	target.emissionSrvHandleGPU.ptr += descriptorSizeSRV_ * emissionSrvIndex;
 
+	// 深度をポストプロセス(フォグ等)から読むためのSRVスロット。
+	uint32_t depthSrvIndex = AllocateSrvIndex();
+	target.depthSrvHandleCPU = srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	target.depthSrvHandleCPU.ptr += descriptorSizeSRV_ * depthSrvIndex;
+	target.depthSrvHandleGPU = srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart();
+	target.depthSrvHandleGPU.ptr += descriptorSizeSRV_ * depthSrvIndex;
+
 	RecreateRenderTextureResources(target);
 }
 
@@ -351,13 +358,15 @@ void DirectXCommon::RecreateRenderTextureResources(RenderTexture& target) {
 	device_->CreateShaderResourceView(target.emissionResource.Get(), &emissionSrvDesc, target.emissionSrvHandleCPU);
 
 	// --- 深度 ---
+	// フォグ等のポストプロセスからテクスチャとしても読みたいためTYPELESSで確保し、
+	// DSVはD24_UNORM_S8_UINT、SRVはR24_UNORM_X8_TYPELESS(赤成分=正規化深度)として個別にViewする。
 	D3D12_RESOURCE_DESC depthDesc{};
 	depthDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	depthDesc.Width = target.width;
 	depthDesc.Height = target.height;
 	depthDesc.DepthOrArraySize = 1;
 	depthDesc.MipLevels = 1;
-	depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	depthDesc.SampleDesc.Count = 1;
 	depthDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
@@ -379,6 +388,13 @@ void DirectXCommon::RecreateRenderTextureResources(RenderTexture& target) {
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	device_->CreateDepthStencilView(target.depthResource.Get(), &dsvDesc, target.dsvHandle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC depthSrvDesc{};
+	depthSrvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	depthSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	depthSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	depthSrvDesc.Texture2D.MipLevels = 1;
+	device_->CreateShaderResourceView(target.depthResource.Get(), &depthSrvDesc, target.depthSrvHandleCPU);
 }
 
 void DirectXCommon::ResizeSceneRenderTarget(int32_t width, int32_t height) {
@@ -613,7 +629,8 @@ void DirectXCommon::EndGameRender() { EndRenderTexture(gameRenderTexture_); }
 void DirectXCommon::BeginRenderTexture(RenderTexture& target) {
 	// RenderTextureは通常ImGuiから読まれる状態にしている。
 	// ここから描画を書き込むため、カラー/エミッション両方をRENDER_TARGET状態へ遷移する。
-	D3D12_RESOURCE_BARRIER barriers[2]{};
+	// 深度はフォグパスがPIXEL_SHADER_RESOURCEへ戻しているため、DEPTH_WRITEへ戻す。
+	D3D12_RESOURCE_BARRIER barriers[3]{};
 	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barriers[0].Transition.pResource = target.colorResource.Get();
@@ -622,7 +639,11 @@ void DirectXCommon::BeginRenderTexture(RenderTexture& target) {
 	barriers[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	barriers[1] = barriers[0];
 	barriers[1].Transition.pResource = target.emissionResource.Get();
-	commandList_->ResourceBarrier(2, barriers);
+	barriers[2] = barriers[0];
+	barriers[2].Transition.pResource = target.depthResource.Get();
+	barriers[2].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	barriers[2].Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	commandList_->ResourceBarrier(3, barriers);
 
 	// 以降のDraw呼び出しがこのRenderTextureへ描かれるように、描画先を差し替える。
 	// MRT: [0]=通常色 / [1]=エミッション(emissionEnabledなマテリアルのみがSV_TARGET1へ書く)。
@@ -653,8 +674,8 @@ void DirectXCommon::BeginRenderTexture(RenderTexture& target) {
 }
 
 void DirectXCommon::EndRenderTexture(RenderTexture& target) {
-	// 描画が終わったので、ImGui::Image/ポストプロセスから読める状態へ戻す(カラー+エミッション)。
-	D3D12_RESOURCE_BARRIER barriers[2]{};
+	// 描画が終わったので、ImGui::Image/ポストプロセスから読める状態へ戻す(カラー+エミッション+深度)。
+	D3D12_RESOURCE_BARRIER barriers[3]{};
 	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barriers[0].Transition.pResource = target.colorResource.Get();
@@ -663,7 +684,10 @@ void DirectXCommon::EndRenderTexture(RenderTexture& target) {
 	barriers[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	barriers[1] = barriers[0];
 	barriers[1].Transition.pResource = target.emissionResource.Get();
-	commandList_->ResourceBarrier(2, barriers);
+	barriers[2] = barriers[0];
+	barriers[2].Transition.pResource = target.depthResource.Get();
+	barriers[2].Transition.StateBefore = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	commandList_->ResourceBarrier(3, barriers);
 
 	// この後のImGui描画はSwapChainバックバッファへ出したいので、描画先を戻す。
 	SetBackBufferRenderTarget();
