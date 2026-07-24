@@ -8,6 +8,7 @@ KujakuEngine は、DirectX 12 の描画基盤に、ImGui Docking を使った簡
 
 - [必要環境](#必要環境)
 - [起動方法](#起動方法)
+- [ディレクトリ構成](#ディレクトリ構成)
 - [全体構造](#全体構造)
 - [実行フロー](#実行フロー)
 - [Editor の使い方](#editor-の使い方)
@@ -77,6 +78,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 ```
 
 `main.cpp` は `EditorApplication` を呼ぶだけに近い形になっています。Edit / Play の分岐や、Scene の Update を流すかどうかの判断は `main.cpp` には置かない方針です。現在の Scene は `EditorApplication` が `GameModule.dll` を読み込み、DLL 側の `CreateGameScene()` から作成します。
+
+## ディレクトリ構成
+
+リポジトリ直下は次の 3 つだけです。
+
+| パス | 内容 | git 管理 |
+| --- | --- | --- |
+| `DirectXGame/` | エンジン・ゲームの全ソースとアセット | する |
+| `build/` | 全プロジェクトのビルド成果物(`bin/` = 実行ファイル・DLL、`obj/` = 中間ファイル)。外部ミドルウェア BahamutAICore の出力先もここ。丸ごと削除してもリビルドで復元される | しない |
+| `KujakuEngine.sln` ほか | ソリューションと設定ファイル(`.editorconfig`, `exclusion.dic` = Visual Studio スペルチェッカーの除外辞書) | する |
+
+`DirectXGame/` の中身:
+
+| パス | 内容 | git 管理 |
+| --- | --- | --- |
+| `KujakuEngine/` | エンジン本体のソース(描画・Editor・Scene/Component 基盤など) | する |
+| `GameComponents/` | ゲーム側の Component ソース。GameModule.dll としてビルドされる | する |
+| `GameModule/` | GameComponents を DLL にまとめる Hot Reload 用プロジェクト(`GameModule.vcxproj`)。詳細は [DLL Hot Reload](#dll-hot-reload) | する |
+| `GameModule/bin/` | ↑のビルド出力(`Debug/` / `Release/` に `GameModule.dll`)。エンジン起動時にここから読み込む | しない |
+| `externals/` | 外部ライブラリ(ImGui, DirectXTex, Assimp など) | する |
+| `Resources/`, `Materials/`, `Prefabs/`, `Animations/`, `SceneJson/`, `ProjectSettings/` | アセットとシーン・プロジェクト設定の JSON | する |
+| `Temp/` | エンジンが実行時に作る一時ファイル(Hot Reload の世代別 DLL、フォントアトラス等の動的テクスチャキャッシュ)。削除可 | しない |
+| `logs/` | 実行時ログ。削除可 | しない |
+| `dxcompiler.dll` | シェーダー実行時コンパイル(DXC)用 DLL | する |
+
+`x64/` や `Debug/` という名前のフォルダがどこかに残っている場合、それは旧レイアウトか Visual Studio 既定のビルド中間フォルダの残骸なので削除して問題ありません。現在の構成では生成物はすべて `build/` と `DirectXGame/Temp/` に集約されています。
 
 ## 全体構造
 
@@ -891,10 +918,14 @@ GameModule プロジェクトの出力先は次の場所です。
 
 ```text
 DirectXGame/
-  GameModules/
-    GameModule.dll
-    GameModule.pdb
+  GameModule/
+    bin/
+      Debug/    (または Release/)
+        GameModule.dll
+        GameModule.pdb
 ```
+
+exe と DLL で構成(Debug/Release)が食い違うと STL の ABI が合わずクラッシュするため、exe は自分と同じ構成のサブフォルダから DLL を読み込みます。
 
 実行時は元 DLL を直接 `LoadLibrary` せず、次の一時フォルダへコピーしてから読み込みます。
 
@@ -1166,7 +1197,7 @@ extern "C" __declspec(dllexport) KujakuEngine::Scene* CreateGameScene() {
 | `runtime/GameModule.h` | Game DLL が export する関数ポインタと Load 結果を定義します。 |
 | `runtime/GameModuleLoader.h/.cpp` | DLL のコピー、`LoadLibrary`、`GetProcAddress`、`FreeLibrary` を担当します。 |
 | `DirectXGame/GameModule/GameModule.cpp` | Hot Reload 用 Game DLL の入口です。標準 Component 登録、追加 Component 登録、Scene 作成 export を持ちます。 |
-| `DirectXGame/GameModule/GameModule.vcxproj` | `GameModule.dll` を `DirectXGame/GameModules` へ出力するプロジェクトです。標準 Component と `SampleScene.cpp` もここでビルドします。 |
+| `DirectXGame/GameModule/GameModule.vcxproj` | `GameModule.dll` を `DirectXGame/GameModule/bin/<構成>` へ出力するプロジェクトです。標準 Component と `SampleScene.cpp` もここでビルドします。 |
 
 ### Scene
 
@@ -1340,13 +1371,13 @@ Project root の検出に失敗している可能性があります。`EditorPro
 
 ### Reload DLL が失敗する
 
-`DirectXGame/GameModules/GameModule.dll` が存在するか確認してください。存在しない場合は `GameModule` プロジェクトを `Debug|x64` または `Release|x64` でビルドします。Play 中の Reload は拒否されるため、Stop して Edit に戻ってから実行してください。
+`DirectXGame/GameModule/bin/<構成>/GameModule.dll` が存在するか確認してください。存在しない場合は `GameModule` プロジェクトを exe と同じ構成(`Debug|x64` または `Release|x64`)でビルドします。Play 中の Reload は拒否されるため、Stop して Edit に戻ってから実行してください。
 
 Export 関数名が変わっている場合も読み込みに失敗します。`RegisterGameComponents`、`UnregisterGameComponents`、`CreateGameScene`、`DestroyGameScene` の 4 つが `extern "C"` で export されているか確認してください。
 
 ### Add Component に GameModule 側 Component が出ない
 
-起動時の Console に `[GameModule] Loaded` と `[GameModule] Register game components.` が出ているか確認してください。出ていない場合は `DirectXGame/GameModules/GameModule.dll` が存在しない、または export 関数の取得に失敗している可能性があります。
+起動時の Console に `[GameModule] Loaded` と `[GameModule] Register game components.` が出ているか確認してください。出ていない場合は `DirectXGame/GameModule/bin/<構成>/GameModule.dll` が存在しない、または export 関数の取得に失敗している可能性があります。
 
 ## 今後の拡張予定の入口
 

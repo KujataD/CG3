@@ -364,3 +364,19 @@ FodyWeavers.xsd
 
 # 3Dモデルの.obj(Resources以下は除外)
 !**/Resources/**/*.obj
+
+## ---- KujakuEngine 固有の生成物 ----
+## いずれも自動生成されるフォルダ。削除してもビルド/実行し直せば復元される。
+
+# 全プロジェクトのビルド成果物置き場(bin=実行ファイル/DLL, obj=中間ファイル)。
+# 外部ミドルウェア BahamutAICore もここに出力する。
+build/
+
+# エンジン実行時の一時ファイル(HotReloadの世代別DLL、フォントアトラス等の動的テクスチャキャッシュ)
+DirectXGame/Temp/
+
+# HotReload用ゲームDLLのビルド出力(GameModule.vcxprojのOutDir)
+DirectXGame/GameModule/bin/
+
+# エンジン実行時ログ
+DirectXGame/logs/

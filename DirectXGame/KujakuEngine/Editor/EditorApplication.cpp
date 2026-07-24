@@ -683,7 +683,7 @@ bool EditorApplication::ReloadGameModule() {
 		Stop();
 	}
 
-	// 固定のGameModules出力を上書きせず、世代ごとの一時DLLを作る。
+	// 固定のGameModule/bin出力を上書きせず、世代ごとの一時DLLを作る。
 	// DLL/PDBがデバッガやOSに掴まれても、次の世代へ逃がせるようにするため。
 	std::filesystem::path hotReloadDllPath;
 	if (!BuildGameModuleForHotReload(hotReloadDllPath)) {
@@ -1037,12 +1037,7 @@ std::filesystem::path EditorApplication::GetGameModuleDllPath() const {
 	const char* configuration = "Release";
 #endif
 	std::filesystem::path root = DetectEditorProjectRoot();
-	std::filesystem::path configPath = root / "GameModules" / configuration / "GameModule.dll";
-	if (std::filesystem::exists(configPath)) {
-		return configPath;
-	}
-	// 後方互換: 旧レイアウト(構成を分けていない固定パス)にDLLがあればそれを使う。
-	return root / "GameModules" / "GameModule.dll";
+	return root / "GameModule" / "bin" / configuration / "GameModule.dll";
 }
 
 std::filesystem::path EditorApplication::GetGameModuleHotReloadBuildRoot() const {
