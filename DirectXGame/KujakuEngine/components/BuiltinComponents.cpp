@@ -13,6 +13,7 @@
 #include "PointLightComponent.h"
 #include "RectTransformComponent.h"
 #include "RigidbodyComponent.h"
+#include "SpriteRendererComponent.h"
 #include "TextComponent.h"
 #include "RotatorComponent.h"
 #include "TransformComponent.h"
@@ -30,6 +31,8 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<TransformComponent>();
 	factory.RegisterComponent<RotatorComponent>();
 	factory.RegisterComponent<ModelRendererComponent>();
+	// world空間2D(Sprite方式)。スクリーン空間UIはCanvas方式のImageComponent側。
+	factory.RegisterComponent<SpriteRendererComponent>();
 	factory.RegisterComponent<CameraComponent>();
 	factory.RegisterComponent<DebugCameraComponent>();
 	factory.RegisterComponent<OrbitCameraComponent>();

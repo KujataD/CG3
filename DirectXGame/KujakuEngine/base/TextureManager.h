@@ -62,6 +62,12 @@ public:
 
 	uint32_t GetDefaultWhiteTexture() const { return defaultWhiteTextureIndex_; }
 
+	/// <summary>
+	/// SRVインデックスからテクスチャのピクセルサイズを取得する。未登録ならfalse。
+	/// Pixels Per Unitでスプライトの大きさを決めるのに使う。
+	/// </summary>
+	bool TryGetTextureSize(uint32_t index, uint32_t& outWidth, uint32_t& outHeight) const;
+
 private:
 	TextureManager() = default;
 	~TextureManager() = default;

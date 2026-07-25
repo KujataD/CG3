@@ -22,6 +22,7 @@ KujakuEngine は、DirectX 12 の描画基盤に、ImGui Docking を使った簡
 - [Camera / Light の扱い](#camera--light-の扱い)
 - [Input](#input)
 - [Model / Texture / 描画](#model--texture--描画)
+- [2D 描画: Sprite 方式と Canvas 方式](#2d-描画-sprite-方式と-canvas-方式)
 - [Project Window](#project-window)
 - [DLL Hot Reload](#dll-hot-reload)
 - [新しい Component の作り方](#新しい-component-の作り方)
@@ -849,6 +850,56 @@ D3D12_GPU_DESCRIPTOR_HANDLE handle = TextureManager::GetInstance()->GetSrvHandle
 
 Project Window では任意ファイルを扱うため、失敗しても assert しない `TryLoadTexture()` を使っています。
 
+## 2D 描画: Sprite 方式と Canvas 方式
+
+2D の描画経路は用途で 2 つに分かれています。**どちらを使うかは「ゲーム世界の中の絵か、画面に貼り付く UI か」で決めます。**
+
+| | **Sprite 方式**(world 空間) | **Canvas 方式**(スクリーン空間 UI) |
+| --- | --- | --- |
+| 用途 | ゲーム内の見た目(キャラ、弾、エフェクト、背景) | HUD / メニュー / ボタン |
+| Component | `SpriteRendererComponent` | `CanvasComponent` + `RectTransformComponent` + `Image` / `Text` / `Button` |
+| 配置 | GameObject の通常の `Transform`(位置・回転・スケール) | `RectTransform`(アンカー・ピボット・親子)+ Canvas スケール |
+| 座標 | world 単位 | ピクセル(解像度に追従) |
+| カメラ | **映る**(カメラを動かすと一緒に動く) | 映らない(常に画面固定) |
+| 前後関係 | **Sorting Order**(深度は書かない) | Canvas の sortOrder + 階層順 |
+| 入力 | なし(当たり判定は Collider 側で) | `Button` / レイキャストで UI イベント |
+| プリミティブ | `2d/SpriteQuad`(kSprite2D パイプライン) | `2d/UIQuad`(kUI パイプライン・深度 OFF) |
+| Canvas の要否 | **不要**。GameObject に足すだけで描画される | Canvas の子である必要がある |
+
+Unity で言えば Sprite 方式が `SpriteRenderer`(2D)、Canvas 方式が uGUI にあたります。
+
+### Plane(3D メッシュ)との違い
+
+「テクスチャを貼った板」という意味では `ModelRenderer` の Plane プリミティブでも似た絵は出せますが、
+2D 用途では次の 3 点が決定的に違うため、Sprite 方式は別系統として用意しています。
+
+| | SpriteRenderer(Sprite 方式) | ModelRenderer + Plane(3D メッシュ) |
+| --- | --- | --- |
+| 深度書き込み | **しない**(半透明キュー相当)。スプライト同士が Z で争わず、α の縁が欠けない | する。半透明同士が重なると描画順で背面が消える |
+| 前後の決め方 | **Sorting Order** で明示的に指定。3D 描画の後にまとめてソートして描く | 深度バッファ任せ。カメラとの距離で決まる |
+| 大きさ | **Pixels Per Unit** でテクスチャ解像度から自動決定 | 手動でスケール調整 |
+| ライティング | 通さない(色 × テクスチャのみ) | Material / ShaderModel の影響を受ける |
+
+3D オブジェクトに遮蔽はされる(深度テストはする)ので、3D 空間の中に 2D を混ぜる使い方もできます。
+
+### SpriteRendererComponent
+
+GameObject に追加し、Inspector で以下を設定します。Canvas も RectTransform も不要です。
+
+| プロパティ | 内容 |
+| --- | --- |
+| Sprite (Texture) | 表示するテクスチャのパス。assetId が自動補完され、移動・リネームに追従します |
+| Color | 乗算色(α でフェード) |
+| Pixels Per Unit | 1 world 単位あたりのピクセル数。**大きさはテクスチャ解像度 ÷ この値**で自動決定されます(既定 100)。100×100px のテクスチャを PPU=100 で使うと 1×1 world 単位。さらに拡縮したい場合は Transform の scale を使います |
+| Pivot | 基準点(0..1)。`(0.5,0.5)` で中心、`(0,0)` でテクスチャ左上が Transform の原点 |
+| Sorting Order | 描画順。小さいほど奥。**スプライト同士の前後はこの値だけで決まります**(深度を書かないため) |
+| Flip X / Flip Y | 左右・上下反転 |
+| Blend Mode | 通常 / 加算 / 乗算 など |
+| UV Transform | UV のオフセット・スケール・回転(スクロールやアトラス切り出し用) |
+
+描画は `2d/Sprite2DRenderer` の専用パスがシーン内の SpriteRenderer を Sorting Order 順にまとめて行います。
+カメラもこのパスがビューごとに配るため、ゲーム側で設定する必要はありません。
+
 ## Project Window
 
 `ProjectWindow` は Unity の Project Window に近いファイル閲覧 UI です。
@@ -1186,7 +1237,10 @@ extern "C" __declspec(dllexport) KujakuEngine::Scene* CreateGameScene() {
 | ファイル | 役割 |
 | --- | --- |
 | `2d/ImGuiManager.h/.cpp` | ImGui 初期化、DockSpace、Game / Hierarchy / Inspector / Project / Console Window、Ctrl+S、Ctrl+Shift+R、Game Window 選択、ImGuizmo を担当します。 |
-| `2d/Sprite.h/.cpp` | 2D Sprite 描画を担当します。 |
+| `2d/SpriteQuad.h/.cpp` | world 空間 2D(Sprite 方式)のプリミティブです。`SpriteRendererComponent` が使います。 |
+| `2d/Sprite2DRenderer.h/.cpp` | シーン内のスプライトを Sorting Order 順にまとめて描く 2D 専用パスです。 |
+| `2d/UIQuad.h/.cpp` | スクリーン空間 UI(Canvas 方式)のプリミティブです。`Image` / `Text` が使います。 |
+| `2d/UICanvasRenderer.h/.cpp` | Canvas 配下の UI を階層順に描くスクリーン空間 UI のパスです。 |
 
 ### Runtime / GameModule
 

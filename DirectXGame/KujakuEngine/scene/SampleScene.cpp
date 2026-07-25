@@ -1,5 +1,4 @@
 #include "SampleScene.h"
-#include "../2d/Sprite.h"
 #include "../3d/Camera.h"
 #include "../3d/DirectionalLight.h"
 #include "../3d/Model.h"
@@ -65,9 +64,6 @@ void SampleScene::Draw() {
 	ApplyRenderCameraToModelRenderers(GetCurrentViewCamera());
 	Scene::Draw();
 	Model::PostDraw();
-
-	Sprite::PreDraw();
-	Sprite::PostDraw();
 }
 
 Camera* SampleScene::GetEditorCamera() {

@@ -13,6 +13,7 @@
 #include "../runtime/UIEventBus.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
+#include "../2d/Sprite2DRenderer.h"
 #include "../components/ColliderComponent.h"
 #include "../components/RigidbodyComponent.h"
 #include "../math/MathUtil.h"
@@ -812,6 +813,10 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 	if (g_showAllColliders) {
 		DrawAllColliderDebugLines(*this);
 	}
+
+	// world空間2Dスプライト(Sprite方式)。3Dメッシュの後・スクリーン空間UIの前に、
+	// Sorting Order順でまとめて描く(深度を書かないので描画順が前後関係になる)。
+	DrawSceneSprites(*this, camera);
 
 	// スクリーン空間UI(Canvas)の描画。drawEditorOverlays==true はSceneビュー、false はGameビュー。
 	// Gameビューは常にUIを描く。SceneビューはUI(Canvasまたはその子孫)を選択中のときだけ描く。

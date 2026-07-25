@@ -239,6 +239,20 @@ D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandle(uint32_t index) {
 	return handle;
 }
 
+bool TextureManager::TryGetTextureSize(uint32_t index, uint32_t& outWidth, uint32_t& outHeight) const {
+	// 登録数は多くないので線形探索で十分(テクスチャ差し替え時にしか呼ばれない)。
+	for (const auto& [key, data] : textures_) {
+		if (data.index != index || !data.resource) {
+			continue;
+		}
+		D3D12_RESOURCE_DESC desc = data.resource->GetDesc();
+		outWidth = static_cast<uint32_t>(desc.Width);
+		outHeight = static_cast<uint32_t>(desc.Height);
+		return outWidth > 0 && outHeight > 0;
+	}
+	return false;
+}
+
 ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata) {
 	// 1.metadataを基にResourceの設定
 	D3D12_RESOURCE_DESC resourceDesc{};

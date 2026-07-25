@@ -147,7 +147,10 @@
     <ClCompile Include="KujakuEngine\KujakuEngine.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\2d\Sprite.cpp">
+    <ClCompile Include="KujakuEngine\2d\Sprite2DRenderer.cpp">
+      <Filter>KujakuEngine\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\2d\SpriteQuad.cpp">
       <Filter>KujakuEngine\2d</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\assets\AnimationClipAsset.cpp">
@@ -351,6 +354,9 @@
     <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\components\SpriteRendererComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\components\TransformComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
@@ -521,7 +527,10 @@
     <ClInclude Include="KujakuEngine\KujakuEngineEditor.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\2d\Sprite.h">
+    <ClInclude Include="KujakuEngine\2d\Sprite2DRenderer.h">
+      <Filter>KujakuEngine\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\2d\SpriteQuad.h">
       <Filter>KujakuEngine\2d</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\assets\AnimationClipAsset.h">
@@ -567,6 +576,9 @@
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\SpriteRendererComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\TransformComponent.h">

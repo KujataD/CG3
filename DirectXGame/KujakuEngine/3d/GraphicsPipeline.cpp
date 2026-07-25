@@ -21,8 +21,11 @@ void GraphicsPipeline::Initialize() {
 	CreateObject3dPipelineStateObject();
 	CreateInstancingPipelineStateObject();
 	CreateLinePipelineStateObject();
-	CreateUIRootSignature();
-	CreateUIPipelineStateObject();
+	// スクリーン空間UI(深度OFF)と world空間2Dスプライト(深度テストのみ)。シェーダーは共通。
+	CreateUIStyleRootSignature(PipelineType::kUI);
+	CreateUIStylePipelineStateObject(PipelineType::kUI, false);
+	CreateUIStyleRootSignature(PipelineType::kSprite2D);
+	CreateUIStylePipelineStateObject(PipelineType::kSprite2D, true);
 }
 
 void GraphicsPipeline::InitializeDXC() {
@@ -730,7 +733,7 @@ void GraphicsPipeline::CreateInstancingPipelineStateObject() {
 	pixelShaderBlob->Release();
 }
 
-void GraphicsPipeline::CreateUIRootSignature() {
+void GraphicsPipeline::CreateUIStyleRootSignature(PipelineType pipelineType) {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
@@ -782,7 +785,7 @@ void GraphicsPipeline::CreateUIRootSignature() {
 		assert(false);
 	}
 
-	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kUI)]));
+	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(pipelineType)]));
 	assert(SUCCEEDED(hr));
 
 	signatureBlob->Release();
@@ -791,7 +794,7 @@ void GraphicsPipeline::CreateUIRootSignature() {
 	}
 }
 
-void GraphicsPipeline::CreateUIPipelineStateObject() {
+void GraphicsPipeline::CreateUIStylePipelineStateObject(PipelineType pipelineType, bool depthTestEnabled) {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/UI.VS.hlsl", L"vs_6_0");
@@ -818,19 +821,21 @@ void GraphicsPipeline::CreateUIPipelineStateObject() {
 	inputLayoutDesc.pInputElementDescs = inputElementDescs;
 	inputLayoutDesc.NumElements = _countof(inputElementDescs);
 
-	// UIは両面表示。
+	// UI・2Dスプライトとも両面表示(負のスケールで反転しても消えないようにする)。
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
-	// 深度は無効(オーバーレイなので常に上書き)。DSVフォーマットは合わせておく。
+	// kUI      : 深度無効(オーバーレイなので常に上書き)。
+	// kSprite2D: 深度テストのみ有効で書き込みはしない(半透明キュー相当)。
+	//            3Dオブジェクトに遮蔽はされるが、スプライト同士は深度で争わず描画順で前後が決まる。
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
-	depthStencilDesc.DepthEnable = false;
+	depthStencilDesc.DepthEnable = depthTestEnabled;
 	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
-	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	depthStencilDesc.DepthFunc = depthTestEnabled ? D3D12_COMPARISON_FUNC_LESS_EQUAL : D3D12_COMPARISON_FUNC_ALWAYS;
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
-	graphicsPipelineStateDesc.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kUI)].Get();
+	graphicsPipelineStateDesc.pRootSignature = rootSignature_[static_cast<int32_t>(pipelineType)].Get();
 	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
 	graphicsPipelineStateDesc.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
@@ -896,7 +901,7 @@ void GraphicsPipeline::CreateUIPipelineStateObject() {
 		}
 
 		graphicsPipelineStateDesc.BlendState = blendDesc;
-		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kUI)][i]));
+		HRESULT hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(pipelineType)][i]));
 		assert(SUCCEEDED(hr));
 	}
 

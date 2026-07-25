@@ -87,7 +87,8 @@ enum class PipelineType {
 	kInstancingObject3d,
 	kObject3dWireframe,
 	kLine,
-	kUI, // スクリーン空間UI(深度OFF・アルファブレンド)
+	kUI,      // スクリーン空間UI(深度OFF・アルファブレンド)
+	kSprite2D, // world空間2Dスプライト(深度テストON・深度書き込みOFF・両面・アルファブレンド)
 	kCountOfPipeLineType,
 };
 
@@ -150,9 +151,17 @@ private:
 
 	void CreateLinePipelineStateObject();
 
-	void CreateUIRootSignature();
+	/// <summary>
+	/// UI.VS/UI.PS を使うパイプライン(kUI / kSprite2D)のRootSignatureを作る。
+	/// 構成は共通(b0=Material(PS), b0=Transform(VS), t0=Texture)なのでtypeで使い分ける。
+	/// </summary>
+	void CreateUIStyleRootSignature(PipelineType pipelineType);
 
-	void CreateUIPipelineStateObject();
+	/// <summary>
+	/// UI.VS/UI.PS を使うPSOを作る。
+	/// depthTestEnabled=false: スクリーン空間UI(常に手前)。true: world空間2D(3Dに遮蔽されるが深度は書かない)。
+	/// </summary>
+	void CreateUIStylePipelineStateObject(PipelineType pipelineType, bool depthTestEnabled);
 
 private:
 	// DXCコンパイラ関連

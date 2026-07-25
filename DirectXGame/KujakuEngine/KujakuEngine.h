@@ -27,7 +27,7 @@
 #include "base/Time.h"
 #include "base/WinApp.h"
 
-#include "2d/Sprite.h"
+#include "2d/SpriteQuad.h"
 
 #include "assets/MaterialAsset.h"
 
