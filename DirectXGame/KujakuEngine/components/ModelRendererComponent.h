@@ -139,7 +139,7 @@ private:
 	// Modelアセットへの参照。assetId優先・path(プロジェクト相対)はfallback。
 	// 旧シーン互換のため名前だけの値("player"等)も保持しうる(使用時に規約パスへ展開)。
 	std::string modelAssetId_;
-	std::string modelPath_ = "player";
+	std::string modelPath_ = "Resources/block/block.obj";
 	std::string materialAssetId_;
 	std::string materialPath_;
 	MaterialAssetData material_ = MaterialAsset::CreateDefault();

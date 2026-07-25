@@ -189,7 +189,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Sound",
+      "name": "AudioSource",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_77b63fc7bcf8a7ac3bda446605c998bd.gameobject.json"

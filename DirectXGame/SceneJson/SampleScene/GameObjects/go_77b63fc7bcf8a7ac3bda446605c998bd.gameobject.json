@@ -6,7 +6,7 @@
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Sound",
+  "name": "AudioSource",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -36,7 +36,7 @@
       "enabled": true,
       "properties": {
         "audioAssetId": "",
-        "audioPath": "Resources/mokugyo.wav",
+        "audioPath": "Resources/audio/springMountain.wav",
         "loop": true,
         "playOnStart": true,
         "volume": 0.25

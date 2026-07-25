@@ -41,7 +41,7 @@ void SampleScene::Initialize() {
 	ball->GetTransform().rotation_.x = std::numbers::pi_v<float> * -0.5f;
 	ball->AddComponent<RotatorComponent>();
 	ModelRendererComponent* ballRenderer = ball->AddComponent<ModelRendererComponent>(renderCamera);
-	ballRenderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/monsterBall.png");
+	ballRenderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/white1x1.png");
 
 	GameObject* terrain = CreateGameObject("Terrain");
 	terrain->AddComponent<ModelRendererComponent>(std::unique_ptr<Model>(Model::CreateFromGlTF("plane", ShaderModel::kBlingPhongReflection)), renderCamera);
