@@ -25,9 +25,9 @@
           1.0
         ],
         "translation": [
-          -11.15115737915039,
-          6.503775596618652,
-          0.739287793636322
+          15.340434074401855,
+          4.2994303703308105,
+          5.664085388183594
         ]
       },
       "type": "Transform"
@@ -59,8 +59,8 @@
           "shaderModel": 4,
           "textures": {
             "BaseColor": {
-              "assetId": "",
-              "path": "resources/white1x1.png"
+              "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
+              "path": "Resources/white1x1.png"
             },
             "Environment": {
               "assetId": "",
@@ -74,10 +74,20 @@
         },
         "materialAssetId": "",
         "materialPath": "",
-        "modelPath": "multiMesh",
+        "modelAssetId": "asset_bfce26a6f7d29d8d5fe68b3610cb68ef",
+        "modelPath": "Resources/multiMesh.obj",
         "primitive": "Model"
       },
       "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "bobDistance": 2.0,
+        "bobSpeed": 0.019999999552965164,
+        "speed": 0.019999999552965164
+      },
+      "type": "RotatorComponent"
     }
   ]
 }

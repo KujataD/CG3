@@ -1,9 +1,11 @@
 #include "ImageComponent.h"
 
 #include "../base/TextureManager.h"
+#include "../runtime/AssetResolver.h"
 #include "../runtime/InspectorUI.h"
 #include <algorithm>
 #include <cstring>
+#include <filesystem>
 
 namespace KujakuEngine {
 namespace {
@@ -41,24 +43,41 @@ void ImageComponent::SyncPathBuffer() {
 void ImageComponent::SetTexture(const std::string& assetId, const std::string& path) {
 	textureAssetId_ = assetId;
 	texturePath_ = path;
+
+	// パスだけの参照はassetIdを補完し、リネーム/移動に追従できる参照へ揃える。
+	// Editor外(FallbackAssetResolver)ではIDが取れないため、その場合はパスをそのまま保持する。
+	if (textureAssetId_.empty() && !texturePath_.empty()) {
+		IAssetResolver& assetDatabase = GetAssetResolver();
+		std::filesystem::path resolvedPath = assetDatabase.ResolveAssetPath("", texturePath_);
+		textureAssetId_ = assetDatabase.GetOrCreateAssetId(resolvedPath);
+		if (!textureAssetId_.empty()) {
+			texturePath_ = assetDatabase.MakeProjectRelativePath(resolvedPath);
+		}
+	}
+
 	textureResolved_ = false;
 	SyncPathBuffer();
 }
 
 void ImageComponent::EnsureTextureLoaded() {
-	if (textureResolved_ && loadedPath_ == texturePath_) {
+	// assetId優先で現在のパスへ解決する(移動済みアセットは.meta経由で新パスが返る)。
+	std::string resolvedPath;
+	if (!textureAssetId_.empty() || !texturePath_.empty()) {
+		resolvedPath = GetAssetResolver().ResolveAssetPath(textureAssetId_, texturePath_).string();
+	}
+	if (textureResolved_ && loadedPath_ == resolvedPath) {
 		return;
 	}
 	TextureManager* textureManager = TextureManager::GetInstance();
 	uint32_t index = textureManager->GetDefaultWhiteTexture();
-	if (!texturePath_.empty()) {
+	if (!resolvedPath.empty()) {
 		uint32_t loaded = 0;
-		if (textureManager->TryLoadTexture(texturePath_, loaded)) {
+		if (textureManager->TryLoadTexture(resolvedPath, loaded)) {
 			index = loaded;
 		}
 	}
 	textureIndex_ = index;
-	loadedPath_ = texturePath_;
+	loadedPath_ = resolvedPath;
 	textureResolved_ = true;
 }
 
@@ -99,9 +118,8 @@ void ImageComponent::DrawInspector() {
 #ifdef USE_IMGUI
 	InspectorUI::ColorEdit4("Color", &color_.x);
 	if (InspectorUI::InputText("Texture", pathBuffer_.data(), pathBuffer_.size())) {
-		texturePath_ = pathBuffer_.data();
-		textureAssetId_.clear();
-		textureResolved_ = false;
+		// SetTextureが存在するパスならassetIdを補完する(入力途中の不完全なパスはID無しのまま)。
+		SetTexture("", pathBuffer_.data());
 	}
 	InspectorUI::Checkbox("Raycast Target", &raycastTarget_);
 	if (InspectorUI::DragFloat("Fill Amount", &fillAmount_, 0.01f, 0.0f, 1.0f)) {
@@ -119,8 +137,8 @@ void ImageComponent::WriteJson(nlohmann::json& json) const {
 }
 
 void ImageComponent::ReadJson(const nlohmann::json& json) {
-	textureAssetId_ = ReadString(json, "textureAssetId", textureAssetId_);
-	texturePath_ = ReadString(json, "texturePath", texturePath_);
+	// SetTexture経由にすることで、ID未付与の旧データはここで補完される(次回保存時に永続化)。
+	SetTexture(ReadString(json, "textureAssetId", textureAssetId_), ReadString(json, "texturePath", texturePath_));
 	color_ = ReadVector4(json, "color", color_);
 	if (json.contains("raycastTarget") && json.at("raycastTarget").is_boolean()) {
 		raycastTarget_ = json.at("raycastTarget").get<bool>();

@@ -291,7 +291,9 @@ void GameObject::OnPlayStart() {
 
 void GameObject::OnPlayStop() {
 	for (const std::unique_ptr<Component>& component : components_) {
-		if (component && component->IsEnabled()) {
+		// OnPlayStopは後始末の通知なので、IsEnabledに関係なく全Componentへ届ける。
+		// Play中に無効化されたComponent(再生中のAudioSource等)が後始末できなくなるため。
+		if (component) {
 			component->OnPlayStop();
 		}
 	}

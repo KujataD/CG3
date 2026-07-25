@@ -46,6 +46,15 @@ public:
 	/// </summary>
 	void SetPrimitive(PrimitiveType primitive, const std::string& textureFilePath);
 
+	/// <summary>
+	/// 表示するModelをパス(プロジェクト相対)で設定します。存在するファイルならassetIdを補完し、
+	/// 以後のリネーム/移動に追従します。旧形式の名前だけの指定("bishop")は
+	/// "Resources/&lt;name&gt;/&lt;name&gt;.obj" 規約でパスへ展開されます。
+	/// </summary>
+	void SetModelPath(const std::string& modelPathOrName);
+
+	const std::string& GetModelPath() const { return modelPath_; }
+
 	void SetMaterialAsset(const std::string& materialAssetId, const std::string& materialPath);
 
 	void SetMaterialPath(const std::string& materialPath);
@@ -97,6 +106,7 @@ public:
 
 private:
 	void RebuildPrimitiveModel();
+	std::filesystem::path ResolveModelFilePath() const;
 	void ApplyMaterialToModel();
 	/// <summary>
 	/// 参照中のMaterial Assetを読み込み、失敗時はComponent内Materialを返します。
@@ -108,7 +118,10 @@ private:
 	std::unique_ptr<Model> model_;
 	const Camera* camera_ = nullptr;
 	PrimitiveType primitive_ = PrimitiveType::Custom;
-	std::string modelFolderPath_ = "player";
+	// Modelアセットへの参照。assetId優先・path(プロジェクト相対)はfallback。
+	// 旧シーン互換のため名前だけの値("player"等)も保持しうる(使用時に規約パスへ展開)。
+	std::string modelAssetId_;
+	std::string modelPath_ = "player";
 	std::string materialAssetId_;
 	std::string materialPath_;
 	MaterialAssetData material_ = MaterialAsset::CreateDefault();

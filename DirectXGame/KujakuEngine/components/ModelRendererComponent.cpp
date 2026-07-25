@@ -50,6 +50,31 @@ ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primi
 	return ModelRendererComponent::PrimitiveType::Custom;
 }
 
+// 旧形式のModel参照("bishop"のような名前のみ)を "Resources/<name>/<name>.obj" 規約でパスへ展開する。
+// 既にパス形式(区切りか拡張子を含む)ならそのまま返す。
+// Model::CreateFromOBJと同様、規約フォルダに無ければResources直下(Resources/<name>.obj)へフォールバックする。
+std::string NormalizeModelPath(const std::string& modelPathOrName) {
+	if (modelPathOrName.empty()) {
+		return modelPathOrName;
+	}
+	bool hasSeparator = modelPathOrName.find('/') != std::string::npos || modelPathOrName.find('\\') != std::string::npos;
+	bool hasExtension = std::filesystem::path(modelPathOrName).has_extension();
+	if (hasSeparator || hasExtension) {
+		return modelPathOrName;
+	}
+
+	IAssetResolver& assetDatabase = GetAssetResolver();
+	std::string conventionPath = "Resources/" + modelPathOrName + "/" + modelPathOrName + ".obj";
+	if (std::filesystem::exists(assetDatabase.ResolveAssetPath("", conventionPath))) {
+		return conventionPath;
+	}
+	std::string rootPath = "Resources/" + modelPathOrName + ".obj";
+	if (std::filesystem::exists(assetDatabase.ResolveAssetPath("", rootPath))) {
+		return rootPath;
+	}
+	return conventionPath;
+}
+
 std::string GetBaseColorTexturePath(const MaterialAssetData& material) {
 	return MaterialAsset::GetTexturePath(material, MaterialTextureSlot::BaseColor);
 }
@@ -86,6 +111,31 @@ void ModelRendererComponent::SetPrimitive(PrimitiveType primitive, const std::st
 		SetBaseColorTexturePath(material_, textureFilePath);
 	}
 	RebuildPrimitiveModel();
+}
+
+void ModelRendererComponent::SetModelPath(const std::string& modelPathOrName) {
+	std::string normalizedPath = NormalizeModelPath(modelPathOrName);
+	modelAssetId_.clear();
+	modelPath_ = normalizedPath;
+	if (normalizedPath.empty()) {
+		return;
+	}
+
+	// 存在するファイルならassetIdを補完し、リネーム/移動に追従できる参照へ揃える。
+	// Editor外(FallbackAssetResolver)ではIDが取れないため、その場合はパスをそのまま保持する。
+	IAssetResolver& assetDatabase = GetAssetResolver();
+	std::filesystem::path resolvedPath = assetDatabase.ResolveAssetPath("", normalizedPath);
+	modelAssetId_ = assetDatabase.GetOrCreateAssetId(resolvedPath);
+	if (!modelAssetId_.empty()) {
+		modelPath_ = assetDatabase.MakeProjectRelativePath(resolvedPath);
+	}
+}
+
+std::filesystem::path ModelRendererComponent::ResolveModelFilePath() const {
+	if (modelAssetId_.empty() && modelPath_.empty()) {
+		return {};
+	}
+	return GetAssetResolver().ResolveAssetPath(modelAssetId_, NormalizeModelPath(modelPath_));
 }
 
 void ModelRendererComponent::SetMaterialAsset(const std::string& materialAssetId, const std::string& materialPath) {
@@ -230,11 +280,10 @@ void ModelRendererComponent::DrawInspector() {
 
 	// ModelはProject(エクスプローラー)からModelファイルをドロップして差し替える。
 	std::array<char, 256> modelDropBuffer{};
-	if (InspectorUI::ModelAssetField("Model", modelFolderPath_.c_str(), modelDropBuffer.data(), modelDropBuffer.size())) {
-		// CreateFromOBJは "Resources/<name>/<name>.obj" 規約なので、ファイル名(拡張子なし)をModel名として使う。
-		std::string modelName = std::filesystem::path(modelDropBuffer.data()).stem().string();
-		if (!modelName.empty()) {
-			modelFolderPath_ = modelName;
+	if (InspectorUI::ModelAssetField("Model", modelPath_.c_str(), modelDropBuffer.data(), modelDropBuffer.size())) {
+		std::string droppedPath = modelDropBuffer.data();
+		if (!droppedPath.empty()) {
+			SetModelPath(droppedPath);
 			SetPrimitive(PrimitiveType::Model, GetBaseColorTexturePath(material_));
 		}
 	}
@@ -264,7 +313,8 @@ void ModelRendererComponent::DrawInspector() {
 
 void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	json["primitive"] = GetPrimitiveName();
-	json["modelPath"] = modelFolderPath_;
+	json["modelAssetId"] = modelAssetId_;
+	json["modelPath"] = modelPath_;
 	json["materialAssetId"] = materialAssetId_;
 	json["materialPath"] = materialPath_;
 	json["billboardEnabled"] = billboardEnabled_;
@@ -278,7 +328,14 @@ void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 
 void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 	std::string primitiveName = ReadString(json, "primitive", GetPrimitiveName());
-	modelFolderPath_ = ReadString(json, "modelPath", modelFolderPath_);
+	modelAssetId_ = ReadString(json, "modelAssetId", "");
+	std::string storedModelPath = ReadString(json, "modelPath", modelPath_);
+	if (modelAssetId_.empty()) {
+		// 旧データ(ID無し・名前だけの参照を含む): 規約パスへ展開しIDを補完する(次回保存時に永続化)。
+		SetModelPath(storedModelPath);
+	} else {
+		modelPath_ = storedModelPath;
+	}
 	materialAssetId_ = ReadString(json, "materialAssetId", materialAssetId_);
 	materialPath_ = ReadString(json, "materialPath", materialPath_);
 
@@ -335,7 +392,13 @@ void ModelRendererComponent::RebuildPrimitiveModel() {
 	}
 
 	if (primitive_ == PrimitiveType::Model) {
-		model_.reset(Model::CreateFromOBJ(modelFolderPath_, ShaderModel::kBlingPhongReflection));
+		// assetId優先で現在のパスへ解決してから読み込む(移動済みアセットは.meta経由で新パスが返る)。
+		std::filesystem::path modelFilePath = ResolveModelFilePath();
+		Model* loadedModel = nullptr;
+		if (!modelFilePath.empty()) {
+			loadedModel = Model::TryCreateFromFile(modelFilePath.generic_string(), ShaderModel::kBlingPhongReflection);
+		}
+		model_.reset(loadedModel);
 		ApplyMaterialToModel();
 	}
 }

@@ -1,0 +1,83 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_9d93c43ce52040c34ec8bbdb06ac0c54",
+  "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Image",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "anchorMax": [
+          0.0,
+          0.0
+        ],
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchoredPosition": [
+          0.0,
+          0.0
+        ],
+        "pivot": [
+          0.0,
+          0.0
+        ],
+        "rotationZ": 0.0,
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "sizeDelta": [
+          300.0,
+          300.0
+        ]
+      },
+      "type": "RectTransform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fillAmount": 1.0,
+        "raycastTarget": true,
+        "textureAssetId": "asset_ac07844543f8904a56025a47cf3bf50d",
+        "texturePath": "Resources/uvChecker.png"
+      },
+      "type": "Image"
+    }
+  ]
+}

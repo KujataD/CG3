@@ -20,9 +20,9 @@
           0.0
         ],
         "scale": [
-          38.06370544433594,
+          40.0,
           2.5799999237060547,
-          41.1008415222168
+          40.0
         ],
         "translation": [
           0.0,
@@ -55,12 +55,12 @@
           ],
           "emissiveEnabled": false,
           "emissiveIntensity": 1.0,
-          "name": "MultiMesh",
+          "name": "Ground",
           "shaderModel": 2,
           "textures": {
             "BaseColor": {
-              "assetId": "asset_f40bf50f0ffc80c17a056a955691ce34",
-              "path": "Resources/terrain/ground_sample.png"
+              "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
+              "path": "Resources/white1x1.png"
             },
             "Environment": {
               "assetId": "",
@@ -72,9 +72,10 @@
             }
           }
         },
-        "materialAssetId": "asset_86e5eb1ca8376a1143723b191b0acf53",
-        "materialPath": "Materials/MultiMesh.material.json",
-        "modelPath": "player",
+        "materialAssetId": "asset_1ec61f2dd2d7b7e70f6297f5ce66bfdf",
+        "materialPath": "Materials/Ground.material.json",
+        "modelAssetId": "asset_9c33c0e2074820164e18b6f4f356ec74",
+        "modelPath": "Resources/player/player.obj",
         "primitive": "Cube"
       },
       "type": "ModelRendererComponent"

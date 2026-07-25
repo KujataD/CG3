@@ -262,6 +262,17 @@ void MaterialAsset::SetTexture(MaterialAssetData& material, MaterialTextureSlot 
 
 	texture->assetId = assetId;
 	texture->path = path;
+
+	// パスだけの参照はここでassetIdを補完し、リネーム/移動に追従できる参照へ揃える。
+	// Editor外(FallbackAssetResolver)ではIDが取れないため、その場合はパスをそのまま保持する。
+	if (texture->assetId.empty() && !texture->path.empty()) {
+		IAssetResolver& assetDatabase = GetAssetResolver();
+		std::filesystem::path resolvedPath = assetDatabase.ResolveAssetPath("", texture->path);
+		texture->assetId = assetDatabase.GetOrCreateAssetId(resolvedPath);
+		if (!texture->assetId.empty()) {
+			texture->path = assetDatabase.MakeProjectRelativePath(resolvedPath);
+		}
+	}
 }
 
 std::string MaterialAsset::GetDisplayName(const std::filesystem::path& path) {

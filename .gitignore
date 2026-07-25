@@ -74,7 +74,6 @@ StyleCopReport.xml
 *_p.c
 *_h.h
 *.ilk
-*.meta
 *.obj
 *.iobj
 *.pch
@@ -367,6 +366,9 @@ FodyWeavers.xsd
 
 ## ---- KujakuEngine 固有の生成物 ----
 ## いずれも自動生成されるフォルダ。削除してもビルド/実行し直せば復元される。
+##
+## 注意: *.meta は無視しないこと。アセットの assetId(シーンJSONからの参照キー)を
+## 保持しており、Unityの.meta同様にアセット本体とセットでコミットする必要がある。
 
 # 全プロジェクトのビルド成果物置き場(bin=実行ファイル/DLL, obj=中間ファイル)。
 # 外部ミドルウェア BahamutAICore もここに出力する。

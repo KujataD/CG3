@@ -1,5 +1,6 @@
 #include "BuiltinComponents.h"
 #include "AnimatorComponent.h"
+#include "AudioSourceComponent.h"
 #include "ButtonComponent.h"
 #include "CameraComponent.h"
 #include "CanvasComponent.h"
@@ -36,6 +37,7 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<PointLightComponent>();
 	factory.RegisterComponent<RigidbodyComponent>();
 	factory.RegisterComponent<AnimatorComponent>();
+	factory.RegisterComponent<AudioSourceComponent>();
 	factory.RegisterComponent<SphereColliderComponent>();
 	factory.RegisterComponent<BoxColliderComponent>();
 	factory.RegisterComponent<CapsuleColliderComponent>();

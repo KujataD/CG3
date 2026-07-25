@@ -16,7 +16,7 @@
       "properties": {
         "rotation": [
           0.0,
-          0.0,
+          -0.0,
           0.0
         ],
         "scale": [
@@ -26,7 +26,7 @@
         ],
         "translation": [
           0.0,
-          0.0,
+          -2.8133392333984375e-05,
           0.0
         ]
       },
@@ -45,22 +45,22 @@
             1.0,
             1.0
           ],
-          "bloomIntensity": 1.0,
-          "bloomSoftKnee": 0.5,
+          "bloomIntensity": 1.649999976158142,
+          "bloomSoftKnee": 0.4740000069141388,
           "bloomThreshold": 0.0,
           "emissiveColor": [
             1.0,
             1.0,
             1.0
           ],
-          "emissiveEnabled": false,
-          "emissiveIntensity": 1.0,
-          "name": "Player",
+          "emissiveEnabled": true,
+          "emissiveIntensity": 0.10000000149011612,
+          "name": "Shield",
           "shaderModel": 4,
           "textures": {
             "BaseColor": {
-              "assetId": "",
-              "path": "resources/white1x1.png"
+              "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
+              "path": "Resources/white1x1.png"
             },
             "Environment": {
               "assetId": "",
@@ -72,9 +72,10 @@
             }
           }
         },
-        "materialAssetId": "asset_d25ba1a25e2e953e692db582bb93e4b6",
-        "materialPath": "Materials/Player.material.json",
-        "modelPath": "pawn",
+        "materialAssetId": "asset_e8d3cd76cdbbf21474698ea3f08dc6b6",
+        "materialPath": "Materials/Shield.material.json",
+        "modelAssetId": "asset_fe450a95c79f6d3f7f22e00424d19d39",
+        "modelPath": "Resources/pawn/pawn.obj",
         "primitive": "Model"
       },
       "type": "ModelRendererComponent"

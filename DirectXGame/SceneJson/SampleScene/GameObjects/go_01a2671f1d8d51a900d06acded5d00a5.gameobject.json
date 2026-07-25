@@ -1,0 +1,83 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_01a2671f1d8d51a900d06acded5d00a5",
+  "parentInstanceId": "go_5742b0042c566bd82ba0014075beb9be",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Text",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchoredPosition": [
+          0.0,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "rotationZ": 0.0,
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "sizeDelta": [
+          100.0,
+          100.0
+        ]
+      },
+      "type": "RectTransform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "align": 0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fontPath": "C:/Windows/Fonts/YuGothR.ttc",
+        "fontSize": 28.0,
+        "text": "Text"
+      },
+      "type": "Text"
+    }
+  ]
+}

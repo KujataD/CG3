@@ -37,7 +37,7 @@
       "properties": {
         "allyName": "Bishop",
         "cameraName": "Main Camera",
-        "leaderName": "Pawn"
+        "leaderName": "Player"
       },
       "type": "PartyManager"
     }

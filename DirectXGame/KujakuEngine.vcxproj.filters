@@ -135,6 +135,9 @@
     <ClCompile Include="KujakuEngine\Editor\ImGuiManager.cpp">
       <Filter>KujakuEngine\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="KujakuEngine\base\AudioManager.cpp">
+      <Filter>KujakuEngine\base</Filter>
+    </ClCompile>
     <ClCompile Include="KujakuEngine\base\DirectXCommon.cpp">
       <Filter>KujakuEngine\base</Filter>
     </ClCompile>
@@ -312,9 +315,6 @@
     <ClCompile Include="KujakuEngine\scene\GameObject.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
-    <ClCompile Include="KujakuEngine\scene\MovementUtil.cpp">
-      <Filter>KujakuEngine\scene</Filter>
-    </ClCompile>
     <ClCompile Include="KujakuEngine\scene\RayCast.cpp">
       <Filter>KujakuEngine</Filter>
     </ClCompile>
@@ -343,6 +343,9 @@
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\components\PointLightComponent.cpp">
+      <Filter>KujakuEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\AudioSourceComponent.cpp">
       <Filter>KujakuEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujakuEngine\components\RotatorComponent.cpp">
@@ -380,6 +383,57 @@
     </ClCompile>
     <ClCompile Include="KujakuEngine\base\Time.cpp">
       <Filter>KujakuEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imsearch\imsearch.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\2d\UIRenderer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\2d\UIQuad.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\MovementUtil.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\CanvasComponent.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\RectTransformComponent.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\ImageComponent.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\TextComponent.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\components\ButtonComponent.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\2d\UICanvasRenderer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\2d\UIEventSystem.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\2d\FontAtlas.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\UIInput.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\runtime\UIEventBus.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\Editor\UIObjectFactory.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\ObjectRef.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujakuEngine\scene\UnityAction.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -452,6 +506,9 @@
     <ClInclude Include="KujakuEngine\Editor\ImGuiManager.h">
       <Filter>KujakuEngine\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="KujakuEngine\base\AudioManager.h">
+      <Filter>KujakuEngine\base</Filter>
+    </ClInclude>
     <ClInclude Include="KujakuEngine\base\DirectXCommon.h">
       <Filter>KujakuEngine\base</Filter>
     </ClInclude>
@@ -504,6 +561,9 @@
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\RigidbodyComponent.h">
+      <Filter>KujakuEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\AudioSourceComponent.h">
       <Filter>KujakuEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujakuEngine\components\RotatorComponent.h">
@@ -692,9 +752,6 @@
     <ClInclude Include="KujakuEngine\scene\GameObject.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
-    <ClInclude Include="KujakuEngine\scene\MovementUtil.h">
-      <Filter>KujakuEngine\scene</Filter>
-    </ClInclude>
     <ClInclude Include="KujakuEngine\scene\RayCast.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
@@ -734,6 +791,69 @@
     <ClInclude Include="KujakuEngine\3d\RailCameraController.h">
       <Filter>KujakuEngine</Filter>
     </ClInclude>
+    <ClInclude Include="externals\imsearch\imsearch.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imsearch\imsearch_internal.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\2d\UIRenderer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\2d\UIQuad.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\MovementUtil.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\CanvasComponent.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\RectTransformComponent.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\ImageComponent.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\2d\UICanvasRenderer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\2d\UIRect.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\2d\FontAtlas.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\2d\UIEventSystem.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\TextComponent.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\components\ButtonComponent.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\UIInput.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\runtime\UIEventBus.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\Editor\UIObjectFactory.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\stb\stb_truetype.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\InvokableMethod.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\ObjectRef.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujakuEngine\scene\UnityAction.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt">
@@ -747,8 +867,28 @@
     <None Include="KujakuEngine\shader\Particle.hlsli">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\Line.VS.hlsl" />
-    <None Include="Resources\shader\Line.PS.hlsl" />
+    <None Include="Resources\shader\PostEffect.hlsli" />
+    <None Include="Resources\shader\Fog.PS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
+    <None Include="Resources\shader\Fullscreen.VS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
+    <None Include="Resources\shader\Line.PS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
+    <None Include="Resources\shader\Line.VS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
+    <None Include="Resources\shader\Tonemap.PS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
+    <None Include="Resources\shader\BloomUpsample.PS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
+    <None Include="Resources\shader\BloomDownsample.PS.hlsl">
+      <Filter>KujakuEngine\shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="KujakuEngine\shader\Object3d.PS.hlsl">

@@ -1,5 +1,6 @@
 #include "KujakuEngine.h"
 #include "Editor/ImGuiManager.h"
+#include "base/AudioManager.h"
 #include "base/FrameProfiler.h"
 #include "components/BuiltinComponents.h"
 #include "postprocess/PostEffectPipeline.h"
@@ -44,6 +45,9 @@ void Initialize(const std::wstring& title, Vector4 color, bool enableDebugLayer)
 	// texture初期化
 	TextureManager::GetInstance()->Initialize();
 
+	// サウンド再生(XAudio2)初期化。失敗しても音が鳴らないだけでエンジンは続行する。
+	AudioManager::GetInstance()->Initialize();
+
 	Input::Initialize();
 
 	Random::Initialize();
@@ -60,6 +64,10 @@ void Initialize(const std::wstring& title, Vector4 color, bool enableDebugLayer)
 }
 
 void Finalize() {
+	// AudioSourceComponentを持つSceneはEditorApplication::Finalizeで破棄済み。
+	// 残ったボイスとXAudio2エンジンをWindow破棄前に片付ける。
+	AudioManager::GetInstance()->Finalize();
+
 #ifdef USE_IMGUI
 	// ImGuiのDX12/Win32バックエンドはWindow破棄前に終了する。
 	// 先にWindowを閉じると、バックエンドが持っているHWNDやDX12リソースの後始末順が崩れやすい。

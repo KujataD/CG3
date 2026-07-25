@@ -1,16 +1,26 @@
 {
   "assetType": "Material",
   "baseColor": [
-    0.2818112373352051,
-    0.875,
-    0.15692934393882751,
+    1.0,
+    1.0,
+    1.0,
     1.0
   ],
+  "bloomIntensity": 1.0,
+  "bloomSoftKnee": 0.5,
+  "bloomThreshold": 0.0,
+  "emissiveColor": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "emissiveEnabled": false,
+  "emissiveIntensity": 1.0,
   "name": "Ground",
-  "shaderModel": 0,
+  "shaderModel": 2,
   "textures": {
     "BaseColor": {
-      "assetId": "",
+      "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
       "path": "Resources/white1x1.png"
     },
     "Environment": {
