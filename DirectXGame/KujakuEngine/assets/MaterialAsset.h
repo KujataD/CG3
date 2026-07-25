@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../math/Vector2.h"
 #include "../math/Vector3.h"
 #include "../math/Vector4.h"
 #include "../runtime/KujakuApi.h"
@@ -58,6 +59,11 @@ struct MaterialAssetData {
 	float bloomIntensity = 1.0f; // 滲みの強さ(0で発光はするが滲まない)
 	float bloomThreshold = 0.0f; // この輝度以上のエミッションだけが滲む(0=全て滲む)
 	float bloomSoftKnee = 0.5f;  // 閾値の柔らかさ(0=ハード)
+	// UVトランスフォーム(タイリング・スクロール・回転)。既定は変換なしで既存アセットと互換。
+	// 適用順はSprite/UIと同じ Scale → RotateZ → Translate。
+	Vector2 uvOffset = {0.0f, 0.0f};
+	Vector2 uvScale = {1.0f, 1.0f};
+	float uvRotation = 0.0f; // ラジアン
 	std::vector<MaterialTexture> textures;
 };
 

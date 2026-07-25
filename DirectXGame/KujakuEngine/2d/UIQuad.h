@@ -26,6 +26,9 @@ public:
 	/// <summary>UV範囲(左上・右下)を設定。既定は0..1。</summary>
 	KUJAKU_API void SetUV(const Vector2& uvMin, const Vector2& uvMax);
 
+	/// <summary> UVトランスフォームを設定。 </summary>
+	KUJAKU_API void SetUVTransform(const Vector2& translate, const Vector2& scale, float rotation);
+
 	KUJAKU_API void SetColor(const Vector4& color);
 	KUJAKU_API void SetTexture(uint32_t textureIndex) { textureIndex_ = textureIndex; }
 	KUJAKU_API void SetBlendMode(BlendMode blendMode) { blendMode_ = blendMode; }

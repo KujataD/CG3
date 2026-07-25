@@ -374,6 +374,18 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 		changed = true;
 	}
 
+	// UVトランスフォーム(タイリング・スクロール・回転)。サンプラーはWRAPなので範囲外はリピートする。
+	ImGui::SeparatorText("UV Transform");
+	if (ImGui::DragFloat2("UV Offset", &state.material.uvOffset.x, 0.01f)) {
+		changed = true;
+	}
+	if (ImGui::DragFloat2("UV Scale", &state.material.uvScale.x, 0.01f)) {
+		changed = true;
+	}
+	if (ImGui::DragFloat("UV Rotation", &state.material.uvRotation, 0.01f)) {
+		changed = true;
+	}
+
 	if (DrawTextureSlotEditor("BaseColor Texture", "BaseColorTexturePicker", state, MaterialTextureSlot::BaseColor, state.baseColorTextureBuffer)) {
 		changed = true;
 	}

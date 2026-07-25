@@ -2,6 +2,7 @@
 
 #include "../2d/UIQuad.h"
 #include "../2d/UIRect.h"
+#include "../math/Vector2.h"
 #include "../math/Vector4.h"
 #include "../runtime/KujakuApi.h"
 #include "../scene/Component.h"
@@ -40,6 +41,15 @@ public:
 	void SetFillAmount(float fillAmount);
 	float GetFillAmount() const { return fillAmount_; }
 
+	/// <summary>UVトランスフォーム(スクロール演出やアトラスの部分表示用)。既定はオフセット0・スケール1・回転0。</summary>
+	void SetUVOffset(const Vector2& offset) { uvOffset_ = offset; }
+	const Vector2& GetUVOffset() const { return uvOffset_; }
+	void SetUVScale(const Vector2& scale) { uvScale_ = scale; }
+	const Vector2& GetUVScale() const { return uvScale_; }
+	/// <summary>UV回転(ラジアン)。</summary>
+	void SetUVRotation(float rotation) { uvRotation_ = rotation; }
+	float GetUVRotation() const { return uvRotation_; }
+
 private:
 	void EnsureTextureLoaded();
 	void SyncPathBuffer();
@@ -49,6 +59,9 @@ private:
 	Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};
 	bool raycastTarget_ = true;
 	float fillAmount_ = 1.0f;
+	Vector2 uvOffset_ = {0.0f, 0.0f};
+	Vector2 uvScale_ = {1.0f, 1.0f};
+	float uvRotation_ = 0.0f;
 
 	std::array<char, 256> pathBuffer_{};
 	UIQuad quad_;

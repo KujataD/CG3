@@ -32,6 +32,26 @@ std::string ReadString(const nlohmann::json& value, const char* key, const std::
 
 std::filesystem::path ResolveProjectPath(const std::filesystem::path& path);
 
+Vector2 ReadVector2(const nlohmann::json& value, const char* key, const Vector2& defaultValue) {
+	if (!value.contains(key)) {
+		return defaultValue;
+	}
+	if (!value.at(key).is_array()) {
+		return defaultValue;
+	}
+	if (value.at(key).size() < 2) {
+		return defaultValue;
+	}
+
+	Vector2 result = defaultValue;
+	for (size_t index = 0; index < 2; ++index) {
+		if (value.at(key).at(index).is_number()) {
+			(&result.x)[index] = value.at(key).at(index).get<float>();
+		}
+	}
+	return result;
+}
+
 Vector3 ReadVector3(const nlohmann::json& value, const char* key, const Vector3& defaultValue) {
 	if (!value.contains(key)) {
 		return defaultValue;
@@ -471,6 +491,13 @@ MaterialAssetData MaterialAsset::ReadJsonObject(const nlohmann::json& json, cons
 		material.bloomSoftKnee = json.at("bloomSoftKnee").get<float>();
 	}
 
+	// UVトランスフォーム(キーが無い旧Material JSONは変換なしのまま)。
+	material.uvOffset = ReadVector2(json, "uvOffset", material.uvOffset);
+	material.uvScale = ReadVector2(json, "uvScale", material.uvScale);
+	if (json.contains("uvRotation") && json.at("uvRotation").is_number()) {
+		material.uvRotation = json.at("uvRotation").get<float>();
+	}
+
 	bool readNewTextures = ReadTexturesObject(json, material);
 	if (!readNewTextures) {
 		std::string legacyAssetId = ReadString(json, "textureAssetId", "");
@@ -495,6 +522,9 @@ void MaterialAsset::WriteJsonObject(nlohmann::json& json, const MaterialAssetDat
 	json["bloomIntensity"] = material.bloomIntensity;
 	json["bloomThreshold"] = material.bloomThreshold;
 	json["bloomSoftKnee"] = material.bloomSoftKnee;
+	json["uvOffset"] = {material.uvOffset.x, material.uvOffset.y};
+	json["uvScale"] = {material.uvScale.x, material.uvScale.y};
+	json["uvRotation"] = material.uvRotation;
 
 	nlohmann::json texturesJson = nlohmann::json::object();
 	for (MaterialTextureSlot slot : GetKnownTextureSlots()) {

@@ -26,6 +26,22 @@ Vector4 ReadVector4(const nlohmann::json& json, const char* key, const Vector4& 
 	return {value[0].get<float>(), value[1].get<float>(), value[2].get<float>(), value[3].get<float>()};
 }
 
+Vector2 ReadVector2(const nlohmann::json& json, const char* key, const Vector2& defaultValue) {
+	if (!json.contains(key)) {
+		return defaultValue;
+	}
+	const nlohmann::json& value = json.at(key);
+	if (!value.is_array() || value.size() < 2) {
+		return defaultValue;
+	}
+	for (int i = 0; i < 2; ++i) {
+		if (!value[i].is_number()) {
+			return defaultValue;
+		}
+	}
+	return {value[0].get<float>(), value[1].get<float>()};
+}
+
 std::string ReadString(const nlohmann::json& json, const char* key, const std::string& defaultValue) {
 	if (!json.contains(key) || !json.at(key).is_string()) {
 		return defaultValue;
@@ -109,6 +125,8 @@ void ImageComponent::DrawUI(const UIRect& canvasRect, float scaleFactor) {
 
 	quad_.SetRect(canvasRect.x * scaleFactor, canvasRect.y * scaleFactor, canvasRect.width * scaleFactor * fill, canvasRect.height * scaleFactor);
 	quad_.SetUV({0.0f, 0.0f}, {fill, 1.0f});
+	// UVトランスフォームは頂点UV(Fill適用後)にシェーダー側で掛かる。スクロール演出やアトラス部分表示用。
+	quad_.SetUVTransform(uvOffset_, uvScale_, uvRotation_);
 	quad_.SetColor(color_);
 	quad_.SetTexture(textureIndex_);
 	quad_.Draw();
@@ -125,6 +143,12 @@ void ImageComponent::DrawInspector() {
 	if (InspectorUI::DragFloat("Fill Amount", &fillAmount_, 0.01f, 0.0f, 1.0f)) {
 		fillAmount_ = std::clamp(fillAmount_, 0.0f, 1.0f);
 	}
+
+	InspectorUI::TextUnformatted("--- UV Transform ---");
+	InspectorUI::DragFloat2("UV Offset", &uvOffset_.x, 0.01f);
+	InspectorUI::DragFloat2("UV Scale", &uvScale_.x, 0.01f);
+	// ラジアン指定(Transformのrotation_と同じ単位に揃える)。
+	InspectorUI::DragFloat("UV Rotation", &uvRotation_, 0.01f);
 #endif // USE_IMGUI
 }
 
@@ -134,6 +158,9 @@ void ImageComponent::WriteJson(nlohmann::json& json) const {
 	json["color"] = {color_.x, color_.y, color_.z, color_.w};
 	json["raycastTarget"] = raycastTarget_;
 	json["fillAmount"] = fillAmount_;
+	json["uvOffset"] = {uvOffset_.x, uvOffset_.y};
+	json["uvScale"] = {uvScale_.x, uvScale_.y};
+	json["uvRotation"] = uvRotation_;
 }
 
 void ImageComponent::ReadJson(const nlohmann::json& json) {
@@ -145,6 +172,11 @@ void ImageComponent::ReadJson(const nlohmann::json& json) {
 	}
 	if (json.contains("fillAmount") && json.at("fillAmount").is_number()) {
 		fillAmount_ = std::clamp(json.at("fillAmount").get<float>(), 0.0f, 1.0f);
+	}
+	uvOffset_ = ReadVector2(json, "uvOffset", uvOffset_);
+	uvScale_ = ReadVector2(json, "uvScale", uvScale_);
+	if (json.contains("uvRotation") && json.at("uvRotation").is_number()) {
+		uvRotation_ = json.at("uvRotation").get<float>();
 	}
 	textureResolved_ = false;
 }

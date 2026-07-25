@@ -72,6 +72,16 @@ void UIQuad::SetRect(float x, float y, float width, float height) {
 	}
 }
 
+void UIQuad::SetUVTransform(const Vector2& translate, const Vector2& scale, float rotation) {
+	if (!materialMap_) {
+		return;
+	}
+	Matrix4x4 uvTransformMatrix = MakeScaleMatrix({scale.x, scale.y, 1.0f});
+	uvTransformMatrix = uvTransformMatrix * MakeRotateZMatrix(rotation);
+	uvTransformMatrix = uvTransformMatrix * MakeTranslateMatrix({translate.x, translate.y, 0.0f});
+	materialMap_->uvTransform = uvTransformMatrix;
+}
+
 void UIQuad::SetUV(const Vector2& uvMin, const Vector2& uvMax) {
 	if (!vertexMap_) {
 		return;

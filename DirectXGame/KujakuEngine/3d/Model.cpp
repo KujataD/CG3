@@ -27,6 +27,17 @@ Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel)
 	return model;
 }
 
+void Model::SetUVTransform(const Vector2& offset, const Vector2& scale, float rotation) {
+	Matrix4x4 uvTransformMatrix = MakeScaleMatrix({scale.x, scale.y, 1.0f});
+	uvTransformMatrix = uvTransformMatrix * MakeRotateZMatrix(rotation);
+	uvTransformMatrix = uvTransformMatrix * MakeTranslateMatrix({offset.x, offset.y, 0.0f});
+	for (SubMesh& subMesh : subMeshes_) {
+		if (subMesh.materialMap) {
+			subMesh.materialMap->uvTransform = uvTransformMatrix;
+		}
+	}
+}
+
 Model* Model::CreateFromGlTF(const std::string& objname, ShaderModel shaderModel) {
 	Model* model = new Model();
 	std::string directoryPathFinal = "Resources/" + objname;
