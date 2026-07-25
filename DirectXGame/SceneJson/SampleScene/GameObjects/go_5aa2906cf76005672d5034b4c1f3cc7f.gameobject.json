@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_5aa2906cf76005672d5034b4c1f3cc7f",
-  "parentInstanceId": "go_117eda7192d2cc1808be11b85a816765",
+  "parentInstanceId": "go_e20c0cadb1c61745710778933128f4e5",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Text",
+  "name": "Mesh",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -66,7 +66,7 @@
     {
       "enabled": true,
       "properties": {
-        "align": 0,
+        "align": 1,
         "color": [
           1.0,
           1.0,
@@ -74,8 +74,8 @@
           1.0
         ],
         "fontPath": "C:/Windows/Fonts/YuGothR.ttc",
-        "fontSize": 28.0,
-        "text": "Multimesh"
+        "fontSize": 18.0,
+        "text": "MultiMaterial"
       },
       "type": "Text"
     }

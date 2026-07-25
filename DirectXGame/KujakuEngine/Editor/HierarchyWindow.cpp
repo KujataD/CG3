@@ -175,6 +175,88 @@ void DeleteSelectedHierarchyObject(Scene& scene) {
 	EditorConsole::GetInstance()->AddLog("[Hierarchy] Deleted: " + objectName);
 }
 
+// コピーしたGameObject階層(Prefabと同じJSON形式)。Sceneをまたいでも貼り付けられるよう文字列で保持する。
+std::string gCopiedHierarchyJson;
+
+/// <summary>"Player" -> "Player (1)" のように、Scene内で重複しない名前にする。</summary>
+std::string MakeUniqueObjectName(Scene& scene, const std::string& baseName) {
+	auto isUsed = [&scene](const std::string& name) {
+		for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+			if (gameObject && gameObject->GetName() == name) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	if (!isUsed(baseName)) {
+		return baseName;
+	}
+	for (int suffix = 1; suffix < 10000; ++suffix) {
+		std::string candidate = baseName + " (" + std::to_string(suffix) + ")";
+		if (!isUsed(candidate)) {
+			return candidate;
+		}
+	}
+	return baseName;
+}
+
+/// <summary>
+/// JSONからGameObject階層を生成し、parentの子として配置して選択する。コピー/複製の共通処理。
+/// </summary>
+void PasteHierarchyJson(Scene& scene, const std::string& hierarchyJson, GameObject* parent, const char* undoLabel) {
+	if (hierarchyJson.empty()) {
+		return;
+	}
+
+	CaptureUndo(scene, undoLabel);
+
+	PrefabAsset::InstantiateResult result = PrefabAsset::InstantiateFromJson(scene, hierarchyJson);
+	if (!result.succeeded || !result.rootObject) {
+		EditorConsole::GetInstance()->AddLog("[Hierarchy] Paste failed: " + result.message);
+		return;
+	}
+
+	// ルートだけ名前をずらす(子はUnity同様そのまま)。
+	result.rootObject->SetName(MakeUniqueObjectName(scene, result.rootObject->GetName()));
+	result.rootObject->SetParent(parent, true);
+
+	EditorSelection::GetInstance()->SetSelectedGameObject(result.rootObject);
+	EditorConsole::GetInstance()->AddLog("[Hierarchy] Pasted: " + result.rootObject->GetName());
+}
+
+void CopySelectedHierarchyObject() {
+	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	if (!selectedObject) {
+		return;
+	}
+
+	gCopiedHierarchyJson = PrefabAsset::CopyHierarchyToJson(*selectedObject);
+	EditorConsole::GetInstance()->AddLog("[Hierarchy] Copied: " + selectedObject->GetName());
+}
+
+void PasteHierarchyObject(Scene& scene) {
+	if (gCopiedHierarchyJson.empty()) {
+		return;
+	}
+
+	// 選択中Objectの兄弟として貼り付ける(選択が無ければルート直下)。Unityと同じ挙動。
+	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	GameObject* parent = SceneContainsGameObject(scene, selectedObject) ? selectedObject->GetParent() : nullptr;
+	PasteHierarchyJson(scene, gCopiedHierarchyJson, parent, "Paste GameObject");
+}
+
+void DuplicateSelectedHierarchyObject(Scene& scene) {
+	GameObject* selectedObject = EditorSelection::GetInstance()->GetSelectedGameObject();
+	if (!SceneContainsGameObject(scene, selectedObject)) {
+		return;
+	}
+
+	// 複製はクリップボードを汚さない(Unityと同じ)ので、その場限りのJSONを使う。
+	std::string hierarchyJson = PrefabAsset::CopyHierarchyToJson(*selectedObject);
+	PasteHierarchyJson(scene, hierarchyJson, selectedObject->GetParent(), "Duplicate GameObject");
+}
+
 void AcceptHierarchyObjectDrop(Scene& scene, GameObject* targetParent) {
 	if (!ImGui::BeginDragDropTarget()) {
 		return;
@@ -469,6 +551,20 @@ void HierarchyWindow::Draw(bool* pOpen) {
 	bool deletePressed = ImGui::IsKeyPressed(ImGuiKey_Delete, false) || ImGui::IsKeyPressed(ImGuiKey_Backspace, false);
 	if (hierarchyFocused && deletePressed && !io.WantTextInput) {
 		DeleteSelectedHierarchyObject(*scene);
+	}
+
+	// コピー/ペースト/複製。Hierarchyにフォーカスがある時だけ効かせる
+	// (Animation WindowもCtrl+C/Vをキーフレーム用に使うため、フォーカスで排他にする)。
+	if (hierarchyFocused && !io.WantTextInput && io.KeyCtrl) {
+		if (ImGui::IsKeyPressed(ImGuiKey_C, false)) {
+			CopySelectedHierarchyObject();
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_V, false)) {
+			PasteHierarchyObject(*scene);
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+			DuplicateSelectedHierarchyObject(*scene);
+		}
 	}
 
 	ImGui::End();

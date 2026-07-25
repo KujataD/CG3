@@ -47,6 +47,18 @@ public:
 	KUJAKU_API static InstantiateResult Instantiate(Scene& scene, const std::filesystem::path& prefabPath, bool linkInstance = true);
 
 	/// <summary>
+	/// GameObject階層をファイルに書かずJSON文字列へ書き出す(Hierarchyのコピー用)。
+	/// 中身はPrefabと同じ形式なので、InstantiateFromJsonでそのまま復元できる。
+	/// </summary>
+	KUJAKU_API static std::string CopyHierarchyToJson(const GameObject& rootObject);
+
+	/// <summary>
+	/// CopyHierarchyToJsonで作ったJSONから新しいGameObject階層をSceneへ生成する(ペースト用)。
+	/// Prefabとしての関連付けは行わない(独立したObjectになる)。
+	/// </summary>
+	KUJAKU_API static InstantiateResult InstantiateFromJson(Scene& scene, const std::string& prefabJsonText);
+
+	/// <summary>
 	/// 既存GameObject階層をPrefab Instanceとして関連付ける
 	/// </summary>
 	KUJAKU_API static void BindHierarchyToPrefab(GameObject& rootObject, const std::filesystem::path& prefabPath);

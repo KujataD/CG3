@@ -16,7 +16,7 @@
       "properties": {
         "rotation": [
           0.0,
-          0.0,
+          -0.0,
           0.0
         ],
         "scale": [
@@ -27,7 +27,7 @@
         "translation": [
           0.0,
           0.0,
-          0.0
+          -12.00413703918457
         ]
       },
       "type": "Transform"

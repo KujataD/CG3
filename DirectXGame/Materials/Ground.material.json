@@ -1,12 +1,12 @@
 {
   "assetType": "Material",
   "baseColor": [
-    1.0,
-    1.0,
-    1.0,
+    0.22175729274749756,
+    0.22175729274749756,
+    0.22175729274749756,
     1.0
   ],
-  "bloomIntensity": 1.0,
+  "bloomIntensity": 3.049999952316284,
   "bloomSoftKnee": 0.5,
   "bloomThreshold": 0.0,
   "emissiveColor": [
@@ -15,9 +15,9 @@
     1.0
   ],
   "emissiveEnabled": false,
-  "emissiveIntensity": 1.0,
+  "emissiveIntensity": 0.029999999329447746,
   "name": "Ground",
-  "shaderModel": 2,
+  "shaderModel": 4,
   "textures": {
     "BaseColor": {
       "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
@@ -32,5 +32,14 @@
       "path": ""
     }
   },
+  "uvOffset": [
+    0.0,
+    0.0
+  ],
+  "uvRotation": 0.0,
+  "uvScale": [
+    1.0,
+    1.0
+  ],
   "version": 1
 }

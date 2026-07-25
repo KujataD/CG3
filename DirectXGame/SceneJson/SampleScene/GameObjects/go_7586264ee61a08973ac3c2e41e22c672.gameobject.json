@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_7586264ee61a08973ac3c2e41e22c672",
-  "parentInstanceId": "",
+  "parentInstanceId": "go_8283cc5b9d516f9c414099189eec1153",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "MultiMesh",
+  "name": "MultiMeshModel",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -16,7 +16,7 @@
       "properties": {
         "rotation": [
           0.0,
-          -0.0,
+          0.0,
           0.0
         ],
         "scale": [
@@ -25,9 +25,9 @@
           1.0
         ],
         "translation": [
-          15.0,
+          0.0,
           3.0,
-          -5.0
+          0.0
         ]
       },
       "type": "Transform"
@@ -85,7 +85,31 @@
         "materialPath": "",
         "modelAssetId": "asset_bfce26a6f7d29d8d5fe68b3610cb68ef",
         "modelPath": "Resources/multiMesh.obj",
-        "primitive": "Model"
+        "primitive": "Model",
+        "subMeshUVTransforms": [
+          {
+            "offset": [
+              -0.019999999552965164,
+              0.0
+            ],
+            "rotation": 0.0,
+            "scale": [
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": 0.0,
+            "scale": [
+              1.0,
+              1.0
+            ]
+          }
+        ]
       },
       "type": "ModelRendererComponent"
     },

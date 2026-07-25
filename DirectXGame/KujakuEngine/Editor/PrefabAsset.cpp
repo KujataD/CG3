@@ -441,19 +441,16 @@ void ClearPrefabLinkHierarchy(GameObject& rootObject) {
 	}
 }
 
-bool LoadPrefabObjectEntries(
-    const std::filesystem::path& prefabPath,
+/// <summary>読み込み済みJSONからGameObjectエントリを取り出す(ファイル/メモリ共通)。</summary>
+bool ParsePrefabObjectEntries(
+    const json& prefabJson,
+    const std::string& sourceLabel,
     std::vector<json>& outObjectEntries,
     std::string& outRootObjectId,
     std::string& message) {
-	json prefabJson;
-	if (!LoadJsonFile(ResolvePrefabPath(prefabPath), prefabJson, message)) {
-		return false;
-	}
-
 	std::string assetType = ReadString(prefabJson, "assetType", "");
 	if (!assetType.empty() && assetType != "Prefab") {
-		message = "JSON is not a Prefab: " + prefabPath.string();
+		message = "JSON is not a Prefab: " + sourceLabel;
 		return false;
 	}
 
@@ -470,11 +467,70 @@ bool LoadPrefabObjectEntries(
 
 	outRootObjectId = ReadString(prefabJson, "rootObjectId", "object_0");
 	if (outObjectEntries.empty()) {
-		message = "Prefab does not contain GameObject entries: " + prefabPath.string();
+		message = "Prefab does not contain GameObject entries: " + sourceLabel;
 		return false;
 	}
 
 	return true;
+}
+
+/// <summary>
+/// GameObjectエントリ群からScene上に階層を生成する(ファイル/メモリ共通のInstantiate本体)。
+/// Prefabとしての関連付けは呼び出し側が行う。
+/// </summary>
+PrefabAsset::InstantiateResult InstantiateFromEntries(Scene& scene, const std::vector<json>& objectEntries, const std::string& rootObjectId,
+                                                     std::unordered_map<std::string, GameObject*>& outObjectsByPrefabId) {
+	PrefabAsset::InstantiateResult result{};
+	std::vector<PendingParentLink> parentLinks;
+
+	for (size_t objectIndex = 0; objectIndex < objectEntries.size(); ++objectIndex) {
+		const json& objectJson = objectEntries[objectIndex];
+
+		std::string defaultPrefabObjectId = "object_" + std::to_string(objectIndex);
+		std::string prefabObjectId = ReadString(objectJson, "prefabObjectId", defaultPrefabObjectId);
+		std::string parentPrefabObjectId = ReadString(objectJson, "parentPrefabObjectId", "");
+		std::string objectName = ReadString(objectJson, "name", "PrefabObject");
+
+		GameObject* gameObject = scene.CreateGameObject(objectName);
+		if (!gameObject) {
+			continue;
+		}
+
+		gameObject->SetActive(ReadBool(objectJson, "active", gameObject->IsActive()));
+		result.componentCount += ApplyPrefabComponents(scene, *gameObject, objectJson);
+
+		outObjectsByPrefabId[prefabObjectId] = gameObject;
+		parentLinks.push_back({gameObject, parentPrefabObjectId});
+		++result.gameObjectCount;
+
+		if (prefabObjectId == rootObjectId || !result.rootObject) {
+			result.rootObject = gameObject;
+		}
+	}
+
+	for (const PendingParentLink& link : parentLinks) {
+		if (!link.gameObject) {
+			continue;
+		}
+		GameObject* parent = FindInstantiatedObject(outObjectsByPrefabId, link.parentPrefabObjectId);
+		link.gameObject->SetParent(parent);
+	}
+
+	result.succeeded = result.rootObject != nullptr;
+	return result;
+}
+
+bool LoadPrefabObjectEntries(
+    const std::filesystem::path& prefabPath,
+    std::vector<json>& outObjectEntries,
+    std::string& outRootObjectId,
+    std::string& message) {
+	json prefabJson;
+	if (!LoadJsonFile(ResolvePrefabPath(prefabPath), prefabJson, message)) {
+		return false;
+	}
+
+	return ParsePrefabObjectEntries(prefabJson, prefabPath.string(), outObjectEntries, outRootObjectId, message);
 }
 
 std::unordered_map<std::string, GameObject*> BuildExistingPrefabObjectMap(GameObject& rootObject) {
@@ -564,41 +620,7 @@ PrefabAsset::InstantiateResult PrefabAsset::Instantiate(Scene& scene, const std:
 	}
 
 	std::unordered_map<std::string, GameObject*> objectsByPrefabId;
-	std::vector<PendingParentLink> parentLinks;
-
-	for (size_t objectIndex = 0; objectIndex < objectEntries.size(); ++objectIndex) {
-		const json& objectJson = objectEntries[objectIndex];
-
-		std::string defaultPrefabObjectId = "object_" + std::to_string(objectIndex);
-		std::string prefabObjectId = ReadString(objectJson, "prefabObjectId", defaultPrefabObjectId);
-		std::string parentPrefabObjectId = ReadString(objectJson, "parentPrefabObjectId", "");
-		std::string objectName = ReadString(objectJson, "name", "PrefabObject");
-
-		GameObject* gameObject = scene.CreateGameObject(objectName);
-		if (!gameObject) {
-			continue;
-		}
-
-		gameObject->SetActive(ReadBool(objectJson, "active", gameObject->IsActive()));
-		result.componentCount += ApplyPrefabComponents(scene, *gameObject, objectJson);
-
-		objectsByPrefabId[prefabObjectId] = gameObject;
-		parentLinks.push_back({gameObject, parentPrefabObjectId});
-		++result.gameObjectCount;
-
-		if (prefabObjectId == rootObjectId || !result.rootObject) {
-			result.rootObject = gameObject;
-		}
-	}
-
-	for (const PendingParentLink& link : parentLinks) {
-		if (!link.gameObject) {
-			continue;
-		}
-
-		GameObject* parent = FindInstantiatedObject(objectsByPrefabId, link.parentPrefabObjectId);
-		link.gameObject->SetParent(parent);
-	}
+	result = InstantiateFromEntries(scene, objectEntries, rootObjectId, objectsByPrefabId);
 
 	if (linkInstance && result.rootObject) {
 		std::string storedPrefabPath = MakeStoredPrefabPath(prefabPath);
@@ -618,6 +640,36 @@ PrefabAsset::InstantiateResult PrefabAsset::Instantiate(Scene& scene, const std:
 		result.message = "Failed to instantiate Prefab: " + prefabPath.string();
 	}
 
+	return result;
+}
+
+std::string PrefabAsset::CopyHierarchyToJson(const GameObject& rootObject) {
+	size_t gameObjectCount = 0;
+	size_t componentCount = 0;
+	return BuildPrefabJson(rootObject, gameObjectCount, componentCount);
+}
+
+PrefabAsset::InstantiateResult PrefabAsset::InstantiateFromJson(Scene& scene, const std::string& prefabJsonText) {
+	InstantiateResult result{};
+
+	json prefabJson;
+	try {
+		prefabJson = json::parse(prefabJsonText);
+	} catch (const json::exception& exception) {
+		result.message = std::string("Failed to parse GameObject JSON: ") + exception.what();
+		return result;
+	}
+
+	std::vector<json> objectEntries;
+	std::string rootObjectId;
+	if (!ParsePrefabObjectEntries(prefabJson, "clipboard", objectEntries, rootObjectId, result.message)) {
+		return result;
+	}
+
+	// Prefabとしての関連付けはしない(コピー元Prefabに紐づかない独立したObjectにする)。
+	std::unordered_map<std::string, GameObject*> objectsByPrefabId;
+	result = InstantiateFromEntries(scene, objectEntries, rootObjectId, objectsByPrefabId);
+	result.message = result.succeeded ? "Pasted GameObject." : "Failed to paste GameObject.";
 	return result;
 }
 

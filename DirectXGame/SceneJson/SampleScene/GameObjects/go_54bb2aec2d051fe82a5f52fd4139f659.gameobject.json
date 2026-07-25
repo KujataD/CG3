@@ -15,9 +15,9 @@
       "enabled": true,
       "properties": {
         "rotation": [
-          0.08297311514616013,
-          -0.0,
-          0.0
+          -2.7592592239379883,
+          0.23755112290382385,
+          -3.1415927410125732
         ],
         "scale": [
           1.0,
@@ -25,9 +25,9 @@
           1.0
         ],
         "translation": [
-          -4.713669776916504,
-          4.461863040924072,
-          5.27543830871582
+          -6.02995491027832,
+          4.992950439453125,
+          5.515432834625244
         ]
       },
       "type": "Transform"
@@ -62,7 +62,7 @@
         "rotationDamping": 18.0,
         "sensitivityX": 2.5,
         "sensitivityY": 1.7999999523162842,
-        "targetName": "Pawn"
+        "targetName": "Player"
       },
       "type": "OrbitCameraComponent"
     }

@@ -54,8 +54,8 @@
             1.0
           ],
           "emissiveEnabled": true,
-          "emissiveIntensity": 0.10000000149011612,
-          "name": "Shield",
+          "emissiveIntensity": 0.15000000596046448,
+          "name": "Player",
           "shaderModel": 4,
           "textures": {
             "BaseColor": {
@@ -81,8 +81,8 @@
             1.0
           ]
         },
-        "materialAssetId": "asset_e8d3cd76cdbbf21474698ea3f08dc6b6",
-        "materialPath": "Materials/Shield.material.json",
+        "materialAssetId": "asset_6a683b118e3820a9353563aff39257c8",
+        "materialPath": "Materials/Player.material.json",
         "modelAssetId": "asset_9ab31db88376d2924d59eb222383d26a",
         "modelPath": "Resources/shield/shield.obj",
         "primitive": "Model"

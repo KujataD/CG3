@@ -6,7 +6,7 @@
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "AudioSource",
+  "name": "AudioPlayer",
   "tag": "Untagged",
   "layer": 0,
   "active": true,

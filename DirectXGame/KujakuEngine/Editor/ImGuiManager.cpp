@@ -387,6 +387,16 @@ void ImGuiManager::DrawMainMenuBar() {
 	// GameObjectの生成メニューはHierarchyの右クリック(Create)に一本化した。
 	// 生成先の親を選んでから作れるHierarchy側が本来の導線で、2箇所に置くと挙動差が生まれるため。
 
+	if (ImGui::BeginMenu("Build")) {
+		// Prefab編集中はReloadを受け付けない(EditorApplication側で拒否される)ためグレーアウトする。
+		// Play中は自動でEditへ戻してからReloadされるので、そのまま実行できる。
+		const bool canReloadGameModule = !app->IsPrefabEditing();
+		if (ImGui::MenuItem("Reload DLL", "Ctrl+Shift+R", false, canReloadGameModule)) {
+			app->ReloadGameModule();
+		}
+		ImGui::EndMenu();
+	}
+
 	if (ImGui::BeginMenu("Window")) {
 		ImGui::MenuItem("Scene", nullptr, &windowVisibility_.scene);
 		ImGui::MenuItem("Game", nullptr, &windowVisibility_.game);
@@ -432,10 +442,8 @@ void ImGuiManager::DrawToolbar() {
 		ImGui::SetTooltip("Start");
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Reload DLL")) {
-		app->ReloadGameModule();
-	}
-	ImGui::SameLine();
+
+	// Reload DLLはメニューバーの Build へ移動した(ツールバーは再生コントロールとモード表示に絞る)。
 
 	if (app->IsPrefabEditing()) {
 		if (ImGui::Button("Save Prefab")) {

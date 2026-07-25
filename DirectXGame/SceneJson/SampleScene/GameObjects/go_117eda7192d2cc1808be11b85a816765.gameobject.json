@@ -1,12 +1,12 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_117eda7192d2cc1808be11b85a816765",
-  "parentInstanceId": "",
+  "parentInstanceId": "go_8283cc5b9d516f9c414099189eec1153",
   "prefabAssetPath": "",
   "prefabObjectId": "",
   "prefabInstanceRootId": "",
   "prefabInstanceRoot": false,
-  "name": "Canvas (1)",
+  "name": "MultiMeshCanvas",
   "tag": "Untagged",
   "layer": 0,
   "active": true,
@@ -16,7 +16,7 @@
       "properties": {
         "rotation": [
           -3.1415908336639404,
-          0.0,
+          -0.0,
           -3.1415908336639404
         ],
         "scale": [
@@ -25,9 +25,9 @@
           0.9910002946853638
         ],
         "translation": [
-          13.014719009399414,
+          0.0,
           6.0,
-          -3.3003504276275635
+          0.0
         ]
       },
       "type": "Transform"
