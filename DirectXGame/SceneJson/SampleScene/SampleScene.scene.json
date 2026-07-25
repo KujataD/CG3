@@ -171,18 +171,6 @@
       "assetPath": "SceneJson/SampleScene/GameObjects/go_31b8d485d6aeef0d18dc0c7078e408d1.gameobject.json"
     },
     {
-      "instanceId": "go_7586264ee61a08973ac3c2e41e22c672",
-      "parentInstanceId": "",
-      "prefabAssetPath": "",
-      "prefabObjectId": "",
-      "prefabInstanceRootId": "",
-      "prefabInstanceRoot": false,
-      "name": "MultiMesh",
-      "tag": "Untagged",
-      "layer": 0,
-      "assetPath": "SceneJson/SampleScene/GameObjects/go_7586264ee61a08973ac3c2e41e22c672.gameobject.json"
-    },
-    {
       "instanceId": "go_244fb9e72e13f07f12268522f70c7f02",
       "parentInstanceId": "go_c4f4da242ae61143627a7ca6abe2bdfb",
       "prefabAssetPath": "",
@@ -201,10 +189,34 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Entity",
+      "name": "Sound",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_77b63fc7bcf8a7ac3bda446605c998bd.gameobject.json"
+    },
+    {
+      "instanceId": "go_7586264ee61a08973ac3c2e41e22c672",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "MultiMesh",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_7586264ee61a08973ac3c2e41e22c672.gameobject.json"
+    },
+    {
+      "instanceId": "go_5d9356ea237821d62ec8db1473b827b7",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "MultiMaterial",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_5d9356ea237821d62ec8db1473b827b7.gameobject.json"
     }
   ]
 }

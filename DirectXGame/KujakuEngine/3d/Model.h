@@ -93,6 +93,9 @@ public:
 	}
 	// UVトランスフォームを全サブメッシュへ一括適用する(合成順はSprite/UIと同じ Scale→RotateZ→Translate)。
 	KUJAKU_API void SetUVTransform(const Vector2& offset, const Vector2& scale, float rotation);
+
+	// サブメッシュ単位のUVトランスフォーム(MultiMeshのパーツ別UV調整用。indexが範囲外なら無視)。
+	KUJAKU_API void SetSubMeshUVTransform(size_t index, const Vector2& offset, const Vector2& scale, float rotation);
 	// エミッション(自己発光)を全サブメッシュへ一括適用する。enabled=falseなら発光しない。
 	// 強度>1でHDR輝度になりブルームが乗る。
 	void SetEmissive(const Vector3& color, float intensity, bool enabled) {

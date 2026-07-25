@@ -26,7 +26,7 @@
         ],
         "translation": [
           0.0,
-          0.0,
+          -1.285569190979004,
           0.0
         ]
       },
@@ -70,7 +70,16 @@
               "assetId": "",
               "path": ""
             }
-          }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
         },
         "materialAssetId": "asset_1ec61f2dd2d7b7e70f6297f5ce66bfdf",
         "materialPath": "Materials/Ground.material.json",

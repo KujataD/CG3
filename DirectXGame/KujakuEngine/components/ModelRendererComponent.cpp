@@ -186,6 +186,16 @@ bool ModelRendererComponent::UsesMaterialAsset(const std::string& materialPath) 
 	return targetPath.lexically_normal() == currentPath.lexically_normal();
 }
 
+void ModelRendererComponent::SetSubMeshUVTransform(size_t subMeshIndex, const Vector2& offset, const Vector2& scale, float rotation) {
+	if (subMeshIndex >= subMeshUVTransforms_.size()) {
+		subMeshUVTransforms_.resize(subMeshIndex + 1);
+	}
+	subMeshUVTransforms_[subMeshIndex] = {offset, scale, rotation};
+	if (model_) {
+		model_->SetSubMeshUVTransform(subMeshIndex, offset, scale, rotation);
+	}
+}
+
 void ModelRendererComponent::Update() {
 	if (!model_) {
 		return;
@@ -295,6 +305,27 @@ void ModelRendererComponent::DrawInspector() {
 		InspectorUI::TextUnformatted(materialPath_.c_str());
 	}
 
+	// サブメッシュ別UVトランスフォーム(MultiMesh時のみ)。マテリアル/テクスチャは.mtl由来のまま、
+	// パーツごとにUVだけを調整できる。
+	if (model_ && model_->GetSubMeshCount() > 1) {
+		InspectorUI::TextUnformatted("--- Sub Mesh UV Transform ---");
+		size_t subMeshCount = model_->GetSubMeshCount();
+		if (subMeshUVTransforms_.size() < subMeshCount) {
+			subMeshUVTransforms_.resize(subMeshCount);
+		}
+		for (size_t index = 0; index < subMeshCount; ++index) {
+			SubMeshUVTransform& uvTransform = subMeshUVTransforms_[index];
+			std::string indexText = std::to_string(index);
+			bool uvChanged = false;
+			uvChanged |= InspectorUI::DragFloat2(("UV Offset " + indexText).c_str(), &uvTransform.offset.x, 0.01f);
+			uvChanged |= InspectorUI::DragFloat2(("UV Scale " + indexText).c_str(), &uvTransform.scale.x, 0.01f);
+			uvChanged |= InspectorUI::DragFloat(("UV Rotation " + indexText).c_str(), &uvTransform.rotation, 0.01f);
+			if (uvChanged) {
+				model_->SetSubMeshUVTransform(index, uvTransform.offset, uvTransform.scale, uvTransform.rotation);
+			}
+		}
+	}
+
 	InspectorUI::TextUnformatted("--- Billboard ---");
 	InspectorUI::Checkbox("Billboard Enabled", &billboardEnabled_);
 
@@ -324,6 +355,26 @@ void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	nlohmann::json materialJson;
 	MaterialAsset::WriteJsonObject(materialJson, material_);
 	json["material"] = materialJson;
+
+	// サブメッシュ別UVトランスフォーム(既定値のみなら省略してJSONを汚さない)。
+	bool hasNonIdentityUVTransform = false;
+	for (const SubMeshUVTransform& uvTransform : subMeshUVTransforms_) {
+		if (!uvTransform.IsIdentity()) {
+			hasNonIdentityUVTransform = true;
+			break;
+		}
+	}
+	if (hasNonIdentityUVTransform) {
+		nlohmann::json uvTransformsJson = nlohmann::json::array();
+		for (const SubMeshUVTransform& uvTransform : subMeshUVTransforms_) {
+			nlohmann::json uvJson;
+			uvJson["offset"] = {uvTransform.offset.x, uvTransform.offset.y};
+			uvJson["scale"] = {uvTransform.scale.x, uvTransform.scale.y};
+			uvJson["rotation"] = uvTransform.rotation;
+			uvTransformsJson.push_back(uvJson);
+		}
+		json["subMeshUVTransforms"] = uvTransformsJson;
+	}
 }
 
 void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
@@ -357,6 +408,25 @@ void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 		// 旧シーン互換: Texture/ColorがMaterialへ移行する前の "texture" を取り込む。
 		std::string texturePath = ReadString(json, "texture", GetBaseColorTexturePath(material_));
 		SetBaseColorTexturePath(material_, texturePath);
+	}
+
+	subMeshUVTransforms_.clear();
+	if (json.contains("subMeshUVTransforms") && json.at("subMeshUVTransforms").is_array()) {
+		for (const nlohmann::json& uvJson : json.at("subMeshUVTransforms")) {
+			SubMeshUVTransform uvTransform;
+			if (uvJson.is_object()) {
+				if (uvJson.contains("offset") && uvJson.at("offset").is_array() && uvJson.at("offset").size() >= 2) {
+					uvTransform.offset = {uvJson.at("offset")[0].get<float>(), uvJson.at("offset")[1].get<float>()};
+				}
+				if (uvJson.contains("scale") && uvJson.at("scale").is_array() && uvJson.at("scale").size() >= 2) {
+					uvTransform.scale = {uvJson.at("scale")[0].get<float>(), uvJson.at("scale")[1].get<float>()};
+				}
+				if (uvJson.contains("rotation") && uvJson.at("rotation").is_number()) {
+					uvTransform.rotation = uvJson.at("rotation").get<float>();
+				}
+			}
+			subMeshUVTransforms_.push_back(uvTransform);
+		}
 	}
 
 	SetPrimitive(ReadPrimitiveType(primitiveName), GetBaseColorTexturePath(material_));
@@ -423,6 +493,25 @@ void ModelRendererComponent::ApplyMaterialToModel() {
 		model_->SetEmissive(material_.emissiveColor, material_.emissiveIntensity, material_.emissiveEnabled);
 		model_->SetEmissiveBloom(material_.bloomIntensity, material_.bloomThreshold, material_.bloomSoftKnee);
 		model_->SetUVTransform(material_.uvOffset, material_.uvScale, material_.uvRotation);
+	}
+
+	// サブメッシュ別UVトランスフォームは最後に適用し、全体Materialの一括UVより優先させる。
+	ApplySubMeshUVTransforms();
+}
+
+void ModelRendererComponent::ApplySubMeshUVTransforms() {
+	if (!model_) {
+		return;
+	}
+
+	size_t subMeshCount = model_->GetSubMeshCount();
+	for (size_t index = 0; index < subMeshUVTransforms_.size() && index < subMeshCount; ++index) {
+		const SubMeshUVTransform& uvTransform = subMeshUVTransforms_[index];
+		// 既定値のパーツは触らない(全体Materialが設定した一括UVを上書きしないため)。
+		if (uvTransform.IsIdentity()) {
+			continue;
+		}
+		model_->SetSubMeshUVTransform(index, uvTransform.offset, uvTransform.scale, uvTransform.rotation);
 	}
 }
 

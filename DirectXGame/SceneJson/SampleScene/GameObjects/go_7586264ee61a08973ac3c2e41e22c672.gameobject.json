@@ -25,9 +25,9 @@
           1.0
         ],
         "translation": [
-          15.340434074401855,
-          4.2994303703308105,
-          5.664085388183594
+          15.0,
+          2.0,
+          -5.0
         ]
       },
       "type": "Transform"
@@ -70,7 +70,16 @@
               "assetId": "",
               "path": ""
             }
-          }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
         },
         "materialAssetId": "",
         "materialPath": "",
@@ -85,7 +94,7 @@
       "properties": {
         "bobDistance": 2.0,
         "bobSpeed": 0.019999999552965164,
-        "speed": 0.019999999552965164
+        "speed": 0.009999999776482582
       },
       "type": "RotatorComponent"
     }

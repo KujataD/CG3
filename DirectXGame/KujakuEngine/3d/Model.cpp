@@ -38,6 +38,16 @@ void Model::SetUVTransform(const Vector2& offset, const Vector2& scale, float ro
 	}
 }
 
+void Model::SetSubMeshUVTransform(size_t index, const Vector2& offset, const Vector2& scale, float rotation) {
+	if (index >= subMeshes_.size() || !subMeshes_[index].materialMap) {
+		return;
+	}
+	Matrix4x4 uvTransformMatrix = MakeScaleMatrix({scale.x, scale.y, 1.0f});
+	uvTransformMatrix = uvTransformMatrix * MakeRotateZMatrix(rotation);
+	uvTransformMatrix = uvTransformMatrix * MakeTranslateMatrix({offset.x, offset.y, 0.0f});
+	subMeshes_[index].materialMap->uvTransform = uvTransformMatrix;
+}
+
 Model* Model::CreateFromGlTF(const std::string& objname, ShaderModel shaderModel) {
 	Model* model = new Model();
 	std::string directoryPathFinal = "Resources/" + objname;

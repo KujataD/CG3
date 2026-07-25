@@ -4,9 +4,11 @@
 #include "../scene/Component.h"
 #include "../scene/IMaterialTarget.h"
 #include "../scene/IRaycastTarget.h"
+#include <array>
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace KujakuEngine {
 
@@ -66,6 +68,12 @@ public:
 
 	bool UsesMaterialAsset(const std::string& materialPath) const override;
 
+	/// <summary>
+	/// サブメッシュ別UVトランスフォーム。パーツのマテリアル/テクスチャは.mtl由来のものを維持したまま、
+	/// UVだけを個別に調整する(MultiMeshモデル用)。
+	/// </summary>
+	void SetSubMeshUVTransform(size_t subMeshIndex, const Vector2& offset, const Vector2& scale, float rotation);
+
 	PrimitiveType GetPrimitive() const { return primitive_; }
 
 	const std::string& GetMaterialAssetId() const { return materialAssetId_; }
@@ -105,9 +113,19 @@ public:
 	void ReadJson(const nlohmann::json& json) override;
 
 private:
+	/// <summary>サブメッシュ別のUVトランスフォーム値。既定(offset 0・scale 1・rotation 0)は「変換なし」。</summary>
+	struct SubMeshUVTransform {
+		Vector2 offset = {0.0f, 0.0f};
+		Vector2 scale = {1.0f, 1.0f};
+		float rotation = 0.0f; // ラジアン
+
+		bool IsIdentity() const { return offset.x == 0.0f && offset.y == 0.0f && scale.x == 1.0f && scale.y == 1.0f && rotation == 0.0f; }
+	};
+
 	void RebuildPrimitiveModel();
 	std::filesystem::path ResolveModelFilePath() const;
 	void ApplyMaterialToModel();
+	void ApplySubMeshUVTransforms();
 	/// <summary>
 	/// 参照中のMaterial Assetを読み込み、失敗時はComponent内Materialを返します。
 	/// </summary>
@@ -125,6 +143,8 @@ private:
 	std::string materialAssetId_;
 	std::string materialPath_;
 	MaterialAssetData material_ = MaterialAsset::CreateDefault();
+	// サブメッシュ別UVトランスフォーム(index=サブメッシュ順)。マテリアル/テクスチャは.mtl由来を維持する。
+	std::vector<SubMeshUVTransform> subMeshUVTransforms_;
 	bool billboardEnabled_ = false;
 	int billboardFaceMode_ = 0;
 	float cameraLocalZ_ = 1.0f;
