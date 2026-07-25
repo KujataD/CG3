@@ -1,12 +1,16 @@
 #include "UIEventSystem.h"
 
+#include "../3d/Camera.h"
 #include "../components/ButtonComponent.h"
 #include "../components/CanvasComponent.h"
 #include "../components/RectTransformComponent.h"
+#include "../math/MathUtil.h"
 #include "../runtime/UIInput.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
+#include "UICanvasRenderer.h"
 #include "UIRect.h"
+#include <cmath>
 #include <memory>
 
 namespace KujakuEngine {
@@ -39,9 +43,46 @@ void ProcessNode(GameObject* node, const UIRect& parentRect, float pointerCanvas
 	}
 }
 
+/// <summary>
+/// World Space Canvasに対し、ポインタから飛ばしたレイの当たり位置をキャンバス単位で求める。
+/// Canvasのローカル空間へレイを移してz=0平面と交差させるので、Canvasが回転・拡縮していても正しく解ける。
+/// </summary>
+bool ComputeWorldCanvasPointer(const GameObject& canvasObject, const CanvasComponent::Layout& layout, const Camera& camera, float targetWidth, float targetHeight,
+                               float pointerX, float pointerY, float& outCanvasX, float& outCanvasY) {
+	// ポインタ(RTピクセル) → NDC → world空間のレイ。
+	const float ndcX = (pointerX / targetWidth) * 2.0f - 1.0f;
+	const float ndcY = 1.0f - (pointerY / targetHeight) * 2.0f;
+
+	const Matrix4x4 inverseViewProjection = Inverse(camera.matView * camera.matProjection);
+	const Vector3 nearWorld = Transform({ndcX, ndcY, 0.0f}, inverseViewProjection);
+	const Vector3 farWorld = Transform({ndcX, ndcY, 1.0f}, inverseViewProjection);
+
+	// レイをCanvasローカルへ移し、キャンバス平面(z=0)との交点を求める。
+	const Matrix4x4 inverseCanvasWorld = Inverse(canvasObject.GetTransform().matWorld_);
+	const Vector3 nearLocal = Transform(nearWorld, inverseCanvasWorld);
+	const Vector3 farLocal = Transform(farWorld, inverseCanvasWorld);
+
+	const float deltaZ = farLocal.z - nearLocal.z;
+	if (std::fabs(deltaZ) < 1e-6f) {
+		return false; // レイがキャンバス平面と平行。
+	}
+	const float t = -nearLocal.z / deltaZ;
+	if (t < 0.0f || t > 1.0f) {
+		return false; // 交点がニア〜ファーの外(カメラの後ろなど)。
+	}
+
+	const float localX = nearLocal.x + (farLocal.x - nearLocal.x) * t;
+	const float localY = nearLocal.y + (farLocal.y - nearLocal.y) * t;
+
+	// MakeCanvasUIToLocalMatrixの逆変換: local = (uiX - cw/2, -(uiY - ch/2))。
+	outCanvasX = localX + layout.canvasWidth * 0.5f;
+	outCanvasY = layout.canvasHeight * 0.5f - localY;
+	return true;
+}
+
 } // namespace
 
-void UpdateUIEventSystem(Scene& scene, float targetWidth, float targetHeight) {
+void UpdateUIEventSystem(Scene& scene, float targetWidth, float targetHeight, Camera* camera) {
 	if (targetWidth <= 0.0f || targetHeight <= 0.0f) {
 		return;
 	}
@@ -58,8 +99,22 @@ void UpdateUIEventSystem(Scene& scene, float targetWidth, float targetHeight) {
 		}
 		const CanvasComponent::Layout layout = canvas->GetLayout(targetWidth, targetHeight);
 		const UIRect rootRect{0.0f, 0.0f, layout.canvasWidth, layout.canvasHeight};
-		const float pointerCanvasX = pointer.x / layout.scaleFactor;
-		const float pointerCanvasY = pointer.y / layout.scaleFactor;
+
+		// ポインタ位置をキャンバス単位へ変換する。ここだけがOverlayとWorld Spaceの違い。
+		float pointerCanvasX = 0.0f;
+		float pointerCanvasY = 0.0f;
+		if (canvas->IsWorldSpace()) {
+			if (!camera) {
+				continue; // カメラ無しではworld空間の判定ができない。
+			}
+			if (!ComputeWorldCanvasPointer(*gameObject, layout, *camera, targetWidth, targetHeight, pointer.x, pointer.y, pointerCanvasX, pointerCanvasY)) {
+				continue;
+			}
+		} else {
+			pointerCanvasX = pointer.x / layout.scaleFactor;
+			pointerCanvasY = pointer.y / layout.scaleFactor;
+		}
+
 		for (GameObject* child : gameObject->GetChildren()) {
 			ProcessNode(child, rootRect, pointerCanvasX, pointerCanvasY, hit);
 		}

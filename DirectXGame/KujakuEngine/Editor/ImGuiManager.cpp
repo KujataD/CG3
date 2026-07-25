@@ -8,7 +8,6 @@
 #include "EditorStyle.h"
 #include "EditorUndoManager.h"
 #include "SceneJsonExporter.h"
-#include "UIObjectFactory.h"
 #include "../base/DirectXCommon.h"
 #include "../base/WinApp.h"
 #include "../runtime/PlayState.h"
@@ -385,41 +384,8 @@ void ImGuiManager::DrawMainMenuBar() {
 		ImGui::EndMenu();
 	}
 
-	if (ImGui::BeginMenu("GameObject")) {
-		if (ImGui::MenuItem("Create Empty", nullptr, false, hasScene)) {
-			CaptureUndo(*scene, "Create Entity");
-			EditorSelection::GetInstance()->SetSelectedGameObject(scene->CreateEditorEntity());
-		}
-		if (ImGui::MenuItem("Create Cube", nullptr, false, hasScene)) {
-			CaptureUndo(*scene, "Create Cube");
-			EditorSelection::GetInstance()->SetSelectedGameObject(scene->CreateEditorCube());
-		}
-		if (ImGui::MenuItem("Create Sphere", nullptr, false, hasScene)) {
-			CaptureUndo(*scene, "Create Sphere");
-			EditorSelection::GetInstance()->SetSelectedGameObject(scene->CreateEditorSphere());
-		}
-		ImGui::Separator();
-		if (ImGui::BeginMenu("UI")) {
-			if (ImGui::MenuItem("Canvas", nullptr, false, hasScene)) {
-				CaptureUndo(*scene, "Create Canvas");
-				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::EnsureCanvas(scene));
-			}
-			if (ImGui::MenuItem("Image", nullptr, false, hasScene)) {
-				CaptureUndo(*scene, "Create UI Image");
-				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateImage(scene));
-			}
-			if (ImGui::MenuItem("Text", nullptr, false, hasScene)) {
-				CaptureUndo(*scene, "Create UI Text");
-				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateText(scene));
-			}
-			if (ImGui::MenuItem("Button", nullptr, false, hasScene)) {
-				CaptureUndo(*scene, "Create UI Button");
-				EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateButton(scene));
-			}
-			ImGui::EndMenu();
-		}
-		ImGui::EndMenu();
-	}
+	// GameObjectの生成メニューはHierarchyの右クリック(Create)に一本化した。
+	// 生成先の親を選んでから作れるHierarchy側が本来の導線で、2箇所に置くと挙動差が生まれるため。
 
 	if (ImGui::BeginMenu("Window")) {
 		ImGui::MenuItem("Scene", nullptr, &windowVisibility_.scene);

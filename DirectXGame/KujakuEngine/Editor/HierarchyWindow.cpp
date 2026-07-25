@@ -59,12 +59,17 @@ void DrawHierarchyCreateMenu(Scene& scene, GameObject* parent) {
 		CreateHierarchyObject(scene, "Sphere", parent);
 	}
 
-	// UIはGameObjectメニューと共有(UIObjectFactory)。Canvas配下に生成する。
+	// UI要素はUIObjectFactoryで生成する。Canvas以外はCanvas配下(選択中のCanvasがあればそこ)へ入る。
 	ImGui::Separator();
 	if (ImGui::BeginMenu("UI")) {
+		// Canvasは押すたびに新規作成する(複数Canvasを並べてsortOrderで前後を制御できる)。
 		if (ImGui::MenuItem("Canvas")) {
 			CaptureUndo(scene, "Create Canvas");
-			EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::EnsureCanvas(&scene));
+			EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateCanvas(&scene));
+		}
+		if (ImGui::MenuItem("Canvas (World Space)")) {
+			CaptureUndo(scene, "Create World Canvas");
+			EditorSelection::GetInstance()->SetSelectedGameObject(UIObjectFactory::CreateWorldSpaceCanvas(&scene));
 		}
 		if (ImGui::MenuItem("Image")) {
 			CaptureUndo(scene, "Create UI Image");

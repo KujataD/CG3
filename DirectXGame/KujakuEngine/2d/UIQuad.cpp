@@ -109,10 +109,11 @@ void UIQuad::Draw() {
 		return;
 	}
 
-	*transformMap_ = UIRenderer::GetOrtho();
+	// Overlay: オルソ / World Space: Canvas配置 x カメラVP。パイプラインもUIRendererが選ぶ。
+	*transformMap_ = UIRenderer::GetTransform();
 
 	ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
-	GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kUI, blendMode_);
+	GraphicsPipeline::GetInstance()->SetCommandList(UIRenderer::GetPipelineType(), blendMode_);
 
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
 	commandList->IASetIndexBuffer(&indexBufferView_);

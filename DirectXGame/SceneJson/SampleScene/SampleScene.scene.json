@@ -217,6 +217,30 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_5d9356ea237821d62ec8db1473b827b7.gameobject.json"
+    },
+    {
+      "instanceId": "go_117eda7192d2cc1808be11b85a816765",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Canvas (1)",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_117eda7192d2cc1808be11b85a816765.gameobject.json"
+    },
+    {
+      "instanceId": "go_5aa2906cf76005672d5034b4c1f3cc7f",
+      "parentInstanceId": "go_117eda7192d2cc1808be11b85a816765",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Text",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/SampleScene/GameObjects/go_5aa2906cf76005672d5034b4c1f3cc7f.gameobject.json"
     }
   ]
 }

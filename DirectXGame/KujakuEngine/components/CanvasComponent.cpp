@@ -1,6 +1,7 @@
 #include "CanvasComponent.h"
 
 #include "../runtime/InspectorUI.h"
+#include <algorithm>
 #include <cmath>
 
 namespace KujakuEngine {
@@ -28,6 +29,16 @@ Vector2 ReadVector2(const nlohmann::json& json, const char* key, const Vector2& 
 
 CanvasComponent::Layout CanvasComponent::GetLayout(float targetWidth, float targetHeight) const {
 	Layout layout;
+
+	// World Spaceは画面解像度に依存しない。キャンバス単位のサイズがそのままローカル座標系になり、
+	// world単位への変換はGameObjectのTransform(scale)が担う。
+	if (renderMode_ == RenderMode::WorldSpace) {
+		layout.scaleFactor = 1.0f;
+		layout.canvasWidth = (std::max)(worldCanvasSize_.x, 0.0001f);
+		layout.canvasHeight = (std::max)(worldCanvasSize_.y, 0.0001f);
+		return layout;
+	}
+
 	float scale = 1.0f;
 	if (scaleWithScreenSize_ && referenceResolution_.x > 0.0f && referenceResolution_.y > 0.0f && targetWidth > 0.0f && targetHeight > 0.0f) {
 		const float logWidth = std::log2(targetWidth / referenceResolution_.x);
@@ -46,15 +57,30 @@ CanvasComponent::Layout CanvasComponent::GetLayout(float targetWidth, float targ
 
 void CanvasComponent::DrawInspector() {
 #ifdef USE_IMGUI
-	InspectorUI::DragFloat("Reference Width", &referenceResolution_.x, 1.0f, 1.0f, 8192.0f);
-	InspectorUI::DragFloat("Reference Height", &referenceResolution_.y, 1.0f, 1.0f, 8192.0f);
-	InspectorUI::Checkbox("Scale With Screen Size", &scaleWithScreenSize_);
-	InspectorUI::DragFloat("Match (W<->H)", &matchWidthHeight_, 0.01f, 0.0f, 1.0f);
+	const char* renderModeItems[] = {"Screen Space - Overlay", "World Space"};
+	int renderModeIndex = static_cast<int>(renderMode_);
+	if (InspectorUI::Combo("Render Mode", &renderModeIndex, renderModeItems, 2)) {
+		renderMode_ = static_cast<RenderMode>(renderModeIndex);
+	}
+
+	// 使わない項目は出さない(UnityのCanvasインスペクタと同じ挙動)。
+	if (renderMode_ == RenderMode::WorldSpace) {
+		InspectorUI::DragFloat2("Canvas Size (W,H)", &worldCanvasSize_.x, 1.0f, 1.0f, 8192.0f);
+		InspectorUI::TextDisabled("配置はGameObjectのTransform。world単位への変換はscaleで行う(例: 0.01)。");
+	} else {
+		InspectorUI::DragFloat("Reference Width", &referenceResolution_.x, 1.0f, 1.0f, 8192.0f);
+		InspectorUI::DragFloat("Reference Height", &referenceResolution_.y, 1.0f, 1.0f, 8192.0f);
+		InspectorUI::Checkbox("Scale With Screen Size", &scaleWithScreenSize_);
+		InspectorUI::DragFloat("Match (W<->H)", &matchWidthHeight_, 0.01f, 0.0f, 1.0f);
+	}
+
 	InspectorUI::DragInt("Sort Order", &sortOrder_, 1.0f, -100, 100);
 #endif // USE_IMGUI
 }
 
 void CanvasComponent::WriteJson(nlohmann::json& json) const {
+	json["renderMode"] = static_cast<int>(renderMode_);
+	json["worldCanvasSize"] = {worldCanvasSize_.x, worldCanvasSize_.y};
 	json["referenceResolution"] = {referenceResolution_.x, referenceResolution_.y};
 	json["matchWidthHeight"] = matchWidthHeight_;
 	json["scaleWithScreenSize"] = scaleWithScreenSize_;
@@ -62,6 +88,16 @@ void CanvasComponent::WriteJson(nlohmann::json& json) const {
 }
 
 void CanvasComponent::ReadJson(const nlohmann::json& json) {
+	// キーが無い旧データはScreen Space - Overlay(従来の挙動)のまま。
+	if (json.contains("renderMode") && json.at("renderMode").is_number_integer()) {
+		const int value = json.at("renderMode").get<int>();
+		if (value == static_cast<int>(RenderMode::WorldSpace)) {
+			renderMode_ = RenderMode::WorldSpace;
+		} else {
+			renderMode_ = RenderMode::ScreenSpaceOverlay;
+		}
+	}
+	worldCanvasSize_ = ReadVector2(json, "worldCanvasSize", worldCanvasSize_);
 	referenceResolution_ = ReadVector2(json, "referenceResolution", referenceResolution_);
 	matchWidthHeight_ = ReadFloat(json, "matchWidthHeight", matchWidthHeight_);
 	if (json.contains("scaleWithScreenSize") && json.at("scaleWithScreenSize").is_boolean()) {

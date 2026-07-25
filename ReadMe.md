@@ -852,21 +852,47 @@ Project Window では任意ファイルを扱うため、失敗しても assert 
 
 ## 2D 描画: Sprite 方式と Canvas 方式
 
-2D の描画経路は用途で 2 つに分かれています。**どちらを使うかは「ゲーム世界の中の絵か、画面に貼り付く UI か」で決めます。**
+2D の描画経路は用途で 2 つに分かれています。**どちらを使うかは「ゲーム世界の中の絵か、UI か」で決めます。**
+さらに Canvas 方式は Render Mode で「画面に貼り付く」か「ワールドに置く」かを選べます。
 
-| | **Sprite 方式**(world 空間) | **Canvas 方式**(スクリーン空間 UI) |
+| | **Sprite 方式**(world 空間) | **Canvas 方式**(UI) |
 | --- | --- | --- |
-| 用途 | ゲーム内の見た目(キャラ、弾、エフェクト、背景) | HUD / メニュー / ボタン |
+| 用途 | ゲーム内の見た目(キャラ、弾、エフェクト、背景) | HUD / メニュー / ボタン / 看板 |
 | Component | `SpriteRendererComponent` | `CanvasComponent` + `RectTransformComponent` + `Image` / `Text` / `Button` |
-| 配置 | GameObject の通常の `Transform`(位置・回転・スケール) | `RectTransform`(アンカー・ピボット・親子)+ Canvas スケール |
-| 座標 | world 単位 | ピクセル(解像度に追従) |
-| カメラ | **映る**(カメラを動かすと一緒に動く) | 映らない(常に画面固定) |
+| 配置 | GameObject の通常の `Transform`(位置・回転・スケール) | `RectTransform`(アンカー・ピボット・親子) |
 | 前後関係 | **Sorting Order**(深度は書かない) | Canvas の sortOrder + 階層順 |
 | 入力 | なし(当たり判定は Collider 側で) | `Button` / レイキャストで UI イベント |
-| プリミティブ | `2d/SpriteQuad`(kSprite2D パイプライン) | `2d/UIQuad`(kUI パイプライン・深度 OFF) |
+| プリミティブ | `2d/SpriteQuad`(kSprite2D パイプライン) | `2d/UIQuad`(Overlay=kUI / World Space=kSprite2D) |
 | Canvas の要否 | **不要**。GameObject に足すだけで描画される | Canvas の子である必要がある |
 
 Unity で言えば Sprite 方式が `SpriteRenderer`(2D)、Canvas 方式が uGUI にあたります。
+
+### Canvas の Render Mode
+
+| | **Screen Space - Overlay** | **World Space** |
+| --- | --- | --- |
+| 用途 | HUD / メニュー(画面に貼り付く) | 看板、キャラの上の HP バー、操作パネル |
+| 配置 | 画面固定。解像度に自動追従 | GameObject の `Transform` |
+| カメラ | 映らない | **映る**(カメラを動かすと一緒に動く) |
+| 深度 | 常に 3D の手前 | **3D オブジェクトに遮蔽される**(深度は書かない) |
+| キャンバスサイズ | RT 解像度 ÷ scaleFactor で自動 | Inspector で明示指定(既定 1280×720) |
+| 入力判定 | ポインタ座標をそのまま使用 | カメラからレイを飛ばしてキャンバス平面と交差 |
+
+どちらのモードでも、配下の `RectTransform` / `Image` / `Text` / `Button` の使い方は**まったく同じ**です。
+アンカー・ピボットのレイアウト計算は座標系に依存しないため共通のコードが動いています。
+
+### World Space Canvas の使い方
+
+GameObject メニューの `UI > Canvas (World Space)` で作成できます(Transform の scale が 0.01 で作られます)。
+
+キャンバス単位 → world 単位の変換は **Transform の scale** が担います(Unity と同じ考え方):
+
+```
+1280 x 720 のキャンバス x scale 0.01  →  12.8 x 7.2 world 単位
+```
+
+つまり「UI は 1280×720 の感覚で組み、置くときに scale で縮める」という手順になります。
+文字は SDF フォントなので、近づいて拡大されても輪郭がぼやけません。
 
 ### Plane(3D メッシュ)との違い
 
@@ -1240,7 +1266,8 @@ extern "C" __declspec(dllexport) KujakuEngine::Scene* CreateGameScene() {
 | `2d/SpriteQuad.h/.cpp` | world 空間 2D(Sprite 方式)のプリミティブです。`SpriteRendererComponent` が使います。 |
 | `2d/Sprite2DRenderer.h/.cpp` | シーン内のスプライトを Sorting Order 順にまとめて描く 2D 専用パスです。 |
 | `2d/UIQuad.h/.cpp` | スクリーン空間 UI(Canvas 方式)のプリミティブです。`Image` / `Text` が使います。 |
-| `2d/UICanvasRenderer.h/.cpp` | Canvas 配下の UI を階層順に描くスクリーン空間 UI のパスです。 |
+| `2d/UICanvasRenderer.h/.cpp` | Canvas 配下の UI を階層順に描くパスです。Screen Space - Overlay と World Space の両方を扱います。 |
+| `2d/UIRenderer.h/.cpp` | UI 描画の共通セットアップ。`Begin`(Overlay=オルソ・深度 OFF)と `BeginWorld`(World Space=Canvas 配置 × カメラ VP・深度テストのみ)を切り替えます。 |
 
 ### Runtime / GameModule
 

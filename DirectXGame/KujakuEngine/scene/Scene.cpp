@@ -818,6 +818,12 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 	// Sorting Order順でまとめて描く(深度を書かないので描画順が前後関係になる)。
 	DrawSceneSprites(*this, camera);
 
+	// World Space Canvas。ワールドに置かれたUIなので、選択状態に関わらず常に描く。
+	{
+		DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+		DrawSceneWorldCanvases(*this, camera, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()));
+	}
+
 	// スクリーン空間UI(Canvas)の描画。drawEditorOverlays==true はSceneビュー、false はGameビュー。
 	// Gameビューは常にUIを描く。SceneビューはUI(Canvasまたはその子孫)を選択中のときだけ描く。
 	bool drawUI = !drawEditorOverlays;

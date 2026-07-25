@@ -366,7 +366,9 @@ void EditorApplication::Update() {
 	// Play中はUIイベント(ボタン)を処理する。ポインタはGameView(編集時)/Input(実行時)がセット済み。
 	if (ShouldUpdateGame() && currentScene_) {
 		DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-		UpdateUIEventSystem(*currentScene_, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()));
+		// World Space Canvasはゲームカメラからレイを飛ばして判定するため、カメラを渡す。
+		UpdateUIEventSystem(*currentScene_, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()),
+		                    currentScene_->GetGameViewCamera());
 	}
 }
 

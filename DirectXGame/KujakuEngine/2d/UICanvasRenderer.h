@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../math/Matrix4x4.h"
 #include "../runtime/KujakuApi.h"
 
 #include "UIRect.h"
@@ -7,6 +8,7 @@
 
 namespace KujakuEngine {
 
+class Camera;
 class Scene;
 class GameObject;
 
@@ -32,6 +34,19 @@ KUJAKU_API void PrepareSceneCanvases(Scene& scene);
 /// 3D描画の後(RenderViewの末尾)に呼ぶこと。targetWidth/Heightは描画先RTのピクセルサイズ。
 /// </summary>
 KUJAKU_API void DrawSceneCanvases(Scene& scene, float targetWidth, float targetHeight);
+
+/// <summary>
+/// Scene内のWorld Space CanvasをGameObjectのTransform位置へ描画する。
+/// スクリーン空間UIと違い3Dオブジェクトに遮蔽されるため、3D描画・スプライト描画の後に呼ぶこと。
+/// </summary>
+KUJAKU_API void DrawSceneWorldCanvases(Scene& scene, Camera* camera, float targetWidth, float targetHeight);
+
+/// <summary>
+/// World Space Canvasの「キャンバス単位 → Canvasローカル」変換行列。
+/// UIは左上原点・Y下方向、worldはY上方向なので、中心寄せしてYを反転する。
+/// 描画と入力(レイキャスト)で同じ変換を使うために共有する。
+/// </summary>
+KUJAKU_API Matrix4x4 MakeCanvasUIToLocalMatrix(float canvasWidth, float canvasHeight);
 
 /// <summary>
 /// 指定UI要素(RectTransformを持つGameObject)の矩形をキャンバス単位で算出する。

@@ -1,9 +1,11 @@
 #include "UICanvasRenderer.h"
 
+#include "../3d/Camera.h"
 #include "../components/CanvasComponent.h"
 #include "../components/ImageComponent.h"
 #include "../components/RectTransformComponent.h"
 #include "../components/TextComponent.h"
+#include "../math/MathUtil.h"
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
 #include "UIRect.h"
@@ -102,19 +104,26 @@ void PrepareSceneCanvases(Scene& scene) {
 	}
 }
 
+Matrix4x4 MakeCanvasUIToLocalMatrix(float canvasWidth, float canvasHeight) {
+	// UI座標(左上原点・Y下) → Canvasローカル(中心原点・Y上)。
+	// 行ベクトル規約なので Scale → Translate の順に掛ける。
+	//   local = (uiX - cw/2, -(uiY - ch/2))
+	return MakeScaleMatrix({1.0f, -1.0f, 1.0f}) * MakeTranslateMatrix({-canvasWidth * 0.5f, canvasHeight * 0.5f, 0.0f});
+}
+
 void DrawSceneCanvases(Scene& scene, float targetWidth, float targetHeight) {
 	if (targetWidth <= 0.0f || targetHeight <= 0.0f) {
 		return;
 	}
 
-	// Canvasを持つ有効なGameObjectを収集し、sortOrder順に並べる。
+	// Screen Space - OverlayのCanvasを収集し、sortOrder順に並べる(World Spaceは別パス)。
 	std::vector<std::pair<int, GameObject*>> canvases;
 	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
 		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
 			continue;
 		}
 		CanvasComponent* canvas = gameObject->GetComponent<CanvasComponent>();
-		if (canvas && canvas->IsEnabled()) {
+		if (canvas && canvas->IsEnabled() && !canvas->IsWorldSpace()) {
 			canvases.emplace_back(canvas->GetSortOrder(), gameObject.get());
 		}
 	}
@@ -135,6 +144,47 @@ void DrawSceneCanvases(Scene& scene, float targetWidth, float targetHeight) {
 		}
 	}
 	UIRenderer::End();
+}
+
+void DrawSceneWorldCanvases(Scene& scene, Camera* camera, float targetWidth, float targetHeight) {
+	if (!camera || targetWidth <= 0.0f || targetHeight <= 0.0f) {
+		return;
+	}
+
+	std::vector<std::pair<int, GameObject*>> canvases;
+	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
+			continue;
+		}
+		CanvasComponent* canvas = gameObject->GetComponent<CanvasComponent>();
+		if (canvas && canvas->IsEnabled() && canvas->IsWorldSpace()) {
+			canvases.emplace_back(canvas->GetSortOrder(), gameObject.get());
+		}
+	}
+	if (canvases.empty()) {
+		return;
+	}
+	std::stable_sort(canvases.begin(), canvases.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+	const Matrix4x4 viewProjection = camera->matView * camera->matProjection;
+
+	for (const auto& [sortOrder, canvasObject] : canvases) {
+		CanvasComponent* canvas = canvasObject->GetComponent<CanvasComponent>();
+		const CanvasComponent::Layout layout = canvas->GetLayout(targetWidth, targetHeight);
+		const UIRect rootRect{0.0f, 0.0f, layout.canvasWidth, layout.canvasHeight};
+
+		// キャンバス単位の頂点 → Canvasローカル → world(Transform) → クリップ空間。
+		const Matrix4x4 uiToLocal = MakeCanvasUIToLocalMatrix(layout.canvasWidth, layout.canvasHeight);
+		const Matrix4x4 canvasToClip = uiToLocal * canvasObject->GetTransform().matWorld_ * viewProjection;
+
+		// Canvasごとに行列が変わるのでBeginWorldもCanvasごとに呼ぶ。
+		UIRenderer::BeginWorld(canvasToClip, targetWidth, targetHeight);
+		for (GameObject* child : canvasObject->GetChildren()) {
+			// scaleFactorは1(キャンバス単位のまま頂点にする)。ピクセル換算はしない。
+			DrawUINode(child, rootRect, 1.0f);
+		}
+		UIRenderer::End();
+	}
 }
 
 bool IsUIRelatedObject(GameObject* object) {
@@ -160,7 +210,8 @@ void CollectSceneUIElementRects(Scene& scene, float targetWidth, float targetHei
 			continue;
 		}
 		CanvasComponent* canvas = gameObject->GetComponent<CanvasComponent>();
-		if (canvas && canvas->IsEnabled()) {
+		// 矩形はRTピクセル空間として返す契約なので、World Space Canvasは対象外(Transformギズモで操作する)。
+		if (canvas && canvas->IsEnabled() && !canvas->IsWorldSpace()) {
 			canvases.emplace_back(canvas->GetSortOrder(), gameObject.get());
 		}
 	}
@@ -199,6 +250,10 @@ bool ComputeUIElementRect(GameObject* node, float targetWidth, float targetHeigh
 	}
 
 	CanvasComponent* canvas = canvasObject->GetComponent<CanvasComponent>();
+	// この関数はRTピクセル空間の矩形を返す契約。World Spaceは座標系が違うので扱わない。
+	if (canvas->IsWorldSpace()) {
+		return false;
+	}
 	const CanvasComponent::Layout layout = canvas->GetLayout(targetWidth, targetHeight);
 	UIRect rect{0.0f, 0.0f, layout.canvasWidth, layout.canvasHeight};
 

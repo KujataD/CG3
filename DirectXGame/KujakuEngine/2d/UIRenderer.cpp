@@ -5,16 +5,16 @@
 
 namespace KujakuEngine {
 namespace {
-Matrix4x4 gUIOrtho = MakeIdentity();
+
+Matrix4x4 gUITransform = MakeIdentity();
+PipelineType gUIPipelineType = PipelineType::kUI;
 float gTargetWidth = 0.0f;
 float gTargetHeight = 0.0f;
-} // namespace
 
-void UIRenderer::Begin(float targetWidth, float targetHeight) {
+// ビューポート/シザー/トポロジ/ヒープの積み込み。Overlay・World共通。
+void SetupRenderState(float targetWidth, float targetHeight) {
 	gTargetWidth = targetWidth;
 	gTargetHeight = targetHeight;
-	// 左上原点のスクリーン空間オルソ(y下方向)。ピクセル座標をそのまま頂点に使う。
-	gUIOrtho = MakeOrthographicMatrix(0.0f, 0.0f, targetWidth, targetHeight, 0.0f, 100.0f);
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	ID3D12GraphicsCommandList* commandList = dxCommon->GetCommandList();
@@ -41,9 +41,27 @@ void UIRenderer::Begin(float targetWidth, float targetHeight) {
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
+} // namespace
+
+void UIRenderer::Begin(float targetWidth, float targetHeight) {
+	SetupRenderState(targetWidth, targetHeight);
+	// 左上原点のスクリーン空間オルソ(y下方向)。ピクセル座標をそのまま頂点に使う。
+	gUITransform = MakeOrthographicMatrix(0.0f, 0.0f, targetWidth, targetHeight, 0.0f, 100.0f);
+	gUIPipelineType = PipelineType::kUI;
+}
+
+void UIRenderer::BeginWorld(const Matrix4x4& canvasToClip, float targetWidth, float targetHeight) {
+	SetupRenderState(targetWidth, targetHeight);
+	gUITransform = canvasToClip;
+	// world空間UIは3Dに遮蔽されるが深度は書かない(スプライトと同じ扱い)。
+	gUIPipelineType = PipelineType::kSprite2D;
+}
+
 void UIRenderer::End() {}
 
-const Matrix4x4& UIRenderer::GetOrtho() { return gUIOrtho; }
+const Matrix4x4& UIRenderer::GetTransform() { return gUITransform; }
+
+PipelineType UIRenderer::GetPipelineType() { return gUIPipelineType; }
 
 float UIRenderer::GetTargetWidth() { return gTargetWidth; }
 
