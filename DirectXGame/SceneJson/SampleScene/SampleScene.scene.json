@@ -201,7 +201,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Shpere",
+      "name": "Sphere",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_483b5d8d9383194c241cd3a2507c87aa.gameobject.json"
@@ -273,7 +273,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "SuzanneModel",
+      "name": "Model",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_93afd466ec42061449d6978a74b697f6.gameobject.json"
@@ -285,7 +285,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "MultiMeshModel",
+      "name": "Model",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_7586264ee61a08973ac3c2e41e22c672.gameobject.json"
@@ -333,7 +333,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "MultiMaterialModel",
+      "name": "Model",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_5d9356ea237821d62ec8db1473b827b7.gameobject.json"
@@ -357,7 +357,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Stanford Bunny",
+      "name": "StanfordBunny",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_103d7c16268417aa081fc1a2ccaf84fe.gameobject.json"
@@ -501,7 +501,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Shpere",
+      "name": "Sphere",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_16e668527d03a75a0b72b75a6c9d2d4c.gameobject.json"
@@ -573,7 +573,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Shpere",
+      "name": "Sphere",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_96df98492e87426c4b6e4f5a1fe9eb07.gameobject.json"
@@ -621,7 +621,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Shpere",
+      "name": "Sphere",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_167fff718ceff37a0b3e7c3ab1f230b6.gameobject.json"
@@ -669,7 +669,7 @@
       "prefabObjectId": "",
       "prefabInstanceRootId": "",
       "prefabInstanceRoot": false,
-      "name": "Shpere",
+      "name": "Sphere",
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/SampleScene/GameObjects/go_9a39e48e8d0ea17f4d1d71c4f0f6f2b8.gameobject.json"

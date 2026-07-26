@@ -1,0 +1,68 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_5c71a08d3f4e42bd9a6f10c28b7e4d16",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Sprite",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          -6.0,
+          3.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "blendMode": 1,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "flipX": false,
+        "flipY": false,
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pixelsPerUnit": 100.0,
+        "sortingOrder": 0,
+        "textureAssetId": "",
+        "texturePath": "Resources/uvChecker.png",
+        "uvOffset": [
+          0.0,
+          0.0
+        ],
+        "uvRotation": 0.0,
+        "uvScale": [
+          1.0,
+          1.0
+        ]
+      },
+      "type": "SpriteRendererComponent"
+    }
+  ]
+}
