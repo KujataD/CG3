@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <d3d12.h>
 #include <filesystem>
+#include <functional>
 #include <wrl.h>
 
 #include "../base/DirectXCommon.h"
@@ -50,6 +51,12 @@ struct PostProcessSettings {
 /// </summary>
 class PostProcess {
 public:
+	/// <summary>
+	/// トーンマップ後のLDR RTへ重ねて描くコールバック(Screen Space UIなど)。
+	/// 引数は描画先RTのピクセルサイズ。呼ばれた時点でRTVは設定済み・RENDER_TARGET状態。
+	/// </summary>
+	using OverlayDrawFunc = std::function<void(float targetWidth, float targetHeight)>;
+
 	static KUJAKU_API PostProcess* GetInstance();
 
 	/// <summary>
@@ -71,14 +78,16 @@ public:
 	/// sourceに描かれたHDRシーンへフォグ+ブルーム+トーンマップを適用し、ビュー専用のResolve RT(LDR)へ出力する。
 	/// EndSceneRender/EndGameRenderの直後に呼ぶこと(sourceはPIXEL_SHADER_RESOURCE状態)。
 	/// 終了時に描画先はバックバッファへ戻る。cameraはフォグの深度復元用(nullptrならフォグをスキップ)。
+	/// drawOverlayを渡すと、トーンマップ直後のResolve RTへ重ねて描ける(ポストの影響を受けないUI用)。
 	/// </summary>
-	void Render(uint32_t viewIndex, const RenderTexture& source, const Camera* camera = nullptr);
+	void Render(uint32_t viewIndex, const RenderTexture& source, const Camera* camera = nullptr, const OverlayDrawFunc& drawOverlay = nullptr);
 
 	/// <summary>
 	/// エディタ無しビルド用: フォグ+ブルーム適用後、最終トーンマップをSwapChainバックバッファへ直接出力する。
 	/// PreDraw後(バックバッファがRENDER_TARGET状態)に呼ぶこと。
+	/// drawOverlayを渡すと、トーンマップ直後のバックバッファへ重ねて描ける(ポストの影響を受けないUI用)。
 	/// </summary>
-	void RenderToBackBuffer(const RenderTexture& source, const Camera* camera = nullptr);
+	void RenderToBackBuffer(const RenderTexture& source, const Camera* camera = nullptr, const OverlayDrawFunc& drawOverlay = nullptr);
 
 	/// <summary>
 	/// ImGui::Imageで表示する、ポスト適用済みRT(LDR)のSRVハンドル。

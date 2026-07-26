@@ -824,7 +824,12 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 		DrawSceneWorldCanvases(*this, camera, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()));
 	}
 
-	// スクリーン空間UI(Canvas)の描画。drawEditorOverlays==true はSceneビュー、false はGameビュー。
+	// Screen Space CanvasはここでHDRシーンRTへは描かない。フォグ/ブルーム/トーンマップの影響を
+	// 受けないよう、ポストプロセス後のLDR RTへRenderScreenSpaceUIで描く。
+}
+
+void Scene::RenderScreenSpaceUI(float targetWidth, float targetHeight, bool drawEditorOverlays) {
+	// drawEditorOverlays==true はSceneビュー、false はGameビュー。
 	// Gameビューは常にUIを描く。SceneビューはUI(Canvasまたはその子孫)を選択中のときだけ描く。
 	bool drawUI = !drawEditorOverlays;
 	if (drawEditorOverlays) {
@@ -832,8 +837,7 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 		drawUI = IsSceneViewUIEditMode() || IsUIRelatedObject(GetSelectionProvider().GetSelectedGameObject());
 	}
 	if (drawUI) {
-		DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-		DrawSceneCanvases(*this, static_cast<float>(dxCommon->GetGameRenderWidth()), static_cast<float>(dxCommon->GetGameRenderHeight()));
+		DrawSceneCanvases(*this, targetWidth, targetHeight);
 	}
 }
 

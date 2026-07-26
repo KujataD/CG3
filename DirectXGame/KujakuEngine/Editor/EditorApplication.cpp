@@ -404,7 +404,9 @@ void EditorApplication::Draw() {
 			}
 			dxCommon->EndSceneRender();
 			// HDRシーンRTへフォグ+ブルーム+トーンマップを適用(SceneViewWindowはこの結果を表示する)。
-			PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture(), sceneCamera);
+			// Screen Space UIはポストの影響を受けないよう、トーンマップ後のLDR RTへ重ねて描く。
+			Scene* scene = currentScene_;
+			PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture(), sceneCamera, [scene](float width, float height) { scene->RenderScreenSpaceUI(width, height, true); });
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}
@@ -418,7 +420,9 @@ void EditorApplication::Draw() {
 			LineRenderer::GetInstance()->Render(*gameCamera);
 			dxCommon->EndGameRender();
 			// HDRシーンRTへフォグ+ブルーム+トーンマップを適用(GameViewWindowはこの結果を表示する)。
-			PostProcess::GetInstance()->Render(DirectXCommon::kGameViewIndex, dxCommon->GetGameRenderTexture(), gameCamera);
+			// Screen Space UIはポストの影響を受けないよう、トーンマップ後のLDR RTへ重ねて描く。
+			Scene* scene = currentScene_;
+			PostProcess::GetInstance()->Render(DirectXCommon::kGameViewIndex, dxCommon->GetGameRenderTexture(), gameCamera, [scene](float width, float height) { scene->RenderScreenSpaceUI(width, height, false); });
 		}
 	} else if (currentScene_ && sceneVisible) {
 		// --- 単一ビュー(Prefab編集/フォールバック): 従来のDrawをScene RTへ ---
@@ -452,7 +456,9 @@ void EditorApplication::Draw() {
 			currentScene_->RenderView(camera, false);
 			LineRenderer::GetInstance()->Render(*camera);
 			dxCommon->EndGameRender();
-			PostProcess::GetInstance()->RenderToBackBuffer(dxCommon->GetGameRenderTexture(), camera);
+			// Screen Space UIはポストの影響を受けないよう、トーンマップ後のバックバッファへ重ねて描く。
+			Scene* scene = currentScene_;
+			PostProcess::GetInstance()->RenderToBackBuffer(dxCommon->GetGameRenderTexture(), camera, [scene](float width, float height) { scene->RenderScreenSpaceUI(width, height, false); });
 		} else {
 			LineRenderer::GetInstance()->Clear();
 		}

@@ -63,6 +63,14 @@ public:
 	KUJAKU_API virtual void RenderView(Camera* camera, bool drawEditorOverlays);
 
 	/// <summary>
+	/// Screen Space Canvas(スクリーン空間UI)の描画。
+	/// フォグ/ブルーム/トーンマップの影響を受けないよう、ポストプロセスの後にLDR RTへ描く。
+	/// targetWidth/Heightは描画先(Resolve RT/バックバッファ)のピクセルサイズ。
+	/// drawEditorOverlays==true はSceneビュー(UI選択中/UI編集モードのみ描画)、false はGameビュー(常に描画)。
+	/// </summary>
+	KUJAKU_API virtual void RenderScreenSpaceUI(float targetWidth, float targetHeight, bool drawEditorOverlays);
+
+	/// <summary>
 	/// Sceneビュー(デバッグカメラ)のカメラ。既定はGetEditorCamera。
 	/// </summary>
 	virtual Camera* GetSceneViewCamera() { return GetEditorCamera(); }

@@ -22,10 +22,11 @@ void GraphicsPipeline::Initialize() {
 	CreateInstancingPipelineStateObject();
 	CreateLinePipelineStateObject();
 	// スクリーン空間UI(深度OFF)と world空間2Dスプライト(深度テストのみ)。シェーダーは共通。
+	// スクリーン空間UIはポスト(フォグ/ブルーム/トーンマップ)の後にLDR RTへ描くため出力先が異なる。
 	CreateUIStyleRootSignature(PipelineType::kUI);
-	CreateUIStylePipelineStateObject(PipelineType::kUI, false);
+	CreateUIStylePipelineStateObject(PipelineType::kUI, false, true);
 	CreateUIStyleRootSignature(PipelineType::kSprite2D);
-	CreateUIStylePipelineStateObject(PipelineType::kSprite2D, true);
+	CreateUIStylePipelineStateObject(PipelineType::kSprite2D, true, false);
 }
 
 void GraphicsPipeline::InitializeDXC() {
@@ -794,7 +795,7 @@ void GraphicsPipeline::CreateUIStyleRootSignature(PipelineType pipelineType) {
 	}
 }
 
-void GraphicsPipeline::CreateUIStylePipelineStateObject(PipelineType pipelineType, bool depthTestEnabled) {
+void GraphicsPipeline::CreateUIStylePipelineStateObject(PipelineType pipelineType, bool depthTestEnabled, bool ldrTarget) {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/UI.VS.hlsl", L"vs_6_0");
@@ -841,10 +842,18 @@ void GraphicsPipeline::CreateUIStylePipelineStateObject(PipelineType pipelineTyp
 	graphicsPipelineStateDesc.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
 	graphicsPipelineStateDesc.PS = {pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize()};
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
-	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	graphicsPipelineStateDesc.NumRenderTargets = 2;
-	graphicsPipelineStateDesc.RTVFormats[0] = DirectXCommon::kSceneColorFormat;
-	graphicsPipelineStateDesc.RTVFormats[1] = DirectXCommon::kSceneEmissionFormat;
+	if (ldrTarget) {
+		// ポスト適用後のLDR RT(Resolve RT / バックバッファ)へ直接描く。深度もエミッションRTも無い。
+		graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+		graphicsPipelineStateDesc.NumRenderTargets = 1;
+		graphicsPipelineStateDesc.RTVFormats[0] = DirectXCommon::kResolveColorFormat;
+	} else {
+		// HDRシーンRT(MRT: カラー+エミッション)。ポストの入力になる。
+		graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		graphicsPipelineStateDesc.NumRenderTargets = 2;
+		graphicsPipelineStateDesc.RTVFormats[0] = DirectXCommon::kSceneColorFormat;
+		graphicsPipelineStateDesc.RTVFormats[1] = DirectXCommon::kSceneEmissionFormat;
+	}
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;

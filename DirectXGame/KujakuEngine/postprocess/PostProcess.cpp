@@ -382,7 +382,7 @@ void PostProcess::DrawTonemap(D3D12_GPU_DESCRIPTOR_HANDLE sceneSrv, const ViewTa
 	commandList->DrawInstanced(3, 1, 0, 0);
 }
 
-void PostProcess::Render(uint32_t viewIndex, const RenderTexture& source, const Camera* camera) {
+void PostProcess::Render(uint32_t viewIndex, const RenderTexture& source, const Camera* camera, const OverlayDrawFunc& drawOverlay) {
 	assert(viewIndex < DirectXCommon::kRenderViewCount);
 	if (!PostEffectPipeline::GetInstance()->IsInitialized()) {
 		return;
@@ -409,13 +409,22 @@ void PostProcess::Render(uint32_t viewIndex, const RenderTexture& source, const 
 	commandList->OMSetRenderTargets(1, &targets.resolve.rtvHandle, false, nullptr);
 	SetViewportScissor(targets.resolve.width, targets.resolve.height);
 	DrawTonemap(fogActive ? targets.fogScratch.srvHandleGPU : source.srvHandleGPU, targets, bloomActive);
+
+	// --- ポスト後のオーバーレイ(Screen Space UI): トーンマップ済みLDRへ直接描く ---
+	// ここで描いたものはフォグ/ブルーム/露出/トーンマップの影響を受けない。
+	if (drawOverlay) {
+		drawOverlay(static_cast<float>(targets.resolve.width), static_cast<float>(targets.resolve.height));
+		// オーバーレイ側がビューポート等を変えるため、以降のパスに備えて戻しておく。
+		SetViewportScissor(targets.resolve.width, targets.resolve.height);
+	}
+
 	TransitionTarget(targets.resolve, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	// この後のImGui描画のため、描画先をバックバッファへ戻す(EndRenderTextureと同じ規約)。
 	dxCommon->SetBackBufferRenderTarget();
 }
 
-void PostProcess::RenderToBackBuffer(const RenderTexture& source, const Camera* camera) {
+void PostProcess::RenderToBackBuffer(const RenderTexture& source, const Camera* camera, const OverlayDrawFunc& drawOverlay) {
 	if (!PostEffectPipeline::GetInstance()->IsInitialized()) {
 		return;
 	}
@@ -441,6 +450,11 @@ void PostProcess::RenderToBackBuffer(const RenderTexture& source, const Camera* 
 	commandList->OMSetRenderTargets(1, &backBufferRtv, false, nullptr);
 	SetViewportScissor(dxCommon->GetBackBufferWidth(), dxCommon->GetBackBufferHeight());
 	DrawTonemap(fogActive ? targets.fogScratch.srvHandleGPU : source.srvHandleGPU, targets, bloomActive);
+
+	// --- ポスト後のオーバーレイ(Screen Space UI): トーンマップ済みバックバッファへ直接描く ---
+	if (drawOverlay) {
+		drawOverlay(static_cast<float>(dxCommon->GetBackBufferWidth()), static_cast<float>(dxCommon->GetBackBufferHeight()));
+	}
 
 	// 後続処理(ImGui等)のために描画先とビューポートを通常状態へ戻す。
 	dxCommon->SetBackBufferRenderTarget();

@@ -87,7 +87,7 @@ enum class PipelineType {
 	kInstancingObject3d,
 	kObject3dWireframe,
 	kLine,
-	kUI,      // スクリーン空間UI(深度OFF・アルファブレンド)
+	kUI,      // スクリーン空間UI(深度OFF・アルファブレンド・ポスト適用後のLDR RTへ出力)
 	kSprite2D, // world空間2Dスプライト(深度テストON・深度書き込みOFF・両面・アルファブレンド)
 	kCountOfPipeLineType,
 };
@@ -160,8 +160,10 @@ private:
 	/// <summary>
 	/// UI.VS/UI.PS を使うPSOを作る。
 	/// depthTestEnabled=false: スクリーン空間UI(常に手前)。true: world空間2D(3Dに遮蔽されるが深度は書かない)。
+	/// ldrTarget=true: ポスト適用後のLDR RT(RTV1枚・深度なし)へ出力する。
+	/// false: HDRシーンRT(カラー+エミッションのMRT・深度あり)へ出力する。
 	/// </summary>
-	void CreateUIStylePipelineStateObject(PipelineType pipelineType, bool depthTestEnabled);
+	void CreateUIStylePipelineStateObject(PipelineType pipelineType, bool depthTestEnabled, bool ldrTarget);
 
 private:
 	// DXCコンパイラ関連
