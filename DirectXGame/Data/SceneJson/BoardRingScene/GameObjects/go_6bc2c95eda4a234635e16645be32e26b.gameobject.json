@@ -1,0 +1,39 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_6bc2c95eda4a234635e16645be32e26b",
+  "parentInstanceId": "go_dd1366e0866d987e6e89b19a91ddc62e",
+  "name": "Player",
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          3.4766221046447754,
+          -0.8676427602767944,
+          -1.415343999862671
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "modelPath": "player",
+        "primitive": "Cube",
+        "texture": "resources/monsterBall.png"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}

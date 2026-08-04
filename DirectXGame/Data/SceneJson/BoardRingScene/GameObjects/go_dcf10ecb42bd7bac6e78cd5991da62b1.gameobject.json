@@ -1,0 +1,88 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_dcf10ecb42bd7bac6e78cd5991da62b1",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Cube",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          2.360710620880127,
+          -9.5367431640625e-07,
+          0.7225641012191772
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "material": {
+          "baseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "name": "New Material",
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/monsterBall.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "player",
+        "primitive": "Cube",
+        "texture": "resources/monsterBall.png"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": false,
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "BoxColliderComponent"
+    }
+  ]
+}

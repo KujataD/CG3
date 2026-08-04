@@ -1,0 +1,84 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_b2fa83a5654c336a597d0bec83b24a15",
+  "parentInstanceId": "go_dcf10ecb42bd7bac6e78cd5991da62b1",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Sphere",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          2.4134328365325928,
+          0.0,
+          -6.268876075744629
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "material": {
+          "baseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "name": "New Material",
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/monsterBall.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "player",
+        "primitive": "Sphere",
+        "texture": "resources/monsterBall.png"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": false,
+        "radius": 1.0
+      },
+      "type": "SphereColliderComponent"
+    }
+  ]
+}

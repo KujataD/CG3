@@ -1,0 +1,36 @@
+{
+  "assetType": "Material",
+  "baseColor": [
+    0.3499999940395355,
+    0.6000000238418579,
+    1.0,
+    1.0
+  ],
+  "bloomIntensity": 1.0,
+  "bloomSoftKnee": 0.5,
+  "bloomThreshold": 0.0,
+  "emissiveColor": [
+    0.0,
+    0.4602513313293457,
+    1.0
+  ],
+  "emissiveEnabled": true,
+  "emissiveIntensity": 4.0,
+  "name": "MagicBolt",
+  "shaderModel": 0,
+  "textures": {
+    "BaseColor": {
+      "assetId": "",
+      "path": "resources/white1x1.png"
+    },
+    "Environment": {
+      "assetId": "",
+      "path": ""
+    },
+    "Normal": {
+      "assetId": "",
+      "path": ""
+    }
+  },
+  "version": 1
+}

@@ -1,0 +1,107 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_bishop_model",
+  "parentInstanceId": "go_7d95b08120a6b2583ecab05f811bed43",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "BishopModel",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
+        "material": {
+          "baseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "bloomIntensity": 1.0,
+          "bloomSoftKnee": 0.5,
+          "bloomThreshold": 0.0,
+          "emissiveColor": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "emissiveEnabled": false,
+          "emissiveIntensity": 1.0,
+          "name": "New Material",
+          "shaderModel": 4,
+          "textures": {
+            "BaseColor": {
+              "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
+              "path": "Resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelAssetId": "asset_1fabf2a930b3fafe0fd591720e5ec02a",
+        "modelPath": "Resources/bishop/bishop.obj",
+        "primitive": "Model"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clips": [
+          {
+            "assetId": "",
+            "path": "Animations/Sample.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerRoll.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerRecoil.anim.json"
+          }
+        ],
+        "currentClip": 0,
+        "playOnStart": false,
+        "speed": 1.0
+      },
+      "type": "AnimatorComponent"
+    }
+  ]
+}

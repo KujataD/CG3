@@ -100,12 +100,13 @@ std::filesystem::path ResolvePrefabPath(const std::filesystem::path& prefabPath)
 	if (prefabPath.is_absolute()) {
 		return NormalizePath(prefabPath);
 	}
-	return NormalizePath(DetectEditorProjectRoot() / prefabPath);
+	// "Prefabs/Foo.prefab.json"のような相対パスの基準はData配下(SaveAsPrefabの保存先と合わせる)。
+	return NormalizePath(GetProjectDataRoot() / prefabPath);
 }
 
 std::string MakeStoredPrefabPath(const std::filesystem::path& prefabPath) {
 	std::filesystem::path normalizedPrefabPath = ResolvePrefabPath(prefabPath);
-	std::filesystem::path projectRoot = DetectEditorProjectRoot();
+	std::filesystem::path projectRoot = GetProjectDataRoot();
 
 	std::error_code error;
 	std::filesystem::path relative = std::filesystem::relative(normalizedPrefabPath, projectRoot, error);

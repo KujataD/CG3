@@ -1,0 +1,76 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_dd1366e0866d987e6e89b19a91ddc62e",
+  "parentInstanceId": "",
+  "name": "MonsterBall",
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          -1.5702069997787476,
+          -0.0,
+          0.0
+        ],
+        "scale": [
+          1.1899998188018799,
+          1.1899999380111694,
+          1.1899999380111694
+        ],
+        "translation": [
+          -4.451308727264404,
+          -6.144464015960693,
+          2.099329948425293
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "snapshot": {
+          "rotation": [
+            -1.5702069997787476,
+            -0.0,
+            0.0
+          ],
+          "scale": [
+            1.1899998188018799,
+            1.1899999380111694,
+            1.1899999380111694
+          ],
+          "translation": [
+            -4.451308727264404,
+            -6.144464015960693,
+            2.099329948425293
+          ]
+        }
+      },
+      "type": "TransformSnapshotComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "speed": 0.019999999552965164
+      },
+      "type": "RotatorComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "modelPath": "player",
+        "primitive": "Sphere",
+        "texture": "Resources/uvChecker.png"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "speed": 0.029999999329447746
+      },
+      "type": "MoveForwardComponent"
+    }
+  ]
+}

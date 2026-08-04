@@ -1,0 +1,104 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_733f6bd02f435878399e2d05a7d40ebe",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Sphere",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "translation": [
+          0.0,
+          1.7899999618530273,
+          2.5399999618530273
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "material": {
+          "baseColor": [
+            0.0,
+            0.1847827434539795,
+            1.0,
+            1.0
+          ],
+          "name": "New Material",
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelPath": "player",
+        "primitive": "Sphere",
+        "texture": "resources/white1x1.png"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": false,
+        "radius": 1.0
+      },
+      "type": "SphereColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "bounciness": 0.5,
+        "freezePositionX": false,
+        "freezePositionY": false,
+        "freezePositionZ": false,
+        "freezeRotationX": false,
+        "freezeRotationY": false,
+        "freezeRotationZ": false,
+        "gravityScale": 1.0,
+        "isStatic": false,
+        "velocity": [
+          0.0,
+          0.05125722289085388,
+          0.0
+        ]
+      },
+      "type": "RigidbodyComponent"
+    }
+  ]
+}

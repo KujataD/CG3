@@ -1,0 +1,111 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_pawn_model",
+  "parentInstanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "PawnModel",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
+        "material": {
+          "baseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "bloomIntensity": 1.0,
+          "bloomSoftKnee": 0.5,
+          "bloomThreshold": 0.0,
+          "emissiveColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "emissiveEnabled": false,
+          "emissiveIntensity": 1.0,
+          "name": "Player",
+          "shaderModel": 4,
+          "textures": {
+            "BaseColor": {
+              "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
+              "path": "Resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "asset_d25ba1a25e2e953e692db582bb93e4b6",
+        "materialPath": "Materials/Player.material.json",
+        "modelAssetId": "asset_fe450a95c79f6d3f7f22e00424d19d39",
+        "modelPath": "Resources/pawn/pawn.obj",
+        "primitive": "Model"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "clips": [
+          {
+            "assetId": "",
+            "path": "Animations/PlayerAttack.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerWalk.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerRecoil.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PlayerRoll.anim.json"
+          }
+        ],
+        "currentClip": 3,
+        "playOnStart": false,
+        "speed": 1.0
+      },
+      "type": "AnimatorComponent"
+    }
+  ]
+}

@@ -201,7 +201,9 @@ std::filesystem::path ResolveProjectPath(const std::filesystem::path& path) {
 	if (path.is_absolute()) {
 		return NormalizeEditorPath(path);
 	}
-	return NormalizeEditorPath(DetectEditorProjectRoot() / path);
+	// アセットの相対パス("Materials/Foo.material.json"等)はプロジェクトルートではなくData配下が基準。
+	// DetectEditorProjectRoot()だとDataが抜けて、テクスチャ未設定時の既定white1x1が見つからずassertする。
+	return NormalizeEditorPath(GetProjectDataRoot() / path);
 }
 
 std::filesystem::path GetMetaPath(const std::filesystem::path& assetPath) {

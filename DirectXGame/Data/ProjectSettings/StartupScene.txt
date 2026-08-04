@@ -1,1 +1,1 @@
-SampleScene
+BoardRingScene

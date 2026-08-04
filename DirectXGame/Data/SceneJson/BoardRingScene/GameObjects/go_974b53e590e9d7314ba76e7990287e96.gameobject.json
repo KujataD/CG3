@@ -1,0 +1,51 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_974b53e590e9d7314ba76e7990287e96",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Editor Debug Camera",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          -12.166062355041504,
+          31.934185028076172,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          -6.652935028076172,
+          5.99999475479126,
+          -8.706110954284668
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "aspectRatio": 1.7777777910232544,
+        "farZ": 1000.0,
+        "fovAngleY": 0.6000000238418579,
+        "nearZ": 0.10000000149011612
+      },
+      "type": "CameraComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "DebugCameraComponent"
+    }
+  ]
+}

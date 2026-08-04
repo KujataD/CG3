@@ -1,0 +1,114 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_15f788c96bf669800afa5d0d725f7df3",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Pawn",
+  "tag": "Ally",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          2.069999933242798,
+          0.0
+        ],
+        "scale": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "translation": [
+          -4.71367073059082,
+          2.5399999618530273,
+          10.348068237304688
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "bounciness": 0.0,
+        "freezePositionX": false,
+        "freezePositionY": false,
+        "freezePositionZ": false,
+        "freezeRotationX": false,
+        "freezeRotationY": false,
+        "freezeRotationZ": false,
+        "gravityScale": 1.0,
+        "isStatic": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "RigidbodyComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "dodgeClipName": "PlayerRoll",
+        "dodgeCooldownFrames": 5,
+        "dodgeDurationFrames": 30,
+        "dodgeSpeed": 12.0,
+        "invincibleFrames": 27,
+        "knockbackDamping": 6.0,
+        "recoilClipName": "PlayerRecoil",
+        "speed": 5.0,
+        "turnSpeed": 12.0
+      },
+      "type": "CharacterMotor"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "triggerThreshold": 0.5
+      },
+      "type": "Player"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "AllyAIBrain"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "attackClipName": "PlayerAttack"
+      },
+      "type": "MeleeAbilitySet"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "direction": 1,
+        "height": 5.0,
+        "isTrigger": false,
+        "radius": 1.5
+      },
+      "type": "CapsuleColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "health": 100.0,
+        "maxHealth": 100.0
+      },
+      "type": "PlayerHealth"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_ebb9b52e9bae0c3875de1d1c18c6b11a",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Terrain",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          -1.5299992561340332,
+          -0.3299994170665741,
+          0.0
+        ],
+        "scale": [
+          0.9999999403953552,
+          0.9999994039535522,
+          0.9999998211860657
+        ],
+        "translation": [
+          -2.9713168144226074,
+          0.10926614701747894,
+          4.185897350311279
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "material": {
+          "baseColor": [
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "name": "New Material",
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": "resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          }
+        },
+        "materialAssetId": "asset_61a67d3b9848aaa230d03a29fbfaa95e",
+        "materialPath": "Materials/New Material.material.json",
+        "modelPath": "player",
+        "primitive": "Custom",
+        "texture": "resources/white1x1.png"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}

@@ -177,7 +177,9 @@ void ImGuiManager::ExportCurrentSceneJson() {
 		return;
 	}
 
-	SceneJsonExporter::ExportResult exportResult = SceneJsonExporter::ExportScene(*scene, projectWindow_.GetProjectRoot());
+	// Project Windowの表示ルートはDirectXGameだが、シーンJSONの読み書きはData配下が基準。
+	// GetProjectRoot()を渡すとDirectXGame/SceneJsonへ書き出してしまい、Importerが読まない場所に保存される。
+	SceneJsonExporter::ExportResult exportResult = SceneJsonExporter::ExportScene(*scene, GetProjectDataRoot());
 	if (exportResult.succeeded) {
 		AddConsoleLog("[Editor] Scene JSON exported: " + exportResult.outputDirectory.string());
 		projectWindow_.Refresh();

@@ -1,0 +1,121 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_7d95b08120a6b2583ecab05f811bed43",
+  "parentInstanceId": "",
+  "prefabAssetPath": "",
+  "prefabObjectId": "",
+  "prefabInstanceRootId": "",
+  "prefabInstanceRoot": false,
+  "name": "Bishop",
+  "tag": "Ally",
+  "layer": 0,
+  "active": false,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "translation": [
+          -17.67148208618164,
+          2.5399999618530273,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "bounciness": 0.0,
+        "freezePositionX": false,
+        "freezePositionY": false,
+        "freezePositionZ": false,
+        "freezeRotationX": false,
+        "freezeRotationY": false,
+        "freezeRotationZ": false,
+        "gravityScale": 1.0,
+        "isStatic": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "RigidbodyComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "direction": 1,
+        "height": 5.0,
+        "isTrigger": false,
+        "radius": 1.5
+      },
+      "type": "CapsuleColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "dodgeClipName": "PlayerRoll",
+        "dodgeCooldownFrames": 5,
+        "dodgeDurationFrames": 30,
+        "dodgeSpeed": 12.0,
+        "invincibleFrames": 27,
+        "knockbackDamping": 6.0,
+        "recoilClipName": "PlayerRecoil",
+        "speed": 5.0,
+        "turnSpeed": 12.0
+      },
+      "type": "CharacterMotor"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "triggerThreshold": 0.5
+      },
+      "type": "Player"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "AllyAIBrain"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "castClipName": "",
+        "cooldownSeconds": 1.0,
+        "muzzleForward": 1.2000000476837158,
+        "muzzleHeight": 0.5,
+        "projectileDamage": 10.0,
+        "projectileLifetime": 3.0,
+        "projectilePrefabPath": "Prefabs/MagicBolt.prefab.json",
+        "projectileSpeed": 15.0
+      },
+      "type": "MagicAbilitySet"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "health": 100.0,
+        "maxHealth": 100.0
+      },
+      "type": "PlayerHealth"
+    }
+  ]
+}
