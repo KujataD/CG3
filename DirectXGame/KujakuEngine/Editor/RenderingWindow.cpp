@@ -2,7 +2,13 @@
 
 #ifdef USE_IMGUI
 #include "../../externals/imgui/imgui.h"
+#include "../3d/Camera.h"
+#include "../components/VolumeComponent.h"
 #include "../postprocess/PostProcess.h"
+#include "../postprocess/VolumeStack.h"
+#include "../scene/GameObject.h"
+#include "../scene/Scene.h"
+#include "EditorApplication.h"
 #endif // USE_IMGUI
 
 namespace KujakuEngine {
@@ -14,52 +20,69 @@ void RenderingWindow::Draw(bool* pOpen) {
 		return;
 	}
 
-	PostProcess* postProcess = PostProcess::GetInstance();
-	PostProcessSettings& settings = postProcess->GetSettings();
-	bool changed = false;
+	// このウィンドウは編集画面ではなく「今フレーム何が適用されたか」の確認用。
+	// 値の編集はシーン上のVolumeComponent(Inspector)で行う。
+	ImGui::TextDisabled("ポストエフェクトはシーン上の Volume で設定します");
 
-	// 閾値/Soft KneeはMaterialのEmission項目(マテリアル別)へ移行した。ここは全体設定のみ。
-	ImGui::SeparatorText("Bloom");
-	changed |= ImGui::Checkbox("Enabled", &settings.bloomEnabled);
-	changed |= ImGui::DragFloat("Intensity", &settings.bloomIntensity, 0.01f, 0.0f, 5.0f);
-
-	ImGui::SeparatorText("Exposure / Tonemap");
-	changed |= ImGui::DragFloat("Exposure", &settings.exposure, 0.01f, 0.0f, 10.0f);
-	// 0=None(HDR化の検証用) / 1=Reinhard / 2=ACES。通常はACES。
-	const char* tonemapItems[] = {"None", "Reinhard", "ACES"};
-	int tonemapIndex = settings.tonemapper;
-	if (ImGui::Combo("Tonemapper", &tonemapIndex, tonemapItems, IM_ARRAYSIZE(tonemapItems))) {
-		settings.tonemapper = tonemapIndex;
-		changed = true;
+	Scene* scene = EditorApplication::GetInstance()->GetCurrentScene();
+	if (!scene) {
+		ImGui::TextUnformatted("No Scene.");
+		ImGui::End();
+		return;
 	}
 
-	ImGui::SeparatorText("Color Grading");
-	changed |= ImGui::SliderFloat("Saturation", &settings.saturation, 0.0f, 2.0f);
-	changed |= ImGui::SliderFloat("Contrast", &settings.contrast, 0.0f, 2.0f);
-	changed |= ImGui::ColorEdit3("Color Filter", &settings.colorFilter.x);
+	// Sceneビューのカメラ位置で解決した結果を表示する(Local Volumeの効き具合が見えるように)。
+	Camera* sceneCamera = scene->GetSceneViewCamera();
+	Vector3 cameraPosition = sceneCamera ? sceneCamera->translation_ : Vector3{0.0f, 0.0f, 0.0f};
+	VolumeResolveResult resolved = VolumeStack::Resolve(*scene, cameraPosition);
 
-	ImGui::SeparatorText("Vignette");
-	changed |= ImGui::SliderFloat("Vignette Intensity", &settings.vignetteIntensity, 0.0f, 1.0f);
-	changed |= ImGui::SliderFloat("Vignette Smoothness", &settings.vignetteSmoothness, 0.01f, 1.0f);
+	ImGui::SeparatorText("Contributing Volumes");
+	if (resolved.contributors.empty()) {
+		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "有効な Volume がありません(ポストエフェクト無し)");
+		if (ImGui::Button("Create Global Volume")) {
+			GameObject* volumeObject = scene->CreateGameObject("Global Volume");
+			if (volumeObject) {
+				VolumeComponent* volume = volumeObject->AddComponent<VolumeComponent>();
+				if (volume) {
+					// 生成直後から見た目が変わるよう、トーンマップ系は既定でoverrideしておく。
+					volume->GetProfile().SetOverriding(VolumeEffectId::kTonemap, true);
+					scene->OnEditorComponentAdded(volumeObject, volume);
+				}
+			}
+		}
+	} else {
+		for (VolumeComponent* volume : resolved.contributors) {
+			GameObject* owner = volume->GetOwner();
+			const char* name = owner ? owner->GetName().c_str() : "(no owner)";
+			float weight = VolumeStack::ComputeWeight(*volume, cameraPosition);
+			ImGui::BulletText("%s  [%s]  priority=%.1f  weight=%.2f", name, volume->IsGlobal() ? "Global" : "Local", volume->GetPriority(), weight);
+		}
+	}
 
-	ImGui::SeparatorText("Fog");
-	changed |= ImGui::Checkbox("Fog Enabled", &settings.fogEnabled);
-	changed |= ImGui::ColorEdit3("Fog Color", &settings.fogColor.x);
-	changed |= ImGui::DragFloat("Density", &settings.fogDensity, 0.001f, 0.0f, 1.0f);
-	changed |= ImGui::DragFloat("Height Falloff", &settings.fogHeightFalloff, 0.005f, 0.0f, 2.0f);
-	changed |= ImGui::DragFloat("Height Base", &settings.fogHeightBase, 0.1f, -100.0f, 100.0f);
-	changed |= ImGui::DragFloat("Start Distance", &settings.fogStartDistance, 0.1f, 0.0f, 100.0f);
-	changed |= ImGui::DragFloat("Max Distance", &settings.fogMaxDistance, 0.5f, 1.0f, 1000.0f);
-	changed |= ImGui::DragFloat("Spot Scatter", &settings.fogSpotScatter, 0.01f, 0.0f, 10.0f);
+	ImGui::SeparatorText("Resolved Settings (read-only)");
+	// 解決結果はコピーなので、ここでの編集はどこにも反映されない。誤操作防止のため常にDisabledで描く。
+	VolumeProfileData preview = resolved.profile;
+	for (const VolumeEffectDescriptor& descriptor : GetVolumeEffectDescriptors()) {
+		ImGui::PushID(descriptor.name);
+		bool overriding = preview.IsOverriding(descriptor.id);
+		if (ImGui::CollapsingHeader(descriptor.name)) {
+			ImGui::Indent();
+			if (!overriding) {
+				ImGui::TextDisabled("どの Volume も上書きしていません(既定値)");
+			}
+			ImGui::BeginDisabled(true);
+			descriptor.drawInspector(preview);
+			ImGui::EndDisabled();
+			ImGui::Unindent();
+		}
+		ImGui::PopID();
+	}
 
-	// フェードは演出用のランタイム状態なので保存対象外。動作確認用に現在値だけ表示する。
+	// フェードはVolumeとは独立した演出用のランタイム状態。動作確認用に現在値だけ表示する。
+	PostProcess* postProcess = PostProcess::GetInstance();
 	if (postProcess->GetFadeAmount() > 0.0f) {
 		ImGui::Separator();
 		ImGui::Text("Fade: %.2f", postProcess->GetFadeAmount());
-	}
-
-	if (changed) {
-		postProcess->SaveSettings();
 	}
 
 	ImGui::End();

@@ -109,6 +109,18 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/TitleScene/GameObjects/go_dd3c6c59f2d0851c6e9eef3298917d4c.gameobject.json"
+    },
+    {
+      "instanceId": "go_global_volume",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Global Volume",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/TitleScene/GameObjects/go_global_volume.gameobject.json"
     }
   ]
 }

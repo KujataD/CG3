@@ -469,6 +469,18 @@
       "tag": "Untagged",
       "layer": 0,
       "assetPath": "SceneJson/BoardRingScene/GameObjects/go_hammer_head.gameobject.json"
+    },
+    {
+      "instanceId": "go_global_volume",
+      "parentInstanceId": "",
+      "prefabAssetPath": "",
+      "prefabObjectId": "",
+      "prefabInstanceRootId": "",
+      "prefabInstanceRoot": false,
+      "name": "Global Volume",
+      "tag": "Untagged",
+      "layer": 0,
+      "assetPath": "SceneJson/BoardRingScene/GameObjects/go_global_volume.gameobject.json"
     }
   ]
 }

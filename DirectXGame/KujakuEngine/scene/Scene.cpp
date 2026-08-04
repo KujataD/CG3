@@ -17,6 +17,8 @@
 #include "../components/ColliderComponent.h"
 #include "../components/RigidbodyComponent.h"
 #include "../math/MathUtil.h"
+#include "../postprocess/PostProcess.h"
+#include "../postprocess/VolumeStack.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -797,6 +799,14 @@ void Scene::Draw() {
 }
 
 void Scene::PrepareFrame() { UpdateWorldTransforms(); }
+
+void Scene::ApplyVolumes(const Camera* camera) {
+	// カメラが無いビュー(まだシーンカメラが揃っていない等)は原点基準で解決しておく。
+	// Global Volumeしか無いシーンではカメラ位置は結果に影響しない。
+	Vector3 cameraPosition = camera ? camera->translation_ : Vector3{0.0f, 0.0f, 0.0f};
+	VolumeResolveResult resolved = VolumeStack::Resolve(*this, cameraPosition);
+	PostProcess::GetInstance()->SetActiveProfile(resolved.profile);
+}
 
 void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 	(void)camera; // モデルのカメラは派生側でApplyRenderCameraToModelRenderers済みの想定。

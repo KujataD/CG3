@@ -1,19 +1,8 @@
 #include "PostProcess.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 26495)
-#pragma warning(disable : 26819)
-#endif
-#include "../../externals/nlohmann/json.hpp"
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <fstream>
 
 #include "../3d/Camera.h"
 #include "../3d/SpotLight.h"
@@ -28,95 +17,6 @@ PostProcess* PostProcess::GetInstance() {
 void PostProcess::Initialize() {
 	// 現状はRT遅延生成(初回Render時)なのでここでは何もしない。
 	// 将来、固定解像度RTの事前生成が必要になったらここで行う。
-}
-
-void PostProcess::LoadSettingsFromProjectRoot(const std::filesystem::path& projectRoot) {
-	settingsPath_ = projectRoot / "ProjectSettings" / "RenderSettings.json";
-	hasSettingsPath_ = true;
-
-	try {
-		if (!std::filesystem::exists(settingsPath_)) {
-			return;
-		}
-		std::ifstream ifs(settingsPath_);
-		if (!ifs) {
-			return;
-		}
-		nlohmann::json json;
-		ifs >> json;
-
-		auto readFloat = [&json](const char* key, float& out) {
-			if (json.contains(key) && json.at(key).is_number()) {
-				out = json.at(key).get<float>();
-			}
-		};
-		if (json.contains("bloomEnabled") && json.at("bloomEnabled").is_boolean()) {
-			settings_.bloomEnabled = json.at("bloomEnabled").get<bool>();
-		}
-		readFloat("bloomIntensity", settings_.bloomIntensity);
-		readFloat("exposure", settings_.exposure);
-		if (json.contains("tonemapper") && json.at("tonemapper").is_number_integer()) {
-			settings_.tonemapper = std::clamp(json.at("tonemapper").get<int32_t>(), 0, 2);
-		}
-		readFloat("saturation", settings_.saturation);
-		readFloat("contrast", settings_.contrast);
-		if (json.contains("colorFilter") && json.at("colorFilter").is_array() && json.at("colorFilter").size() >= 3) {
-			settings_.colorFilter.x = json.at("colorFilter").at(0).get<float>();
-			settings_.colorFilter.y = json.at("colorFilter").at(1).get<float>();
-			settings_.colorFilter.z = json.at("colorFilter").at(2).get<float>();
-		}
-		readFloat("vignetteIntensity", settings_.vignetteIntensity);
-		readFloat("vignetteSmoothness", settings_.vignetteSmoothness);
-		if (json.contains("fogEnabled") && json.at("fogEnabled").is_boolean()) {
-			settings_.fogEnabled = json.at("fogEnabled").get<bool>();
-		}
-		if (json.contains("fogColor") && json.at("fogColor").is_array() && json.at("fogColor").size() >= 3) {
-			settings_.fogColor.x = json.at("fogColor").at(0).get<float>();
-			settings_.fogColor.y = json.at("fogColor").at(1).get<float>();
-			settings_.fogColor.z = json.at("fogColor").at(2).get<float>();
-		}
-		readFloat("fogDensity", settings_.fogDensity);
-		readFloat("fogHeightFalloff", settings_.fogHeightFalloff);
-		readFloat("fogHeightBase", settings_.fogHeightBase);
-		readFloat("fogStartDistance", settings_.fogStartDistance);
-		readFloat("fogMaxDistance", settings_.fogMaxDistance);
-		readFloat("fogSpotScatter", settings_.fogSpotScatter);
-	} catch (...) {
-		// 読み込み失敗はデフォルト設定のままとし、致命扱いにしない(Tags.jsonと同じ方針)。
-	}
-}
-
-void PostProcess::SaveSettings() const {
-	if (!hasSettingsPath_) {
-		return;
-	}
-	try {
-		std::filesystem::create_directories(settingsPath_.parent_path());
-		nlohmann::json json;
-		json["bloomEnabled"] = settings_.bloomEnabled;
-		json["bloomIntensity"] = settings_.bloomIntensity;
-		json["exposure"] = settings_.exposure;
-		json["tonemapper"] = settings_.tonemapper;
-		json["saturation"] = settings_.saturation;
-		json["contrast"] = settings_.contrast;
-		json["colorFilter"] = {settings_.colorFilter.x, settings_.colorFilter.y, settings_.colorFilter.z};
-		json["vignetteIntensity"] = settings_.vignetteIntensity;
-		json["vignetteSmoothness"] = settings_.vignetteSmoothness;
-		json["fogEnabled"] = settings_.fogEnabled;
-		json["fogColor"] = {settings_.fogColor.x, settings_.fogColor.y, settings_.fogColor.z};
-		json["fogDensity"] = settings_.fogDensity;
-		json["fogHeightFalloff"] = settings_.fogHeightFalloff;
-		json["fogHeightBase"] = settings_.fogHeightBase;
-		json["fogStartDistance"] = settings_.fogStartDistance;
-		json["fogMaxDistance"] = settings_.fogMaxDistance;
-		json["fogSpotScatter"] = settings_.fogSpotScatter;
-		std::ofstream ofs(settingsPath_);
-		if (ofs) {
-			ofs << json.dump(2);
-		}
-	} catch (...) {
-		// 保存失敗は致命扱いにしない。
-	}
 }
 
 void PostProcess::SetFade(const Vector3& color, float amount) {
@@ -228,20 +128,20 @@ void PostProcess::RecreateTarget(PostTarget& target, int32_t width, int32_t heig
 PostConstants PostProcess::MakeConstants() const {
 	PostConstants constants;
 	constants.bloomIntensity = 0.0f; // Tonemapで必要なときだけ上書きする
-	constants.exposure = settings_.exposure;
-	constants.tonemapType = settings_.tonemapper;
+	constants.exposure = activeProfile_.tonemap.exposure;
+	constants.tonemapType = activeProfile_.tonemap.tonemapper;
 	constants.fade[0] = fadeColor_.x;
 	constants.fade[1] = fadeColor_.y;
 	constants.fade[2] = fadeColor_.z;
 	constants.fade[3] = fadeAmount_;
-	constants.saturation = settings_.saturation;
-	constants.contrast = settings_.contrast;
-	constants.vignetteIntensity = settings_.vignetteIntensity;
-	constants.vignetteSmoothness = settings_.vignetteSmoothness;
-	constants.colorFilter[0] = settings_.colorFilter.x;
-	constants.colorFilter[1] = settings_.colorFilter.y;
-	constants.colorFilter[2] = settings_.colorFilter.z;
-	constants.colorFilter[3] = settings_.colorFilter.w;
+	constants.saturation = activeProfile_.colorGrading.saturation;
+	constants.contrast = activeProfile_.colorGrading.contrast;
+	constants.vignetteIntensity = activeProfile_.vignette.intensity;
+	constants.vignetteSmoothness = activeProfile_.vignette.smoothness;
+	constants.colorFilter[0] = activeProfile_.colorGrading.colorFilter.x;
+	constants.colorFilter[1] = activeProfile_.colorGrading.colorFilter.y;
+	constants.colorFilter[2] = activeProfile_.colorGrading.colorFilter.z;
+	constants.colorFilter[3] = activeProfile_.colorGrading.colorFilter.w;
 	return constants;
 }
 
@@ -350,15 +250,15 @@ void PostProcess::DrawFog(const RenderTexture& source, ViewTargets& targets, con
 	fogConstants.cameraWorldPosition[1] = camera->translation_.y;
 	fogConstants.cameraWorldPosition[2] = camera->translation_.z;
 	fogConstants.enabled = 1.0f;
-	fogConstants.fogColor[0] = settings_.fogColor.x;
-	fogConstants.fogColor[1] = settings_.fogColor.y;
-	fogConstants.fogColor[2] = settings_.fogColor.z;
-	fogConstants.density = settings_.fogDensity;
-	fogConstants.heightFalloff = settings_.fogHeightFalloff;
-	fogConstants.heightBase = settings_.fogHeightBase;
-	fogConstants.startDistance = settings_.fogStartDistance;
-	fogConstants.maxDistance = settings_.fogMaxDistance;
-	fogConstants.spotScatter = settings_.fogSpotScatter;
+	fogConstants.fogColor[0] = activeProfile_.fog.color.x;
+	fogConstants.fogColor[1] = activeProfile_.fog.color.y;
+	fogConstants.fogColor[2] = activeProfile_.fog.color.z;
+	fogConstants.density = activeProfile_.fog.density;
+	fogConstants.heightFalloff = activeProfile_.fog.heightFalloff;
+	fogConstants.heightBase = activeProfile_.fog.heightBase;
+	fogConstants.startDistance = activeProfile_.fog.startDistance;
+	fogConstants.maxDistance = activeProfile_.fog.maxDistance;
+	fogConstants.spotScatter = activeProfile_.fog.spotScatter;
 
 	pipeline->SetCommandList(PostEffectType::kFog, MakeConstants());
 	pipeline->SetFogConstants(fogConstants, SpotLight::GetInstance()->GetResource()->GetGPUVirtualAddress());
@@ -373,7 +273,7 @@ void PostProcess::DrawTonemap(D3D12_GPU_DESCRIPTOR_HANDLE sceneSrv, const ViewTa
 	PostEffectPipeline* pipeline = PostEffectPipeline::GetInstance();
 
 	PostConstants constants = MakeConstants();
-	constants.bloomIntensity = bloomActive ? settings_.bloomIntensity : 0.0f;
+	constants.bloomIntensity = bloomActive ? activeProfile_.bloom.intensity : 0.0f;
 	pipeline->SetCommandList(PostEffectType::kTonemap, constants);
 	commandList->SetGraphicsRootDescriptorTable(PostEffectPipeline::kRootParamTexture0, sceneSrv);
 	// ブルーム無効時はt1を読まない(intensity=0)が、未バインドを避けるためsceneSrvを入れておく。
@@ -393,13 +293,13 @@ void PostProcess::Render(uint32_t viewIndex, const RenderTexture& source, const 
 	ViewTargets& targets = viewTargets_[viewIndex];
 	EnsureTargets(targets, source.width, source.height);
 
-	const bool bloomActive = settings_.bloomEnabled && targets.activeMipCount > 0;
+	const bool bloomActive = activeProfile_.bloom.enabled && targets.activeMipCount > 0;
 	if (bloomActive) {
 		RenderBloomChain(targets, source);
 	}
 
 	// --- フォグ: HDRシーン+深度 → fogScratch(HDR) ---
-	const bool fogActive = settings_.fogEnabled && camera != nullptr;
+	const bool fogActive = activeProfile_.fog.enabled && camera != nullptr;
 	if (fogActive) {
 		DrawFog(source, targets, camera);
 	}
@@ -435,12 +335,12 @@ void PostProcess::RenderToBackBuffer(const RenderTexture& source, const Camera* 
 	ViewTargets& targets = viewTargets_[DirectXCommon::kGameViewIndex];
 	EnsureTargets(targets, source.width, source.height);
 
-	const bool bloomActive = settings_.bloomEnabled && targets.activeMipCount > 0;
+	const bool bloomActive = activeProfile_.bloom.enabled && targets.activeMipCount > 0;
 	if (bloomActive) {
 		RenderBloomChain(targets, source);
 	}
 
-	const bool fogActive = settings_.fogEnabled && camera != nullptr;
+	const bool fogActive = activeProfile_.fog.enabled && camera != nullptr;
 	if (fogActive) {
 		DrawFog(source, targets, camera);
 	}

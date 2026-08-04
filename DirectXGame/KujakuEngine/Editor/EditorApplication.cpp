@@ -277,8 +277,8 @@ void EditorApplication::Initialize() {
 	// プロジェクト共有のTag登録リストを読み込む(ProjectSettings/Tags.json)。
 	TagRegistry::GetInstance().LoadFromProjectRoot(GetProjectDataRoot());
 
-	// レンダリング設定(ブルーム/露出/トーンマップ)を読み込む(ProjectSettings/RenderSettings.json)。
-	PostProcess::GetInstance()->LoadSettingsFromProjectRoot(GetProjectDataRoot());
+	// ポストエフェクト設定はプロジェクト共通ではなく、シーン上のVolumeComponentが持つ。
+	// 毎フレームScene::PrepareFrameでVolumeStackが解決し、PostProcessへ渡される。
 
 	editorMode_ = EditorMode::Edit;
 	AddConsoleLog("Editor Mode: Edit");
@@ -406,6 +406,8 @@ void EditorApplication::Draw() {
 			// HDRシーンRTへフォグ+ブルーム+トーンマップを適用(SceneViewWindowはこの結果を表示する)。
 			// Screen Space UIはポストの影響を受けないよう、トーンマップ後のLDR RTへ重ねて描く。
 			Scene* scene = currentScene_;
+			// このビューのカメラ位置でVolumeを解決してから適用する(Local Volumeがビューごとに変わるため)。
+			scene->ApplyVolumes(sceneCamera);
 			PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture(), sceneCamera, [scene](float width, float height) { scene->RenderScreenSpaceUI(width, height, true); });
 		} else {
 			LineRenderer::GetInstance()->Clear();
@@ -422,6 +424,7 @@ void EditorApplication::Draw() {
 			// HDRシーンRTへフォグ+ブルーム+トーンマップを適用(GameViewWindowはこの結果を表示する)。
 			// Screen Space UIはポストの影響を受けないよう、トーンマップ後のLDR RTへ重ねて描く。
 			Scene* scene = currentScene_;
+			scene->ApplyVolumes(gameCamera);
 			PostProcess::GetInstance()->Render(DirectXCommon::kGameViewIndex, dxCommon->GetGameRenderTexture(), gameCamera, [scene](float width, float height) { scene->RenderScreenSpaceUI(width, height, false); });
 		}
 	} else if (currentScene_ && sceneVisible) {
@@ -437,6 +440,7 @@ void EditorApplication::Draw() {
 		}
 		dxCommon->EndSceneRender();
 		// 単一ビュー(Prefab編集等)でもトーンマップは必ず通す(HDR RTは直接表示できないため)。
+		currentScene_->ApplyVolumes(renderCamera);
 		PostProcess::GetInstance()->Render(DirectXCommon::kSceneViewIndex, dxCommon->GetSceneRenderTexture(), renderCamera);
 	} else {
 		LineRenderer::GetInstance()->Clear();
@@ -458,6 +462,7 @@ void EditorApplication::Draw() {
 			dxCommon->EndGameRender();
 			// Screen Space UIはポストの影響を受けないよう、トーンマップ後のバックバッファへ重ねて描く。
 			Scene* scene = currentScene_;
+			scene->ApplyVolumes(camera);
 			PostProcess::GetInstance()->RenderToBackBuffer(dxCommon->GetGameRenderTexture(), camera, [scene](float width, float height) { scene->RenderScreenSpaceUI(width, height, false); });
 		} else {
 			LineRenderer::GetInstance()->Clear();

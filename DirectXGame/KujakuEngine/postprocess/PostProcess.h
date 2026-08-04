@@ -11,37 +11,11 @@
 #include "../math/Vector4.h"
 #include "../runtime/KujakuApi.h"
 #include "PostEffectPipeline.h"
+#include "VolumeProfile.h"
 
 namespace KujakuEngine {
 
 class Camera;
-
-// ポストプロセス全体の調整パラメータ。
-// RenderingWindowから編集し、ProjectSettings/RenderSettings.jsonへ保存する。
-struct PostProcessSettings {
-	// --- ブルーム(全体設定) ---
-	// 閾値/soft kneeはマテリアル別設定(MaterialAssetData)に移行した。ここは全体のON/OFFと強度のみ。
-	bool bloomEnabled = true;
-	float bloomIntensity = 0.65f; // 合成強度(マテリアル別bloomIntensityに乗算される全体係数)
-	// --- 露出/トーンマップ ---
-	float exposure = 1.0f; // 露出(トーンマップ前の輝度スケール)
-	int32_t tonemapper = 2; // 0=None(検証用) / 1=Reinhard / 2=ACES
-	// --- 簡易カラーグレーディング/ビネット ---
-	float saturation = 1.0f;
-	float contrast = 1.0f;
-	Vector4 colorFilter = {1.0f, 1.0f, 1.0f, 1.0f}; // rgbのみ使用
-	float vignetteIntensity = 0.0f;
-	float vignetteSmoothness = 0.4f;
-	// --- フォグ(距離+高さ+SpotLight散乱) ---
-	bool fogEnabled = false;
-	Vector3 fogColor = {0.5f, 0.55f, 0.6f}; // 環境光としての霧色(リニア)
-	float fogDensity = 0.02f;               // 距離ベースの指数フォグ密度
-	float fogHeightFalloff = 0.1f;          // 高さによる密度減衰(0で均一)
-	float fogHeightBase = 0.0f;             // この高さより上ほど薄くなる
-	float fogStartDistance = 1.0f;          // このカメラ距離まではフォグなし
-	float fogMaxDistance = 80.0f;           // レイマーチの最大距離
-	float fogSpotScatter = 1.0f;            // SpotLightが霧を照らす強さ
-};
 
 /// <summary>
 /// ポストプロセス実行クラス。
@@ -65,16 +39,6 @@ public:
 	void Initialize();
 
 	/// <summary>
-	/// ProjectSettings/RenderSettings.jsonから設定を読み込む(無ければデフォルトのまま)。
-	/// </summary>
-	void LoadSettingsFromProjectRoot(const std::filesystem::path& projectRoot);
-
-	/// <summary>
-	/// 現在の設定をProjectSettings/RenderSettings.jsonへ保存する。
-	/// </summary>
-	KUJAKU_API void SaveSettings() const;
-
-	/// <summary>
 	/// sourceに描かれたHDRシーンへフォグ+ブルーム+トーンマップを適用し、ビュー専用のResolve RT(LDR)へ出力する。
 	/// EndSceneRender/EndGameRenderの直後に呼ぶこと(sourceはPIXEL_SHADER_RESOURCE状態)。
 	/// 終了時に描画先はバックバッファへ戻る。cameraはフォグの深度復元用(nullptrならフォグをスキップ)。
@@ -95,7 +59,15 @@ public:
 	/// </summary>
 	D3D12_GPU_DESCRIPTOR_HANDLE GetDisplaySrvHandle(uint32_t viewIndex) const;
 
-	KUJAKU_API PostProcessSettings& GetSettings() { return settings_; }
+	/// <summary>
+	/// このフレームで適用するポストエフェクト設定を差し替える。
+	/// シーン上のVolumeをVolumeStackが解決した結果を毎フレーム渡す想定で、
+	/// PostProcess自身は設定の権威を持たない(シーンごとに違う値にできるのはこのため)。
+	/// </summary>
+	KUJAKU_API void SetActiveProfile(const VolumeProfileData& profile) { activeProfile_ = profile; }
+
+	/// <summary>現在適用中の設定。Volumeが1つも無いシーンでは既定値(ポスト無し相当)になる。</summary>
+	KUJAKU_API const VolumeProfileData& GetActiveProfile() const { return activeProfile_; }
 
 	/// <summary>
 	/// 画面フェード(シーン遷移演出用)。amount=0で無効、1で完全にfadeColorになる。
@@ -151,15 +123,13 @@ private:
 	void DrawTonemap(D3D12_GPU_DESCRIPTOR_HANDLE sceneSrv, const ViewTargets& targets, bool bloomActive);
 
 private:
-	PostProcessSettings settings_;
+	// 毎フレームVolumeStackから受け取る、解決済みのポストエフェクト設定。
+	VolumeProfileData activeProfile_;
 	ViewTargets viewTargets_[DirectXCommon::kRenderViewCount];
 
-	// 画面フェード(実行時状態。設定ファイルには保存しない)。
+	// 画面フェード(Volumeとは独立した実行時の演出状態)。
 	Vector3 fadeColor_ = {0.0f, 0.0f, 0.0f};
 	float fadeAmount_ = 0.0f;
-
-	std::filesystem::path settingsPath_;
-	bool hasSettingsPath_ = false;
 };
 
 } // namespace KujakuEngine

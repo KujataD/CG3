@@ -200,6 +200,9 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClCompile Include="KujakuEngine\base\WinApp.cpp" />
     <ClCompile Include="KujakuEngine\postprocess\PostEffectPipeline.cpp" />
     <ClCompile Include="KujakuEngine\postprocess\PostProcess.cpp" />
+    <ClCompile Include="KujakuEngine\postprocess\VolumeProfile.cpp" />
+    <ClCompile Include="KujakuEngine\postprocess\VolumeStack.cpp" />
+    <ClCompile Include="KujakuEngine\components\VolumeComponent.cpp" />
     <ClCompile Include="KujakuEngine\input\Input.cpp" />
     <ClCompile Include="KujakuEngine\KujakuEngine.cpp" />
     <ClCompile Include="KujakuEngine\math\Easing.cpp" />
@@ -332,6 +335,9 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClInclude Include="KujakuEngine\base\WinApp.h" />
     <ClInclude Include="KujakuEngine\postprocess\PostEffectPipeline.h" />
     <ClInclude Include="KujakuEngine\postprocess\PostProcess.h" />
+    <ClInclude Include="KujakuEngine\postprocess\VolumeProfile.h" />
+    <ClInclude Include="KujakuEngine\postprocess\VolumeStack.h" />
+    <ClInclude Include="KujakuEngine\components\VolumeComponent.h" />
     <ClInclude Include="KujakuEngine\input\Input.h" />
     <ClInclude Include="KujakuEngine\KujakuEngine.h" />
     <ClInclude Include="KujakuEngine\KujakuEngineEditor.h" />

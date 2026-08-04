@@ -17,6 +17,7 @@
 #include "TextComponent.h"
 #include "RotatorComponent.h"
 #include "TransformComponent.h"
+#include "VolumeComponent.h"
 #include "../scene/ComponentFactory.h"
 
 namespace KujakuEngine {
@@ -49,6 +50,8 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<ImageComponent>();
 	factory.RegisterComponent<TextComponent>();
 	factory.RegisterComponent<ButtonComponent>();
+	// ポストエフェクト(Fog/Bloom等)をシーンへ配置するためのVolume。
+	factory.RegisterComponent<VolumeComponent>();
 
 	registered = true;
 }

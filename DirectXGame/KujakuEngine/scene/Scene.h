@@ -63,6 +63,13 @@ public:
 	KUJAKU_API virtual void RenderView(Camera* camera, bool drawEditorOverlays);
 
 	/// <summary>
+	/// シーン上のVolumeComponentを解決し、このビューで使うポストエフェクト設定をPostProcessへ適用する。
+	/// Local Volumeの内外判定にcameraの位置を使うため、ポスト処理を走らせるビューごとに呼ぶこと。
+	/// Volumeが1つも無いシーンでは既定値(ポスト無し相当)が適用される。
+	/// </summary>
+	KUJAKU_API void ApplyVolumes(const Camera* camera);
+
+	/// <summary>
 	/// Screen Space Canvas(スクリーン空間UI)の描画。
 	/// フォグ/ブルーム/トーンマップの影響を受けないよう、ポストプロセスの後にLDR RTへ描く。
 	/// targetWidth/Heightは描画先(Resolve RT/バックバッファ)のピクセルサイズ。
