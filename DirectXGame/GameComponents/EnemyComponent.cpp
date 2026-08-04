@@ -1,7 +1,9 @@
 #include "EnemyComponent.h"
 
 namespace {
-constexpr const char* kBTSetFolder = "Resources/bt_set/EnemyBT";
+std::string BTSetFolder() {
+	return (KujakuEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "EnemyBT").generic_string();
+}
 }
 
 using namespace KujakuEngine;
@@ -34,7 +36,7 @@ void EnemyComponent::Initialize() {
 	BahamutAI::RegisterAction(
 	    btFactory_, catalog, BahamutAI::ActionDef("RotateX").Category("Movement").Description("X軸方向に回転する"), [this](BahamutAI::AIContext& context) { return RotateX(context); });
 
-	catalog.SaveToBTSetFolder(kBTSetFolder);
+	catalog.SaveToBTSetFolder(BTSetFolder());
 }
 
 void EnemyComponent::OnPlayStart() {
@@ -67,7 +69,7 @@ void EnemyComponent::Update() {
 }
 
 void EnemyComponent::LoadBTSet() {
-	if (!btRuntime_.LoadFromBTSetFolder(kBTSetFolder, btFactory_)) {
+	if (!btRuntime_.LoadFromBTSetFolder(BTSetFolder(), btFactory_)) {
 		const BahamutAI::BehaviorTreeLoadResult& result = btRuntime_.GetLastLoadResult();
 		KujakuEngine::Logger::Log(std::string("[EnemyComponent] BT load failed: ") + result.GetErrorMessage());
 	}

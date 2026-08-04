@@ -1,6 +1,7 @@
 #include "GraphicsPipeline.h"
 #include "../base/DirectXCommon.h"
 #include "../base/Logger.h"
+#include "../base/ProjectPath.h"
 #include "../base/StringUtil.h"
 #include "../base/WinApp.h"
 #include <cassert>
@@ -44,12 +45,16 @@ void GraphicsPipeline::InitializeDXC() {
 }
 
 IDxcBlob* GraphicsPipeline::CompileShader(const std::wstring& filePath, const wchar_t* profile) {
+	// 呼び出し側は "shader/xxx.hlsl" のようなData相対パスで渡してくるため、
+	// カレントディレクトリに依存せずData配下から解決する(ソリューション実行/exe単体実行の両対応)。
+	std::wstring resolvedPath = (GetProjectDataRoot() / filePath).wstring();
+
 	// シェーダーコンパイルする旨をログに出す
-	OutputDebugStringW(std::format(L"Begin CompileShader, path: {}, profile: {}\n", filePath, profile).c_str());
+	OutputDebugStringW(std::format(L"Begin CompileShader, path: {}, profile: {}\n", resolvedPath, profile).c_str());
 
 	// hlslファイルを読む
 	IDxcBlobEncoding* shaderSource = nullptr;
-	HRESULT hr = dxcUtils_->LoadFile(filePath.c_str(), nullptr, &shaderSource);
+	HRESULT hr = dxcUtils_->LoadFile(resolvedPath.c_str(), nullptr, &shaderSource);
 	assert(SUCCEEDED(hr));
 
 	// 読み込んだファイルの内容 
@@ -60,7 +65,7 @@ IDxcBlob* GraphicsPipeline::CompileShader(const std::wstring& filePath, const wc
 
 	// コンパイルオプション
 	LPCWSTR arguments[] = {
-	    filePath.c_str(), // コンパイル対象のhlslファイル名
+	    resolvedPath.c_str(), // コンパイル対象のhlslファイル名
 	    L"-E",
 	    L"main", // エントリーポイントの指定
 	    L"-T",
@@ -102,7 +107,7 @@ IDxcBlob* GraphicsPipeline::CompileShader(const std::wstring& filePath, const wc
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
 	// 成功したログを出す
-	Logger::Log(StringUtil::ToString(std::format(L"Compile Succeeded, path: {}, profile: {}\n", filePath, profile)));
+	Logger::Log(StringUtil::ToString(std::format(L"Compile Succeeded, path: {}, profile: {}\n", resolvedPath, profile)));
 	// もう使わないリソースを解放
 	shaderSource->Release();
 	shaderResult->Release();
@@ -307,10 +312,10 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	// シェーダーをコンパイルする
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/Object3D.VS.hlsl", L"vs_6_0");
+	IDxcBlob* vertexShaderBlob = CompileShader(L"shader/Object3D.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Resources/shader/Object3D.PS.hlsl", L"ps_6_0");
+	IDxcBlob* pixelShaderBlob = CompileShader(L"shader/Object3D.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	// 2. InputLayoutの設定
@@ -471,10 +476,10 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 void GraphicsPipeline::CreateLinePipelineStateObject() {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/Line.VS.hlsl", L"vs_6_0");
+	IDxcBlob* vertexShaderBlob = CompileShader(L"shader/Line.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Resources/shader/Line.PS.hlsl", L"ps_6_0");
+	IDxcBlob* pixelShaderBlob = CompileShader(L"shader/Line.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[2] = {};
@@ -576,10 +581,10 @@ void GraphicsPipeline::CreateInstancingPipelineStateObject() {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	// シェーダーをコンパイルする
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/Particle.VS.hlsl", L"vs_6_0");
+	IDxcBlob* vertexShaderBlob = CompileShader(L"shader/Particle.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Resources/shader/Particle.PS.hlsl", L"ps_6_0");
+	IDxcBlob* pixelShaderBlob = CompileShader(L"shader/Particle.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	// 2. InputLayoutの設定
@@ -798,9 +803,9 @@ void GraphicsPipeline::CreateUIStyleRootSignature(PipelineType pipelineType) {
 void GraphicsPipeline::CreateUIStylePipelineStateObject(PipelineType pipelineType, bool depthTestEnabled, bool ldrTarget) {
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Resources/shader/UI.VS.hlsl", L"vs_6_0");
+	IDxcBlob* vertexShaderBlob = CompileShader(L"shader/UI.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Resources/shader/UI.PS.hlsl", L"ps_6_0");
+	IDxcBlob* pixelShaderBlob = CompileShader(L"shader/UI.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	// 入力レイアウトはObject3dと共通(VertexData: POSITION/TEXCOORD/NORMAL)。

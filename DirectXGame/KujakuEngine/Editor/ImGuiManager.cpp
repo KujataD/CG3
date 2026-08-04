@@ -9,6 +9,7 @@
 #include "EditorUndoManager.h"
 #include "SceneJsonExporter.h"
 #include "../base/DirectXCommon.h"
+#include "../base/ProjectPath.h"
 #include "../base/WinApp.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SceneManager.h"
@@ -244,7 +245,7 @@ void ImGuiManager::DrawSceneListWindow() {
 		return;
 	}
 
-	const std::filesystem::path sceneRoot = projectWindow_.GetProjectRoot() / "SceneJson";
+	const std::filesystem::path sceneRoot = GetProjectDataRoot() / "SceneJson";
 
 	// 起動時に読み込む最初のシーン(左のラジオで設定)。
 	const std::string startupScene = EditorApplication::GetInstance()->GetStartupSceneName();

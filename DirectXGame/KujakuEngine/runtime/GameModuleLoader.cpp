@@ -22,49 +22,53 @@ GameModuleLoadResult GameModuleLoader::Load(const std::filesystem::path& dllPath
 		return result;
 	}
 
-	std::filesystem::create_directories(copyDirectory, error);
-	if (error) {
-		result.message = "[HotReload] Failed to create copy directory: " + error.message();
-		return result;
-	}
+	// copyDirectory未指定(ゲーム単体ビルド)ではHotReloadしないため、一時フォルダを作らず直接読み込む。
+	std::filesystem::path copiedDllPath = dllPath;
+	if (!copyDirectory.empty()) {
+		std::filesystem::create_directories(copyDirectory, error);
+		if (error) {
+			result.message = "[HotReload] Failed to create copy directory: " + error.message();
+			return result;
+		}
 
-	++loadGeneration_;
-	std::ostringstream fileName;
-	// LoadLibrary中のDLLはWindows側にロックされるため、毎回別名へコピーしてから読み込む。
-	// これにより元のビルド成果物は次回HotReloadで上書きできる。
-	fileName << dllPath.stem().string() << "_pid" << GetCurrentProcessId() << "_tick" << GetTickCount64() << "_loaded_" << loadGeneration_
-	         << dllPath.extension().string();
-	std::filesystem::path copiedDllPath = copyDirectory / fileName.str();
+		++loadGeneration_;
+		std::ostringstream fileName;
+		// LoadLibrary中のDLLはWindows側にロックされるため、毎回別名へコピーしてから読み込む。
+		// これにより元のビルド成果物は次回HotReloadで上書きできる。
+		fileName << dllPath.stem().string() << "_pid" << GetCurrentProcessId() << "_tick" << GetTickCount64() << "_loaded_" << loadGeneration_
+		         << dllPath.extension().string();
+		copiedDllPath = copyDirectory / fileName.str();
 
-	std::filesystem::copy_file(dllPath, copiedDllPath, std::filesystem::copy_options::overwrite_existing, error);
-	if (error) {
-		result.message = "[HotReload] Failed to copy DLL: " + error.message();
-		return result;
-	}
+		std::filesystem::copy_file(dllPath, copiedDllPath, std::filesystem::copy_options::overwrite_existing, error);
+		if (error) {
+			result.message = "[HotReload] Failed to copy DLL: " + error.message();
+			return result;
+		}
 
-	std::filesystem::path pdbPath = dllPath;
-	pdbPath.replace_extension(".pdb");
-	bool shouldCopyPdb = false;
-	// 古いPDBをコピーするとデバッガが誤ったシンボルを拾うため、DLL以上に新しい場合だけ一緒に運ぶ。
-	if (std::filesystem::exists(pdbPath, error)) {
-		std::error_code timeError;
-		std::filesystem::file_time_type dllWriteTime = std::filesystem::last_write_time(dllPath, timeError);
-		if (!timeError) {
-			std::filesystem::file_time_type pdbWriteTime = std::filesystem::last_write_time(pdbPath, timeError);
-			if (!timeError && pdbWriteTime >= dllWriteTime) {
-				shouldCopyPdb = true;
+		std::filesystem::path pdbPath = dllPath;
+		pdbPath.replace_extension(".pdb");
+		bool shouldCopyPdb = false;
+		// 古いPDBをコピーするとデバッガが誤ったシンボルを拾うため、DLL以上に新しい場合だけ一緒に運ぶ。
+		if (std::filesystem::exists(pdbPath, error)) {
+			std::error_code timeError;
+			std::filesystem::file_time_type dllWriteTime = std::filesystem::last_write_time(dllPath, timeError);
+			if (!timeError) {
+				std::filesystem::file_time_type pdbWriteTime = std::filesystem::last_write_time(pdbPath, timeError);
+				if (!timeError && pdbWriteTime >= dllWriteTime) {
+					shouldCopyPdb = true;
+				}
 			}
+		}
+
+		if (shouldCopyPdb) {
+			std::filesystem::path copiedPdbPath = copiedDllPath;
+			copiedPdbPath.replace_extension(".pdb");
+			std::filesystem::copy_file(pdbPath, copiedPdbPath, std::filesystem::copy_options::overwrite_existing, error);
 		}
 	}
 
-	if (shouldCopyPdb) {
-		std::filesystem::path copiedPdbPath = copiedDllPath;
-		copiedPdbPath.replace_extension(".pdb");
-		std::filesystem::copy_file(pdbPath, copiedPdbPath, std::filesystem::copy_options::overwrite_existing, error);
-	}
-
 	std::wstring copiedDllWidePath = ToWideString(copiedDllPath);
-	// DLL本体はコピー先から読み込む。ビルド出力を直接LoadLibraryしないことがReload可能性を保つ。
+	// HotReload時はコピー先から読み込む。ビルド出力を直接LoadLibraryしないことがReload可能性を保つ。
 	HMODULE handle = LoadLibraryW(copiedDllWidePath.c_str());
 	if (!handle) {
 		result.message = GetLastWin32ErrorMessage("[HotReload] Failed to LoadLibrary.");

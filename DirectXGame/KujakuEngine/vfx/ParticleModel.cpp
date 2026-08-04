@@ -1,5 +1,6 @@
 #include "ParticleModel.h"
 #include "../base/DirectXCommon.h"
+#include "../base/ProjectPath.h"
 #include "../base/TextureManager.h"
 #include "../3d/DirectionalLight.h"
 #include "../3d/GraphicsPipeline.h"
@@ -53,7 +54,7 @@ void ParticleModel::Initialize() {
 
 ParticleModel* ParticleModel::CreateFromOBJ(const std::string& objname, bool enableLighting) {
 	ParticleModel* particle = new ParticleModel();
-	std::string directoryPathFinal = "Resources/" + objname;
+	std::string directoryPathFinal = (GetProjectDataRoot() / "Resources" / objname).generic_string();
 	std::string filename = objname + ".obj";
 
 	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);

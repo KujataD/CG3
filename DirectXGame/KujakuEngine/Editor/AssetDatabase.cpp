@@ -73,7 +73,7 @@ AssetDatabase& AssetDatabase::GetInstance() {
 void AssetDatabase::Initialize(const std::filesystem::path& projectRoot) {
 	projectRoot_ = NormalizePath(projectRoot);
 	if (projectRoot_.empty()) {
-		projectRoot_ = DetectEditorProjectRoot();
+		projectRoot_ = GetProjectDataRoot();
 	}
 
 	initialized_ = true;
@@ -415,7 +415,7 @@ void AssetDatabase::EnsureInitialized() {
 		return;
 	}
 
-	projectRoot_ = DetectEditorProjectRoot();
+	projectRoot_ = GetProjectDataRoot();
 	initialized_ = true;
 	Refresh();
 }

@@ -1,5 +1,6 @@
 #include "Model.h"
 #include "../base/DirectXCommon.h"
+#include "../base/ProjectPath.h"
 #include "../base/TextureManager.h"
 #include "DirectionalLight.h"
 #include "GraphicsPipeline.h"
@@ -13,12 +14,13 @@ namespace KujakuEngine {
 
 Model* Model::CreateFromOBJ(const std::string& objname, ShaderModel shaderModel) {
 	Model* model = new Model();
-	std::string directoryPathFinal = "Resources/" + objname;
+	std::string resourcesRoot = (GetProjectDataRoot() / "Resources").generic_string();
+	std::string directoryPathFinal = resourcesRoot + "/" + objname;
 	std::string filename = objname + ".obj";
 
 	// 規約は Resources/<name>/<name>.obj。存在しなければ Resources 直下(Resources/<name>.obj)を試す。
 	if (!std::filesystem::exists(directoryPathFinal + "/" + filename)) {
-		directoryPathFinal = "Resources";
+		directoryPathFinal = resourcesRoot;
 	}
 
 	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);
@@ -50,7 +52,7 @@ void Model::SetSubMeshUVTransform(size_t index, const Vector2& offset, const Vec
 
 Model* Model::CreateFromGlTF(const std::string& objname, ShaderModel shaderModel) {
 	Model* model = new Model();
-	std::string directoryPathFinal = "Resources/" + objname;
+	std::string directoryPathFinal = (GetProjectDataRoot() / "Resources" / objname).generic_string();
 	std::string filename = objname + ".gltf";
 
 	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);

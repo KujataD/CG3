@@ -20,7 +20,9 @@ public:
 	GameModuleLoader& operator=(const GameModuleLoader&) = delete;
 
 	/// <summary>
-	/// DLLを一時コピーして読み込む
+	/// DLLを読み込む。
+	/// copyDirectoryを指定すると別名コピーしてから読み込み、元のDLLを次回ビルドで上書きできるようにする(HotReload用)。
+	/// copyDirectoryが空の場合はdllPathを直接読み込む(HotReloadしないゲーム単体ビルド用。一時フォルダを作らない)。
 	/// </summary>
 	GameModuleLoadResult Load(const std::filesystem::path& dllPath, const std::filesystem::path& copyDirectory);
 

@@ -39,7 +39,9 @@ void ProjectWindow::Initialize() {
 	// Project Windowの基準になるディレクトリを決める。
 	// ここでは実行時カレントから上方向へ探索し、KujakuEngine.vcxprojがあるDirectXGameをProjectDirとして扱う。
 	projectRoot_ = DetectProjectRoot();
-	AssetDatabase::GetInstance().Initialize(projectRoot_);
+	// アセットの実体(Resources/Materials/Prefabs等)はDataフォルダ配下にまとまっているため、
+	// AssetDatabaseの基準はProject Windowの表示ルートとは別にDataフォルダへ向ける。
+	AssetDatabase::GetInstance().Initialize(GetProjectDataRoot());
 	// 起動時はProjectDir直下を表示する。
 	currentDirectory_ = projectRoot_;
 	// ファイル種別の判定はProjectAssetClassifierに寄せ、UI描画側へ拡張子判定を散らさない。

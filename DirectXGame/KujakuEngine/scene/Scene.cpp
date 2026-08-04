@@ -649,6 +649,7 @@ WorldTransform* FindEditorBillboardTransform(const Component* component) {
 }
 
 void PrepareEditorBillboardComponent(const Component* component) {
+#ifdef USE_IMGUI
 	const IEditorBillboard* billboard = dynamic_cast<const IEditorBillboard*>(component);
 	if (!billboard) {
 		return;
@@ -657,6 +658,11 @@ void PrepareEditorBillboardComponent(const Component* component) {
 	// TextureManager::LoadTextureはCommandListを実行するため、描画中ではなく初期化・追加時にPlaneを作る。
 	GetOrCreateEditorBillboardModel(billboard->GetEditorBillboardIconName());
 	GetOrCreateEditorBillboardTransform(component);
+#else
+	// エディタUI無し(ゲーム単体)ビルドではEditorカメラが無く、DrawEditorBillboardsは常に描画しない。
+	// アイコン画像(KujakuEngine/resources/images)も配布物に含めないため、準備自体を行わない。
+	(void)component;
+#endif // USE_IMGUI
 }
 
 void PrepareEditorBillboards(Scene& scene) {

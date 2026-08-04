@@ -1,5 +1,7 @@
 #include "ProjectPath.h"
 #include <system_error>
+#include <vector>
+#include <Windows.h>
 
 namespace KujakuEngine {
 
@@ -46,6 +48,25 @@ std::filesystem::path DetectEditorProjectRoot() {
 	}
 
 	return NormalizeEditorPath(current);
+}
+
+std::filesystem::path GetExecutableDirectory() {
+	std::vector<wchar_t> buffer(MAX_PATH);
+	for (;;) {
+		DWORD length = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+		if (length == 0) {
+			return std::filesystem::path(".");
+		}
+		if (length < buffer.size()) {
+			return std::filesystem::path(buffer.data()).parent_path();
+		}
+		// バッファ不足(ERROR_INSUFFICIENT_BUFFER)時は拡大して再試行する。
+		buffer.resize(buffer.size() * 2);
+	}
+}
+
+std::filesystem::path GetProjectDataRoot() {
+	return DetectEditorProjectRoot() / "Data";
 }
 
 } // namespace KujakuEngine

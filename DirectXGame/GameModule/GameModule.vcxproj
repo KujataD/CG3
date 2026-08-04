@@ -74,6 +74,10 @@
       <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-mdd.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <PostBuildEvent>
+      <!-- KujakuEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
+      <Command>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\build\bin\$(Configuration)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -97,6 +101,10 @@
       <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-md.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <PostBuildEvent>
+      <!-- KujakuEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
+      <Command>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\build\bin\$(Configuration)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\GameComponents\*.cpp" />

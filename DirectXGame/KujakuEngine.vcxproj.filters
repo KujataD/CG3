@@ -879,26 +879,26 @@
     <None Include="KujakuEngine\shader\Particle.hlsli">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\PostEffect.hlsli" />
-    <None Include="Resources\shader\Fog.PS.hlsl">
+    <None Include="Data\shader\PostEffect.hlsli" />
+    <None Include="Data\shader\Fog.PS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\Fullscreen.VS.hlsl">
+    <None Include="Data\shader\Fullscreen.VS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\Line.PS.hlsl">
+    <None Include="Data\shader\Line.PS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\Line.VS.hlsl">
+    <None Include="Data\shader\Line.VS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\Tonemap.PS.hlsl">
+    <None Include="Data\shader\Tonemap.PS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\BloomUpsample.PS.hlsl">
+    <None Include="Data\shader\BloomUpsample.PS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </None>
-    <None Include="Resources\shader\BloomDownsample.PS.hlsl">
+    <None Include="Data\shader\BloomDownsample.PS.hlsl">
       <Filter>KujakuEngine\shader</Filter>
     </None>
   </ItemGroup>

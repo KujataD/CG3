@@ -11,6 +11,7 @@
 #endif
 
 #include "../math/Vector3.h"
+#include "ProjectPath.h"
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -94,7 +95,7 @@ private:
 	std::map<std::string, Group> datas_;
 
 	// グローバル変数の保存先ファイルパス
-	const std::string kDirectoryPath = "Resources/GlobalVariables/";
+	const std::string kDirectoryPath = (GetProjectDataRoot() / "Resources" / "GlobalVariables").generic_string() + "/";
 };
 
 } // namespace KujakuEngine

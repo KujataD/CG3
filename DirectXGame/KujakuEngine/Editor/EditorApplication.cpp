@@ -275,10 +275,10 @@ void EditorApplication::Initialize() {
 	SetSelectionProvider(EditorSelection::GetInstance());
 
 	// プロジェクト共有のTag登録リストを読み込む(ProjectSettings/Tags.json)。
-	TagRegistry::GetInstance().LoadFromProjectRoot(DetectEditorProjectRoot());
+	TagRegistry::GetInstance().LoadFromProjectRoot(GetProjectDataRoot());
 
 	// レンダリング設定(ブルーム/露出/トーンマップ)を読み込む(ProjectSettings/RenderSettings.json)。
-	PostProcess::GetInstance()->LoadSettingsFromProjectRoot(DetectEditorProjectRoot());
+	PostProcess::GetInstance()->LoadSettingsFromProjectRoot(GetProjectDataRoot());
 
 	editorMode_ = EditorMode::Edit;
 	AddConsoleLog("Editor Mode: Edit");
@@ -790,7 +790,7 @@ void EditorApplication::SetCurrentSceneRaw(Scene* scene, GameModuleApi::DestroyS
 }
 
 std::string EditorApplication::GetStartupSceneName() const {
-	std::filesystem::path file = DetectEditorProjectRoot() / "ProjectSettings" / "StartupScene.txt";
+	std::filesystem::path file = GetProjectDataRoot() / "ProjectSettings" / "StartupScene.txt";
 	std::ifstream ifs(file);
 	if (!ifs) {
 		return "";
@@ -801,7 +801,7 @@ std::string EditorApplication::GetStartupSceneName() const {
 }
 
 void EditorApplication::SetStartupSceneName(const std::string& sceneName) {
-	std::filesystem::path dir = DetectEditorProjectRoot() / "ProjectSettings";
+	std::filesystem::path dir = GetProjectDataRoot() / "ProjectSettings";
 	std::error_code errorCode;
 	std::filesystem::create_directories(dir, errorCode);
 	std::ofstream ofs(dir / "StartupScene.txt", std::ios::trunc);
@@ -863,7 +863,7 @@ void EditorApplication::InitializeCurrentSceneAndImportJson() {
 
 	// Scene標準Objectを先に作り、その後保存済みJSONを重ねてEditor状態を復元する。
 	currentScene_->Initialize();
-	SceneJsonImporter::ImportResult importResult = SceneJsonImporter::ImportScene(*currentScene_, DetectEditorProjectRoot());
+	SceneJsonImporter::ImportResult importResult = SceneJsonImporter::ImportScene(*currentScene_, GetProjectDataRoot());
 	if (importResult.imported) {
 		if (importResult.succeeded) {
 			AddConsoleLog("[Editor] Scene JSON imported: " + importResult.sourceDirectory.string());
@@ -1002,7 +1002,7 @@ bool EditorApplication::SaveCurrentSceneJsonForHotReload() {
 		return true;
 	}
 
-	SceneJsonExporter::ExportResult exportResult = SceneJsonExporter::ExportScene(*currentScene_, DetectEditorProjectRoot());
+	SceneJsonExporter::ExportResult exportResult = SceneJsonExporter::ExportScene(*currentScene_, GetProjectDataRoot());
 	if (exportResult.succeeded) {
 		AddConsoleLog("[HotReload] Scene JSON exported: " + exportResult.outputDirectory.string());
 		return true;
@@ -1036,6 +1036,14 @@ std::filesystem::path EditorApplication::GetGameModuleProjectPath() const {
 }
 
 std::filesystem::path EditorApplication::GetGameModuleDllPath() const {
+	// 配布パッケージ(exeと同じフォルダにGameModule.dllをコピー済み)を最優先で探す。
+	// これが無い場合のみ、開発ツリー(.sln探索)側のHotReload用配置にフォールバックする。
+	std::filesystem::path besideExe = GetExecutableDirectory() / "GameModule.dll";
+	std::error_code error;
+	if (std::filesystem::exists(besideExe, error)) {
+		return besideExe;
+	}
+
 	// GameModule.dllはビルド構成(Debug/Release)ごとに別フォルダへ出力される。
 	// exeと同じ構成のDLLを読み込まないとstd::string等のABIが食い違いクラッシュするため、
 	// exe自身の構成に対応するサブフォルダを選ぶ(GameModule.vcxprojのOutDirと一致させること)。
@@ -1053,7 +1061,13 @@ std::filesystem::path EditorApplication::GetGameModuleHotReloadBuildRoot() const
 }
 
 std::filesystem::path EditorApplication::GetGameModuleCopyDirectory() const {
+#ifdef USE_IMGUI
 	return DetectEditorProjectRoot() / "Temp" / "HotReload";
+#else
+	// エディタUI無し(ゲーム単体)ビルドではHotReloadしないため、コピー先を持たない。
+	// GameModuleLoaderは空のcopyDirectoryならDLLを直接読み込み、Tempフォルダを作らない。
+	return {};
+#endif // USE_IMGUI
 }
 
 void EditorApplication::RestoreFallbackSceneAfterHotReloadFailure() {

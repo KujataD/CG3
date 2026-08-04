@@ -12,6 +12,7 @@ std::ofstream logStream_;
 }
 
 void Logger::Initialize() {
+#ifdef _DEBUG
 	// ログのディレクトリを用意
 	std::filesystem::create_directory("logs");
 	// 現在時刻を取得(UTC時刻)
@@ -26,11 +27,16 @@ void Logger::Initialize() {
 	std::string logFilePath = std::string("logs/") + dateString + ".log";
 	// ファイルを作って書き込み準備
 	logStream_.open(logFilePath);
+#endif
 }
 
 void Logger::Log(const std::string& message) {
+#ifdef _DEBUG
 	logStream_ << message << std::endl;
 	OutputDebugStringA(message.c_str());
+#else
+	(void)message;
+#endif
 }
 
 } // namespace KujakuEngine

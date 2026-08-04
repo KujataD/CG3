@@ -1,5 +1,6 @@
 #include "InstancingModel.h"
 #include "../base/DirectXCommon.h"
+#include "../base/ProjectPath.h"
 #include "../base/TextureManager.h"
 #include "../3d/DirectionalLight.h"
 #include "../3d/GraphicsPipeline.h"
@@ -52,7 +53,7 @@ void InstancingModel::Initialize() {
 
 InstancingModel* InstancingModel::CreateFromOBJ(const std::string& objname, bool enableLighting) {
 	InstancingModel* particle = new InstancingModel();
-	std::string directoryPathFinal = "Resources/" + objname;
+	std::string directoryPathFinal = (GetProjectDataRoot() / "Resources" / objname).generic_string();
 	std::string filename = objname + ".obj";
 
 	ModelData rawData = ModelUtil::LoadModelFile(directoryPathFinal, filename);

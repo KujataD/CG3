@@ -93,7 +93,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <!-- C4251: DLLエクスポートクラスのSTLメンバ警告。engine/GameModuleは同一ツールチェーン共有のため無害。 -->
-      <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <!-- C4275: 非エクスポートの純粋仮想インターフェース(IRaycastTarget等)を基底に持つ警告。データを持たないため無害。 -->
+      <DisableSpecificWarnings>4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)KujakuEngine;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\imgui;$(ProjectDir)externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -105,7 +106,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <PostBuildEvent>
       <Command>copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxcompiler.dll" "$(TargetDir)dxcompiler.dll"
 
-copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dxil.dll"</Command>
+copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dxil.dll"
+
+xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -381,14 +384,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <Text Include="externals\imgui\LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\shader\Line.PS.hlsl" />
-    <None Include="Resources\shader\Line.VS.hlsl" />
-    <None Include="Resources\shader\PostEffect.hlsli" />
-    <None Include="Resources\shader\Fullscreen.VS.hlsl" />
-    <None Include="Resources\shader\BloomDownsample.PS.hlsl" />
-    <None Include="Resources\shader\BloomUpsample.PS.hlsl" />
-    <None Include="Resources\shader\Tonemap.PS.hlsl" />
-    <None Include="Resources\shader\Fog.PS.hlsl" />
+    <None Include="Data\shader\Line.PS.hlsl" />
+    <None Include="Data\shader\Line.VS.hlsl" />
+    <None Include="Data\shader\PostEffect.hlsli" />
+    <None Include="Data\shader\Fullscreen.VS.hlsl" />
+    <None Include="Data\shader\BloomDownsample.PS.hlsl" />
+    <None Include="Data\shader\BloomUpsample.PS.hlsl" />
+    <None Include="Data\shader\Tonemap.PS.hlsl" />
+    <None Include="Data\shader\Fog.PS.hlsl" />
     <None Include="KujakuEngine\shader\Object3d.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

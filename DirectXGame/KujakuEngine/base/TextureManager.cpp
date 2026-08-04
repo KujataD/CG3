@@ -1,6 +1,7 @@
 #include "TextureManager.h"
 #include "../3d/GraphicsPipeline.h"
 #include "DirectXCommon.h"
+#include "ProjectPath.h"
 #include <wincodec.h>
 
 #include "WinApp.h"
@@ -10,7 +11,9 @@
 #include <system_error>
 
 namespace KujakuEngine {
-void TextureManager::Initialize() { defaultWhiteTextureIndex_ = LoadTexture("Resources/white1x1.png"); }
+void TextureManager::Initialize() {
+	defaultWhiteTextureIndex_ = LoadTexture((GetProjectDataRoot() / "Resources" / "white1x1.png").generic_string());
+}
 
 TextureManager* TextureManager::GetInstance() {
 	static TextureManager instance;
@@ -43,8 +46,10 @@ bool TextureManager::LoadTextureInternal(const std::string& filePath, uint32_t& 
 	ID3D12Device* device = DirectXCommon::GetInstance()->GetDevice();
 
 	DirectX::ScratchImage image{};
-	std::wstring filePathW(filePath.begin(), filePath.end());
-	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+	// std::filesystem::path経由でネイティブなワイド文字列へ戻す。
+	// バイト単位のコピーだと日本語を含むパス(例: デスクトップ配下)で必ず失敗する。
+	std::filesystem::path texturePath(filePath);
+	HRESULT hr = DirectX::LoadFromWICFile(texturePath.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
 	if (FAILED(hr)) {
 		std::string msg = "Failed to load texture: " + filePath + "\n";
 		OutputDebugStringA(msg.c_str());

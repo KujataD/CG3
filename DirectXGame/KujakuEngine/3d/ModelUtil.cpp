@@ -1,5 +1,6 @@
 #include "ModelUtil.h"
 #include "../base/DirectXCommon.h"
+#include "../base/StringUtil.h"
 #include "../base/TextureManager.h"
 #include "../base/WinApp.h"
 #include <cassert>
@@ -10,9 +11,11 @@
 namespace KujakuEngine::ModelUtil {
 namespace {
 
-std::string ResolveTexturePath(const std::string& directoryPath, const std::string& textureFilePath) {
+// textureFilePathはAssimpが返すUTF-8文字列。directoryPathはstd::filesystem::path由来のネイティブ表現。
+// 両者はエンコーディングが異なりうるため、texture側だけUTF-8として復元してから結合する。
+std::string ResolveTexturePath(const std::string& directoryPath, const std::string& utf8TextureFilePath) {
 	// OBJ/MTLから見た相対パスは、モデルのディレクトリ基準に変換する。
-	std::filesystem::path texturePath(textureFilePath);
+	std::filesystem::path texturePath(StringUtil::ToWString(utf8TextureFilePath));
 	if (texturePath.is_absolute()) {
 		return texturePath.generic_string();
 	}
@@ -40,13 +43,16 @@ bool TryLoadModelFile(const std::string& directoryPath, const std::string& filen
 	// ------------------------------------------
 	Assimp::Importer importer;
 	std::string filePath = directoryPath + "/" + filename;
+	// AssimpのIOSystemはナローパスをUTF-8として解釈するため、明示的にUTF-8へ変換して渡す。
+	// (path::string()はACP(日本語環境ではCP932)を返しうるので、そのままでは日本語パスで開けない)
+	std::string utf8FilePath = StringUtil::ToString(std::filesystem::path(filePath).wstring());
 
 	// aiProcess_FlipWindingOrder: 三角形の並び順を逆にする。
 	// aiProcess_Triangulate: 四角形以上の面を三角形に分割する。
 	// aiProcess_FlipUVs: UVをフリップする。
 	// aiProcess_GenSmoothNormals: 法線がないモデルでも、可能ならAssimp側で法線を作ってプレビューできるようにする。
 	const unsigned int importFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals;
-	const aiScene* scene = importer.ReadFile(filePath.c_str(), importFlags);
+	const aiScene* scene = importer.ReadFile(utf8FilePath.c_str(), importFlags);
 	if (!scene) {
 		std::string message = "Failed to load model: " + filePath + "\n";
 		OutputDebugStringA(message.c_str());
@@ -161,7 +167,8 @@ Node ReadNode(aiNode* node) {
 MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
 	MaterialData materialData;
 	std::string line;
-	std::ifstream file(directoryPath + "/" + filename);
+	// ナロー文字列のままifstreamへ渡すと日本語を含むパスで開けないため、pathで受け渡す。
+	std::ifstream file(std::filesystem::path(directoryPath) / filename);
 	assert(file.is_open());
 
 	// MTLのmap_Kdからディフューズテクスチャを取得する。

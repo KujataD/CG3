@@ -8,7 +8,9 @@
 
 namespace {
 
-constexpr const char* kBTSetFolder = "Resources/bt_set/HammerEnemyBT";
+std::string BTSetFolder() {
+	return (KujakuEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "HammerEnemyBT").generic_string();
+}
 
 // 攻撃フェーズごとのクリップ名(Animations/*.anim.jsonのnameと一致させる)。
 // 各クリップは末尾を長くホールドしてあり、フェーズのdurationはBTのParamsで決める。
@@ -122,7 +124,7 @@ void HammerEnemyComponent::Initialize() {
 	    btFactory_, catalog, BahamutAI::ActionDef("Recovery").Category("Attack").Description("後隙。duration経過後にハンマーを収納して攻撃を終了する").Float("duration", {0.5f}, "フェーズの長さ(s)"),
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return Recovery(context, params); });
 
-	catalog.SaveToBTSetFolder(kBTSetFolder);
+	catalog.SaveToBTSetFolder(BTSetFolder());
 }
 
 void HammerEnemyComponent::OnPlayStart() {
@@ -175,7 +177,7 @@ void HammerEnemyComponent::Update() {
 }
 
 void HammerEnemyComponent::LoadBTSet() {
-	if (!btRuntime_.LoadFromBTSetFolder(kBTSetFolder, btFactory_)) {
+	if (!btRuntime_.LoadFromBTSetFolder(BTSetFolder(), btFactory_)) {
 		const BahamutAI::BehaviorTreeLoadResult& result = btRuntime_.GetLastLoadResult();
 		KujakuEngine::Logger::Log(std::string("[HammerEnemyComponent] BT load failed: ") + result.GetErrorMessage());
 	}

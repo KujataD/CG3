@@ -8,7 +8,9 @@
 
 namespace {
 
-constexpr const char* kBTSetFolder = "Resources/bt_set/AllyBT";
+std::string BTSetFolder() {
+	return (KujakuEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "AllyBT").generic_string();
+}
 
 // 自分から見た相手への水平ベクトル。
 KujakuEngine::Vector3 HorizontalTo(const KujakuEngine::GameObject& from, const KujakuEngine::GameObject& to) {
@@ -87,7 +89,7 @@ void AllyAIBrain::Initialize() {
 		    return UseAbility(params);
 	    });
 
-	catalog.SaveToBTSetFolder(kBTSetFolder);
+	catalog.SaveToBTSetFolder(BTSetFolder());
 }
 
 void AllyAIBrain::OnPlayStart() {
@@ -123,7 +125,7 @@ void AllyAIBrain::RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry
 }
 
 void AllyAIBrain::LoadBTSet() {
-	if (!btRuntime_.LoadFromBTSetFolder(kBTSetFolder, btFactory_)) {
+	if (!btRuntime_.LoadFromBTSetFolder(BTSetFolder(), btFactory_)) {
 		const BahamutAI::BehaviorTreeLoadResult& result = btRuntime_.GetLastLoadResult();
 		KujakuEngine::Logger::Log(std::string("[AllyAIBrain] BT load failed: ") + result.GetErrorMessage());
 	}

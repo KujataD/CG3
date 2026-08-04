@@ -492,7 +492,7 @@ void AnimationWindow::DrawClipCreation(AnimatorComponent& animator) {
 			clipName = "NewAnimation";
 		}
 
-		std::filesystem::path projectRoot = DetectEditorProjectRoot();
+		std::filesystem::path projectRoot = GetProjectDataRoot();
 		std::filesystem::path animationsDirectory = projectRoot / "Animations";
 		std::error_code errorCode;
 		std::filesystem::create_directories(animationsDirectory, errorCode);

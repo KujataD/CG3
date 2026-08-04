@@ -8,7 +8,7 @@ namespace KujakuEngine {
 
 // ルート定数のDWORD数はHLSL側PostConstantsと一致している必要がある。
 static_assert(sizeof(PostConstants) == 20 * sizeof(uint32_t), "PostConstants must match PostEffect.hlsli layout (20 DWORDs).");
-// FogConstantsも同様にResources/shader/Fog.PS.hlslのFogConstantsと一致させること。
+// FogConstantsも同様にshader/Fog.PS.hlslのFogConstantsと一致させること。
 static_assert(sizeof(FogConstants) == 32 * sizeof(uint32_t), "FogConstants must match Fog.PS.hlsl layout (32 DWORDs).");
 
 PostEffectPipeline* PostEffectPipeline::GetInstance() {
@@ -107,7 +107,7 @@ void PostEffectPipeline::CreatePipelineStates() {
 	GraphicsPipeline* graphicsPipeline = GraphicsPipeline::GetInstance();
 
 	// フルスクリーン三角形VSは全パス共通。
-	IDxcBlob* vertexShaderBlob = graphicsPipeline->CompileShader(L"Resources/shader/Fullscreen.VS.hlsl", L"vs_6_0");
+	IDxcBlob* vertexShaderBlob = graphicsPipeline->CompileShader(L"shader/Fullscreen.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
 	struct PassDesc {
@@ -117,10 +117,10 @@ void PostEffectPipeline::CreatePipelineStates() {
 		bool additiveBlend;
 	};
 	const PassDesc passes[] = {
-	    {PostEffectType::kFog,             L"Resources/shader/Fog.PS.hlsl",             DirectXCommon::kSceneColorFormat,    false},
-	    {PostEffectType::kBloomDownsample, L"Resources/shader/BloomDownsample.PS.hlsl", kBloomFormat,                        false},
-	    {PostEffectType::kBloomUpsample,   L"Resources/shader/BloomUpsample.PS.hlsl",   kBloomFormat,                        true },
-	    {PostEffectType::kTonemap,         L"Resources/shader/Tonemap.PS.hlsl",         DirectXCommon::kResolveColorFormat,  false},
+	    {PostEffectType::kFog,             L"shader/Fog.PS.hlsl",             DirectXCommon::kSceneColorFormat,    false},
+	    {PostEffectType::kBloomDownsample, L"shader/BloomDownsample.PS.hlsl", kBloomFormat,                        false},
+	    {PostEffectType::kBloomUpsample,   L"shader/BloomUpsample.PS.hlsl",   kBloomFormat,                        true },
+	    {PostEffectType::kTonemap,         L"shader/Tonemap.PS.hlsl",         DirectXCommon::kResolveColorFormat,  false},
 	};
 
 	for (const PassDesc& pass : passes) {

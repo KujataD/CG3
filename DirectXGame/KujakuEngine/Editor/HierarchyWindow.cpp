@@ -94,7 +94,7 @@ void SaveHierarchyObjectAsPrefab(GameObject* gameObject) {
 		return;
 	}
 
-	PrefabAsset::SaveResult result = PrefabAsset::SaveAsPrefab(*gameObject, DetectEditorProjectRoot());
+	PrefabAsset::SaveResult result = PrefabAsset::SaveAsPrefab(*gameObject, GetProjectDataRoot());
 	if (result.succeeded) {
 		PrefabAsset::BindHierarchyToPrefab(*gameObject, result.outputPath);
 		EditorConsole::GetInstance()->AddLog("[Prefab] Saved: " + result.outputPath.string());

@@ -19,7 +19,7 @@ enum class PostEffectType {
 };
 
 // 全ポストパス共有のルート定数。
-// HLSL側 Resources/shader/PostEffect.hlsli の PostConstants と完全に一致させること。
+// HLSL側 Data/shader/PostEffect.hlsli の PostConstants と完全に一致させること。
 struct PostConstants {
 	float texelSize[2] = {0.0f, 0.0f}; // 入力テクスチャの1テクセルサイズ
 	float bloomIntensity = 0.0f;       // ブルーム合成の全体強度(0で寄与なし)
@@ -35,7 +35,7 @@ struct PostConstants {
 };
 
 // フォグパス専用のルート定数。
-// HLSL側 Resources/shader/Fog.PS.hlsl の FogConstants と完全に一致させること。
+// HLSL側 Data/shader/Fog.PS.hlsl の FogConstants と完全に一致させること。
 struct FogConstants {
 	float invViewProjection[16]; // ビュープロジェクション逆行列(深度→ワールド座標復元用)
 	float cameraWorldPosition[3];
