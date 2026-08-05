@@ -1,6 +1,7 @@
 #include "HierarchyWindow.h"
 
 #include "../../externals/imgui/imgui.h"
+#include "../components/VolumeComponent.h"
 #include "../scene/Component.h"
 #include "../scene/GameObject.h"
 #include "../scene/IMaterialTarget.h"
@@ -11,6 +12,7 @@
 #include "../base/ProjectPath.h"
 #include "EditorSelection.h"
 #include "PrefabAsset.h"
+#include "PrimitiveObjectFactory.h"
 #include "UIObjectFactory.h"
 #include <cstring>
 #include <filesystem>
@@ -28,9 +30,13 @@ GameObject* CreateHierarchyObject(Scene& scene, const char* typeName, GameObject
 	if (std::strcmp(typeName, "Entity") == 0) {
 		created = scene.CreateEditorEntity();
 	} else if (std::strcmp(typeName, "Cube") == 0) {
-		created = scene.CreateEditorCube();
+		created = PrimitiveObjectFactory::CreateCube(&scene);
 	} else if (std::strcmp(typeName, "Sphere") == 0) {
-		created = scene.CreateEditorSphere();
+		created = PrimitiveObjectFactory::CreateSphere(&scene);
+	} else if (std::strcmp(typeName, "Capsule") == 0) {
+		created = PrimitiveObjectFactory::CreateCapsule(&scene);
+	} else if (std::strcmp(typeName, "Global Volume") == 0) {
+		created = CreateGlobalVolumeObject(scene);
 	}
 
 	if (!created) {
@@ -52,15 +58,29 @@ void DrawHierarchyCreateMenu(Scene& scene, GameObject* parent) {
 	if (ImGui::MenuItem("Entity")) {
 		CreateHierarchyObject(scene, "Entity", parent);
 	}
-	if (ImGui::MenuItem("Cube")) {
-		CreateHierarchyObject(scene, "Cube", parent);
-	}
-	if (ImGui::MenuItem("Sphere")) {
-		CreateHierarchyObject(scene, "Sphere", parent);
+	ImGui::Separator();
+
+	// ポストエフェクト設定。シーンに1つ置けばそのシーンの見た目が決まる。
+	if (ImGui::MenuItem("Global Volume")) {
+		CreateHierarchyObject(scene, "Global Volume", parent);
 	}
 
+	// 3Dプリミティブ。ModelRendererと形状に合ったColliderが付いた状態で生成される。
+	if (ImGui::BeginMenu("3D")) {
+		if (ImGui::MenuItem("Cube")) {
+			CreateHierarchyObject(scene, "Cube", parent);
+		}
+		if (ImGui::MenuItem("Sphere")) {
+			CreateHierarchyObject(scene, "Sphere", parent);
+		}
+		if (ImGui::MenuItem("Capsule")) {
+			CreateHierarchyObject(scene, "Capsule", parent);
+		}
+		ImGui::EndMenu();
+	}
+
+
 	// UI要素はUIObjectFactoryで生成する。Canvas以外はCanvas配下(選択中のCanvasがあればそこ)へ入る。
-	ImGui::Separator();
 	if (ImGui::BeginMenu("UI")) {
 		// Canvasは押すたびに新規作成する(複数Canvasを並べてsortOrderで前後を制御できる)。
 		if (ImGui::MenuItem("Canvas")) {

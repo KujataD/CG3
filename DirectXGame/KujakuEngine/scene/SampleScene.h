@@ -40,16 +40,6 @@ public:
 	KUJAKU_API Camera* GetGameViewCamera() override;
 
 	/// <summary>
-	/// EditorのHierarchyからCubeを作成する
-	/// </summary>
-	KUJAKU_API GameObject* CreateEditorCube() override;
-
-	/// <summary>
-	/// EditorのHierarchyからSphereを作成する
-	/// </summary>
-	KUJAKU_API GameObject* CreateEditorSphere() override;
-
-	/// <summary>
 	/// Editor上でComponent追加後にScene固有の依存を補完する
 	/// </summary>
 	KUJAKU_API void OnEditorComponentAdded(GameObject* gameObject, Component* component) override;

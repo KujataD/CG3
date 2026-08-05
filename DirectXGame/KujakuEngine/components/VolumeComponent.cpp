@@ -1,6 +1,7 @@
 #include "VolumeComponent.h"
 
 #include "../scene/GameObject.h"
+#include "../scene/Scene.h"
 #include "ColliderComponent.h"
 
 #ifdef USE_IMGUI
@@ -99,6 +100,22 @@ void VolumeComponent::ReadJson(const nlohmann::json& json) {
 	if (json.contains("profile") && json.at("profile").is_object()) {
 		ReadVolumeProfileJson(json.at("profile"), profile_);
 	}
+}
+
+GameObject* CreateGlobalVolumeObject(Scene& scene) {
+	GameObject* volumeObject = scene.CreateGameObject("Global Volume");
+	if (!volumeObject) {
+		return nullptr;
+	}
+
+	VolumeComponent* volume = volumeObject->AddComponent<VolumeComponent>();
+	if (volume) {
+		// 全エフェクトがoverride無しだと置いても何も起きないため、Tonemapだけ立てておく。
+		// 残りはInspectorのチェックボックスで必要なものをONにしてもらう。
+		volume->GetProfile().SetOverriding(VolumeEffectId::kTonemap, true);
+		scene.OnEditorComponentAdded(volumeObject, volume);
+	}
+	return volumeObject;
 }
 
 } // namespace KujakuEngine

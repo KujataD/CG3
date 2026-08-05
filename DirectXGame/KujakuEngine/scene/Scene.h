@@ -103,15 +103,8 @@ public:
 	/// </summary>
 	KUJAKU_API virtual GameObject* CreateEditorEntity();
 
-	/// <summary>
-	/// EditorのHierarchyからCubeを作成する
-	/// </summary>
-	KUJAKU_API virtual GameObject* CreateEditorCube();
-
-	/// <summary>
-	/// EditorのHierarchyからSphereを作成する
-	/// </summary>
-	KUJAKU_API virtual GameObject* CreateEditorSphere();
+	// Cube/Sphere/CapsuleはEditor/PrimitiveObjectFactoryが生成する。
+	// Collider付きで作るためScene派生ごとの差分が不要になり、形状の追加も1関数で済む。
 
 	/// <summary>
 	/// Editor上でComponent追加後にScene固有の依存を補完する

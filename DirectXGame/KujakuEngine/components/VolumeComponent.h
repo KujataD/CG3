@@ -5,6 +5,9 @@
 
 namespace KujakuEngine {
 
+class GameObject;
+class Scene;
+
 /// <summary>
 /// ポストエフェクト設定をGameObjectとして配置するComponent(UnityのVolume相当)。
 ///
@@ -51,5 +54,12 @@ private:
 	float blendDistance_ = 0.0f;
 	VolumeProfileData profile_;
 };
+
+/// <summary>
+/// Global Volumeとしてすぐ使えるGameObjectを生成する。
+/// Hierarchyの Create メニューとRenderingウィンドウのボタンで共用し、生成物が食い違わないようにする。
+/// 生成直後から効果が見えるようTonemapだけoverrideを立てた状態で返す。
+/// </summary>
+KUJAKU_API GameObject* CreateGlobalVolumeObject(Scene& scene);
 
 } // namespace KujakuEngine

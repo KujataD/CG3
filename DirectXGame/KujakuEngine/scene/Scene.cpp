@@ -977,10 +977,6 @@ GameObject* Scene::CreateGameObject(const std::string& name) { return AddGameObj
 
 GameObject* Scene::CreateEditorEntity() { return CreateGameObject("Entity"); }
 
-GameObject* Scene::CreateEditorCube() { return CreateGameObject("Cube"); }
-
-GameObject* Scene::CreateEditorSphere() { return CreateGameObject("Sphere"); }
-
 void Scene::OnEditorComponentAdded(GameObject* gameObject, Component* component) {
 	(void)gameObject;
 	PrepareEditorBillboardComponent(component);

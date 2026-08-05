@@ -258,34 +258,6 @@ Camera* SampleScene::GetGameViewCamera() {
 	return gameCameraComponent_ ? &gameCameraComponent_->GetCamera() : nullptr;
 }
 
-GameObject* SampleScene::CreateEditorCube() {
-	GameObject* cube = CreateGameObject("Cube");
-	if (!cube) {
-		return nullptr;
-	}
-
-	ModelRendererComponent* renderer = cube->AddComponent<ModelRendererComponent>(GetCurrentViewCamera());
-	if (renderer) {
-		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Cube, "resources/white1x1.png");
-	}
-
-	return cube;
-}
-
-GameObject* SampleScene::CreateEditorSphere() {
-	GameObject* sphere = CreateGameObject("Sphere");
-	if (!sphere) {
-		return nullptr;
-	}
-
-	ModelRendererComponent* renderer = sphere->AddComponent<ModelRendererComponent>(GetCurrentViewCamera());
-	if (renderer) {
-		renderer->SetPrimitive(ModelRendererComponent::PrimitiveType::Sphere, "resources/white1x1.png");
-	}
-
-	return sphere;
-}
-
 void SampleScene::OnEditorComponentAdded(GameObject* gameObject, Component* component) {
 	Scene::OnEditorComponentAdded(gameObject, component);
 

@@ -9,6 +9,7 @@
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
 #include "EditorApplication.h"
+#include "EditorSelection.h"
 #endif // USE_IMGUI
 
 namespace KujakuEngine {
@@ -39,16 +40,9 @@ void RenderingWindow::Draw(bool* pOpen) {
 	ImGui::SeparatorText("Contributing Volumes");
 	if (resolved.contributors.empty()) {
 		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "有効な Volume がありません(ポストエフェクト無し)");
+		// HierarchyのCreate > Global Volumeと同じものを作る(生成内容を1箇所に寄せる)。
 		if (ImGui::Button("Create Global Volume")) {
-			GameObject* volumeObject = scene->CreateGameObject("Global Volume");
-			if (volumeObject) {
-				VolumeComponent* volume = volumeObject->AddComponent<VolumeComponent>();
-				if (volume) {
-					// 生成直後から見た目が変わるよう、トーンマップ系は既定でoverrideしておく。
-					volume->GetProfile().SetOverriding(VolumeEffectId::kTonemap, true);
-					scene->OnEditorComponentAdded(volumeObject, volume);
-				}
-			}
+			EditorSelection::GetInstance()->SetSelectedGameObject(CreateGlobalVolumeObject(*scene));
 		}
 	} else {
 		for (VolumeComponent* volume : resolved.contributors) {
