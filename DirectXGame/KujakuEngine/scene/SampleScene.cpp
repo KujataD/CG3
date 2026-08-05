@@ -10,6 +10,7 @@
 #include "../components/DirectionalLightComponent.h"
 #include "../components/ModelRendererComponent.h"
 #include "../components/PointLightComponent.h"
+#include "../components/SpotLightComponent.h"
 #include "../components/RotatorComponent.h"
 #include "../math/MathUtil.h"
 #include "../vfx/ParticleModel.h"
@@ -189,6 +190,12 @@ void SampleScene::ApplySceneLights() {
 			PointLightComponent* pointLight = dynamic_cast<PointLightComponent*>(component.get());
 			if (pointLight) {
 				pointLight->Apply();
+				continue;
+			}
+
+			SpotLightComponent* spotLight = dynamic_cast<SpotLightComponent*>(component.get());
+			if (spotLight) {
+				spotLight->Apply();
 			}
 		}
 	}

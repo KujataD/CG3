@@ -15,7 +15,9 @@
 #include "../runtime/SelectionProvider.h"
 #include "../2d/Sprite2DRenderer.h"
 #include "../components/ColliderComponent.h"
+#include "../components/PointLightComponent.h"
 #include "../components/RigidbodyComponent.h"
+#include "../components/SpotLightComponent.h"
 #include "../math/MathUtil.h"
 #include "../postprocess/PostProcess.h"
 #include "../postprocess/VolumeStack.h"
@@ -37,6 +39,9 @@ constexpr int32_t kColliderSphereSubdivision = 12;
 constexpr float kColliderDebugPi = 3.14159265358979323846f;
 constexpr Vector4 kColliderDebugColor = {0.1f, 1.0f, 0.35f, 1.0f};
 constexpr Vector4 kCameraFrustumColor = {0.85f, 0.85f, 0.95f, 1.0f};
+// ライトの影響範囲ギズモ(Unityと同じく黄色系)。内側コーンは減衰開始位置なので一段暗くする。
+constexpr Vector4 kLightGizmoColor = {1.0f, 0.86f, 0.35f, 1.0f};
+constexpr Vector4 kLightInnerConeColor = {0.75f, 0.62f, 0.22f, 1.0f};
 
 // グローバル重力(Unity既定に合わせる)。RigidbodyのgravityScale倍で各動的ボディに適用する。
 constexpr Vector3 kRigidbodyGravity = {0.0f, -9.81f, 0.0f};
@@ -550,6 +555,89 @@ void DrawCameraDebugLines(Scene& scene) {
 	}
 }
 
+// SpotLightの照射コーンをワイヤーで描く。Unityのスポットライト選択時のギズモ相当。
+// apexから前方rangeの位置に外側角の円を置き、apexとの間を4本のエッジで結ぶ。
+// 内側角(減衰開始)の円も同じ距離に薄く描いて、Inner Spot Angleの効きが見えるようにする。
+void DrawSpotLightCone(const Vector3& apex, const Vector3& direction, float range, float spotAngleDegrees, float innerSpotAngleDegrees, const Vector4& color) {
+	if (range <= 0.0f) {
+		return;
+	}
+
+	// 照射軸に垂直な基底を作る。directionがほぼY軸のときだけ別の軸を種にする。
+	Vector3 seed = (std::abs(direction.y) > 0.99f) ? Vector3{1.0f, 0.0f, 0.0f} : Vector3{0.0f, 1.0f, 0.0f};
+	Vector3 right = Normalize(Cross(seed, direction));
+	Vector3 up = Normalize(Cross(direction, right));
+
+	const Vector3 center = apex + direction * range;
+
+	auto DrawAngleCircle = [&](float angleDegrees, const Vector4& circleColor, bool drawEdges) {
+		// 全開き角なので半分がコーンの半頂角。円の半径は range * tan(半頂角)。
+		const float halfAngle = angleDegrees * 0.5f * (kColliderDebugPi / 180.0f);
+		const float radius = range * std::tan((std::min)(halfAngle, kColliderDebugPi * 0.5f - 0.01f));
+
+		const int32_t segment = kColliderSphereSubdivision * 2;
+		Vector3 previous{};
+		for (int32_t i = 0; i <= segment; ++i) {
+			const float theta = 2.0f * kColliderDebugPi * (static_cast<float>(i) / static_cast<float>(segment));
+			const Vector3 point = center + right * (std::cos(theta) * radius) + up * (std::sin(theta) * radius);
+			if (i > 0) {
+				LineRenderer::DrawLine(previous, point, circleColor);
+			}
+			// エッジは4方向だけ引く(全周に引くと塗り潰しになって向きが読めない)。
+			if (drawEdges && (i % (segment / 4) == 0) && i < segment) {
+				LineRenderer::DrawLine(apex, point, circleColor);
+			}
+			previous = point;
+		}
+	};
+
+	// 照射軸。コーンが細いときでも向きが分かるように必ず引く。
+	LineRenderer::DrawLine(apex, center, color);
+	DrawAngleCircle(spotAngleDegrees, color, true);
+	if (innerSpotAngleDegrees > 0.0f && innerSpotAngleDegrees < spotAngleDegrees) {
+		DrawAngleCircle(innerSpotAngleDegrees, kLightInnerConeColor, false);
+	}
+}
+
+// 選択中のGameObjectが持つライトの影響範囲を描く。
+// PointLightはradiusの球、SpotLightは照射コーン(Unityのライトギズモ相当)。
+void DrawLightDebugLines(Scene& scene) {
+	// 出し分けは呼び出し側(RenderViewのdrawEditorOverlays)が担当する。
+	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
+	if (!selectedObject || !selectedObject->IsActiveInHierarchy()) {
+		return;
+	}
+	if (scene.FindGameObjectByInstanceId(selectedObject->GetInstanceId()) != selectedObject) {
+		return;
+	}
+
+	for (const std::unique_ptr<Component>& component : selectedObject->GetComponents()) {
+		if (!component || !component->IsEnabled()) {
+			continue;
+		}
+
+		PointLightComponent* pointLight = dynamic_cast<PointLightComponent*>(component.get());
+		if (pointLight) {
+			const PointLightData& data = pointLight->GetData();
+			if (data.radius > 0.0f) {
+				DrawSphere({selectedObject->GetTransform().GetWorldPosition(), data.radius}, kLightGizmoColor);
+			}
+			continue;
+		}
+
+		SpotLightComponent* spotLight = dynamic_cast<SpotLightComponent*>(component.get());
+		if (spotLight) {
+			DrawSpotLightCone(
+			    selectedObject->GetTransform().GetWorldPosition(),
+			    spotLight->GetWorldDirection(),
+			    spotLight->GetRange(),
+			    spotLight->GetSpotAngleDegrees(),
+			    spotLight->GetInnerSpotAngleDegrees(),
+			    kLightGizmoColor);
+		}
+	}
+}
+
 void DrawGrid(Scene& scene, const Vector4& color) {
 	const float kGridHalfWidth = 100.0f;
 	const uint32_t kSubdivision = 100;
@@ -822,6 +910,7 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 		DrawEditorBillboards(*this);
 		DrawColliderDebugLines(*this);
 		DrawCameraDebugLines(*this);
+		DrawLightDebugLines(*this);
 		DrawGrid(*this, Vector4(0.4f, 0.4f, 0.4f, 1.0f));
 	}
 

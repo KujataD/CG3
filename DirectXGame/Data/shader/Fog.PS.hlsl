@@ -27,6 +27,7 @@ struct FogConstants
 ConstantBuffer<FogConstants> gFogCB : register(b1);
 
 // Object3d.PS.hlslと同じSpotLightデータ(3d/SpotLight.hのSpotLightData)。
+// cbuffer配列の1要素は64バイト固定。C++側のstatic_assertと対で守ること。
 struct SpotLight
 {
     float32_t4 color;
@@ -37,10 +38,15 @@ struct SpotLight
     float32_t decay;
     float32_t cosAngle;
     float32_t cosFalloffStart;
-    float32_t2 padding;
+    float32_t padding;
 };
 
-ConstantBuffer<SpotLight> gSpotLight : register(b4);
+static const uint32_t kMaxSpotLight = 16;
+cbuffer gSpotLight : register(b4)
+{
+    SpotLight spotLights[kMaxSpotLight];
+    int32_t spotLightCount;
+};
 
 static const int32_t kRaymarchSteps = 24;
 
@@ -51,25 +57,32 @@ float32_t FogDensityAt(float32_t3 worldPos)
     return gFogCB.density * heightTerm;
 }
 
-// 指定ワールド座標に届くSpotLightの放射輝度(コーン減衰+距離減衰)。
+// 指定ワールド座標に届く全SpotLightの放射輝度の合計(コーン減衰+距離減衰)。
 // Object3d.PS.hlslのSpotLight処理と同じ式(表面の法線項は霧には無いので除く)。
 float32_t3 SpotLightRadianceAt(float32_t3 worldPos)
 {
-    if (gSpotLight.intensity <= 0.0f)
+    float32_t3 radiance = float32_t3(0.0f, 0.0f, 0.0f);
+
+    for (int32_t s = 0; s < spotLightCount; s++)
     {
-        return float32_t3(0.0f, 0.0f, 0.0f);
+        if (spotLights[s].intensity <= 0.0f)
+        {
+            continue;
+        }
+        float32_t3 toSample = worldPos - spotLights[s].position;
+        float32_t distanceToLight = length(toSample);
+        if (distanceToLight >= spotLights[s].distance || distanceToLight < 1e-4f)
+        {
+            continue;
+        }
+        float32_t3 lightToSampleDir = toSample / distanceToLight;
+        float32_t cosAngle = dot(lightToSampleDir, normalize(spotLights[s].direction));
+        float32_t falloffFactor = saturate((cosAngle - spotLights[s].cosAngle) / (spotLights[s].cosFalloffStart - spotLights[s].cosAngle));
+        float32_t attenuationFactor = pow(saturate(-distanceToLight / spotLights[s].distance + 1.0f), spotLights[s].decay);
+        radiance += spotLights[s].color.rgb * spotLights[s].intensity * attenuationFactor * falloffFactor;
     }
-    float32_t3 toSample = worldPos - gSpotLight.position;
-    float32_t distanceToLight = length(toSample);
-    if (distanceToLight >= gSpotLight.distance || distanceToLight < 1e-4f)
-    {
-        return float32_t3(0.0f, 0.0f, 0.0f);
-    }
-    float32_t3 lightToSampleDir = toSample / distanceToLight;
-    float32_t cosAngle = dot(lightToSampleDir, normalize(gSpotLight.direction));
-    float32_t falloffFactor = saturate((cosAngle - gSpotLight.cosAngle) / (gSpotLight.cosFalloffStart - gSpotLight.cosAngle));
-    float32_t attenuationFactor = pow(saturate(-distanceToLight / gSpotLight.distance + 1.0f), gSpotLight.decay);
-    return gSpotLight.color.rgb * gSpotLight.intensity * attenuationFactor * falloffFactor;
+
+    return radiance;
 }
 
 float32_t4 main(FullscreenVSOutput input) : SV_TARGET0

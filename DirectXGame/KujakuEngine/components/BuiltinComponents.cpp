@@ -12,6 +12,7 @@
 #include "OrbitCameraComponent.h"
 #include "PointLightComponent.h"
 #include "RectTransformComponent.h"
+#include "SpotLightComponent.h"
 #include "RigidbodyComponent.h"
 #include "SpriteRendererComponent.h"
 #include "TextComponent.h"
@@ -39,6 +40,7 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<OrbitCameraComponent>();
 	factory.RegisterComponent<DirectionalLightComponent>();
 	factory.RegisterComponent<PointLightComponent>();
+	factory.RegisterComponent<SpotLightComponent>();
 	factory.RegisterComponent<RigidbodyComponent>();
 	factory.RegisterComponent<AnimatorComponent>();
 	factory.RegisterComponent<AudioSourceComponent>();

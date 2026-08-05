@@ -11,6 +11,7 @@
 #include "EditorImGuiUtil.h"
 #include "../base/ProjectPath.h"
 #include "EditorSelection.h"
+#include "LightObjectFactory.h"
 #include "PrefabAsset.h"
 #include "PrimitiveObjectFactory.h"
 #include "UIObjectFactory.h"
@@ -35,6 +36,12 @@ GameObject* CreateHierarchyObject(Scene& scene, const char* typeName, GameObject
 		created = PrimitiveObjectFactory::CreateSphere(&scene);
 	} else if (std::strcmp(typeName, "Capsule") == 0) {
 		created = PrimitiveObjectFactory::CreateCapsule(&scene);
+	} else if (std::strcmp(typeName, "Directional Light") == 0) {
+		created = LightObjectFactory::CreateDirectionalLight(&scene);
+	} else if (std::strcmp(typeName, "Point Light") == 0) {
+		created = LightObjectFactory::CreatePointLight(&scene);
+	} else if (std::strcmp(typeName, "Spot Light") == 0) {
+		created = LightObjectFactory::CreateSpotLight(&scene);
 	} else if (std::strcmp(typeName, "Global Volume") == 0) {
 		created = CreateGlobalVolumeObject(scene);
 	}
@@ -79,6 +86,19 @@ void DrawHierarchyCreateMenu(Scene& scene, GameObject* parent) {
 		ImGui::EndMenu();
 	}
 
+	// ライト。選択するとSceneビューに影響範囲のギズモが出る。
+	if (ImGui::BeginMenu("Light")) {
+		if (ImGui::MenuItem("Directional Light")) {
+			CreateHierarchyObject(scene, "Directional Light", parent);
+		}
+		if (ImGui::MenuItem("Point Light")) {
+			CreateHierarchyObject(scene, "Point Light", parent);
+		}
+		if (ImGui::MenuItem("Spot Light")) {
+			CreateHierarchyObject(scene, "Spot Light", parent);
+		}
+		ImGui::EndMenu();
+	}
 
 	// UI要素はUIObjectFactoryで生成する。Canvas以外はCanvas配下(選択中のCanvasがあればそこ)へ入る。
 	if (ImGui::BeginMenu("UI")) {
