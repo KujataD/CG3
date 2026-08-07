@@ -243,6 +243,19 @@ void ModelRendererComponent::Draw() {
 	model_->Draw(owner->GetTransform(), *camera_);
 }
 
+void ModelRendererComponent::DrawShadow(const Matrix4x4& lightViewProjection) {
+	GameObject* owner = GetOwner();
+	if (!owner || !model_) {
+		return;
+	}
+	// ビルボード(HPバー等)はカメラを向く板なので、影を落とすと不自然になる。
+	if (billboardEnabled_) {
+		return;
+	}
+
+	model_->DrawShadow(owner->GetTransform(), lightViewProjection);
+}
+
 void ModelRendererComponent::DrawInspector() {
 #ifdef USE_IMGUI
 	int primitiveIndex = 0;

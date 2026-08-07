@@ -49,6 +49,12 @@ public:
 	void SetPrimitive(PrimitiveType primitive, const std::string& textureFilePath);
 
 	/// <summary>
+	/// シャドウマップへ深度だけ書く。ワールド行列はPrepareFrameで更新済みの値を使うため、
+	/// ここではUpdateMatrixを呼ばない(カメラ依存の更新をシャドウパスへ持ち込まない)。
+	/// </summary>
+	void DrawShadow(const Matrix4x4& lightViewProjection);
+
+	/// <summary>
 	/// 表示するModelをパス(プロジェクト相対)で設定します。存在するファイルならassetIdを補完し、
 	/// 以後のリネーム/移動に追従します。旧形式の名前だけの指定("bishop")は
 	/// "Resources/&lt;name&gt;/&lt;name&gt;.obj" 規約でパスへ展開されます。

@@ -24,6 +24,11 @@ struct TransformationMatrix {
 /// </summary>
 class WorldTransform {
 public:
+	// 定数バッファの本数。ビュー(Scene/Game/Shadow)ごとに別々のWVPを持つため。
+	// ここでDirectXCommon.hをincludeするとWindows.hが広く波及するので定数を再宣言し、
+	// DirectXCommon::kRenderViewCountとの一致は.cpp側のstatic_assertで守る。
+	static constexpr uint32_t kViewBufferCount = 3;
+
 	// スケール・回転・平行移動
 	Vector3 scale_ = {1.0f, 1.0f, 1.0f};
 	Vector3 rotation_ = {0.0f, 0.0f, 0.0f};
@@ -72,6 +77,14 @@ public:
 	void TransferMatrix(const Camera& camera) const;
 	void TransferMatrix(const Camera& camera, const Matrix4x4& worldMatrix) const;
 
+	/// <summary>
+	/// Cameraを介さず、任意のビュープロジェクション行列でWVPを転送する。
+	/// シャドウパスがライト視点の行列を渡すために使う(ライトはCameraを持たない)。
+	/// 書き込み先は他と同じく現在のビュー番号の定数バッファなので、
+	/// 呼ぶ前にDirectXCommon::SetRenderViewIndex(kShadowViewIndex)しておくこと。
+	/// </summary>
+	void TransferMatrixWithViewProjection(const Matrix4x4& viewProjection, const Matrix4x4& worldMatrix) const;
+
 	TransformationMatrix GetMatrixData(const Camera& camera) const;
 	TransformationMatrix GetBillboardMatrixData(const Camera& camera) const;
 
@@ -95,10 +108,9 @@ public:
 	}
 
 private:
-	// 定数バッファ(ビュー毎に別々。Scene/Gameで同じオブジェクトを描くため2本持つ)。
-	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource_[2];
-	// マッピング済みアドレス(各ビュー分)
-	mutable TransformationMatrix* constMap_[2] = {nullptr, nullptr};
+	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource_[kViewBufferCount];
+	// マッピング済みアドレス：各ビュー分
+	mutable TransformationMatrix* constMap_[kViewBufferCount] = {};
 
 	// コピー禁止
 	WorldTransform(const WorldTransform&) = delete;

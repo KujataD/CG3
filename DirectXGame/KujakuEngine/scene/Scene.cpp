@@ -2,6 +2,7 @@
 #include "IEditorBillboard.h"
 #include "ISceneCamera.h"
 #include "../3d/Camera.h"
+#include "../3d/DirectionalLight.h"
 #include "../3d/LineRenderer.h"
 #include "../3d/Model.h"
 #include "../3d/WorldTransform.h"
@@ -19,8 +20,10 @@
 #include "../components/RigidbodyComponent.h"
 #include "../components/SpotLightComponent.h"
 #include "../math/MathUtil.h"
+#include "../components/ModelRendererComponent.h"
 #include "../postprocess/PostProcess.h"
 #include "../postprocess/VolumeStack.h"
+#include "../shadow/ShadowMap.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -887,6 +890,42 @@ void Scene::Draw() {
 }
 
 void Scene::PrepareFrame() { UpdateWorldTransforms(); }
+
+void Scene::RenderShadowPass() {
+	ShadowMap* shadowMap = ShadowMap::GetInstance();
+	if (!shadowMap->IsInitialized()) {
+		return;
+	}
+
+	// ライトの向きは現在のDirectionalLight(=シーン上のDirectionalLightComponentが毎フレーム反映済み)。
+	const Vector3& lightDirection = DirectionalLight::GetInstance()->GetData().direction;
+	// TODO: focusPositionをプレイヤー/カメラ注視点へ追従させると、広いシーンでも影の解像度を保てる。
+	shadowMap->UpdateLightMatrix(lightDirection, {0.0f, 0.0f, 0.0f}, 40.0f, 100.0f);
+
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+	const uint32_t previousViewIndex = dxCommon->GetRenderViewIndex();
+	// ライト視点のWVPをScene/Gameとは別の定数バッファ枠へ書くため、ここで切り替える。
+	dxCommon->SetRenderViewIndex(DirectXCommon::kShadowViewIndex);
+
+	shadowMap->BeginWrite();
+	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
+		if (!gameObject || !gameObject->IsActiveInHierarchy()) {
+			continue;
+		}
+		for (const std::unique_ptr<Component>& component : gameObject->GetComponents()) {
+			if (!component || !component->IsEnabled()) {
+				continue;
+			}
+			ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component.get());
+			if (renderer) {
+				renderer->DrawShadow(shadowMap->GetLightViewProjection());
+			}
+		}
+	}
+	shadowMap->EndWrite();
+
+	dxCommon->SetRenderViewIndex(previousViewIndex);
+}
 
 void Scene::ApplyVolumes(const Camera* camera) {
 	// カメラが無いビュー(まだシーンカメラが揃っていない等)は原点基準で解決しておく。

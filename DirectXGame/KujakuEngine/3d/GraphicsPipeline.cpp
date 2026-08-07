@@ -125,7 +125,7 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 
 	// RootParameter作成
 	// b0 Material
-	D3D12_ROOT_PARAMETER rootParameters[7] = {};
+	D3D12_ROOT_PARAMETER rootParameters[9] = {};
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;    // CBVを使う b0のbに対応する bはConstantBuffer
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // PixelShaderで使う
 	rootParameters[0].Descriptor.ShaderRegister = 0;                    // レジスタ番号0とバインド b0の0に対応する。もしb11と紐づけたいなら11となる。
@@ -168,11 +168,28 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	rootParameters[6].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // PixelShaderで使う
 	rootParameters[6].Descriptor.ShaderRegister = 4;                    // レジスタ番号4を使う
 
+	// t1 シャドウマップ(ShadowMapが書いた深度)
+	D3D12_DESCRIPTOR_RANGE shadowMapRange[1] = {};
+	shadowMapRange[0].BaseShaderRegister = 1; // t1
+	shadowMapRange[0].NumDescriptors = 1;
+	shadowMapRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	shadowMapRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	rootParameters[7].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[7].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[7].DescriptorTable.pDescriptorRanges = shadowMapRange;
+	rootParameters[7].DescriptorTable.NumDescriptorRanges = _countof(shadowMapRange);
+
+	// b5 シャドウ定数(ライトのビュープロジェクション行列/バイアス/テクセルサイズ)
+	rootParameters[8].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[8].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[8].Descriptor.ShaderRegister = 5;
+
 	descriptionRootSignature.pParameters = rootParameters;             // ルートパラメータ配列へのポインタ
 	descriptionRootSignature.NumParameters = _countof(rootParameters); // 配列の長さ
 
 	// Samplerの設定
-	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
+	D3D12_STATIC_SAMPLER_DESC staticSamplers[2] = {};
 	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;   // バイリニアフィルタ
 	staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP; // 0~1の範囲外をリピート
 	staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -181,6 +198,20 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX;                       // ありったけのMipmapを使う
 	staticSamplers[0].ShaderRegister = 0;                               // レジスタ番号0を使う
 	staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // PixelShaderで使う
+
+	// s1 シャドウ用の比較サンプラ。SampleCmpLevelZeroが「サンプルと同時に深度比較」を行い、
+	// 4テクセルの比較結果をバイリニア補間して返すため、これだけで影の縁が滑らかになる。
+	staticSamplers[1].Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	// シャドウマップの外は「影なし」に倒したいので、境界色を最遠(白)にする。
+	staticSamplers[1].AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	staticSamplers[1].AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	staticSamplers[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	staticSamplers[1].BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+	staticSamplers[1].ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	staticSamplers[1].MaxLOD = D3D12_FLOAT32_MAX;
+	staticSamplers[1].ShaderRegister = 1;
+	staticSamplers[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
 	descriptionRootSignature.pStaticSamplers = staticSamplers;
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 

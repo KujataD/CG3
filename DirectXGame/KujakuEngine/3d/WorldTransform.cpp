@@ -6,18 +6,21 @@
 
 namespace KujakuEngine {
 
+// ヘッダ側でDirectXCommon.hをincludeできないため、本数の一致はここで担保する。
+static_assert(WorldTransform::kViewBufferCount == DirectXCommon::kRenderViewCount, "WorldTransform::kViewBufferCount must match DirectXCommon::kRenderViewCount.");
+
 namespace {
 // 現在描画中のビュー番号(範囲外は0へ丸める)。
 uint32_t CurrentViewIndex() {
 	uint32_t index = DirectXCommon::GetInstance()->GetRenderViewIndex();
-	return index < 2 ? index : 0;
+	return index < DirectXCommon::kRenderViewCount ? index : 0;
 }
 } // namespace
 
 void WorldTransform::Initialize() {
 	// ビュー毎に定数バッファを生成・マッピングし、単位行列で初期化する。
 	matWorld_ = MakeIdentity();
-	for (uint32_t viewIndex = 0; viewIndex < 2; ++viewIndex) {
+	for (uint32_t viewIndex = 0; viewIndex < kViewBufferCount; ++viewIndex) {
 		transformationMatrixResource_[viewIndex] = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(TransformationMatrix));
 
 		HRESULT hr = transformationMatrixResource_[viewIndex]->Map(0, nullptr, reinterpret_cast<void**>(&constMap_[viewIndex]));
@@ -101,6 +104,16 @@ void WorldTransform::TransferMatrix(const Camera& camera, const Matrix4x4& world
 	// 現在ビューの定数バッファへ転送(他ビューのWVPを上書きしない)。
 	TransformationMatrix* map = constMap_[CurrentViewIndex()];
 	map->WVP = matWVP;
+	map->World = worldMatrix;
+	map->WorldInverseTranspose = Transpose(Inverse(worldMatrix));
+}
+
+void WorldTransform::TransferMatrixWithViewProjection(const Matrix4x4& viewProjection, const Matrix4x4& worldMatrix) const {
+	TransformationMatrix* map = constMap_[CurrentViewIndex()];
+	if (!map) {
+		return;
+	}
+	map->WVP = worldMatrix * viewProjection;
 	map->World = worldMatrix;
 	map->WorldInverseTranspose = Transpose(Inverse(worldMatrix));
 }
