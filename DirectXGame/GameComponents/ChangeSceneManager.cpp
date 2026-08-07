@@ -1,8 +1,8 @@
 #include "ChangeSceneManager.h"
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
-void ChangeSceneManager::RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) {
+void ChangeSceneManager::RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) {
 	registry.Add("OnClick", [this]() { OnClick(); });
 }
 

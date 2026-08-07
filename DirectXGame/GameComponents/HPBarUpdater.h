@@ -1,10 +1,10 @@
 #pragma once
 
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 
 class EnemyHealth;
 
-class HPBarUpdater : public KujakuEngine::Component {
+class HPBarUpdater : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "HPBarUpdater"; }
 
@@ -12,7 +12,7 @@ public:
 	void Update() override;
 
 private:
-	KujakuEngine::GameObject* hpBarFill_ = nullptr;
+	KujataEngine::GameObject* hpBarFill_ = nullptr;
 	EnemyHealth* health_ = nullptr;
 
 	// 満タン時のバー基準値(JSONで設定した初期スケール/位置)。HP率を掛けて縮める。

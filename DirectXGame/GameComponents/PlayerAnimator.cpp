@@ -1,7 +1,7 @@
 #include "PlayerAnimator.h"
 #include "CharacterMotor.h"
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void PlayerAnimator::OnPlayStart() {
 	wasPressed_ = false;

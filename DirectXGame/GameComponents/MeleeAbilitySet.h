@@ -20,15 +20,15 @@ public:
 	bool IsBusy() const override;
 
 private:
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_STRING_NAMED(attackClipName_, "Attack Clip");
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_STRING_NAMED(attackClipName_, "Attack Clip");
 	}
 
 	// スロット0で再生する攻撃クリップ名。
-	KUJAKU_FIELD_STRING(attackClipName_, "PlayerAttack");
+	KUJATA_FIELD_STRING(attackClipName_, "PlayerAttack");
 
 	// モデル(子)のAnimator。
-	KujakuEngine::AnimatorComponent* animator_ = nullptr;
+	KujataEngine::AnimatorComponent* animator_ = nullptr;
 	// 同じGameObjectのCharacterMotor(行動不能チェック用)。
 	CharacterMotor* motor_ = nullptr;
 };

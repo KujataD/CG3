@@ -1,5 +1,5 @@
 #pragma once
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 
 /// <summary>
 /// キャラクターの攻撃手段(技)の共通インターフェース。
@@ -7,7 +7,7 @@
 /// それが剣振りか魔法弾かは実装側(MeleeAbilitySet / MagicAbilitySet)だけが知る。
 /// GetComponent&lt;IAbilitySet&gt;()で実装型を問わず取得できる(dynamic_castベース)。
 /// </summary>
-class IAbilitySet : public KujakuEngine::Component {
+class IAbilitySet : public KujataEngine::Component {
 public:
 	/// <summary>
 	/// スロットslotの技を使う。使えたらtrue(クールダウン中・行動不能中などはfalse)。

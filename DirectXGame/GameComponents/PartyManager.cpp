@@ -5,7 +5,7 @@
 
 #include <components/OrbitCameraComponent.h>
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void PartyManager::OnPlayStart() {
 	leader_ = nullptr;

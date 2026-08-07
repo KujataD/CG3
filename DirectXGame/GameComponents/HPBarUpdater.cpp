@@ -14,7 +14,7 @@ void HPBarUpdater::Update() {
 }
 
 void HPBarUpdater::AcquireRefs() {
-	KujakuEngine::GameObject* owner = GetOwner();
+	KujataEngine::GameObject* owner = GetOwner();
 	if (!owner) {
 		return;
 	}
@@ -25,7 +25,7 @@ void HPBarUpdater::AcquireRefs() {
 
 	if (!hpBarFill_) {
 		// HPBarFill を探す（Enemy直下の子オブジェクト）
-		for (KujakuEngine::GameObject* child : owner->GetChildren()) {
+		for (KujataEngine::GameObject* child : owner->GetChildren()) {
 			if (child && child->GetName() == "HPBarFill") {
 				hpBarFill_ = child;
 				break;
@@ -35,7 +35,7 @@ void HPBarUpdater::AcquireRefs() {
 
 	if (hpBarFill_ && !baseCaptured_) {
 		// JSONで設定した初期スケール/位置を満タン時の基準として一度だけ記憶する。
-		KujakuEngine::WorldTransform& transform = hpBarFill_->GetTransform();
+		KujataEngine::WorldTransform& transform = hpBarFill_->GetTransform();
 		baseScaleX_ = transform.scale_.x;
 		basePosX_ = transform.translation_.x;
 		baseCaptured_ = true;
@@ -49,7 +49,7 @@ void HPBarUpdater::ApplyHealthToBar() {
 
 	float healthPercent = health_->GetHealthPercent();
 
-	KujakuEngine::WorldTransform& transform = hpBarFill_->GetTransform();
+	KujataEngine::WorldTransform& transform = hpBarFill_->GetTransform();
 	// 基準スケールにHP率を掛けて横方向に縮める(背景と同じ基準幅を維持)。
 	transform.scale_.x = baseScaleX_ * healthPercent;
 

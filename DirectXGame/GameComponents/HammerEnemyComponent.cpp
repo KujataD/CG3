@@ -1,6 +1,6 @@
 ﻿#include "HammerEnemyComponent.h"
 
-#include "../KujakuEngine/components/AnimatorComponent.h"
+#include "../KujataEngine/components/AnimatorComponent.h"
 #include "EnemyHealth.h"
 #include "PlayerHealth.h"
 #include <cmath>
@@ -9,7 +9,7 @@
 namespace {
 
 std::string BTSetFolder() {
-	return (KujakuEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "HammerEnemyBT").generic_string();
+	return (KujataEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "HammerEnemyBT").generic_string();
 }
 
 // 攻撃フェーズごとのクリップ名(Animations/*.anim.jsonのnameと一致させる)。
@@ -23,7 +23,7 @@ constexpr const char* kRecoilClipName = "HammerRecoil";
 // ハンマーの回転中心となる子孫オブジェクト名。
 constexpr const char* kHammerPivotName = "HammerPivot";
 
-// 角度を[-π, π]へ折り返す(KujakuEngine::WrapAngleと衝突しないローカル名)。
+// 角度を[-π, π]へ折り返す(KujataEngine::WrapAngleと衝突しないローカル名)。
 float WrapYawAngle(float angle) {
 	constexpr float pi = std::numbers::pi_v<float>;
 	angle = std::fmod(angle + pi, 2.0f * pi);
@@ -34,18 +34,18 @@ float WrapYawAngle(float angle) {
 }
 
 // 自身または子孫から名前でGameObjectを探す(モデルは子のHammerEnemyModelに分離されている)。
-KujakuEngine::GameObject* FindDescendantByName(KujakuEngine::GameObject* object, const char* name) {
+KujataEngine::GameObject* FindDescendantByName(KujataEngine::GameObject* object, const char* name) {
 	if (!object) {
 		return nullptr;
 	}
-	for (KujakuEngine::GameObject* child : object->GetChildren()) {
+	for (KujataEngine::GameObject* child : object->GetChildren()) {
 		if (!child) {
 			continue;
 		}
 		if (child->GetName() == name) {
 			return child;
 		}
-		if (KujakuEngine::GameObject* found = FindDescendantByName(child, name)) {
+		if (KujataEngine::GameObject* found = FindDescendantByName(child, name)) {
 			return found;
 		}
 	}
@@ -53,15 +53,15 @@ KujakuEngine::GameObject* FindDescendantByName(KujakuEngine::GameObject* object,
 }
 
 // 自身または子孫からAnimatorComponentを探す。
-KujakuEngine::AnimatorComponent* FindAnimatorRecursive(KujakuEngine::GameObject* object) {
+KujataEngine::AnimatorComponent* FindAnimatorRecursive(KujataEngine::GameObject* object) {
 	if (!object) {
 		return nullptr;
 	}
-	if (KujakuEngine::AnimatorComponent* animator = object->GetComponent<KujakuEngine::AnimatorComponent>()) {
+	if (KujataEngine::AnimatorComponent* animator = object->GetComponent<KujataEngine::AnimatorComponent>()) {
 		return animator;
 	}
-	for (KujakuEngine::GameObject* child : object->GetChildren()) {
-		if (KujakuEngine::AnimatorComponent* animator = FindAnimatorRecursive(child)) {
+	for (KujataEngine::GameObject* child : object->GetChildren()) {
+		if (KujataEngine::AnimatorComponent* animator = FindAnimatorRecursive(child)) {
 			return animator;
 		}
 	}
@@ -70,7 +70,7 @@ KujakuEngine::AnimatorComponent* FindAnimatorRecursive(KujakuEngine::GameObject*
 
 } // namespace
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void HammerEnemyComponent::Initialize() {
 	// BTのアクション登録。FunctionCatalogへ同時登録するとBahamutAIEditorのAction一覧に反映される。
@@ -151,7 +151,7 @@ void HammerEnemyComponent::OnPlayStart() {
 	}
 }
 
-void HammerEnemyComponent::RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) {
+void HammerEnemyComponent::RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) {
 	registry.Add("LoadBTSet", [this]() { LoadBTSet(); });
 }
 
@@ -179,7 +179,7 @@ void HammerEnemyComponent::Update() {
 void HammerEnemyComponent::LoadBTSet() {
 	if (!btRuntime_.LoadFromBTSetFolder(BTSetFolder(), btFactory_)) {
 		const BahamutAI::BehaviorTreeLoadResult& result = btRuntime_.GetLastLoadResult();
-		KujakuEngine::Logger::Log(std::string("[HammerEnemyComponent] BT load failed: ") + result.GetErrorMessage());
+		KujataEngine::Logger::Log(std::string("[HammerEnemyComponent] BT load failed: ") + result.GetErrorMessage());
 	}
 }
 
@@ -318,7 +318,7 @@ BahamutAI::BTStatus HammerEnemyComponent::TickAttackPhase(
 // helpers
 // ---------------------------------------------------------------------------
 
-KujakuEngine::GameObject* HammerEnemyComponent::FindPlayer() {
+KujataEngine::GameObject* HammerEnemyComponent::FindPlayer() {
 	if (!owner_ || !owner_->GetScene()) {
 		return nullptr;
 	}
@@ -348,12 +348,12 @@ KujakuEngine::GameObject* HammerEnemyComponent::FindPlayer() {
 	return nearest;
 }
 
-KujakuEngine::GameObject* HammerEnemyComponent::FindHammerPivot() {
+KujataEngine::GameObject* HammerEnemyComponent::FindHammerPivot() {
 	// モデル分離により HammerEnemyModel/HammerPivot の階層になったため子孫まで探す。
 	return FindDescendantByName(owner_, kHammerPivotName);
 }
 
-KujakuEngine::AnimatorComponent* HammerEnemyComponent::GetAnimator() {
+KujataEngine::AnimatorComponent* HammerEnemyComponent::GetAnimator() {
 	// Animatorはモデル側(子のHammerEnemyModel)にある。
 	return FindAnimatorRecursive(owner_);
 }

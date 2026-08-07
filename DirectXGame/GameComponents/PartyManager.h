@@ -1,5 +1,5 @@
 #pragma once
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 
 /// <summary>
 /// パーティ(プレイアブル2人)の役割を一元管理するシーン常駐Component。
@@ -12,7 +12,7 @@
 /// リーダーを入れ替えても各キャラの挙動コードは変わらない。
 /// Leader Nameを"Bishop"にすればBishop操作+Pawn参戦になる。
 /// </summary>
-class PartyManager : public KujakuEngine::Component {
+class PartyManager : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "PartyManager"; }
 	bool AllowMultiple() const override { return false; }
@@ -20,31 +20,31 @@ public:
 	void OnPlayStart() override;
 
 	/// <summary>現在のリーダー(操作キャラ)。見つからなければnullptr。</summary>
-	KujakuEngine::GameObject* GetLeader() const { return leader_; }
+	KujataEngine::GameObject* GetLeader() const { return leader_; }
 
 	/// <summary>味方NPC側のキャラ。見つからなければnullptr。</summary>
-	KujakuEngine::GameObject* GetAlly() const { return ally_; }
+	KujataEngine::GameObject* GetAlly() const { return ally_; }
 
 private:
 	/// <summary>両キャラの頭脳の有効/無効とカメラ追従先を、現在のリーダー設定に合わせて適用する。</summary>
 	void ApplyRoles();
 	/// <summary>characterの頭脳Componentを切り替える(isLeader=trueなら入力、falseならAI)。</summary>
-	void SetBrainMode(KujakuEngine::GameObject* character, bool isLeader);
+	void SetBrainMode(KujataEngine::GameObject* character, bool isLeader);
 
 private:
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_STRING_NAMED(leaderName_, "Leader Name");
-		KUJAKU_REGISTER_STRING_NAMED(allyName_, "Ally Name");
-		KUJAKU_REGISTER_STRING_NAMED(cameraName_, "Camera Name");
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_STRING_NAMED(leaderName_, "Leader Name");
+		KUJATA_REGISTER_STRING_NAMED(allyName_, "Ally Name");
+		KUJATA_REGISTER_STRING_NAMED(cameraName_, "Camera Name");
 	}
 
 	// 操作するキャラのGameObject名。
-	KUJAKU_FIELD_STRING(leaderName_, "Pawn");
+	KUJATA_FIELD_STRING(leaderName_, "Pawn");
 	// 味方NPCとして参戦するキャラのGameObject名。
-	KUJAKU_FIELD_STRING(allyName_, "Bishop");
+	KUJATA_FIELD_STRING(allyName_, "Bishop");
 	// 追従カメラ(OrbitCameraComponent持ち)のGameObject名。
-	KUJAKU_FIELD_STRING(cameraName_, "Main Camera");
+	KUJATA_FIELD_STRING(cameraName_, "Main Camera");
 
-	KujakuEngine::GameObject* leader_ = nullptr;
-	KujakuEngine::GameObject* ally_ = nullptr;
+	KujataEngine::GameObject* leader_ = nullptr;
+	KujataEngine::GameObject* ally_ = nullptr;
 };

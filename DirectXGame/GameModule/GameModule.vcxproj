@@ -63,7 +63,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\KujakuEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\KujataEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -71,11 +71,11 @@
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\build\bin\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Debug;$(SolutionDir)build\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-mdd.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>KujataEngine.lib;assimp-vc143-mdd.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <!-- KujakuEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
+      <!-- KujataEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
       <Command>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\build\bin\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -91,18 +91,18 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\KujakuEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\KujataEngine;$(ProjectDir)..\externals\assimp\include;$(ProjectDir)..\externals\imgui;$(ProjectDir)..\externals\ImGuizmo-1.9\src;$(SolutionDir)..\BahamutAIMiddleware\BahamutAICore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\build\bin\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Release;$(SolutionDir)build\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>KujakuEngine.lib;assimp-vc143-md.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>KujataEngine.lib;assimp-vc143-md.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <!-- KujakuEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
+      <!-- KujataEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
       <Command>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\build\bin\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

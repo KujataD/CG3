@@ -4,7 +4,7 @@
 **Hot Reload 用の DLL** (`GameModule.dll`) にまとめるプロジェクトです。
 
 - ソースはこのフォルダと `../GameComponents/` にあります。
-- ビルド出力は `bin/<構成>/GameModule.dll`(git 管理外)。エンジン (`KujakuEngine.exe`) が起動時にここから読み込みます。
+- ビルド出力は `bin/<構成>/GameModule.dll`(git 管理外)。エンジン (`KujataEngine.exe`) が起動時にここから読み込みます。
 - エディタの `Reload DLL` を押すと、エンジンが MSBuild でこのプロジェクトを `../Temp/HotReload/` 配下へ世代別にビルドし直して差し替えます。
 
 注意: exe と DLL は同じ構成 (Debug/Release) でビルドしないと STL の ABI が食い違ってクラッシュします。

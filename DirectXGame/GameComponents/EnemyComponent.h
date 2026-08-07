@@ -1,11 +1,11 @@
 #pragma once
 
 #include <BahamutAI/AI.h>
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 
 #include "Player.h"
 
-class EnemyComponent : public KujakuEngine::Component {
+class EnemyComponent : public KujataEngine::Component {
 public:
 	enum class Fase {
 		MoveForward,
@@ -22,7 +22,7 @@ public:
 	void Update() override;
 
 	// UnityのButton.onClick等から呼べるメソッドを公開する。
-	void RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) override;
+	void RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) override;
 
 private:
 	void LoadBTSet();
@@ -34,16 +34,16 @@ private:
 	BahamutAI::BTStatus MoveToTarget(BahamutAI::AIContext& context);
 
 private:
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_FLOAT(speed_, 0.001f, 0.0f, 0.0f);
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_FLOAT(speed_, 0.001f, 0.0f, 0.0f);
 		// Inspectorに「Target」ドロップ欄が出る。Playerを持つGameObjectをドラッグ&ドロップで代入する。
-		KUJAKU_REGISTER_COMPONENT_REF_NAMED(target_, "Target");
+		KUJATA_REGISTER_COMPONENT_REF_NAMED(target_, "Target");
 	}
 
-	KUJAKU_FIELD_FLOAT(speed_, 0.02f);
+	KUJATA_FIELD_FLOAT(speed_, 0.02f);
 
 	// 追従対象(PlayerのComponent参照)。target_->速度 のように直接publicへアクセスできる。
-	KUJAKU_FIELD_COMPONENT_REF(Player, target_);
+	KUJATA_FIELD_COMPONENT_REF(Player, target_);
 
 	// BT作成用
 	BahamutAI::BehaviorTreeFactory btFactory_;

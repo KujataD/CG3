@@ -1,5 +1,5 @@
 #include "PlayerHPBarUpdater.h"
-#include "../KujakuEngine/components/ImageComponent.h"
+#include "../KujataEngine/components/ImageComponent.h"
 #include "PlayerHealth.h"
 
 void PlayerHPBarUpdater::Update() {
@@ -13,17 +13,17 @@ void PlayerHPBarUpdater::Update() {
 }
 
 void PlayerHPBarUpdater::AcquireRefs() {
-	KujakuEngine::GameObject* owner = GetOwner();
+	KujataEngine::GameObject* owner = GetOwner();
 	if (!owner) {
 		return;
 	}
 
 	if (!fillImage_) {
-		fillImage_ = owner->GetComponent<KujakuEngine::ImageComponent>();
+		fillImage_ = owner->GetComponent<KujataEngine::ImageComponent>();
 	}
 
 	if (!health_ && owner->GetScene()) {
-		KujakuEngine::GameObject* player = owner->GetScene()->FindGameObjectByName(playerName_);
+		KujataEngine::GameObject* player = owner->GetScene()->FindGameObjectByName(playerName_);
 		if (player) {
 			health_ = player->GetComponent<PlayerHealth>();
 		}

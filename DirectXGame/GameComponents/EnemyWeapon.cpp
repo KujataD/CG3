@@ -2,7 +2,7 @@
 #include "CharacterMotor.h"
 #include "PlayerHealth.h"
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 namespace {
 
@@ -38,12 +38,12 @@ void EnemyWeapon::Update() {
 	}
 }
 
-void EnemyWeapon::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
+void EnemyWeapon::OnTriggerStay(KujataEngine::ColliderComponent* other) {
 	if (!other || !attack_) {
 		return;
 	}
 
-	KujakuEngine::GameObject* otherObj = other->GetOwner();
+	KujataEngine::GameObject* otherObj = other->GetOwner();
 	if (!otherObj) {
 		return;
 	}
@@ -59,7 +59,7 @@ void EnemyWeapon::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
 	}
 }
 
-bool EnemyWeapon::ApplyDamageToPlayer(KujakuEngine::GameObject* target) {
+bool EnemyWeapon::ApplyDamageToPlayer(KujataEngine::GameObject* target) {
 	// 敵の武器なのでダメージ対象はPlayer(PlayerHealth持ち)のみ。
 	auto health = target->GetComponent<PlayerHealth>();
 	if (!health) {

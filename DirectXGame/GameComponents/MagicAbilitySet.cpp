@@ -5,7 +5,7 @@
 #include <Editor/PrefabAsset.h>
 #include <scene/MovementUtil.h>
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void MagicAbilitySet::OnPlayStart() {
 	motor_ = GetComponent<CharacterMotor>();

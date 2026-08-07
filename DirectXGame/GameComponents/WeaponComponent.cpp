@@ -13,12 +13,12 @@ void WeaponComponent::Update() {
 	prevAttack_ = attack_;
 }
 
-void WeaponComponent::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
+void WeaponComponent::OnTriggerStay(KujataEngine::ColliderComponent* other) {
 	if (!other || !attack_) {
 		return;
 	}
 
-	KujakuEngine::GameObject* otherObj = other->GetOwner();
+	KujataEngine::GameObject* otherObj = other->GetOwner();
 	if (!otherObj) {
 		return;
 	}
@@ -32,7 +32,7 @@ void WeaponComponent::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
 	hitThisSwing_.insert(otherObj);
 }
 
-void WeaponComponent::ApplyDamageToEnemy(KujakuEngine::GameObject* enemy) {
+void WeaponComponent::ApplyDamageToEnemy(KujataEngine::GameObject* enemy) {
 	auto health = enemy->GetComponent<EnemyHealth>();
 	if (!health) {
 		return;

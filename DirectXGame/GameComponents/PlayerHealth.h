@@ -1,9 +1,9 @@
 #pragma once
 
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 #include <functional>
 
-class PlayerHealth : public KujakuEngine::Component {
+class PlayerHealth : public KujataEngine::Component {
 public:
 	// EnemyHealthが"HealthComponent"名で登録済みのため、衝突しない固有名にする。
 	const char* GetTypeName() const override { return "PlayerHealth"; }
@@ -22,13 +22,13 @@ public:
 	void SetOnDeath(std::function<void()> cb);
 
 private:
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_FLOAT(maxHealth_, 1.0f, 0.0f, 0.0f);
-		KUJAKU_REGISTER_FLOAT(health_, 1.0f, 0.0f, 0.0f);
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_FLOAT(maxHealth_, 1.0f, 0.0f, 0.0f);
+		KUJATA_REGISTER_FLOAT(health_, 1.0f, 0.0f, 0.0f);
 	}
 
-	KUJAKU_FIELD_FLOAT(maxHealth_, 100);
-	KUJAKU_FIELD_FLOAT(health_, 100);
+	KUJATA_FIELD_FLOAT(maxHealth_, 100);
+	KUJATA_FIELD_FLOAT(health_, 100);
 
 	std::function<void(float)> onHealthChanged_;
 	std::function<void()> onDeath_;

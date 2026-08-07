@@ -1,7 +1,7 @@
 #pragma once
 
 #include <BahamutAI/AI.h>
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 #include <memory>
 
 class CharacterMotor;
@@ -26,7 +26,7 @@ class IAbilitySet;
 /// 攻撃射程などのキャラ差(近接のPawnは短く、魔法のBishopは長く)を付けたい場合は、
 /// ツリー側のParams(IsEnemyInAttackRangeのrange等)を調整するか、bt_setをキャラ別に分ける。
 /// </summary>
-class AllyAIBrain : public KujakuEngine::Component {
+class AllyAIBrain : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "AllyAIBrain"; }
 	bool AllowMultiple() const override { return false; }
@@ -35,7 +35,7 @@ public:
 	void OnPlayStart() override;
 	void Update() override;
 
-	void RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) override;
+	void RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) override;
 
 private:
 	void LoadBTSet();
@@ -54,9 +54,9 @@ private:
 
 	// --- helpers ---
 	/// <summary>リーダー(操作中キャラ)を探す。「自分以外のAllyタグでPlayer(入力頭脳)が有効な者」。</summary>
-	KujakuEngine::GameObject* FindLeader();
+	KujataEngine::GameObject* FindLeader();
 	/// <summary>最寄りの生存敵(EnemyHealth持ち)を探す。</summary>
-	KujakuEngine::GameObject* FindNearestEnemy();
+	KujataEngine::GameObject* FindNearestEnemy();
 
 private:
 	// BT作成用

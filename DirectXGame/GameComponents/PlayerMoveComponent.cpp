@@ -2,7 +2,7 @@
 
 #include <scene/MovementUtil.h>
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void PlayerMoveComponent::Update() {
 	GameObject* owner = GetOwner();

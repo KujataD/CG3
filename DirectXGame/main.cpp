@@ -1,22 +1,22 @@
-#include <KujakuEngineEditor.h>
+#include <KujataEngineEditor.h>
 
 #include <cassert>
 #include <fstream>
 #include <memory>
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 // Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// エンジン初期化
-	KujakuEngine::Initialize(L"Kujaku Engine");
+	KujataEngine::Initialize(L"Kujata Engine");
 
 	EditorApplication* editorApplication = EditorApplication::GetInstance();
 	editorApplication->Initialize();
 
 	// ゲームループ
-	while (KujakuEngine::Update()) {
+	while (KujataEngine::Update()) {
 		editorApplication->BeginFrame();
 		editorApplication->Update();
 		editorApplication->Draw();
@@ -26,7 +26,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	editorApplication->Finalize();
 
 	// エンジンの終了処理
-	KujakuEngine::Finalize();
+	KujataEngine::Finalize();
 
 	return 0;
 }

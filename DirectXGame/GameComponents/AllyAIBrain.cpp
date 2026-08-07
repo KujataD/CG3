@@ -9,19 +9,19 @@
 namespace {
 
 std::string BTSetFolder() {
-	return (KujakuEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "AllyBT").generic_string();
+	return (KujataEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "AllyBT").generic_string();
 }
 
 // 自分から見た相手への水平ベクトル。
-KujakuEngine::Vector3 HorizontalTo(const KujakuEngine::GameObject& from, const KujakuEngine::GameObject& to) {
-	KujakuEngine::Vector3 diff = to.GetTransform().translation_ - from.GetTransform().translation_;
+KujataEngine::Vector3 HorizontalTo(const KujataEngine::GameObject& from, const KujataEngine::GameObject& to) {
+	KujataEngine::Vector3 diff = to.GetTransform().translation_ - from.GetTransform().translation_;
 	diff.y = 0.0f;
 	return diff;
 }
 
 } // namespace
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void AllyAIBrain::Initialize() {
 
@@ -120,14 +120,14 @@ void AllyAIBrain::Update() {
 	btRuntime_.Tick(context);
 }
 
-void AllyAIBrain::RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) {
+void AllyAIBrain::RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) {
 	registry.Add("LoadBTSet", [this]() { LoadBTSet(); });
 }
 
 void AllyAIBrain::LoadBTSet() {
 	if (!btRuntime_.LoadFromBTSetFolder(BTSetFolder(), btFactory_)) {
 		const BahamutAI::BehaviorTreeLoadResult& result = btRuntime_.GetLastLoadResult();
-		KujakuEngine::Logger::Log(std::string("[AllyAIBrain] BT load failed: ") + result.GetErrorMessage());
+		KujataEngine::Logger::Log(std::string("[AllyAIBrain] BT load failed: ") + result.GetErrorMessage());
 	}
 }
 
@@ -221,7 +221,7 @@ BahamutAI::BTStatus AllyAIBrain::UseAbility(const BahamutAI::NodeParams& params)
 // helpers
 // ---------------------------------------------------------------------------
 
-KujakuEngine::GameObject* AllyAIBrain::FindLeader() {
+KujataEngine::GameObject* AllyAIBrain::FindLeader() {
 	if (!owner_ || !owner_->GetScene()) {
 		return nullptr;
 	}
@@ -248,7 +248,7 @@ KujakuEngine::GameObject* AllyAIBrain::FindLeader() {
 	return fallback;
 }
 
-KujakuEngine::GameObject* AllyAIBrain::FindNearestEnemy() {
+KujataEngine::GameObject* AllyAIBrain::FindNearestEnemy() {
 	if (!owner_ || !owner_->GetScene()) {
 		return nullptr;
 	}

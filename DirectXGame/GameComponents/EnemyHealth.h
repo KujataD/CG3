@@ -1,9 +1,9 @@
 #pragma once
 
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 #include <functional>
 
-class EnemyHealth : public KujakuEngine::Component {
+class EnemyHealth : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "HealthComponent"; }
 
@@ -17,13 +17,13 @@ public:
 	void SetOnDeath(std::function<void()> cb);
 
 private:
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_FLOAT(maxHealth_, 1.0f, 0.0f, 0.0f);
-		KUJAKU_REGISTER_FLOAT(health_, 1.0f, 0.0f, 0.0f);
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_FLOAT(maxHealth_, 1.0f, 0.0f, 0.0f);
+		KUJATA_REGISTER_FLOAT(health_, 1.0f, 0.0f, 0.0f);
 	}
 
-	KUJAKU_FIELD_FLOAT(maxHealth_, 100);
-	KUJAKU_FIELD_FLOAT(health_, 100);
+	KUJATA_FIELD_FLOAT(maxHealth_, 100);
+	KUJATA_FIELD_FLOAT(health_, 100);
 
 	std::function<void(float)> onHealthChanged_;
 	std::function<void()> onDeath_;

@@ -1,9 +1,9 @@
 #include "CharacterSelectManager.h"
 #include "PartySelection.h"
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
-void CharacterSelectManager::RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) {
+void CharacterSelectManager::RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) {
 	registry.Add("SelectPawn", [this]() { Select(pawnName_); });
 	registry.Add("SelectBishop", [this]() { Select(bishopName_); });
 }

@@ -1,7 +1,7 @@
 #include "MeleeAbilitySet.h"
 #include "CharacterMotor.h"
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void MeleeAbilitySet::OnPlayStart() {
 	motor_ = GetComponent<CharacterMotor>();

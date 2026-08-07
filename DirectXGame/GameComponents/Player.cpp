@@ -2,7 +2,7 @@
 #include "CharacterMotor.h"
 #include "IAbilitySet.h"
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void Player::OnPlayStart() {
 	motor_ = GetComponent<CharacterMotor>();

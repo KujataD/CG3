@@ -1,11 +1,11 @@
 #pragma once
 
 #include <BahamutAI/AI.h>
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 #include <memory>
 #include <string>
 
-namespace KujakuEngine {
+namespace KujataEngine {
 class AnimatorComponent;
 }
 
@@ -37,7 +37,7 @@ class AnimatorComponent;
 /// 被弾時はのけぞり(HammerRecoil)を再生する。のけぞるかどうかは状態ごとのパラメータで制御し、
 /// 既定では回転攻撃中はのけぞらない。のけぞり中は行動アクションがFailureを返す。
 /// </summary>
-class HammerEnemyComponent : public KujakuEngine::Component {
+class HammerEnemyComponent : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "HammerEnemyComponent"; }
 
@@ -45,7 +45,7 @@ public:
 	void OnPlayStart() override;
 	void Update() override;
 
-	void RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) override;
+	void RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) override;
 
 private:
 	void LoadBTSet();
@@ -78,9 +78,9 @@ private:
 	    const char* phaseName, const char* clipName, AttackKind kind, float duration, float turnSpeed, float walkSpeed, float deltaTime);
 
 	// --- helpers ---
-	KujakuEngine::GameObject* FindPlayer();
-	KujakuEngine::GameObject* FindHammerPivot();
-	KujakuEngine::AnimatorComponent* GetAnimator();
+	KujataEngine::GameObject* FindPlayer();
+	KujataEngine::GameObject* FindHammerPivot();
+	KujataEngine::AnimatorComponent* GetAnimator();
 	/// 被弾時に呼ばれる。状態ごとのパラメータを見て、のけぞりを再生するか決める。
 	void OnDamaged();
 	/// のけぞり(硬直)中か。
@@ -88,34 +88,34 @@ private:
 	void SetHammerVisible(bool visible);
 	/// プレイヤーへYawだけ旋回する。deltaTimeぶん回して、ほぼ向いていればtrue。
 	bool RotateTowardsPlayer(float turnSpeed, float deltaTime);
-	void MoveTowards(KujakuEngine::Vector3 desired, float speed, float deltaTime);
+	void MoveTowards(KujataEngine::Vector3 desired, float speed, float deltaTime);
 	/// 現在の向きへ関係なく、プレイヤーへ直線的にdeltaTimeぶん歩く。
 	/// 攻撃終了/中断時の後始末(ハンマー収納・フラグリセット)。
 	void FinishAttack();
 
 private:
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_STRING_NAMED(targetTag_, "Target Tag");
-		KUJAKU_REGISTER_BOOL_NAMED(recoilEnabled_, "Recoil Enabled");
-		KUJAKU_REGISTER_BOOL_NAMED(recoilDuringSpin_, "Recoil During Spin");
-		KUJAKU_REGISTER_BOOL_NAMED(recoilDuringSlam_, "Recoil During Slam");
-		KUJAKU_REGISTER_FLOAT_NAMED(recoilDuration_, "Recoil Duration", 0.05f, 0.0f, 5.0f);
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_STRING_NAMED(targetTag_, "Target Tag");
+		KUJATA_REGISTER_BOOL_NAMED(recoilEnabled_, "Recoil Enabled");
+		KUJATA_REGISTER_BOOL_NAMED(recoilDuringSpin_, "Recoil During Spin");
+		KUJATA_REGISTER_BOOL_NAMED(recoilDuringSlam_, "Recoil During Slam");
+		KUJATA_REGISTER_FLOAT_NAMED(recoilDuration_, "Recoil Duration", 0.05f, 0.0f, 5.0f);
 	}
 
 	// 攻撃対象のタグ。このタグが付いた生存キャラ(PlayerHealth持ち)のうち最寄りを狙う。
 	// プレイアブル2人+味方NPC構成のため名前ではなくタグで選ぶ。
 	// ※アクションの調整値(速度・時間など)はBTノードのParamsで指定する。ここには持たない。
-	KUJAKU_FIELD_STRING(targetTag_, "Ally");
+	KUJATA_FIELD_STRING(targetTag_, "Ally");
 
 	// --- のけぞり制御 ---
 	// のけぞり自体の有効/無効。
-	KUJAKU_FIELD_BOOL(recoilEnabled_, true);
+	KUJATA_FIELD_BOOL(recoilEnabled_, true);
 	// 回転攻撃(SpinAttack)中に被弾したときのけぞるか。既定はのけぞらない(スーパーアーマー)。
-	KUJAKU_FIELD_BOOL(recoilDuringSpin_, false);
+	KUJATA_FIELD_BOOL(recoilDuringSpin_, false);
 	// たたきつけ(SlamAttack)中に被弾したときのけぞるか。のけぞると攻撃は中断される。
-	KUJAKU_FIELD_BOOL(recoilDuringSlam_, true);
+	KUJATA_FIELD_BOOL(recoilDuringSlam_, true);
 	// のけぞりの硬直時間[s](HammerRecoil.anim.jsonの長さに合わせる)。
-	KUJAKU_FIELD_FLOAT(recoilDuration_, 0.5f);
+	KUJATA_FIELD_FLOAT(recoilDuration_, 0.5f);
 
 	// BT作成用
 	BahamutAI::BehaviorTreeFactory btFactory_;

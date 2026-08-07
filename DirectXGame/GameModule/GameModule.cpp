@@ -1,5 +1,5 @@
-#include "../KujakuEngine/KujakuEngine.h"
-#include "../KujakuEngine/scene/SampleScene.h"
+#include "../KujataEngine/KujataEngine.h"
+#include "../KujataEngine/scene/SampleScene.h"
 #include "../GameComponents/AllyAIBrain.h"
 #include "../GameComponents/CharacterMotor.h"
 #include "../GameComponents/CharacterSelectManager.h"
@@ -25,17 +25,17 @@ namespace {
 
 constexpr const char* kGameModuleName = "GameModule";
 
-class GameModuleScene : public KujakuEngine::SampleScene {
+class GameModuleScene : public KujataEngine::SampleScene {
 public:
 	~GameModuleScene() override = default;
 };
 
-class MoveForwardComponent : public KujakuEngine::Component {
+class MoveForwardComponent : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "MoveForwardComponent"; }
 
 	void Update() override {
-		KujakuEngine::GameObject* owner = GetOwner();
+		KujataEngine::GameObject* owner = GetOwner();
 		if (!owner) {
 			return;
 		}
@@ -43,15 +43,15 @@ public:
 		owner->GetTransform().translation_.z += speed_;
 	}
 
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_FLOAT(speed_, 0.001f, 0.0f, 0.0f);
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_FLOAT(speed_, 0.001f, 0.0f, 0.0f);
 	}
 
 private:
-	KUJAKU_FIELD_FLOAT(speed_, 0.03f);
+	KUJATA_FIELD_FLOAT(speed_, 0.03f);
 };
 
-class BlinkComponent : public KujakuEngine::Component {
+class BlinkComponent : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "BlinkComponent"; }
 
@@ -60,7 +60,7 @@ public:
 	}
 
 	void Update() override {
-		KujakuEngine::GameObject* owner = GetOwner();
+		KujataEngine::GameObject* owner = GetOwner();
 		if (!owner) {
 			return;
 		}
@@ -73,7 +73,7 @@ public:
 		frameCount_ = 0;
 		visible_ = !visible_;
 
-		KujakuEngine::WorldTransform& transform = owner->GetTransform();
+		KujataEngine::WorldTransform& transform = owner->GetTransform();
 		if (visible_) {
 			transform.scale_ = originalScale_;
 		} else {
@@ -81,8 +81,8 @@ public:
 		}
 	}
 
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_INT(intervalFrame_, 1.0f, 1, 600);
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_INT(intervalFrame_, 1.0f, 1, 600);
 	}
 
 public:
@@ -92,7 +92,7 @@ public:
 
 private:
 	void SaveOriginalScale() {
-		KujakuEngine::GameObject* owner = GetOwner();
+		KujataEngine::GameObject* owner = GetOwner();
 		if (!owner) {
 			return;
 		}
@@ -101,15 +101,15 @@ private:
 	}
 
 private:
-	KUJAKU_FIELD_INT(intervalFrame_, 30);
+	KUJATA_FIELD_INT(intervalFrame_, 30);
 	int frameCount_ = 0;
 	bool visible_ = true;
-	KujakuEngine::Vector3 originalScale_ = {1.0f, 1.0f, 1.0f};
+	KujataEngine::Vector3 originalScale_ = {1.0f, 1.0f, 1.0f};
 };
 
 } // namespace
 
-extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::ComponentFactory& factory) {
+extern "C" __declspec(dllexport) void RegisterGameComponents(KujataEngine::ComponentFactory& factory) {
 	// GameModuleはゲーム固有Componentだけを登録する。
 	// TransformやModelRendererなどの標準ComponentはEngine初期化時に登録される。
 	factory.RegisterComponent<MoveForwardComponent>(kGameModuleName);
@@ -135,14 +135,14 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujakuEngine::Compo
 	factory.RegisterComponent<PlayerHPBarUpdater>(kGameModuleName);
 }
 
-extern "C" __declspec(dllexport) void UnregisterGameComponents(KujakuEngine::ComponentFactory& factory) {
+extern "C" __declspec(dllexport) void UnregisterGameComponents(KujataEngine::ComponentFactory& factory) {
 	factory.UnregisterByModule(kGameModuleName);
 }
 
-extern "C" __declspec(dllexport) KujakuEngine::Scene* CreateGameScene() {
+extern "C" __declspec(dllexport) KujataEngine::Scene* CreateGameScene() {
 	return new GameModuleScene();
 }
 
-extern "C" __declspec(dllexport) void DestroyGameScene(KujakuEngine::Scene* scene) {
+extern "C" __declspec(dllexport) void DestroyGameScene(KujataEngine::Scene* scene) {
 	delete scene;
 }

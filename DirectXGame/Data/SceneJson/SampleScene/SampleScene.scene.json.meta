@@ -1,9 +1,9 @@
 fileFormatVersion: 2
 guid: 3258da2a54ff69aa5fc5f996434f8c9a
-KujakuJsonImporter:
+KujataJsonImporter:
   externalObjects: {}
   assetType: Scene
   assetPath: SceneJson/SampleScene/SampleScene.scene.json
-  userData: KujakuEngine generated meta
+  userData: KujataEngine generated meta
   assetBundleName:
   assetBundleVariant:

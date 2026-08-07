@@ -364,7 +364,7 @@ FodyWeavers.xsd
 # 3Dモデルの.obj(Resources以下は除外)
 !**/Resources/**/*.obj
 
-## ---- KujakuEngine 固有の生成物 ----
+## ---- KujataEngine 固有の生成物 ----
 ## いずれも自動生成されるフォルダ。削除してもビルド/実行し直せば復元される。
 ##
 ## 注意: *.meta は無視しないこと。アセットの assetId(シーンJSONからの参照キー)を

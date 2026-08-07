@@ -1,10 +1,10 @@
 #pragma once
-#include <KujakuEngine.h>
+#include <KujataEngine.h>
 
 /// <summary>
 /// キャラクターの攻撃手段(技)の共通インターフェース。
 /// </summary>
-class AbilitySet : public KujakuEngine::Component {
+class AbilitySet : public KujataEngine::Component {
 public:
 	/// <summary>
 	/// スロットslotの技を使う。使えたらtrue(クールダウン中・行動不能中などはfalse)。

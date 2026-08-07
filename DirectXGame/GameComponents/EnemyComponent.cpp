@@ -2,11 +2,11 @@
 
 namespace {
 std::string BTSetFolder() {
-	return (KujakuEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "EnemyBT").generic_string();
+	return (KujataEngine::GetProjectDataRoot() / "Resources" / "bt_set" / "EnemyBT").generic_string();
 }
 }
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void EnemyComponent::Initialize() {
 	// BTアクション登録
@@ -49,7 +49,7 @@ void EnemyComponent::OnPlayStart() {
 	}
 }
 
-void EnemyComponent::RegisterInvokableMethods(KujakuEngine::InvokableMethodRegistry& registry) {
+void EnemyComponent::RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) {
 	// Inspectorで Button.onClick のメソッド候補に "LoadBTSet" が並ぶ。
 	registry.Add("LoadBTSet", [this]() { LoadBTSet(); });
 }
@@ -71,7 +71,7 @@ void EnemyComponent::Update() {
 void EnemyComponent::LoadBTSet() {
 	if (!btRuntime_.LoadFromBTSetFolder(BTSetFolder(), btFactory_)) {
 		const BahamutAI::BehaviorTreeLoadResult& result = btRuntime_.GetLastLoadResult();
-		KujakuEngine::Logger::Log(std::string("[EnemyComponent] BT load failed: ") + result.GetErrorMessage());
+		KujataEngine::Logger::Log(std::string("[EnemyComponent] BT load failed: ") + result.GetErrorMessage());
 	}
 }
 

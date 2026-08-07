@@ -25,46 +25,46 @@ public:
 
 private:
 	/// <summary>プールから休眠中の弾を返す。無ければPrefabから新規生成する。</summary>
-	KujakuEngine::GameObject* AcquireProjectile();
+	KujataEngine::GameObject* AcquireProjectile();
 
 private:
-	KUJAKU_SERIALIZED_FIELDS_BEGIN() {
-		KUJAKU_REGISTER_STRING_NAMED(projectilePrefabPath_, "Projectile Prefab");
-		KUJAKU_REGISTER_FLOAT_NAMED(cooldownSeconds_, "Cooldown Seconds", 0.05f, 0.0f, 10.0f);
-		KUJAKU_REGISTER_FLOAT_NAMED(projectileSpeed_, "Projectile Speed", 0.1f, 0.1f, 100.0f);
-		KUJAKU_REGISTER_FLOAT_NAMED(projectileLifetime_, "Projectile Lifetime", 0.1f, 0.1f, 30.0f);
-		KUJAKU_REGISTER_FLOAT_NAMED(projectileDamage_, "Projectile Damage", 1.0f, 0.0f, 1000.0f);
-		KUJAKU_REGISTER_FLOAT_NAMED(muzzleForward_, "Muzzle Forward", 0.05f, 0.0f, 10.0f);
-		KUJAKU_REGISTER_FLOAT_NAMED(muzzleHeight_, "Muzzle Height", 0.05f, -10.0f, 10.0f);
-		KUJAKU_REGISTER_STRING_NAMED(castClipName_, "Cast Clip");
+	KUJATA_SERIALIZED_FIELDS_BEGIN() {
+		KUJATA_REGISTER_STRING_NAMED(projectilePrefabPath_, "Projectile Prefab");
+		KUJATA_REGISTER_FLOAT_NAMED(cooldownSeconds_, "Cooldown Seconds", 0.05f, 0.0f, 10.0f);
+		KUJATA_REGISTER_FLOAT_NAMED(projectileSpeed_, "Projectile Speed", 0.1f, 0.1f, 100.0f);
+		KUJATA_REGISTER_FLOAT_NAMED(projectileLifetime_, "Projectile Lifetime", 0.1f, 0.1f, 30.0f);
+		KUJATA_REGISTER_FLOAT_NAMED(projectileDamage_, "Projectile Damage", 1.0f, 0.0f, 1000.0f);
+		KUJATA_REGISTER_FLOAT_NAMED(muzzleForward_, "Muzzle Forward", 0.05f, 0.0f, 10.0f);
+		KUJATA_REGISTER_FLOAT_NAMED(muzzleHeight_, "Muzzle Height", 0.05f, -10.0f, 10.0f);
+		KUJATA_REGISTER_STRING_NAMED(castClipName_, "Cast Clip");
 	}
 
 	// 弾のPrefab(プロジェクトルート相対)。見た目・スケール・コライダー・発光Materialはここで定義する。
-	KUJAKU_FIELD_STRING(projectilePrefabPath_, "Prefabs/MagicBolt.prefab.json");
+	KUJATA_FIELD_STRING(projectilePrefabPath_, "Prefabs/MagicBolt.prefab.json");
 
 	// 発射間隔[s]。
-	KUJAKU_FIELD_FLOAT(cooldownSeconds_, 1.0f);
+	KUJATA_FIELD_FLOAT(cooldownSeconds_, 1.0f);
 	// 弾速[unit/s]。
-	KUJAKU_FIELD_FLOAT(projectileSpeed_, 15.0f);
+	KUJATA_FIELD_FLOAT(projectileSpeed_, 15.0f);
 	// 弾の寿命[s]。
-	KUJAKU_FIELD_FLOAT(projectileLifetime_, 3.0f);
+	KUJATA_FIELD_FLOAT(projectileLifetime_, 3.0f);
 	// 弾のダメージ。
-	KUJAKU_FIELD_FLOAT(projectileDamage_, 10.0f);
+	KUJATA_FIELD_FLOAT(projectileDamage_, 10.0f);
 	// 発射位置: 自分の前方オフセット。
-	KUJAKU_FIELD_FLOAT(muzzleForward_, 1.2f);
+	KUJATA_FIELD_FLOAT(muzzleForward_, 1.2f);
 	// 発射位置: 上方向オフセット。
-	KUJAKU_FIELD_FLOAT(muzzleHeight_, 0.5f);
+	KUJATA_FIELD_FLOAT(muzzleHeight_, 0.5f);
 	// 発射時に再生する詠唱クリップ名(空なら再生しない。Bishop用クリップができたら設定する)。
-	KUJAKU_FIELD_STRING(castClipName_, "");
+	KUJATA_FIELD_STRING(castClipName_, "");
 
 	// 発射クールダウンの残り[s]。
 	float cooldownTimer_ = 0.0f;
 
 	// 生成済みの弾プール(Playインスタンス内のみ。停止で消える)。
-	std::vector<KujakuEngine::GameObject*> projectilePool_;
+	std::vector<KujataEngine::GameObject*> projectilePool_;
 
 	// モデル(子)のAnimator(詠唱モーション用。無くてもよい)。
-	KujakuEngine::AnimatorComponent* animator_ = nullptr;
+	KujataEngine::AnimatorComponent* animator_ = nullptr;
 	// 同じGameObjectのCharacterMotor(行動不能チェック用)。
 	CharacterMotor* motor_ = nullptr;
 };

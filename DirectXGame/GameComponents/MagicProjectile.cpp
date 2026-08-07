@@ -1,7 +1,7 @@
 #include "MagicProjectile.h"
 #include "EnemyHealth.h"
 
-using namespace KujakuEngine;
+using namespace KujataEngine;
 
 void MagicProjectile::Fire(const Vector3& direction, float speed, float lifetime, float damage) {
 	Vector3 normalized = direction;
@@ -32,12 +32,12 @@ void MagicProjectile::Update() {
 	}
 }
 
-void MagicProjectile::OnTriggerStay(KujakuEngine::ColliderComponent* other) {
+void MagicProjectile::OnTriggerStay(KujataEngine::ColliderComponent* other) {
 	if (!other || lifetime_ <= 0.0f) {
 		return;
 	}
 
-	KujakuEngine::GameObject* otherObj = other->GetOwner();
+	KujataEngine::GameObject* otherObj = other->GetOwner();
 	if (!otherObj) {
 		return;
 	}
