@@ -70,7 +70,16 @@
               "assetId": "",
               "path": ""
             }
-          }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
         },
         "materialAssetId": "asset_19cf47754d3f7d140ce73f34611100c5",
         "materialPath": "Materials/Shield.material.json",

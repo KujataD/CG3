@@ -19,6 +19,10 @@
 #include "../GameComponents/ChangeSceneManager.h"
 #include "../GameComponents/HammerEnemyComponent.h"
 #include "../GameComponents/PlayerHPBarUpdater.h"
+#include "../GameComponents/GuardianBody.h"
+#include "../GameComponents/GuardianGait.h"
+#include "../GameComponents/GuardianSplineRig.h"
+#include "../GameComponents/GuardianBossComponent.h"
 #include <memory>
 
 namespace {
@@ -133,6 +137,13 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujataEngine::Compo
 	factory.RegisterComponent<ChangeSceneManager>(kGameModuleName);
 	factory.RegisterComponent<HammerEnemyComponent>(kGameModuleName);
 	factory.RegisterComponent<PlayerHPBarUpdater>(kGameModuleName);
+
+	// ガーディアン風ボス。GameObjectへ追加する順は Gait → Body → LegRig にすること
+	// (Component::Updateは追加順に走るため、足先目標の決定 → 胴体の配置 → IK解決 の順になる)。
+	factory.RegisterComponent<GuardianGait>(kGameModuleName);
+	factory.RegisterComponent<GuardianBody>(kGameModuleName);
+	factory.RegisterComponent<GuardianSplineRig>(kGameModuleName);
+	factory.RegisterComponent<GuardianBossComponent>(kGameModuleName);
 }
 
 extern "C" __declspec(dllexport) void UnregisterGameComponents(KujataEngine::ComponentFactory& factory) {

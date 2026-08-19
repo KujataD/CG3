@@ -275,4 +275,32 @@ void SameLine() {
 #endif
 }
 
+void PushId(const char* id) {
+#ifdef USE_IMGUI
+	ImGui::PushID(id);
+#else
+	(void)id;
+#endif
+}
+
+void PopId() {
+#ifdef USE_IMGUI
+	ImGui::PopID();
+#endif
+}
+
+void ItemTooltip(const char* text) {
+#ifdef USE_IMGUI
+	if (!text || text[0] == '\0') {
+		return;
+	}
+	// 少し待ってから出す。ドラッグ操作の邪魔にならないようにするため。
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+		ImGui::SetTooltip("%s", text);
+	}
+#else
+	(void)text;
+#endif
+}
+
 } // namespace KujataEngine::InspectorUI

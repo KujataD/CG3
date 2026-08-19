@@ -9,7 +9,7 @@
   "name": "HammerEnemy",
   "tag": "Untagged",
   "layer": 0,
-  "active": true,
+  "active": false,
   "components": [
     {
       "enabled": true,

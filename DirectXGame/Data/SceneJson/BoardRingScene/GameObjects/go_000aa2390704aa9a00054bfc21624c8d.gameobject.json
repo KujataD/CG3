@@ -1,0 +1,36 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_000aa2390704aa9a00054bfc21624c8d",
+  "parentInstanceId": "go_5dee756103fbf9832ef72050232d6a8b",
+  "prefabAssetPath": "Prefabs/GuardianSpline.prefab.json",
+  "prefabObjectId": "object_59",
+  "prefabInstanceRootId": "go_105f3f3c93b0a597082f857ed6009bce",
+  "prefabInstanceRoot": false,
+  "name": "Leg3_Bone2",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.8399999737739563
+        ]
+      },
+      "type": "Transform"
+    }
+  ]
+}

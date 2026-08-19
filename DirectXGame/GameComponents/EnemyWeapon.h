@@ -11,6 +11,13 @@ public:
 	void Update() override;
 	void OnTriggerStay(KujataEngine::ColliderComponent* other) override;
 
+	/// <summary>
+	/// 攻撃判定のON/OFF。通常はアニメーションクリップのboolチャンネルで駆動するが、
+	/// 攻撃をコードで組み立てる場合(ガーディアンの踏みつけ等)はここから直接切り替える。
+	/// </summary>
+	void SetAttack(bool attack) { attack_ = attack; }
+	bool IsAttacking() const { return attack_; }
+
 private:
 	KUJATA_SERIALIZED_FIELDS_BEGIN() {
 		// attack_はbool型アニメーションチャンネル。キーフレームで攻撃判定をON/OFFする(ため中はOFF)。

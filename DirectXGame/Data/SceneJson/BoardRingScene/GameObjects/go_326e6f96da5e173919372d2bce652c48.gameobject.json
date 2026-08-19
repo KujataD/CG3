@@ -1,0 +1,93 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_326e6f96da5e173919372d2bce652c48",
+  "parentInstanceId": "go_105f3f3c93b0a597082f857ed6009bce",
+  "prefabAssetPath": "Prefabs/GuardianSpline.prefab.json",
+  "prefabObjectId": "object_71",
+  "prefabInstanceRootId": "go_105f3f3c93b0a597082f857ed6009bce",
+  "prefabInstanceRoot": false,
+  "name": "HPBar",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.7999999523162842,
+          0.20000000298023224,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          1.0399999618530273,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": true,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 0.0,
+        "material": {
+          "baseColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "bloomIntensity": 1.0,
+          "bloomSoftKnee": 0.5,
+          "bloomThreshold": 0.0,
+          "emissiveColor": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "emissiveEnabled": false,
+          "emissiveIntensity": 1.0,
+          "name": "HPBar_BG",
+          "shaderModel": 0,
+          "textures": {
+            "BaseColor": {
+              "assetId": "",
+              "path": ""
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelAssetId": "",
+        "modelPath": "",
+        "primitive": "Plane"
+      },
+      "type": "ModelRendererComponent"
+    }
+  ]
+}

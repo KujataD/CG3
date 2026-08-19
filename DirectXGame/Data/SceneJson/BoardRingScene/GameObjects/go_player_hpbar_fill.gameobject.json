@@ -75,7 +75,16 @@
         "fillAmount": 1.0,
         "raycastTarget": false,
         "textureAssetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
-        "texturePath": "Resources/white1x1.png"
+        "texturePath": "Resources/white1x1.png",
+        "uvOffset": [
+          0.0,
+          0.0
+        ],
+        "uvRotation": 0.0,
+        "uvScale": [
+          1.0,
+          1.0
+        ]
       },
       "type": "Image"
     },

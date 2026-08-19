@@ -70,7 +70,16 @@
               "assetId": "",
               "path": ""
             }
-          }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
         },
         "materialAssetId": "",
         "materialPath": "",

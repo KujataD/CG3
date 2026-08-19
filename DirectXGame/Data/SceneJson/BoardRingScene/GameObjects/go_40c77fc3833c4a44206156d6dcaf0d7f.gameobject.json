@@ -70,7 +70,16 @@
               "assetId": "",
               "path": ""
             }
-          }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
         },
         "materialAssetId": "asset_c2de0b0a46b31f30616c0cffbb5b843f",
         "materialPath": "Materials/Color.material.json",

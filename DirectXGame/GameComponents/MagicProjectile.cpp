@@ -43,7 +43,9 @@ void MagicProjectile::OnTriggerStay(KujataEngine::ColliderComponent* other) {
 	}
 
 	// 敵(EnemyHealth持ち)にだけ当たる。味方や地形はすり抜ける。
-	EnemyHealth* health = otherObj->GetComponent<EnemyHealth>();
+	// 体の一部に当たり判定を分けている敵(ガーディアンの脚など)に当たってもよいよう、
+	// 自身から親へ遡って探す。単体構成の敵はこれまでどおり自身で見つかる。
+	EnemyHealth* health = otherObj->GetComponentInParent<EnemyHealth>();
 	if (!health) {
 		return;
 	}

@@ -1,0 +1,111 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_f50041d91889a1627a803a0c2d2bf3df",
+  "parentInstanceId": "go_573796a5f8b896712b9bd1b25d305a65",
+  "prefabAssetPath": "Prefabs/GuardianSpline.prefab.json",
+  "prefabObjectId": "object_13",
+  "prefabInstanceRootId": "go_105f3f3c93b0a597082f857ed6009bce",
+  "prefabInstanceRoot": false,
+  "name": "Leg0_Bone4Mesh",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.30000001192092896,
+          0.30000001192092896,
+          0.8399999737739563
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.41999998688697815
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "billboardEnabled": false,
+        "billboardFaceMode": 0,
+        "cameraLocalZ": 1.0,
+        "material": {
+          "baseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "bloomIntensity": 1.0,
+          "bloomSoftKnee": 0.5,
+          "bloomThreshold": 0.0,
+          "emissiveColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "emissiveEnabled": false,
+          "emissiveIntensity": 1.0,
+          "name": "New Material",
+          "shaderModel": 4,
+          "textures": {
+            "BaseColor": {
+              "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
+              "path": "Resources/white1x1.png"
+            },
+            "Environment": {
+              "assetId": "",
+              "path": ""
+            },
+            "Normal": {
+              "assetId": "",
+              "path": ""
+            }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
+        },
+        "materialAssetId": "",
+        "materialPath": "",
+        "modelAssetId": "asset_9c33c0e2074820164e18b6f4f356ec74",
+        "modelPath": "Resources/player/player.obj",
+        "primitive": "Cube"
+      },
+      "type": "ModelRendererComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": false,
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "BoxColliderComponent"
+    }
+  ]
+}

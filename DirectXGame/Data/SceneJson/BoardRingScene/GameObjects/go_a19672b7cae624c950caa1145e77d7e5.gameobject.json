@@ -70,7 +70,16 @@
               "assetId": "",
               "path": ""
             }
-          }
+          },
+          "uvOffset": [
+            0.0,
+            0.0
+          ],
+          "uvRotation": 0.0,
+          "uvScale": [
+            1.0,
+            1.0
+          ]
         },
         "materialAssetId": "asset_86e5eb1ca8376a1143723b191b0acf53",
         "materialPath": "Materials/MultiMesh.material.json",

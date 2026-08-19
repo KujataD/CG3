@@ -76,19 +76,22 @@ public:
 	/// </summary>
 	explicit SerializedFieldRegistry(const IObjectResolver& resolver) : mode_(Mode::ResolveReferences), resolver_(&resolver) {}
 
-	void Float(const char* memberName, float& value, float dragSpeed, float minValue, float maxValue) {
+	void Float(const char* memberName, float& value, float dragSpeed, float minValue, float maxValue, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		FloatNamed(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
+		FloatNamed(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue, tooltip);
 	}
 
-	void FloatNamed(const char* jsonKey, const char* label, float& value, float dragSpeed, float minValue, float maxValue) {
+	void FloatNamed(const char* jsonKey, const char* label, float& value, float dragSpeed, float minValue, float maxValue, const char* tooltip = nullptr) {
 		if (mode_ == Mode::CollectAnimatables) {
 			channels_->push_back({pathPrefix_ + jsonKey, &value});
 			return;
 		}
 		if (mode_ == Mode::DrawInspector) {
 			bool changed = InspectorUI::DragFloat(label, &value, dragSpeed, minValue, maxValue);
-			InspectorUI::AnimationFieldHook(jsonKey, &value, 1, changed);
+			InspectorUI::AnimationFieldHook(ChannelKey(jsonKey).c_str(), &value, 1, changed);
+			// ツールチップは最後に出す。AnimationFieldHookのBeginPopupContextItemが
+			// 「直前のアイテム」を参照するので、その判定を先に済ませておく。
+			InspectorUI::ItemTooltip(tooltip);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -107,14 +110,15 @@ public:
 		}
 	}
 
-	void Int(const char* memberName, int& value, float dragSpeed, int minValue, int maxValue) {
+	void Int(const char* memberName, int& value, float dragSpeed, int minValue, int maxValue, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		IntNamed(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
+		IntNamed(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue, tooltip);
 	}
 
-	void IntNamed(const char* jsonKey, const char* label, int& value, float dragSpeed, int minValue, int maxValue) {
+	void IntNamed(const char* jsonKey, const char* label, int& value, float dragSpeed, int minValue, int maxValue, const char* tooltip = nullptr) {
 		if (mode_ == Mode::DrawInspector) {
 			InspectorUI::DragInt(label, &value, dragSpeed, minValue, maxValue);
+			InspectorUI::ItemTooltip(tooltip);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -133,12 +137,12 @@ public:
 		}
 	}
 
-	void UInt32(const char* memberName, uint32_t& value, float dragSpeed, uint32_t minValue, uint32_t maxValue) {
+	void UInt32(const char* memberName, uint32_t& value, float dragSpeed, uint32_t minValue, uint32_t maxValue, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		UInt32Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
+		UInt32Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue, tooltip);
 	}
 
-	void UInt32Named(const char* jsonKey, const char* label, uint32_t& value, float dragSpeed, uint32_t minValue, uint32_t maxValue) {
+	void UInt32Named(const char* jsonKey, const char* label, uint32_t& value, float dragSpeed, uint32_t minValue, uint32_t maxValue, const char* tooltip = nullptr) {
 		if (mode_ == Mode::DrawInspector) {
 			int intValue = static_cast<int>(std::min<uint32_t>(value, static_cast<uint32_t>(0x7fffffff)));
 			int intMin = static_cast<int>(std::min<uint32_t>(minValue, static_cast<uint32_t>(0x7fffffff)));
@@ -150,6 +154,7 @@ public:
 					value = static_cast<uint32_t>(intValue);
 				}
 			}
+			InspectorUI::ItemTooltip(tooltip);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -172,12 +177,12 @@ public:
 		}
 	}
 
-	void Bool(const char* memberName, bool& value) {
+	void Bool(const char* memberName, bool& value, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		BoolNamed(key.c_str(), MakeDisplayName(key).c_str(), value);
+		BoolNamed(key.c_str(), MakeDisplayName(key).c_str(), value, tooltip);
 	}
 
-	void BoolNamed(const char* jsonKey, const char* label, bool& value) {
+	void BoolNamed(const char* jsonKey, const char* label, bool& value, const char* tooltip = nullptr) {
 		if (mode_ == Mode::CollectAnimatables) {
 			AnimatableChannel channel;
 			channel.path = pathPrefix_ + jsonKey;
@@ -189,7 +194,8 @@ public:
 			bool changed = InspectorUI::Checkbox(label, &value);
 			// bool成分1つをアニメーション録画へ接続する(値は0/1のfloatとして扱う)。
 			float animValue = value ? 1.0f : 0.0f;
-			InspectorUI::AnimationFieldHook(jsonKey, &animValue, 1, changed);
+			InspectorUI::AnimationFieldHook(ChannelKey(jsonKey).c_str(), &animValue, 1, changed);
+			InspectorUI::ItemTooltip(tooltip);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -238,12 +244,12 @@ public:
 		}
 	}
 
-	void Vector3Field(const char* memberName, Vector3& value, float dragSpeed, float minValue, float maxValue) {
+	void Vector3Field(const char* memberName, Vector3& value, float dragSpeed, float minValue, float maxValue, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		Vector3Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
+		Vector3Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue, tooltip);
 	}
 
-	void Vector3Named(const char* jsonKey, const char* label, Vector3& value, float dragSpeed, float minValue, float maxValue) {
+	void Vector3Named(const char* jsonKey, const char* label, Vector3& value, float dragSpeed, float minValue, float maxValue, const char* tooltip = nullptr) {
 		if (mode_ == Mode::CollectAnimatables) {
 			std::string basePath = pathPrefix_ + jsonKey;
 			channels_->push_back({basePath + ".x", &value.x});
@@ -253,7 +259,8 @@ public:
 		}
 		if (mode_ == Mode::DrawInspector) {
 			bool changed = InspectorUI::DragFloat3(label, &value.x, dragSpeed, minValue, maxValue);
-			InspectorUI::AnimationFieldHook(jsonKey, &value.x, 3, changed);
+			InspectorUI::AnimationFieldHook(ChannelKey(jsonKey).c_str(), &value.x, 3, changed);
+			InspectorUI::ItemTooltip(tooltip);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -275,12 +282,12 @@ public:
 		}
 	}
 
-	void Vector4Field(const char* memberName, Vector4& value, float dragSpeed, float minValue, float maxValue) {
+	void Vector4Field(const char* memberName, Vector4& value, float dragSpeed, float minValue, float maxValue, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		Vector4Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue);
+		Vector4Named(key.c_str(), MakeDisplayName(key).c_str(), value, dragSpeed, minValue, maxValue, tooltip);
 	}
 
-	void Vector4Named(const char* jsonKey, const char* label, Vector4& value, float dragSpeed, float minValue, float maxValue) {
+	void Vector4Named(const char* jsonKey, const char* label, Vector4& value, float dragSpeed, float minValue, float maxValue, const char* tooltip = nullptr) {
 		if (mode_ == Mode::CollectAnimatables) {
 			std::string basePath = pathPrefix_ + jsonKey;
 			channels_->push_back({basePath + ".x", &value.x});
@@ -295,7 +302,8 @@ public:
 			if (changed) {
 				value = {values[0], values[1], values[2], values[3]};
 			}
-			InspectorUI::AnimationFieldHook(jsonKey, &value.x, 4, changed);
+			InspectorUI::AnimationFieldHook(ChannelKey(jsonKey).c_str(), &value.x, 4, changed);
+			InspectorUI::ItemTooltip(tooltip);
 			(void)dragSpeed;
 			(void)minValue;
 			(void)maxValue;
@@ -323,12 +331,12 @@ public:
 		}
 	}
 
-	void String(const char* memberName, std::string& value) {
+	void String(const char* memberName, std::string& value, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		StringNamed(key.c_str(), MakeDisplayName(key).c_str(), value);
+		StringNamed(key.c_str(), MakeDisplayName(key).c_str(), value, tooltip);
 	}
 
-	void StringNamed(const char* jsonKey, const char* label, std::string& value) {
+	void StringNamed(const char* jsonKey, const char* label, std::string& value, const char* tooltip = nullptr) {
 		if (mode_ == Mode::DrawInspector) {
 			std::array<char, 256> buffer{};
 			size_t copyLength = (std::min)(value.size(), buffer.size() - 1);
@@ -337,6 +345,7 @@ public:
 			if (InspectorUI::InputText(label, buffer.data(), buffer.size())) {
 				value = buffer.data();
 			}
+			InspectorUI::ItemTooltip(tooltip);
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -353,13 +362,13 @@ public:
 	}
 
 	template <class TObject>
-	void Object(const char* memberName, TObject& value) {
+	void Object(const char* memberName, TObject& value, const char* tooltip = nullptr) {
 		std::string key = MakeJsonKey(memberName);
-		ObjectNamed(key.c_str(), MakeDisplayName(key).c_str(), value);
+		ObjectNamed(key.c_str(), MakeDisplayName(key).c_str(), value, tooltip);
 	}
 
 	template <class TObject>
-	void ObjectNamed(const char* jsonKey, const char* label, TObject& value) {
+	void ObjectNamed(const char* jsonKey, const char* label, TObject& value, const char* tooltip = nullptr) {
 		if (mode_ == Mode::CollectAnimatables) {
 			SerializedFieldRegistry childRegistry(*channels_);
 			childRegistry.pathPrefix_ = pathPrefix_ + jsonKey + ".";
@@ -368,8 +377,16 @@ public:
 		}
 		if (mode_ == Mode::DrawInspector) {
 			InspectorUI::TextUnformatted(label);
+			// 見出し自体にも説明を出せるようにする(脚のグループ単位の補足など)。
+			InspectorUI::ItemTooltip(tooltip);
+			// ImGuiはラベル文字列をIDに使うため、同じ構造体を複数並べると同名ラベルがID衝突する。
+			// 要素ごとにIDスコープを切って避ける。
+			InspectorUI::PushId(jsonKey);
 			SerializedFieldRegistry childRegistry;
+			// 録画のチャンネル名もCollectAnimatablesと同じ "leg0.hipYawDeg" 形式に揃える。
+			childRegistry.pathPrefix_ = pathPrefix_ + jsonKey + ".";
 			value.RegisterSerializedFields(childRegistry);
+			InspectorUI::PopId();
 			return;
 		}
 		if (mode_ == Mode::WriteJson) {
@@ -493,6 +510,12 @@ public:
 	}
 
 private:
+	/// <summary>
+	/// 録画用のチャンネル名。ネストしたObjectの中では "leg0.hipYawDeg" のように親のキーが前置され、
+	/// CollectAnimatablesが列挙するpathと一致する。トップレベルでは jsonKey そのまま。
+	/// </summary>
+	std::string ChannelKey(const char* jsonKey) const { return pathPrefix_ + jsonKey; }
+
 	bool HasReadableKey(const char* jsonKey) const {
 		if (!readJson_) {
 			return false;
@@ -585,6 +608,30 @@ public: \
 	} \
 private: \
 	void RegisterSerializedFields(KujataEngine::SerializedFieldRegistry& registry)
+
+// --- ツールチップ付きの登録 ---
+// 末尾に説明文(日本語可)を足した _TIP 版。Inspectorでその項目にカーソルを重ねると出る。
+// 既存の非TIP版は tooltip=nullptr になるだけなので、混在させてよい。
+//
+//   KUJATA_REGISTER_FLOAT_TIP(stepThreshold_, 0.01f, 0.05f, 20.0f,
+//       "足が定位置からこれだけ水平にズレたら踏み出す。大きいほど大股でのっしり歩く");
+//
+#define KUJATA_REGISTER_FLOAT_TIP(member, dragSpeed, minValue, maxValue, tooltip) registry.Float(#member, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_FLOAT_NAMED_TIP(member, label, dragSpeed, minValue, maxValue, tooltip) registry.FloatNamed(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_INT_TIP(member, dragSpeed, minValue, maxValue, tooltip) registry.Int(#member, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_INT_NAMED_TIP(member, label, dragSpeed, minValue, maxValue, tooltip) registry.IntNamed(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_UINT32_TIP(member, dragSpeed, minValue, maxValue, tooltip) registry.UInt32(#member, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_UINT32_NAMED_TIP(member, label, dragSpeed, minValue, maxValue, tooltip) registry.UInt32Named(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_BOOL_TIP(member, tooltip) registry.Bool(#member, member, tooltip)
+#define KUJATA_REGISTER_BOOL_NAMED_TIP(member, label, tooltip) registry.BoolNamed(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, tooltip)
+#define KUJATA_REGISTER_VECTOR3_TIP(member, dragSpeed, minValue, maxValue, tooltip) registry.Vector3Field(#member, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_VECTOR3_NAMED_TIP(member, label, dragSpeed, minValue, maxValue, tooltip) registry.Vector3Named(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_VECTOR4_TIP(member, dragSpeed, minValue, maxValue, tooltip) registry.Vector4Field(#member, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_VECTOR4_NAMED_TIP(member, label, dragSpeed, minValue, maxValue, tooltip) registry.Vector4Named(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue, tooltip)
+#define KUJATA_REGISTER_STRING_TIP(member, tooltip) registry.String(#member, member, tooltip)
+#define KUJATA_REGISTER_STRING_NAMED_TIP(member, label, tooltip) registry.StringNamed(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, tooltip)
+#define KUJATA_REGISTER_OBJECT_TIP(member, tooltip) registry.Object(#member, member, tooltip)
+#define KUJATA_REGISTER_OBJECT_NAMED_TIP(member, label, tooltip) registry.ObjectNamed(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, tooltip)
 
 #define KUJATA_REGISTER_FLOAT(member, dragSpeed, minValue, maxValue) registry.Float(#member, member, dragSpeed, minValue, maxValue)
 #define KUJATA_REGISTER_FLOAT_NAMED(member, label, dragSpeed, minValue, maxValue) registry.FloatNamed(KujataEngine::SerializedFieldRegistry::MakeJsonKey(#member).c_str(), label, member, dragSpeed, minValue, maxValue)

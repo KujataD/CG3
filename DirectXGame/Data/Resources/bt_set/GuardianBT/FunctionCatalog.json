@@ -1,0 +1,526 @@
+{
+  "actions": [
+    {
+      "category": "Movement",
+      "description": "speed分だけ対象へ向かって進む。speedを負にすると後退する(毎TickSuccess)",
+      "kind": "action",
+      "name": "MoveToTarget",
+      "params": [
+        {
+          "default": 3.0,
+          "description": "移動速度(m/s)。負で後退",
+          "name": "speed",
+          "type": "float"
+        },
+        {
+          "default": 2.0,
+          "description": "旋回速度(rad/s)。0で旋回しない",
+          "name": "turnSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Movement",
+      "description": "対象の方向へ旋回する。向き切るまでRunning",
+      "kind": "action",
+      "name": "FaceTarget",
+      "params": [
+        {
+          "default": 2.0,
+          "description": "旋回速度(rad/s)",
+          "name": "turnSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Movement",
+      "description": "胴体(球体)だけを回す。脚は接地したまま",
+      "kind": "action",
+      "name": "BodySpin",
+      "params": [
+        {
+          "default": 1.5,
+          "description": "回す長さ(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 360.0,
+          "description": "回転速度(deg/s)",
+          "name": "speed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "脚を1本選んで振り上げる。曲線レイヤーへ主導権を移すのでその脚は歩行を止める",
+      "kind": "action",
+      "name": "StompRaise",
+      "params": [
+        {
+          "default": 0.5,
+          "description": "振り上げにかける時間(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 0.0,
+          "description": "振り上げ切った頂点で静止する時間(s)。**遅延攻撃はここで作る**",
+          "name": "hold",
+          "type": "float"
+        },
+        {
+          "default": -1.0,
+          "description": "使う脚の番号(0〜3)。-1で対象に最も向いている脚を自動選択",
+          "name": "leg",
+          "type": "float"
+        },
+        {
+          "default": 2.200000047683716,
+          "description": "振り上げる高さ(m)",
+          "name": "height",
+          "type": "float"
+        },
+        {
+          "default": 0.6000000238418579,
+          "description": "振り上げ時に対象側へ寄せる量(m)",
+          "name": "forward",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "対象へ向けて踏み下ろす。攻撃判定ON",
+      "kind": "action",
+      "name": "StompSlam",
+      "params": [
+        {
+          "default": 0.2199999988079071,
+          "description": "フェーズの長さ(s)。短いほど鋭い",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 3.200000047683716,
+          "description": "ルート中心から踏み込める最大の水平距離(m)",
+          "name": "reach",
+          "type": "float"
+        },
+        {
+          "default": 0.0,
+          "description": "着弾点の高さ(ルート基準)。負で地面へめり込ませる",
+          "name": "depth",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "脚を歩行へ返す。曲線レイヤーの主導権を戻すと歩行側が自動で踏み直す",
+      "kind": "action",
+      "name": "StompRecover",
+      "params": [
+        {
+          "default": 0.44999998807907104,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "振り上げた脚を横へ薙ぎ払う。攻撃判定ON。StompRaiseの後に繋ぐ",
+      "kind": "action",
+      "name": "LegSweep",
+      "params": [
+        {
+          "default": 0.5,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 3.0,
+          "description": "薙ぎ払う円弧の半径(m)",
+          "name": "radius",
+          "type": "float"
+        },
+        {
+          "default": 150.0,
+          "description": "薙ぎ払う角度(deg)",
+          "name": "arc",
+          "type": "float"
+        },
+        {
+          "default": 0.8999999761581421,
+          "description": "薙ぎ払う高さ(ルート基準, m)",
+          "name": "height",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Leap",
+      "description": "飛びかかりの溜め。沈み込みつつ対象を向き、着地点を決める",
+      "kind": "action",
+      "name": "LeapCharge",
+      "params": [
+        {
+          "default": 0.699999988079071,
+          "description": "溜めの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 0.699999988079071,
+          "description": "沈み込む深さ(m)",
+          "name": "sink",
+          "type": "float"
+        },
+        {
+          "default": 3.0,
+          "description": "旋回速度(rad/s)",
+          "name": "turnSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Leap",
+      "description": "放物線で着地点まで飛ぶ。4本とも脚を畳む",
+      "kind": "action",
+      "name": "LeapFly",
+      "params": [
+        {
+          "default": 0.8500000238418579,
+          "description": "滞空時間(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 6.0,
+          "description": "跳躍の高さ(m)",
+          "name": "height",
+          "type": "float"
+        },
+        {
+          "default": 16.0,
+          "description": "跳べる最大の水平距離(m)",
+          "name": "range",
+          "type": "float"
+        },
+        {
+          "default": 2.4000000953674316,
+          "description": "対象の手前で止まる距離(m)。0だと真上へ落ちる",
+          "name": "stopDistance",
+          "type": "float"
+        },
+        {
+          "default": 0.44999998807907104,
+          "description": "脚を内側へ引き寄せる割合(0〜1)",
+          "name": "tuck",
+          "type": "float"
+        },
+        {
+          "default": 1.2000000476837158,
+          "description": "脚を持ち上げる高さ(m)",
+          "name": "lift",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Leap",
+      "description": "着地。4本すべてを外へ叩きつける。全脚の攻撃判定ON",
+      "kind": "action",
+      "name": "LeapSlam",
+      "params": [
+        {
+          "default": 0.18000000715255737,
+          "description": "叩きつけの長さ(s)。短いほど鋭い",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 3.5999999046325684,
+          "description": "叩きつける水平距離(m)",
+          "name": "spread",
+          "type": "float"
+        },
+        {
+          "default": -0.10000000149011612,
+          "description": "叩きつける高さ(ルート基準, m)。負で地面へめり込む",
+          "name": "depth",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Leap",
+      "description": "全脚を歩行へ返す",
+      "kind": "action",
+      "name": "LeapRecover",
+      "params": [
+        {
+          "default": 0.5,
+          "description": "フェーズの長さ(s)",
+          "name": "duration",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Jet",
+      "description": "コマの構えへ移る。脚を外へ突っ張らせ、胴体ごと回し始める",
+      "kind": "action",
+      "name": "JetLiftOff",
+      "params": [
+        {
+          "default": 0.6000000238418579,
+          "description": "構えに移る時間(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": -0.699999988079071,
+          "description": "地面からルートまでの高さ(m)。**負にすると胴体が地面に接地する**",
+          "name": "height",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "脚を伸ばす割合(最大長に対する。1.0でピンと伸ばし切る)",
+          "name": "spinReach",
+          "type": "float"
+        },
+        {
+          "default": 0.0,
+          "description": "脚の傾き(deg)。0で地面と平行",
+          "name": "spinPitch",
+          "type": "float"
+        },
+        {
+          "default": 540.0,
+          "description": "**胴体ごと**回る速度(deg/s)",
+          "name": "spinSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Jet",
+      "description": "コマのまま対象へ寄っていく。回転中は全脚の攻撃判定ON",
+      "kind": "action",
+      "name": "JetChase",
+      "params": [
+        {
+          "default": 5.0,
+          "description": "回り続ける時間(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": -0.699999988079071,
+          "description": "地面からルートまでの高さ(m)。**負にすると胴体が地面に接地する**",
+          "name": "height",
+          "type": "float"
+        },
+        {
+          "default": 6.5,
+          "description": "接近速度(m/s)。向きは変えず位置だけ寄せる",
+          "name": "speed",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "脚を伸ばす割合(最大長に対する。1.0でピンと伸ばし切る)",
+          "name": "spinReach",
+          "type": "float"
+        },
+        {
+          "default": 0.0,
+          "description": "脚の傾き(deg)。0で地面と平行",
+          "name": "spinPitch",
+          "type": "float"
+        },
+        {
+          "default": 900.0,
+          "description": "**胴体ごと**回る速度(deg/s)",
+          "name": "spinSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Jet",
+      "description": "回転を落として着地し、脚を歩行へ返す",
+      "kind": "action",
+      "name": "JetLand",
+      "params": [
+        {
+          "default": 0.6000000238418579,
+          "description": "着地にかける時間(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "脚を伸ばす割合(最大長に対する)",
+          "name": "spinReach",
+          "type": "float"
+        },
+        {
+          "default": 0.0,
+          "description": "脚の傾き(deg)。0で地面と平行",
+          "name": "spinPitch",
+          "type": "float"
+        },
+        {
+          "default": 360.0,
+          "description": "着地までの回転速度(deg/s)。落としていくと止まって見える",
+          "name": "spinSpeed",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Beam",
+      "description": "ビームの予告。**点滅**しながら対象を向く。当たり判定は出さない",
+      "kind": "action",
+      "name": "BeamCharge",
+      "params": [
+        {
+          "default": 1.2000000476837158,
+          "description": "点滅で予告する長さ(s)。ここが短いと理不尽な攻撃になる",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 0.11999999731779099,
+          "description": "点滅の間隔(s)。小さいほど速く瞬く",
+          "name": "blinkInterval",
+          "type": "float"
+        },
+        {
+          "default": 2.5,
+          "description": "旋回速度(rad/s)。予告中に正面を取り切る",
+          "name": "turnSpeed",
+          "type": "float"
+        },
+        {
+          "default": 14.0,
+          "description": "ビームの長さ(ルート基準ローカル)。ルートのscaleが2なら見た目は倍",
+          "name": "length",
+          "type": "float"
+        },
+        {
+          "default": 0.3499999940395355,
+          "description": "点滅させる太さ。照射時と同じにすると「点滅か実体か」だけの差になる",
+          "name": "thickness",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "対象のどの高さを狙うか(m)",
+          "name": "aimHeight",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Beam",
+      "description": "ビームを照射する。攻撃判定ON。turnSpeedを落とすと薙ぎ払いになり、避ける余地が生まれる",
+      "kind": "action",
+      "name": "BeamFire",
+      "params": [
+        {
+          "default": 1.0,
+          "description": "照射し続ける時間(s)",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 0.800000011920929,
+          "description": "旋回速度(rad/s)。**ここが避けられるかどうかを決める**",
+          "name": "turnSpeed",
+          "type": "float"
+        },
+        {
+          "default": 14.0,
+          "description": "ビームの長さ(ルート基準ローカル)",
+          "name": "length",
+          "type": "float"
+        },
+        {
+          "default": 0.3499999940395355,
+          "description": "ビームの太さ",
+          "name": "thickness",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "対象のどの高さを狙うか(m)",
+          "name": "aimHeight",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Beam",
+      "description": "ビームを細めて消す。攻撃判定OFF",
+      "kind": "action",
+      "name": "BeamRecover",
+      "params": [
+        {
+          "default": 0.15000000596046448,
+          "description": "消えるまでの時間(s)。短いほど切れ味が出る",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 14.0,
+          "description": "消える間のビームの長さ(ルート基準ローカル)",
+          "name": "length",
+          "type": "float"
+        },
+        {
+          "default": 0.3499999940395355,
+          "description": "消え始めの太さ。BeamFireと同じ値にする",
+          "name": "thickness",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "対象のどの高さを狙うか(m)",
+          "name": "aimHeight",
+          "type": "float"
+        }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "category": "Sense",
+      "description": "対象との水平距離がdistance以内か",
+      "kind": "condition",
+      "name": "IsTargetWithin",
+      "params": [
+        {
+          "default": 8.0,
+          "description": "判定距離(m)",
+          "name": "distance",
+          "type": "float"
+        }
+      ]
+    }
+  ],
+  "decorators": [],
+  "format": "BahamutAI.FunctionCatalog",
+  "services": [],
+  "version": 1
+}

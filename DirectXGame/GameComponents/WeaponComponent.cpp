@@ -23,20 +23,27 @@ void WeaponComponent::OnTriggerStay(KujataEngine::ColliderComponent* other) {
 		return;
 	}
 
-	// この攻撃振りで既にダメージ済みなら二重に与えない。
-	if (hitThisSwing_.count(otherObj) > 0) {
-		return;
-	}
-
 	ApplyDamageToEnemy(otherObj);
-	hitThisSwing_.insert(otherObj);
 }
 
 void WeaponComponent::ApplyDamageToEnemy(KujataEngine::GameObject* enemy) {
-	auto health = enemy->GetComponent<EnemyHealth>();
+	// 当たったオブジェクト自身から親へ遡ってHPを探す。
+	// ガーディアンのように体の一部(脚など)へ当たり判定を分けている敵では、
+	// HPはルートにあり当たったオブジェクトには無いため、自身だけを見ると素通りしてしまう。
+	// GetComponentInParentは自身から始まるので、単体構成の敵はこれまでどおり動く。
+	auto health = enemy->GetComponentInParent<EnemyHealth>();
 	if (!health) {
 		return;
 	}
 
+	// 重複排除は「当たったコライダー」ではなく「ダメージを受ける実体」単位で行う。
+	// コライダー単位にすると、1体で複数のコライダーを持つ敵(ガーディアンの脚は
+	// ボーンごとに当たり判定を持つ)では1振りで部位の数だけダメージが入ってしまう。
+	KujataEngine::GameObject* target = health->GetOwner();
+	if (!target || hitThisSwing_.count(target) > 0) {
+		return;
+	}
+
 	health->TakeDamage(damageValue_);
+	hitThisSwing_.insert(target);
 }

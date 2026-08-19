@@ -20,7 +20,11 @@ namespace KujataEngine {
 ///     接触した動的ボディへ運動量を与える。
 /// Rigidbodyを持たないCollider = 動かない純粋な静的壁(velocity 0、運動量なし)。
 /// </summary>
-class RigidbodyComponent : public Component {
+/// <remarks>
+/// ゲームDLL(GameModule)から GetComponent&lt;RigidbodyComponent&gt;() で参照するためKUJATA_APIでエクスポートする。
+/// dynamic_castがDLL境界を跨ぐので、型情報をエンジン側に1つに揃える必要がある。
+/// </remarks>
+class KUJATA_API RigidbodyComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "RigidbodyComponent"; }
 

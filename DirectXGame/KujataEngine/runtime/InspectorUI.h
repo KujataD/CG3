@@ -37,6 +37,21 @@ KUJATA_API void TextDisabled(const char* text);
 KUJATA_API void SameLine();
 
 /// <summary>
+/// ImGuiのIDスタックを積み下ろしします。
+/// ImGuiはラベル文字列をウィジェットのIDに使うため、同じ構造体を複数並べる(配列風の)Inspectorでは
+/// 同名ラベルがID衝突を起こす(ImGui 1.91以降はエラー表示される)。要素ごとにPushId/PopIdで囲むこと。
+/// </summary>
+KUJATA_API void PushId(const char* id);
+KUJATA_API void PopId();
+
+/// <summary>
+/// 直前に描画したフィールドへホバー時の説明(ツールチップ)を付けます。
+/// textがnullptrか空なら何もしません。日本語も表示できます
+/// (ImGuiManagerがGetGlyphRangesJapanese付きで日本語フォントをマージ済み)。
+/// </summary>
+KUJATA_API void ItemTooltip(const char* text);
+
+/// <summary>
 /// 直前に描画したフィールドをアニメーション録画に接続します。
 /// - 録画中に値が変更されたら現在のプレイヘッドへ自動キー登録
 /// - AnimationWindowがクリップを開いている間、右クリックで"Add Keyframe"を提供
