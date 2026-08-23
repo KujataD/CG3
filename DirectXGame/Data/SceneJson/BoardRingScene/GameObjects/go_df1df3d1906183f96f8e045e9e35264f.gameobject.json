@@ -1,96 +1,96 @@
 {
-  "assetType": "GameObject",
-  "instanceId": "go_df1df3d1906183f96f8e045e9e35264f",
-  "parentInstanceId": "go_00a8da26a6be0884005490a5055fabc0",
-  "prefabAssetPath": "Prefabs/GuardianSpline.prefab.json",
-  "prefabObjectId": "object_2",
-  "prefabInstanceRootId": "go_87b5d13897f5198543da152a1e35e863",
-  "prefabInstanceRoot": false,
-  "name": "BodyMesh",
-  "tag": "Untagged",
-  "layer": 0,
-  "active": true,
-  "components": [
-    {
-      "enabled": true,
-      "properties": {
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.399999976158142,
-          1.399999976158142,
-          1.399999976158142
-        ],
-        "translation": [
-          0.0,
-          0.0,
-          0.0
-        ]
+   "active" : true,
+   "assetType" : "GameObject",
+   "components" : [
+      {
+         "enabled" : true,
+         "properties" : {
+            "rotation" : [
+               0,
+               0,
+               0
+            ],
+            "scale" : [
+               1.39999997615814,
+               1.39999997615814,
+               1.39999997615814
+            ],
+            "translation" : [
+               0,
+               0,
+               0
+            ]
+         },
+         "type" : "Transform"
       },
-      "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "billboardEnabled": false,
-        "billboardFaceMode": 0,
-        "cameraLocalZ": 1.0,
-        "doubleSided": false,
-        "material": {
-          "baseColor": [
-            1.0,
-            1.0,
-            1.0,
-            1.0
-          ],
-          "blendMode": 1,
-          "bloomIntensity": 1.0,
-          "bloomSoftKnee": 0.5,
-          "bloomThreshold": 0.0,
-          "depthWrite": true,
-          "emissiveColor": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "emissiveEnabled": false,
-          "emissiveIntensity": 1.0,
-          "name": "New Material",
-          "shaderModel": 4,
-          "textures": {
-            "BaseColor": {
-              "assetId": "asset_ac07844543f8904a56025a47cf3bf50d",
-              "path": "Resources/uvChecker.png"
+      {
+         "enabled" : true,
+         "properties" : {
+            "billboardEnabled" : false,
+            "billboardFaceMode" : 0,
+            "cameraLocalZ" : 1,
+            "doubleSided" : false,
+            "material" : {
+               "baseColor" : [
+                  1,
+                  1,
+                  1,
+                  1
+               ],
+               "blendMode" : 1,
+               "bloomIntensity" : 1,
+               "bloomSoftKnee" : 0.5,
+               "bloomThreshold" : 0,
+               "depthWrite" : true,
+               "emissiveColor" : [
+                  1,
+                  1,
+                  1
+               ],
+               "emissiveEnabled" : false,
+               "emissiveIntensity" : 1,
+               "name" : "New Material",
+               "shaderModel" : 4,
+               "textures" : {
+                  "BaseColor" : {
+                     "assetId" : "asset_ac07844543f8904a56025a47cf3bf50d",
+                     "path" : "Resources/uvChecker.png"
+                  },
+                  "Environment" : {
+                     "assetId" : "",
+                     "path" : ""
+                  },
+                  "Normal" : {
+                     "assetId" : "",
+                     "path" : ""
+                  }
+               },
+               "uvOffset" : [
+                  0,
+                  0
+               ],
+               "uvRotation" : 0,
+               "uvScale" : [
+                  1,
+                  1
+               ]
             },
-            "Environment": {
-              "assetId": "",
-              "path": ""
-            },
-            "Normal": {
-              "assetId": "",
-              "path": ""
-            }
-          },
-          "uvOffset": [
-            0.0,
-            0.0
-          ],
-          "uvRotation": 0.0,
-          "uvScale": [
-            1.0,
-            1.0
-          ]
-        },
-        "materialAssetId": "",
-        "materialPath": "",
-        "modelAssetId": "asset_9c33c0e2074820164e18b6f4f356ec74",
-        "modelPath": "Resources/player/player.obj",
-        "primitive": "Sphere"
-      },
-      "type": "ModelRendererComponent"
-    }
-  ]
+            "materialAssetId" : "",
+            "materialPath" : "Materials/Guardian.material.json",
+            "modelAssetId" : "",
+            "modelPath" : "Resources/Guardian_eye/Guardian_eye.obj",
+            "primitive" : "Model"
+         },
+         "type" : "ModelRendererComponent"
+      }
+   ],
+   "instanceId" : "go_df1df3d1906183f96f8e045e9e35264f",
+   "layer" : 0,
+   "name" : "BodyMesh",
+   "parentInstanceId" : "go_00a8da26a6be0884005490a5055fabc0",
+   "prefabAssetPath" : "Prefabs/GuardianSpline.prefab.json",
+   "prefabInstanceRoot" : false,
+   "prefabInstanceRootId" : "go_87b5d13897f5198543da152a1e35e863",
+   "prefabObjectId" : "object_2",
+   "tag" : "Untagged"
 }

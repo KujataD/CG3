@@ -184,6 +184,10 @@ public:
 		KUJATA_REGISTER_INT_NAMED_TIP(curveSampleCount_, "Curve Samples", 1.0f, 8, 128,
 		    "曲線を折れ線に落とすときの分割数。多いほど弧長と関節位置が正確になるが重くなる。\n"
 		    "弧長合わせの二分探索でこの回数ぶん評価するので、負荷はこの値に比例する。");
+		KUJATA_REGISTER_INT_NAMED_TIP(meshUpAxis_, "Mesh Up Axis", 1.0f, 0, 1,
+		    "ボーンに割り当てたモデルの**長手方向**。0=Z(既定), 1=Y。\n"
+		    "ボーン自体は常に+Zへ伸びるが、モデルがY方向に長く作られていることは多い。\n"
+		    "**寝てしまう・潰れる場合はここを切り替える**(モデルを書き出し直す必要はない)。");
 		KUJATA_REGISTER_INT_NAMED_TIP(legCount_, "Leg Count", 1.0f, 1, kGuardianLegSlotCount,
 		    "実際に使う脚の本数。ここを減らすと余った脚は丸ごと隠れるので、\n"
 		    "4本ぶんの階層を持つPrefabのまま3脚・2脚にできる。\n"
@@ -207,6 +211,8 @@ private:
 
 	// 使う脚の本数(1〜4)。階層は4本ぶん用意しておき、ここで使う数だけ絞る。
 	KUJATA_FIELD_INT(legCount_, kGuardianLegSlotCount);
+	// ボーンメッシュの長手方向(0=Z, 1=Y)。モデルの作りに合わせる。
+	KUJATA_FIELD_INT(meshUpAxis_, 0);
 
 	GuardianSplineLeg leg0_{};
 	GuardianSplineLeg leg1_{};

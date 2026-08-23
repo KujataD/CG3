@@ -73,10 +73,10 @@
                ]
             },
             "materialAssetId" : "",
-            "materialPath" : "",
-            "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-            "modelPath" : "Resources/player/player.obj",
-            "primitive" : "Cube"
+            "materialPath" : "Materials/Guardian.material.json",
+            "modelAssetId" : "",
+            "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+            "primitive" : "Model"
          },
          "type" : "ModelRendererComponent"
       },

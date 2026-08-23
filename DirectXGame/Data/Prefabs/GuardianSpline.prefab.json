@@ -81,7 +81,7 @@
                   "bodyObjectName" : "Body",
                   "curveSampleCount" : 32,
                   "leg0" : {
-                     "baseThickness" : 0.340000003576279,
+                     "baseThickness" : 0.74,
                      "curveTarget" : [
                         -1.69705629348755,
                         0,
@@ -108,11 +108,11 @@
                      "jointCount" : 5,
                      "matchArcLength" : true,
                      "name" : "Leg0",
-                     "tipThickness" : 0.159999996423721,
+                     "tipThickness" : 0.74,
                      "totalLength" : 3.70000004768372
                   },
                   "leg1" : {
-                     "baseThickness" : 0.340000003576279,
+                     "baseThickness" : 0.74,
                      "curveTarget" : [
                         1.69705629348755,
                         0,
@@ -139,11 +139,11 @@
                      "jointCount" : 5,
                      "matchArcLength" : true,
                      "name" : "Leg1",
-                     "tipThickness" : 0.159999996423721,
+                     "tipThickness" : 0.74,
                      "totalLength" : 3.70000004768372
                   },
                   "leg2" : {
-                     "baseThickness" : 0.340000003576279,
+                     "baseThickness" : 0.74,
                      "curveTarget" : [
                         1.69705629348755,
                         0,
@@ -170,11 +170,11 @@
                      "jointCount" : 5,
                      "matchArcLength" : true,
                      "name" : "Leg2",
-                     "tipThickness" : 0.159999996423721,
+                     "tipThickness" : 0.74,
                      "totalLength" : 3.70000004768372
                   },
                   "leg3" : {
-                     "baseThickness" : 0.340000003576279,
+                     "baseThickness" : 0.74,
                      "curveTarget" : [
                         -1.69705629348755,
                         0,
@@ -201,9 +201,10 @@
                      "jointCount" : 5,
                      "matchArcLength" : true,
                      "name" : "Leg3",
-                     "tipThickness" : 0.159999996423721,
+                     "tipThickness" : 0.74,
                      "totalLength" : 3.70000004768372
-                  }
+                  },
+                  "meshUpAxis" : 1
                },
                "type" : "GuardianSplineRig"
             },
@@ -325,6 +326,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -369,10 +371,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Sphere"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_eye/Guardian_eye.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             }
@@ -469,6 +471,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -513,10 +516,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -603,6 +606,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -647,10 +651,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -737,6 +741,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -781,10 +786,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -871,6 +876,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -915,10 +921,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1005,6 +1011,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -1049,10 +1056,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1139,6 +1146,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -1183,10 +1191,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1273,6 +1281,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -1317,10 +1326,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1407,6 +1416,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -1451,10 +1461,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1570,6 +1580,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -1614,10 +1625,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1704,6 +1715,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -1748,10 +1760,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1838,6 +1850,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -1882,10 +1895,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -1972,6 +1985,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2016,10 +2030,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -2106,6 +2120,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2150,10 +2165,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -2240,6 +2255,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2284,10 +2300,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -2374,6 +2390,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2418,10 +2435,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -2508,6 +2525,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2552,10 +2570,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -2671,6 +2689,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2715,10 +2734,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -2805,6 +2824,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2849,10 +2869,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -2939,6 +2959,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -2983,10 +3004,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -3073,6 +3094,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -3117,10 +3139,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -3207,6 +3229,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -3251,10 +3274,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -3341,6 +3364,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -3385,10 +3409,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -3475,6 +3499,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -3519,10 +3544,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -3609,6 +3634,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -3653,10 +3679,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -3772,6 +3798,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -3816,10 +3843,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -3906,6 +3933,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -3950,10 +3978,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -4040,6 +4068,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -4084,10 +4113,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -4174,6 +4203,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -4218,10 +4248,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -4308,6 +4338,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -4352,10 +4383,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -4442,6 +4473,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -4486,10 +4518,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -4576,6 +4608,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -4620,10 +4653,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -4710,6 +4743,7 @@
                   "billboardEnabled" : false,
                   "billboardFaceMode" : 0,
                   "cameraLocalZ" : 1,
+                  "doubleSided" : false,
                   "material" : {
                      "baseColor" : [
                         1,
@@ -4754,10 +4788,10 @@
                      ]
                   },
                   "materialAssetId" : "",
-                  "materialPath" : "",
-                  "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
-                  "modelPath" : "Resources/player/player.obj",
-                  "primitive" : "Cube"
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_leg/Guardian_leg.obj",
+                  "primitive" : "Model"
                },
                "type" : "ModelRendererComponent"
             },
@@ -5253,6 +5287,49 @@
          "name" : "EngineFlame",
          "parentPrefabObjectId" : "object_1",
          "prefabObjectId" : "object_2077",
+         "tag" : "Untagged"
+      },
+      {
+         "active" : true,
+         "components" : [
+            {
+               "enabled" : true,
+               "properties" : {
+                  "rotation" : [
+                     0,
+                     0,
+                     0
+                  ],
+                  "scale" : [
+                     1.2,
+                     1.2,
+                     1.2
+                  ],
+                  "translation" : [
+                     0,
+                     -0.42,
+                     0
+                  ]
+               },
+               "type" : "Transform"
+            },
+            {
+               "enabled" : true,
+               "properties" : {
+                  "doubleSided" : false,
+                  "materialAssetId" : "",
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
+                  "primitive" : "Model"
+               },
+               "type" : "ModelRendererComponent"
+            }
+         ],
+         "layer" : 0,
+         "name" : "BaseMesh",
+         "parentPrefabObjectId" : "object_1",
+         "prefabObjectId" : "object_3078",
          "tag" : "Untagged"
       }
    ],

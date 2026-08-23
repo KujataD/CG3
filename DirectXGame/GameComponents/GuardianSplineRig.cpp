@@ -413,9 +413,22 @@ void GuardianSplineRig::SolveLeg(GuardianSplineLeg& leg) {
 				float localLength = segmentLength / chainScale;
 
 				WorldTransform& meshTransform = mesh->GetTransform();
+				// 位置は常にボーンの中央。ボーンは+Zへ伸びるので、その半分だけ前に出す。
 				meshTransform.translation_ = {0.0f, 0.0f, localLength * 0.5f};
-				meshTransform.scale_ = {thickness, thickness, localLength};
-				meshTransform.rotation_ = {0.0f, 0.0f, 0.0f};
+
+				// **モデルの長手方向に合わせて伸ばし方を変える。**
+				// ボーンは+Zへ伸びるが、モデルがY方向に長く作られていることは珍しくない。
+				// その場合にモデルを書き出し直させるのは筋が悪いので、リグ側で吸収する。
+				if (meshUpAxis_ == 1) {
+					// Y-up: モデルの+Yをボーンの+Zへ倒す。X軸まわりに-90度。
+					// 伸ばす軸もモデル自身のY(=倒す前の軸)なので、scaleのyへ長さを入れる。
+					meshTransform.scale_ = {thickness, localLength, thickness};
+					meshTransform.rotation_ = {-std::numbers::pi_v<float> * 0.5f, 0.0f, 0.0f};
+				} else {
+					// Z-up(既定): 素直にZへ伸ばす。Cubeなどの単純な部品はこちら。
+					meshTransform.scale_ = {thickness, thickness, localLength};
+					meshTransform.rotation_ = {0.0f, 0.0f, 0.0f};
+				}
 			}
 		}
 
