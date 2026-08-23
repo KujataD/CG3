@@ -115,6 +115,42 @@
           "description": "着弾点の高さ(ルート基準)。負で地面へめり込ませる",
           "name": "depth",
           "type": "float"
+        },
+        {
+          "default": 4.0,
+          "description": "衝撃刃が広がり切ったときの半径(m)。足そのものより広く取ると当てやすい",
+          "name": "waveRadius",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "衝撃刃の開始半径(m)",
+          "name": "waveStart",
+          "type": "float"
+        },
+        {
+          "default": 0.3499999940395355,
+          "description": "衝撃刃が広がって消えるまでの時間(s)",
+          "name": "waveDuration",
+          "type": "float"
+        },
+        {
+          "default": 14.0,
+          "description": "衝撃刃のダメージ",
+          "name": "waveDamage",
+          "type": "float"
+        },
+        {
+          "default": 9.0,
+          "description": "衝撃刃の吹き飛ばし初速",
+          "name": "waveKnockback",
+          "type": "float"
+        },
+        {
+          "default": 0.6000000238418579,
+          "description": "衝撃刃で動けなくなる時間(s)",
+          "name": "waveStun",
+          "type": "float"
         }
       ]
     },
@@ -160,6 +196,42 @@
           "default": 0.8999999761581421,
           "description": "薙ぎ払う高さ(ルート基準, m)",
           "name": "height",
+          "type": "float"
+        },
+        {
+          "default": 4.5,
+          "description": "衝撃刃が広がり切ったときの半径(m)。足そのものより広く取ると当てやすい",
+          "name": "waveRadius",
+          "type": "float"
+        },
+        {
+          "default": 1.5,
+          "description": "衝撃刃の開始半径(m)",
+          "name": "waveStart",
+          "type": "float"
+        },
+        {
+          "default": 0.30000001192092896,
+          "description": "衝撃刃が広がって消えるまでの時間(s)",
+          "name": "waveDuration",
+          "type": "float"
+        },
+        {
+          "default": 12.0,
+          "description": "衝撃刃のダメージ",
+          "name": "waveDamage",
+          "type": "float"
+        },
+        {
+          "default": 11.0,
+          "description": "衝撃刃の吹き飛ばし初速",
+          "name": "waveKnockback",
+          "type": "float"
+        },
+        {
+          "default": 0.6000000238418579,
+          "description": "衝撃刃で動けなくなる時間(s)",
+          "name": "waveStun",
           "type": "float"
         }
       ]
@@ -257,6 +329,42 @@
           "description": "叩きつける高さ(ルート基準, m)。負で地面へめり込む",
           "name": "depth",
           "type": "float"
+        },
+        {
+          "default": 6.0,
+          "description": "衝撃刃が広がり切ったときの半径(m)。足そのものより広く取ると当てやすい",
+          "name": "waveRadius",
+          "type": "float"
+        },
+        {
+          "default": 1.5,
+          "description": "衝撃刃の開始半径(m)",
+          "name": "waveStart",
+          "type": "float"
+        },
+        {
+          "default": 0.4000000059604645,
+          "description": "衝撃刃が広がって消えるまでの時間(s)",
+          "name": "waveDuration",
+          "type": "float"
+        },
+        {
+          "default": 18.0,
+          "description": "衝撃刃のダメージ",
+          "name": "waveDamage",
+          "type": "float"
+        },
+        {
+          "default": 12.0,
+          "description": "衝撃刃の吹き飛ばし初速",
+          "name": "waveKnockback",
+          "type": "float"
+        },
+        {
+          "default": 0.6000000238418579,
+          "description": "衝撃刃で動けなくなる時間(s)",
+          "name": "waveStun",
+          "type": "float"
         }
       ]
     },
@@ -270,6 +378,56 @@
           "default": 0.5,
           "description": "フェーズの長さ(s)",
           "name": "duration",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Jet",
+      "description": "コマ回転の予兆。沈み込んで脚を抱え込み、胴体を点滅させながらゆっくり回り始める(判定なし)",
+      "kind": "action",
+      "name": "JetWarn",
+      "params": [
+        {
+          "default": 1.2000000476837158,
+          "description": "予兆の長さ(s)。長いほど避ける猶予が増える",
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "default": 0.6000000238418579,
+          "description": "沈み込む量(m)",
+          "name": "sink",
+          "type": "float"
+        },
+        {
+          "default": 0.3499999940395355,
+          "description": "脚を内側へ引き寄せる割合(0〜1)",
+          "name": "tuck",
+          "type": "float"
+        },
+        {
+          "default": 0.5,
+          "description": "脚を持ち上げる高さ(m)",
+          "name": "lift",
+          "type": "float"
+        },
+        {
+          "default": 240.0,
+          "description": "予兆中の回転速度(deg/s)。本番より遅くして「溜め」に見せる",
+          "name": "spinSpeed",
+          "type": "float"
+        },
+        {
+          "default": 6.0,
+          "description": "胴体の点滅の速さ(回/秒)",
+          "name": "flashHz",
+          "type": "float"
+        },
+        {
+          "default": 8.0,
+          "description": "点滅の明るさ",
+          "name": "flashIntensity",
           "type": "float"
         }
       ]
@@ -331,8 +489,8 @@
           "type": "float"
         },
         {
-          "default": 6.5,
-          "description": "接近速度(m/s)。向きは変えず位置だけ寄せる",
+          "default": 2.5,
+          "description": "接近速度(m/s)。向きは変えず位置だけ寄せる。速すぎると当たる前に通り過ぎる",
           "name": "speed",
           "type": "float"
         },
@@ -352,6 +510,48 @@
           "default": 900.0,
           "description": "**胴体ごと**回る速度(deg/s)",
           "name": "spinSpeed",
+          "type": "float"
+        },
+        {
+          "default": 2.0,
+          "description": "回転中だけ脚の攻撃判定を太らせる倍率。高速で振り回すとすり抜けるため",
+          "name": "strikeScale",
+          "type": "float"
+        },
+        {
+          "default": 4.5,
+          "description": "**掃いている円盤そのものの判定**の半径(m)。脚の先端だけでは輪の内側に入られると当たらない",
+          "name": "waveRadius",
+          "type": "float"
+        },
+        {
+          "default": 0.800000011920929,
+          "description": "円盤の判定の高さ(地面から, m)",
+          "name": "waveHeight",
+          "type": "float"
+        },
+        {
+          "default": 16.0,
+          "description": "轢いたときのダメージ",
+          "name": "waveDamage",
+          "type": "float"
+        },
+        {
+          "default": 12.0,
+          "description": "轢いたときの吹き飛ばし初速",
+          "name": "waveKnockback",
+          "type": "float"
+        },
+        {
+          "default": 0.699999988079071,
+          "description": "轢かれて動けなくなる時間(s)",
+          "name": "waveStun",
+          "type": "float"
+        },
+        {
+          "default": 0.699999988079071,
+          "description": "同じ相手へ轢き直すまでの間隔(s)。短いと乗られただけで即死する",
+          "name": "waveHitInterval",
           "type": "float"
         }
       ]

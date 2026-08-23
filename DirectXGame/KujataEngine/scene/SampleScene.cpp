@@ -9,6 +9,9 @@
 #include "../components/DebugCameraComponent.h"
 #include "../components/DirectionalLightComponent.h"
 #include "../components/ModelRendererComponent.h"
+#include "../components/DecalComponent.h"
+#include "../components/ParticleSystemComponent.h"
+#include "../components/TrailRendererComponent.h"
 #include "../components/PointLightComponent.h"
 #include "../components/SpotLightComponent.h"
 #include "../components/RotatorComponent.h"
@@ -212,12 +215,21 @@ void SampleScene::ApplyRenderCameraToModelRenderers(const Camera* camera) {
 				continue;
 			}
 
-			ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component.get());
-			if (!renderer) {
+			if (ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component.get())) {
+				renderer->SetCamera(camera);
 				continue;
 			}
 
-			renderer->SetCamera(camera);
+			// トレイルもカメラを向く帯を組み立てるので、同じようにこのビューのカメラを渡す。
+			if (DecalComponent* decal = dynamic_cast<DecalComponent*>(component.get())) {
+				decal->SetCamera(camera);
+			}
+			if (ParticleSystemComponent* particles = dynamic_cast<ParticleSystemComponent*>(component.get())) {
+				particles->SetCamera(camera);
+			}
+			if (TrailRendererComponent* trail = dynamic_cast<TrailRendererComponent*>(component.get())) {
+				trail->SetCamera(camera);
+			}
 		}
 	}
 }

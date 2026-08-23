@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../3d/Camera.h"
 #include "../3d/GraphicsPipeline.h"
 #include "../3d/WorldTransform.h"
@@ -20,7 +21,7 @@ namespace KujataEngine {
 /// <summary>
 /// 3Dモデル
 /// </summary>
-class InstancingModel {
+class KUJATA_API InstancingModel {
 public:
 	InstancingModel() = default;
 	~InstancingModel();

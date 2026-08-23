@@ -82,6 +82,9 @@ private:
 	/// 交互歩容の制約。対角のペア({0,2} と {1,3})が同時に浮かないようにして、
 	/// 常に3点以上で体を支える。緊急の踏み直しはこの制約を無視する。
 	/// </summary>
+	/// <summary>リグが実際に使っている脚の本数(1〜4)。</summary>
+	int LegCount() const;
+
 	bool CanStartStep(int index) const;
 
 	/// <summary>
@@ -100,6 +103,13 @@ private:
 	/// 空中で脚を垂らす位置。接合部から下向き(+外向きにdangleSpread_ぶん開いた向き)へ、
 	/// 最大長のdangleReachRatio_ぶん伸ばした点を返します。
 	/// </summary>
+	/// <summary>
+	/// 待機中の微振動。**接地している足だけに乗せる見た目専用のオフセット**で、
+	/// state.plantedには決して書き込まない(書き込むと踏み出し判定が誤爆し、少しずつ足が流れていく)。
+	/// 脚ごとにノイズのレーンをずらしてあるので、4本が別々の位相で揺れる。
+	/// </summary>
+	KujataEngine::Vector3 ComputeIdleJitter(int index) const;
+
 	KujataEngine::Vector3 ComputeDanglePosition(
 	    const KujataEngine::Vector3& hipPosition, const KujataEngine::Vector3& rootPosition, float maxReach) const;
 
@@ -127,6 +137,16 @@ public:
 		    "  通常側に近すぎると毎回こちらが発火して交互歩容が無効になる。");
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(footClearance_, "Foot Clearance", 0.005f, -2.0f, 5.0f,
 		    "接地面から足の中心をどれだけ浮かせるか。足パーツの半径ぶん入れる。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(footDustStrength_, "Foot Dust Strength", 0.01f, 0.0f, 3.0f,
+		    "足が接地するたびに上げる土埃の強さ。0で出さない。\n"
+		    "**攻撃の土埃(0.5〜3)よりずっと弱くすること。** 歩くたびに濃い煙が出ると画面が埋まる。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(idleJitterAmplitude_, "Idle Jitter Amplitude", 0.005f, 0.0f, 1.0f,
+		    "立ち止まっている時に足先を揺らす量。**完全静止だと巨体が置物に見える**ので、\n"
+		    "わずかに軋ませて生き物らしさを出す。0で無効。Step Thresholdより十分小さくすること。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(idleJitterFrequency_, "Idle Jitter Frequency", 0.01f, 0.01f, 5.0f,
+		    "足先の揺れの速さ[Hz相当]。上げるほど小刻みになる。0.2〜0.5あたりが「重い」印象になる。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(idleJitterFadeSpeed_, "Idle Jitter Fade Speed", 0.05f, 0.05f, 20.0f,
+		    "この速度[unit/s]まで歩くと揺れが完全に消える。\n歩行中は歩容そのものが揺れを持つので、待機時だけに効かせる。");
 		KUJATA_REGISTER_BOOL_NAMED_TIP(alternateGait_, "Alternate Gait",
 		    "対角ペア({前左,後右} と {前右,後左})を交互に動かし、常に3点以上で体を支える。\n"
 		    "offにすると各脚が独立に踏み出す(不安定だが機械的な印象になる)。");
@@ -222,6 +242,17 @@ private:
 	float rayDown_ = 8.0f;
 	// 地面とみなすレイヤーのビットマスク。
 	uint32_t groundLayerMask_ = 0xffffffffu;
+
+	// --- 待機中の微振動(パーリンノイズ) ---
+	// 見た目専用のオフセットなので、歩行の判定には一切入らない。
+	float idleJitterAmplitude_ = 0.06f;
+	float idleJitterFrequency_ = 0.35f;
+	float idleJitterFadeSpeed_ = 1.0f;
+	// ノイズに入れる時刻[s]。Play開始からの経過を自分で積む(整数に張り付かせないため0以外から始める)。
+	float noiseTime_ = 0.0f;
+
+	// 着地のたびに上げる土埃の強さ。0で無効。
+	KUJATA_FIELD_FLOAT(footDustStrength_, 0.35f);
 
 	LegState legStates_[kGuardianLegCount]{};
 

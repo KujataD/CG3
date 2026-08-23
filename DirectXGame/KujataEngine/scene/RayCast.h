@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../math/Vector2.h"
 #include "../math/Vector3.h"
 #include "../shapes/ShapeUtil.h"
@@ -21,7 +22,7 @@ struct RayCastHit {
 /// <summary>
 /// Scene内の描画ObjectへRayを飛ばす機能
 /// </summary>
-class RayCast {
+class KUJATA_API RayCast {
 public:
 	static bool CreateRayFromViewportPoint(
 	    const Vector2& point,

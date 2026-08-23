@@ -1,5 +1,7 @@
 #include "WeaponComponent.h"
 #include "EnemyHealth.h"
+#include "CharacterMotor.h"
+#include "PlayerHealth.h"
 
 void WeaponComponent::Initialize() {
 }
@@ -31,6 +33,20 @@ void WeaponComponent::ApplyDamageToEnemy(KujataEngine::GameObject* enemy) {
 	// ガーディアンのように体の一部(脚など)へ当たり判定を分けている敵では、
 	// HPはルートにあり当たったオブジェクトには無いため、自身だけを見ると素通りしてしまう。
 	// GetComponentInParentは自身から始まるので、単体構成の敵はこれまでどおり動く。
+	// **倒れた相方を叩くと起こせる。** 生きている味方には何も起きない(誤爆でHPを削らない)。
+	if (PlayerHealth* ally = enemy->GetComponentInParent<PlayerHealth>()) {
+		if (!ally->IsDead()) {
+			return;
+		}
+		KujataEngine::GameObject* downed = ally->GetOwner();
+		if (!downed || hitThisSwing_.count(downed) > 0) {
+			return;
+		}
+		ally->AddReviveProgress(damageValue_);
+		hitThisSwing_.insert(downed);
+		return;
+	}
+
 	auto health = enemy->GetComponentInParent<EnemyHealth>();
 	if (!health) {
 		return;
@@ -44,6 +60,13 @@ void WeaponComponent::ApplyDamageToEnemy(KujataEngine::GameObject* enemy) {
 		return;
 	}
 
-	health->TakeDamage(damageValue_);
+	// **ヘイトの主体は武器ではなく振っている本人。**
+	// この武器は手→腕→モデル→キャラのルート、と親をたどった先にいるキャラのもの。
+	// CharacterMotorはキャラのルートにしか付かないので、それを目印に本人を特定する。
+	KujataEngine::GameObject* attacker = nullptr;
+	if (CharacterMotor* motor = GetComponentInParent<CharacterMotor>()) {
+		attacker = motor->GetOwner();
+	}
+	health->TakeDamage(damageValue_, poiseDamage_, attacker);
 	hitThisSwing_.insert(target);
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../scene/Component.h"
 
 namespace KujataEngine {
@@ -7,7 +8,7 @@ namespace KujataEngine {
 /// <summary>
 /// 所有GameObjectをY軸回転させ、任意でY軸上下(sin波)移動も行うComponent
 /// </summary>
-class RotatorComponent : public Component {
+class KUJATA_API RotatorComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "RotatorComponent"; }
 

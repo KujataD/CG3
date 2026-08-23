@@ -58,7 +58,7 @@ public:
 	KUJATA_API void UpdateHierarchy();
 
 	KUJATA_API void DrawHierarchy();
-
+	 
 	/// <summary>
 	/// 親から子へワールド行列を更新
 	/// </summary>

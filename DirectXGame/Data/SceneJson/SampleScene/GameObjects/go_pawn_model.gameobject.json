@@ -108,6 +108,30 @@
           {
             "assetId": "",
             "path": "Animations/PlayerRoll.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttack1.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttack2.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttack3.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttackCharge.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnGuard.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnGuardBreak.anim.json"
           }
         ],
         "currentClip": 3,

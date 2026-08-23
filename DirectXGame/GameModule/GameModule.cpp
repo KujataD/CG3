@@ -16,9 +16,17 @@
 #include "../GameComponents/PlayerHealth.h"
 #include "../GameComponents/EnemyWeapon.h"
 #include "../GameComponents/HPBarUpdater.h"
+#include "../GameComponents/HateTable.h"
+#include "../GameComponents/GruntEnemyComponent.h"
 #include "../GameComponents/ChangeSceneManager.h"
 #include "../GameComponents/HammerEnemyComponent.h"
 #include "../GameComponents/PlayerHPBarUpdater.h"
+#include "../GameComponents/PlayerStaminaBarUpdater.h"
+#include "../GameComponents/LockOnController.h"
+#include "../GameComponents/SwordGuard.h"
+#include "../GameComponents/BarrierGuard.h"
+#include "../GameComponents/CriticalStrikeComponent.h"
+#include "../GameComponents/StaminaComponent.h"
 #include "../GameComponents/GuardianBody.h"
 #include "../GameComponents/GuardianGait.h"
 #include "../GameComponents/GuardianSplineRig.h"
@@ -137,6 +145,14 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujataEngine::Compo
 	factory.RegisterComponent<ChangeSceneManager>(kGameModuleName);
 	factory.RegisterComponent<HammerEnemyComponent>(kGameModuleName);
 	factory.RegisterComponent<PlayerHPBarUpdater>(kGameModuleName);
+	factory.RegisterComponent<PlayerStaminaBarUpdater>(kGameModuleName);
+	factory.RegisterComponent<StaminaComponent>(kGameModuleName);
+	factory.RegisterComponent<HateTable>(kGameModuleName);
+	factory.RegisterComponent<GruntEnemyComponent>(kGameModuleName);
+	factory.RegisterComponent<LockOnController>(kGameModuleName);
+	factory.RegisterComponent<SwordGuard>(kGameModuleName);
+	factory.RegisterComponent<BarrierGuard>(kGameModuleName);
+	factory.RegisterComponent<CriticalStrikeComponent>(kGameModuleName);
 
 	// ガーディアン風ボス。GameObjectへ追加する順は Gait → Body → LegRig にすること
 	// (Component::Updateは追加順に走るため、足先目標の決定 → 胴体の配置 → IK解決 の順になる)。

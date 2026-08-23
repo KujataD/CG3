@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../3d/SpotLight.h"
 #include "../scene/Component.h"
 #include "../scene/IEditorBillboard.h"
@@ -16,7 +17,7 @@ namespace KujataEngine {
 ///
 /// シーンに置ける数はkMaxSpotLight(16灯)まで。超えた分は無視される。
 /// </summary>
-class SpotLightComponent : public Component, public IEditorBillboard {
+class KUJATA_API SpotLightComponent : public Component, public IEditorBillboard {
 public:
 	/// SpotLightDataは0初期化されるメンバが多いので、ここでUnity相当の既定値を入れる。
 	SpotLightComponent();

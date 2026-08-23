@@ -37,9 +37,23 @@
       "properties": {
         "allyName": "Bishop",
         "cameraName": "Main Camera",
-        "leaderName": "Pawn"
+        "leaderName": "Pawn",
+        "swapCooldown": 1.0,
+        "swapEnabled": true
       },
       "type": "PartyManager"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "cameraName": "Main Camera",
+        "lockDistance": 25.0,
+        "releaseDistance": 32.0,
+        "reticlePrefabPath": "Prefabs/LockOnReticle.prefab.json",
+        "switchMinAngle": 3.0,
+        "switchStickThreshold": 0.6000000238418579
+      },
+      "type": "LockOnController"
     }
   ]
 }

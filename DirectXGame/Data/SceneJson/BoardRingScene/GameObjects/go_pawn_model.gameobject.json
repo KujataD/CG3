@@ -38,6 +38,7 @@
         "billboardEnabled": false,
         "billboardFaceMode": 0,
         "cameraLocalZ": 1.0,
+        "doubleSided": false,
         "material": {
           "baseColor": [
             1.0,
@@ -45,9 +46,11 @@
             1.0,
             1.0
           ],
+          "blendMode": 1,
           "bloomIntensity": 1.649999976158142,
           "bloomSoftKnee": 0.4740000069141388,
           "bloomThreshold": 0.0,
+          "depthWrite": true,
           "emissiveColor": [
             1.0,
             1.0,
@@ -108,6 +111,30 @@
           {
             "assetId": "",
             "path": "Animations/PlayerRoll.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttack1.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttack2.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttack3.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnAttackCharge.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnGuard.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/PawnGuardBreak.anim.json"
           }
         ],
         "currentClip": 3,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../3d/DirectionalLight.h"
 #include "../scene/Component.h"
 #include "../scene/IEditorBillboard.h"
@@ -9,7 +10,7 @@ namespace KujataEngine {
 /// <summary>
 /// DirectionalLightのGPUデータをGameObject上で管理するComponent
 /// </summary>
-class DirectionalLightComponent : public Component, public IEditorBillboard {
+class KUJATA_API DirectionalLightComponent : public Component, public IEditorBillboard {
 public:
 	const char* GetTypeName() const override { return "DirectionalLightComponent"; }
 

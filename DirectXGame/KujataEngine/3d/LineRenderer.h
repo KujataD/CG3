@@ -18,29 +18,29 @@ class Camera;
 /// デバッグやゲーム用の一時Line描画を管理する。
 /// DrawLineで登録した線はRender後にクリアされる。
 /// </summary>
-class LineRenderer {
+class KUJATA_API LineRenderer {
 public:
-	static KUJATA_API LineRenderer* GetInstance();
+	static LineRenderer* GetInstance();
 
 	/// <summary>
 	/// 始点と終点からLineを登録します。
 	/// </summary>
-	static KUJATA_API void DrawLine(const Vector3& start, const Vector3& end, const Vector4& color);
+	static void DrawLine(const Vector3& start, const Vector3& end, const Vector4& color);
 
 	/// <summary>
 	/// SegmentからLineを登録します。
 	/// </summary>
-	static KUJATA_API void DrawLine(const Segment& segment, const Vector4& color);
+	static void DrawLine(const Segment& segment, const Vector4& color);
 
 	/// <summary>
 	/// 登録済みLineをCameraで描画し、描画後にクリアします。
 	/// </summary>
-	KUJATA_API void Render(const Camera& camera);
+	void Render(const Camera& camera);
 
 	/// <summary>
 	/// 登録済みLineを破棄します。
 	/// </summary>
-	KUJATA_API void Clear();
+	void Clear();
 
 private:
 	LineRenderer() = default;

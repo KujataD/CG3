@@ -59,6 +59,7 @@
         "dodgeCooldownFrames": 5,
         "dodgeDurationFrames": 30,
         "dodgeSpeed": 12.0,
+        "dodgeStaminaCost": 20.0,
         "invincibleFrames": 27,
         "knockbackDamping": 6.0,
         "recoilClipName": "PlayerRecoil",
@@ -70,7 +71,9 @@
     {
       "enabled": true,
       "properties": {
-        "triggerThreshold": 0.5
+        "attackMoveScale": 0.25,
+        "attackTurnScale": 0.4000000059604645,
+        "chargeHoldSeconds": 0.30000001192092896
       },
       "type": "Player"
     },
@@ -82,7 +85,20 @@
     {
       "enabled": true,
       "properties": {
-        "attackClipName": "PlayerAttack"
+        "attackClip1": "PawnAttack1",
+        "attackClip2": "PawnAttack2",
+        "attackClip3": "PawnAttack3",
+        "chargeClipName": "PawnAttackCharge",
+        "chargeDamage": 30.0,
+        "chargePoise": 100.0,
+        "comboDamage": 10.0,
+        "comboPoise": 20.0,
+        "comboWindowFrom": 0.6000000238418579,
+        "recoveryChargeSeconds": 0.4000000059604645,
+        "recoveryLightSeconds": 0.11999999731779099,
+        "recoverySeconds": 0.23999999463558197,
+        "staminaCostCharge": 30.0,
+        "staminaCostNormal": 20.0
       },
       "type": "MeleeAbilitySet"
     },
@@ -105,10 +121,60 @@
     {
       "enabled": true,
       "properties": {
+        "deathClipName": "",
         "health": 100.0,
-        "maxHealth": 100.0
+        "maxHealth": 100.0,
+        "reviveHealthPercent": 50.0,
+        "reviveRequired": 60.0
       },
       "type": "PlayerHealth"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "maxStamina": 100.0,
+        "regenDelay": 1.0,
+        "regenPerSecond": 25.0
+      },
+      "type": "StaminaComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "guardAngle": 100.0,
+        "guardBreakClipName": "PawnGuardBreak",
+        "guardBreakKnockback": 4.0,
+        "guardBreakStun": 1.5,
+        "guardClipName": "PawnGuard",
+        "guardCost": 25.0,
+        "justGuardPoise": 100.0,
+        "justGuardWindow": 0.20000000298023224,
+        "magicDamageScale": 0.5
+      },
+      "type": "SwordGuard"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "aftermathSeconds": 1.899999976158142,
+        "cameraDistanceScale": 0.6000000238418579,
+        "criticalClipName": "PawnAttackCharge",
+        "damage": 120.0,
+        "hitstopSeconds": 0.11999999731779099,
+        "hitstopTimeScale": 0.0,
+        "promptHeight": 1.2000000476837158,
+        "promptPrefabPath": "Prefabs/CriticalPrompt.prefab.json",
+        "promptShowDistance": 12.0,
+        "recoverSeconds": 0.550000011920929,
+        "shotBackOffset": 1.399999976158142,
+        "shotHeight": 1.899999976158142,
+        "shotOrbitDeg": 38.0,
+        "shotSideOffset": 3.200000047683716,
+        "strikeOffset": 1.7999999523162842,
+        "triggerDistance": 3.0,
+        "windupSeconds": 0.3499999940395355
+      },
+      "type": "CriticalStrikeComponent"
     }
   ]
 }

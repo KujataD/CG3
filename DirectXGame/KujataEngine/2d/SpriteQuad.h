@@ -64,7 +64,7 @@ private:
 	};
 
 	/// <summary>現在のsize/pivot/flip設定から頂点(位置とUV)を作り直す。</summary>
-	void UpdateVertices();
+	KUJATA_API void UpdateVertices();
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};

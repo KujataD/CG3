@@ -1,0 +1,36 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_1d2cce4179ae83170e969a96e48d12ed",
+  "parentInstanceId": "go_00a8da26a6be0884005490a5055fabc0",
+  "prefabAssetPath": "Prefabs/GuardianSpline.prefab.json",
+  "prefabObjectId": "object_37",
+  "prefabInstanceRootId": "go_87b5d13897f5198543da152a1e35e863",
+  "prefabInstanceRoot": false,
+  "name": "Leg2_Hip",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    }
+  ]
+}

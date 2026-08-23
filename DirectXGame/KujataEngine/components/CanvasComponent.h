@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../math/Vector2.h"
 #include "../scene/Component.h"
 
@@ -18,7 +19,7 @@ namespace KujataEngine {
 /// World Spaceではキャンバス単位がそのままローカル座標になり、Transformのscaleでworld単位へ変換される
 /// (1280x720のキャンバスをscale 0.01で置くと12.8x7.2 world単位。Unityと同じ考え方)。
 /// </summary>
-class CanvasComponent : public Component {
+class KUJATA_API CanvasComponent : public Component {
 public:
 	enum class RenderMode {
 		ScreenSpaceOverlay,

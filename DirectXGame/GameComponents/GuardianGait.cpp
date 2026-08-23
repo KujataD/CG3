@@ -1,4 +1,7 @@
 #include "GuardianGait.h"
+#include "GameFx.h"
+
+#include <math/Noise.h>
 
 #include "IGuardianLegRig.h"
 #include "GuardianRigMath.h"
@@ -85,6 +88,7 @@ IGuardianLegRig* GuardianGait::GetRig() { return GetComponent<IGuardianLegRig>()
 
 void GuardianGait::OnPlayStart() {
 	hasPreviousPosition_ = false;
+	noiseTime_ = 0.0f;
 	rootVelocity_ = {0.0f, 0.0f, 0.0f};
 	planarSpeed_ = 0.0f;
 	ResetToHome();
@@ -96,7 +100,7 @@ void GuardianGait::ResetToHome() {
 		return;
 	}
 
-	for (int index = 0; index < kGuardianLegCount; ++index) {
+	for (int index = 0, legCount = LegCount(); index < legCount; ++index) {
 		Vector3 home = rig->GetHomeWorld(index);
 		home.y = SampleGroundHeight(home) + footClearance_;
 
@@ -118,6 +122,10 @@ void GuardianGait::Update() {
 		return;
 	}
 
+	// ノイズ用の時刻。整数格子の上ではパーリンノイズが必ず0になるので、
+	// 半端な値から始めて「揺れが止まる瞬間」が出ないようにする。
+	noiseTime_ += deltaTime;
+
 	// --- ルートの移動速度を測る。歩幅の先読みに使う ---
 	Vector3 rootPosition = GuardianRigMath::ComputeWorldPose(owner).position;
 	if (hasPreviousPosition_) {
@@ -131,7 +139,7 @@ void GuardianGait::Update() {
 	previousRootPosition_ = rootPosition;
 	planarSpeed_ = std::sqrt(rootVelocity_.x * rootVelocity_.x + rootVelocity_.z * rootVelocity_.z);
 
-	for (int index = 0; index < kGuardianLegCount; ++index) {
+	for (int index = 0, legCount = LegCount(); index < legCount; ++index) {
 		LegState& state = legStates_[index];
 
 		// --- 曲線レイヤーが主導権を持っている間は歩行を止める ---
@@ -224,9 +232,20 @@ void GuardianGait::Update() {
 				state.stepping = false;
 				state.planted = state.stepTo;
 				footPosition = state.stepTo;
+				// 着地のたびに軽い土埃。**巨体の重さは足音ではなく足元の埃で伝わる。**
+				// 攻撃の土埃(強さ0.5〜3)よりずっと弱くして、歩行が主張しすぎないようにする。
+				if (owner_) {
+					GameFx::Burst(owner_->GetScene(), GameFx::Prefab::kDust, state.stepTo, footDustStrength_);
+				}
 			}
 		} else {
 			footPosition = state.planted;
+		}
+
+		// 立っている足だけを微かに揺らす。踏み出し中・空中・曲線制御中は素の位置のまま。
+		// **加えるのはここだけ。** state.plantedを汚すと踏み出し判定が誤爆して足が流れる。
+		if (!state.stepping && !state.airborne && !rig->IsCurveDriven(index)) {
+			footPosition = footPosition + ComputeIdleJitter(index);
 		}
 
 		rig->SetProceduralTarget(index, footPosition);
@@ -245,20 +264,42 @@ float GuardianGait::ComputeStepDuration() const {
 	return std::clamp(strideLength_ / planarSpeed_, minDuration, maxDuration);
 }
 
+int GuardianGait::LegCount() const {
+	// リグが実際に使っている本数。取れなければスロット数(4)を仮定する。
+	const IGuardianLegRig* rig = GetComponent<IGuardianLegRig>();
+	int count = rig ? rig->GetLegCount() : kGuardianLegSlotCount;
+	return std::clamp(count, 1, kGuardianLegSlotCount);
+}
+
 bool GuardianGait::CanStartStep(int index) const {
 	if (!alternateGait_) {
 		return true;
 	}
 
-	// 0=前左, 1=前右, 2=後右, 3=後左。対角ペアは {0,2} と {1,3} で、添字の偶奇で分けられる。
-	int group = index % 2;
-	for (int other = 0; other < kGuardianLegCount; ++other) {
-		if (other == index) {
-			continue;
+	int legCount = LegCount();
+
+	// **同時に浮いてよいのは半数まで。** 常に過半数の脚で体を支えるための上限で、
+	// 4脚なら2本(対角ペア)、3脚なら1本になる。本数を変えても勝手に辻褄が合う。
+	int allowedLift = legCount / 2;
+	if (allowedLift < 1) {
+		allowedLift = 1;
+	}
+
+	int stepping = 0;
+	for (int other = 0; other < legCount; ++other) {
+		if (other != index && legStates_[other].stepping) {
+			++stepping;
 		}
-		if (legStates_[other].stepping && (other % 2) != group) {
-			return false;
-		}
+	}
+	if (stepping >= allowedLift) {
+		return false;
+	}
+
+	// 加えて「向かい合わせの脚」は同時に浮かせない。
+	// 4脚ではこれが対角ペア({0,2}と{1,3})の制約そのものになり、従来の歩容と一致する。
+	int opposite = (index + legCount / 2) % legCount;
+	if (opposite != index && legStates_[opposite].stepping) {
+		return false;
 	}
 	return true;
 }
@@ -306,7 +347,7 @@ float GuardianGait::GetStepActivity() const {
 			++stepping;
 		}
 	}
-	return static_cast<float>(stepping) / static_cast<float>(kGuardianLegCount);
+	return static_cast<float>(stepping) / static_cast<float>(LegCount());
 }
 
 float GuardianGait::SampleGroundHeight(const KujataEngine::Vector3& position) const {
@@ -352,6 +393,11 @@ float GuardianGait::SampleGroundHeight(const KujataEngine::Vector3& position) co
 			if (!collider || !collider->IsEnabled() || collider->IsTrigger()) {
 				continue;
 			}
+			// **動くと明示されたコライダーには足を置かない。**
+			// Rigidbodyの有無だけでは、部位ごとに判定を分けた相手を見分けられない。
+			if (staticGroundOnly_ && collider->IsMovingCollider()) {
+				continue;
+			}
 
 			float distance = 0.0f;
 			if (RaycastDownCollider(*collider, origin, maxDistance, distance)) {
@@ -365,4 +411,30 @@ float GuardianGait::SampleGroundHeight(const KujataEngine::Vector3& position) co
 		return groundY_;
 	}
 	return origin.y - nearestDistance;
+}
+
+KujataEngine::Vector3 GuardianGait::ComputeIdleJitter(int index) const {
+	if (idleJitterAmplitude_ <= 0.0f) {
+		return {0.0f, 0.0f, 0.0f};
+	}
+
+	// 歩き出したら消す。歩行中は歩容そのものが揺れを持っているので、重ねると汚くなる。
+	float fade = 1.0f - std::clamp(planarSpeed_ / (std::max)(idleJitterFadeSpeed_, 1.0e-3f), 0.0f, 1.0f);
+	if (fade <= 0.0f) {
+		return {0.0f, 0.0f, 0.0f};
+	}
+
+	// **時刻とレーンの両方を脚ごとにずらす。** ノイズ空間の別の場所を読ませることで、
+	// 4本が互いに無関係に揺れる(実測でレーン間の相関は0.1未満)。
+	// 3.7fや0.37fの半端な数は、整数格子の上でノイズが0に張り付くのを避けるためのもの。
+	float time = noiseTime_ * idleJitterFrequency_ + 3.7f + static_cast<float>(index) * 7.13f;
+	float lane = static_cast<float>(index) * 19.0f + 0.37f;
+	float amplitude = idleJitterAmplitude_ * fade;
+
+	return {
+	    KujataEngine::PerlinNoise(time, lane + 0.0f) * amplitude,
+	    // 上下は控えめ。接地している足なので、浮くと接地感が壊れる。
+	    KujataEngine::PerlinNoise(time, lane + 6.1f) * amplitude * 0.35f,
+	    KujataEngine::PerlinNoise(time, lane + 12.3f) * amplitude,
+	};
 }

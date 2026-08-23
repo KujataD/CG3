@@ -22,7 +22,7 @@ struct TransformationMatrix {
 /// <summary>
 /// ワールド変換データ
 /// </summary>
-class WorldTransform {
+class KUJATA_API WorldTransform {
 public:
 	// 定数バッファの本数。ビュー(Scene/Game/Shadow)ごとに別々のWVPを持つため。
 	// ここでDirectXCommon.hをincludeするとWindows.hが広く波及するので定数を再宣言し、
@@ -59,7 +59,7 @@ public:
 	/// </summary>
 	void Initialize();
 
-	KUJATA_API void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
+	void UpdateMatrix(const class Camera& camera, bool isBillboard = false);
 
 	/// <summary>
 	/// 親階層を考慮したビルボード行列でmatWorld_を更新します。
@@ -67,12 +67,12 @@ public:
 	/// cameraLocalZ: カメラの視線方向へどれだけ手前(正)/奥(負)にずらすか(奥行き調整)。
 	/// flipX: 表裏の反転(trueで裏面が手前)。
 	/// </summary>
-	KUJATA_API void UpdateBillboardMatrix(const class Camera& camera, float cameraLocalZ, bool flipX);
+	void UpdateBillboardMatrix(const class Camera& camera, float cameraLocalZ, bool flipX);
 
 	/// <summary>
 	/// ワールド行列だけを更新する
 	/// </summary>
-	KUJATA_API void UpdateWorldMatrix();
+	void UpdateWorldMatrix();
 
 	void TransferMatrix(const Camera& camera) const;
 	void TransferMatrix(const Camera& camera, const Matrix4x4& worldMatrix) const;
@@ -93,7 +93,7 @@ public:
 
 	// 現在描画中のビュー(DirectXCommonのrenderViewIndex)に対応する定数バッファを返す。
 	// 同一フレームで複数ビューへ描いてもWVPが上書きされないよう、ビュー毎に別バッファを持つ。
-	KUJATA_API const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const;
+	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const;
 
 	Vector3 GetWorldPosition() const { return {matWorld_.m[3][0], matWorld_.m[3][1], matWorld_.m[3][2]}; }
 	void SetWorldPosition(Vector3 worldPos) {

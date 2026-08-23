@@ -65,10 +65,10 @@ public:
 	static KUJATA_API float GetRightTrigger(int padNo = 0);
 
 private:
-	static Vector2 CalcMouseClientPos();
-	static void UpdateInputDeviceType();
-	static bool IsKeyboardMouseInputDetected();
-	static bool IsControllerInputDetected(int padNo);
+	static KUJATA_API Vector2 CalcMouseClientPos();
+	static KUJATA_API void UpdateInputDeviceType();
+	static KUJATA_API bool IsKeyboardMouseInputDetected();
+	static KUJATA_API bool IsControllerInputDetected(int padNo);
 
 private:
 	static HWND hwnd_;

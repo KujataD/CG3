@@ -296,6 +296,15 @@ void ColliderComponent::DrawInspector() {
 		isTrigger_ = isTrigger;
 	}
 
+	bool moving = movingCollider_;
+	if (InspectorUI::Checkbox("Moving Collider", &moving)) {
+		movingCollider_ = moving;
+	}
+	InspectorUI::ItemTooltip(
+	    "このコライダーが動くなら on。地面・足場として扱われなくなる。\n"
+	    "**Rigidbodyの有無では判定できない構成のための明示指定**。\n"
+	    "例: 部位ごとに当たり判定を分けた敵の脚(部位側はRigidbodyを持たない)。");
+
 	InspectorUI::DragFloat3("Center", &center_.x, 0.01f);
 
 	int collisionMask = -1;
@@ -315,6 +324,7 @@ void ColliderComponent::DrawInspector() {
 
 void ColliderComponent::WriteJson(nlohmann::json& json) const {
 	json["isTrigger"] = isTrigger_;
+	json["movingCollider"] = movingCollider_;
 	json["center"] = {center_.x, center_.y, center_.z};
 	json["collisionMask"] = collisionMask_;
 	WriteShapeJson(json);
@@ -322,6 +332,7 @@ void ColliderComponent::WriteJson(nlohmann::json& json) const {
 
 void ColliderComponent::ReadJson(const nlohmann::json& json) {
 	isTrigger_ = ReadBool(json, "isTrigger", isTrigger_);
+	movingCollider_ = ReadBool(json, "movingCollider", movingCollider_);
 	center_ = ReadVector3(json, "center", center_);
 	collisionMask_ = ReadUint32(json, "collisionMask", collisionMask_);
 	ReadShapeJson(json);

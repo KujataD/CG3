@@ -1,0 +1,295 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_6bef2b39c39ef77535f6b7adeb37af51",
+  "parentInstanceId": "",
+  "prefabAssetPath": "Prefabs/GuardianSpline.prefab.json",
+  "prefabObjectId": "object_0",
+  "prefabInstanceRootId": "go_6bef2b39c39ef77535f6b7adeb37af51",
+  "prefabInstanceRoot": true,
+  "name": "GuardianSpline",
+  "tag": "Untagged",
+  "layer": 0,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "beamHeight": 1.7000000476837158,
+        "beamObjectName": "Beam",
+        "bodyPartLayer": 8,
+        "criticalRecoilPitch": 0.550000011920929,
+        "criticalRecoilSink": 0.8999999761581421,
+        "flinchDuration": 0.4000000059604645,
+        "flinchSink": 0.3499999940395355,
+        "shockwavePrefabPath": "Prefabs/GuardianShockwave.prefab.json",
+        "strikeObjectSuffix": "_Strike",
+        "stunSink": 0.8999999761581421,
+        "stunSpread": 3.4000000953674316,
+        "stunTremble": 0.05000000074505806,
+        "targetTag": "Ally"
+      },
+      "type": "GuardianBossComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "alternateGait": true,
+        "dangleReachRatio": 0.800000011920929,
+        "dangleSmoothing": 9.0,
+        "dangleSpread": 0.3499999940395355,
+        "detachReachRatio": 0.949999988079071,
+        "footClearance": 0.15000000596046448,
+        "footDustStrength": 0.3499999940395355,
+        "groundLayerMask": 4294967295,
+        "groundY": 0.0,
+        "idleJitterAmplitude": 0.05999999865889549,
+        "idleJitterFadeSpeed": 1.0,
+        "idleJitterFrequency": 0.3499999940395355,
+        "landReachRatio": 0.8500000238418579,
+        "minStepDuration": 0.09000000357627869,
+        "rayDown": 8.0,
+        "rayUp": 4.0,
+        "raycastGround": true,
+        "staticGroundOnly": true,
+        "stepDuration": 0.2800000011920929,
+        "stepHeight": 0.800000011920929,
+        "stepLeadFactor": 1.0,
+        "stepThreshold": 0.699999988079071,
+        "strideLength": 1.399999976158142,
+        "urgentReachRatio": 0.9200000166893005
+      },
+      "type": "GuardianGait"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "alignToFeet": true,
+        "bobAmplitude": 0.11999999731779099,
+        "bobFrequency": 2.4000000953674316,
+        "bobSpeedReference": 4.0,
+        "heightSmoothing": 8.0,
+        "idleSwayAmplitude": 0.05000000074505806,
+        "idleSwayFrequency": 0.2199999988079071,
+        "maxSuspensionTravel": 0.6000000238418579,
+        "maxTiltDeg": 20.0,
+        "rideHeight": 2.5999999046325684,
+        "spinSpeedDeg": 0.0,
+        "tiltSmoothing": 6.0,
+        "tiltStrength": 1.0
+      },
+      "type": "GuardianBody"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "applyHipPlacement": true,
+        "bodyObjectName": "Body",
+        "curveSampleCount": 32,
+        "leg0": {
+          "baseThickness": 0.3400000035762787,
+          "curveTarget": [
+            -1.6970562934875488,
+            0.0,
+            1.6970562934875488
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 1.0,
+          "hipTangent": [
+            -0.2474873661994934,
+            1.0,
+            0.2474873661994934
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": -45.0,
+          "homeDistance": 2.4000000953674316,
+          "homeYawDeg": -45.0,
+          "jointCount": 5,
+          "matchArcLength": true,
+          "name": "Leg0",
+          "tipThickness": 0.1599999964237213,
+          "totalLength": 3.700000047683716
+        },
+        "leg1": {
+          "baseThickness": 0.3400000035762787,
+          "curveTarget": [
+            1.6970562934875488,
+            0.0,
+            1.6970562934875488
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 1.0,
+          "hipTangent": [
+            0.2474873661994934,
+            1.0,
+            0.2474873661994934
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": 45.0,
+          "homeDistance": 2.4000000953674316,
+          "homeYawDeg": 45.0,
+          "jointCount": 5,
+          "matchArcLength": true,
+          "name": "Leg1",
+          "tipThickness": 0.1599999964237213,
+          "totalLength": 3.700000047683716
+        },
+        "leg2": {
+          "baseThickness": 0.3400000035762787,
+          "curveTarget": [
+            1.6970562934875488,
+            0.0,
+            -1.6970562934875488
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 1.0,
+          "hipTangent": [
+            0.2474873661994934,
+            1.0,
+            -0.2474873661994934
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": 135.0,
+          "homeDistance": 2.4000000953674316,
+          "homeYawDeg": 135.0,
+          "jointCount": 5,
+          "matchArcLength": true,
+          "name": "Leg2",
+          "tipThickness": 0.1599999964237213,
+          "totalLength": 3.700000047683716
+        },
+        "leg3": {
+          "baseThickness": 0.3400000035762787,
+          "curveTarget": [
+            -1.6970562934875488,
+            0.0,
+            -1.6970562934875488
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 1.0,
+          "hipTangent": [
+            -0.2474873661994934,
+            1.0,
+            -0.2474873661994934
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": -135.0,
+          "homeDistance": 2.4000000953674316,
+          "homeYawDeg": -135.0,
+          "jointCount": 5,
+          "matchArcLength": true,
+          "name": "Leg3",
+          "tipThickness": 0.1599999964237213,
+          "totalLength": 3.700000047683716
+        },
+        "legCount": 4
+      },
+      "type": "GuardianSplineRig"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          1.7000000476837158,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": false,
+        "radius": 1.399999976158142
+      },
+      "type": "SphereColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "bounciness": 0.5,
+        "freezePositionX": false,
+        "freezePositionY": false,
+        "freezePositionZ": false,
+        "freezeRotationX": false,
+        "freezeRotationY": false,
+        "freezeRotationZ": false,
+        "gravityScale": 1.0,
+        "isStatic": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "RigidbodyComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "health": 600.0,
+        "lockOnObjectName": "Body",
+        "lockOnOffset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "maxHealth": 600.0,
+        "poiseDecayDelay": 2.0,
+        "poiseDecayPerSecond": 20.0,
+        "poiseMax": 300.0,
+        "stunDuration": 3.0
+      },
+      "type": "HealthComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "HPBarUpdater"
+    }
+  ]
+}

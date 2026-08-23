@@ -8,6 +8,7 @@
 namespace KujataEngine {
 class AnimatorComponent;
 }
+class EnemyHealth;
 
 /// <summary>
 /// ハンマーを持つ敵。BehaviorTree(BahamutAI)で行動する。
@@ -83,6 +84,12 @@ private:
 	KujataEngine::AnimatorComponent* GetAnimator();
 	/// 被弾時に呼ばれる。状態ごとのパラメータを見て、のけぞりを再生するか決める。
 	void OnDamaged();
+	/// のけぞりを再生する(force=trueならスーパーアーマー設定を無視する。ジャストガード用)。
+	void PlayRecoil(bool force);
+	/// 体勢崩し(スタン)開始。攻撃を中断しBTをリセット、スタンクリップを再生する。
+	void OnStaggered();
+	/// スタン中か(EnemyHealthの残り時間で判定)。
+	bool IsStunned() const;
 	/// のけぞり(硬直)中か。
 	bool IsRecoiling() const { return recoilTimer_ > 0.0f; }
 	void SetHammerVisible(bool visible);
@@ -100,6 +107,8 @@ private:
 		KUJATA_REGISTER_BOOL_NAMED(recoilDuringSpin_, "Recoil During Spin");
 		KUJATA_REGISTER_BOOL_NAMED(recoilDuringSlam_, "Recoil During Slam");
 		KUJATA_REGISTER_FLOAT_NAMED(recoilDuration_, "Recoil Duration", 0.05f, 0.0f, 5.0f);
+		KUJATA_REGISTER_STRING_NAMED_TIP(stunClipName_, "Stun Clip",
+		    "体勢崩しでスタンしたときに再生するクリップ名。尺はHealthComponentのStun Durationに合わせる。");
 	}
 
 	// 攻撃対象のタグ。このタグが付いた生存キャラ(PlayerHealth持ち)のうち最寄りを狙う。
@@ -116,6 +125,8 @@ private:
 	KUJATA_FIELD_BOOL(recoilDuringSlam_, true);
 	// のけぞりの硬直時間[s](HammerRecoil.anim.jsonの長さに合わせる)。
 	KUJATA_FIELD_FLOAT(recoilDuration_, 0.5f);
+	// スタン時のクリップ名。
+	KUJATA_FIELD_STRING(stunClipName_, "HammerStun");
 
 	// BT作成用
 	BahamutAI::BehaviorTreeFactory btFactory_;
@@ -140,4 +151,7 @@ private:
 
 	// のけぞりの残り硬直時間[s]。0より大きい間は行動アクションがFailureを返す。
 	float recoilTimer_ = 0.0f;
+
+	// 自分のHP/体勢崩し(OnPlayStartで解決)。
+	EnemyHealth* health_ = nullptr;
 };

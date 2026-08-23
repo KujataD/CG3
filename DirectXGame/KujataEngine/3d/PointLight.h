@@ -24,14 +24,14 @@ struct PointLightForGPU {
 	int32_t count = 0;
 };
 
-class PointLight {
+class KUJATA_API PointLight {
 public:
-	static KUJATA_API PointLight* GetInstance();
+	static PointLight* GetInstance();
 
 	void Initialize();
-	KUJATA_API void Reset();
+	void Reset();
 
-	KUJATA_API void AddLight(const PointLightData& light);
+	void AddLight(const PointLightData& light);
 	void SetLight(uint32_t index, const PointLightData& light);
 
 	ID3D12Resource* GetResource() const { return resource_.Get(); }

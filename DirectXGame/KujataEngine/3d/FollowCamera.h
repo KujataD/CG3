@@ -1,10 +1,11 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include "Camera.h"
 #include "WorldTransform.h"
 
 namespace KujataEngine {
 
-class FollowCamera {
+class KUJATA_API FollowCamera {
 public:
 	void Initialize();
 

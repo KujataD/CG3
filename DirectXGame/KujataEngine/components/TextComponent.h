@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../2d/UIQuad.h"
 #include "../2d/UIRect.h"
 #include "../math/Vector4.h"
@@ -16,8 +17,14 @@ class FontAtlas;
 /// <summary>
 /// UIのテキスト描画(UnityのText相当)。stb_truetypeのフォントアトラスからグリフ矩形を並べて描く。
 /// </summary>
-class TextComponent : public Component {
+class KUJATA_API TextComponent : public Component {
 public:
+	// クラス全体をdllexportすると暗黙のコピー代入まで実体化されるため、
+	// unique_ptrメンバを持つこのクラスでは明示的にコピーを禁止する(元々コピーしない設計)。
+	TextComponent() = default;
+	TextComponent(const TextComponent&) = delete;
+	TextComponent& operator=(const TextComponent&) = delete;
+
 	enum class Align {
 		Left,
 		Center,

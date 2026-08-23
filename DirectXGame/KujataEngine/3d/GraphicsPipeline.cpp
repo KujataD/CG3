@@ -229,6 +229,10 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	assert(SUCCEEDED(hr));
 	hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_[static_cast<int32_t>(PipelineType::kObject3dWireframe)]));
 	assert(SUCCEEDED(hr));
+	// 両面/深度書き込みOFFはRootSignatureをkObject3dと共有する(ラスタライザと深度設定だけが違う)。
+	rootSignature_[static_cast<int32_t>(PipelineType::kObject3dDoubleSided)] = rootSignature_[static_cast<int32_t>(PipelineType::kObject3d)];
+	rootSignature_[static_cast<int32_t>(PipelineType::kObject3dNoDepthWrite)] = rootSignature_[static_cast<int32_t>(PipelineType::kObject3d)];
+	rootSignature_[static_cast<int32_t>(PipelineType::kObject3dDoubleSidedNoDepthWrite)] = rootSignature_[static_cast<int32_t>(PipelineType::kObject3d)];
 
 	signatureBlob->Release();
 	if (errorBlob) {
@@ -482,6 +486,13 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 			renderTarget.DestBlend = D3D12_BLEND_ONE;
 			break;
 
+		case BlendMode::kPremultipliedAlpha:
+			// 色があらかじめαを掛けてある前提。フチが暗くならない。
+			renderTarget.SrcBlend = D3D12_BLEND_ONE;
+			renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
+			renderTarget.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+			break;
+
 		case BlendMode::kSubtract:
 			renderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;
 			renderTarget.BlendOp = D3D12_BLEND_OP_REV_SUBTRACT;
@@ -497,6 +508,31 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 
 		graphicsPipelineStateDescWireframe.BlendState = blendDesc;
 		hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDescWireframe, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3dWireframe)][i]));
+		assert(SUCCEEDED(hr));
+
+		// --- 両面(背面カリングなし)。それ以外はkObject3dと同一 ---
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescDoubleSided = graphicsPipelineStateDesc;
+		D3D12_RASTERIZER_DESC rasterizerDescDoubleSided = rasterizerDesc;
+		rasterizerDescDoubleSided.CullMode = D3D12_CULL_MODE_NONE;
+		graphicsPipelineStateDescDoubleSided.RasterizerState = rasterizerDescDoubleSided;
+		graphicsPipelineStateDescDoubleSided.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kObject3dDoubleSided)].Get();
+		hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDescDoubleSided, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3dDoubleSided)][i]));
+		assert(SUCCEEDED(hr));
+
+		// --- 深度書き込みOFF(半透明・加算用)。深度テストは行うので、不透明物には正しく隠される ---
+		D3D12_DEPTH_STENCIL_DESC depthStencilDescNoWrite = depthStencilDesc;
+		depthStencilDescNoWrite.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC descNoDepthWrite = graphicsPipelineStateDesc;
+		descNoDepthWrite.DepthStencilState = depthStencilDescNoWrite;
+		descNoDepthWrite.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kObject3dNoDepthWrite)].Get();
+		hr = device->CreateGraphicsPipelineState(&descNoDepthWrite, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3dNoDepthWrite)][i]));
+		assert(SUCCEEDED(hr));
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC descDoubleSidedNoDepthWrite = graphicsPipelineStateDescDoubleSided;
+		descDoubleSidedNoDepthWrite.DepthStencilState = depthStencilDescNoWrite;
+		descDoubleSidedNoDepthWrite.pRootSignature = rootSignature_[static_cast<int32_t>(PipelineType::kObject3dDoubleSidedNoDepthWrite)].Get();
+		hr = device->CreateGraphicsPipelineState(&descDoubleSidedNoDepthWrite, IID_PPV_ARGS(&pipelineStates_[static_cast<int32_t>(PipelineType::kObject3dDoubleSidedNoDepthWrite)][i]));
 		assert(SUCCEEDED(hr));
 	}
 

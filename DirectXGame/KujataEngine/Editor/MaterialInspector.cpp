@@ -364,7 +364,7 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 	}
 
 	// シェーダー方式の選択(ShaderModel enumの順序に一致させる)。
-	const char* shaderItems[] = {"None (Unlit)", "Lambert", "Half Lambert", "Phong", "Blinn-Phong"};
+	const char* shaderItems[] = {"None (Unlit)", "Lambert", "Half Lambert", "Phong", "Blinn-Phong", "Shockwave (Ring)", "Barrier (Hex/Pentagon)", "Trail (Ribbon)"};
 	int shaderIndex = state.material.shaderModel;
 	if (shaderIndex < 0 || shaderIndex >= static_cast<int>(IM_ARRAYSIZE(shaderItems))) {
 		shaderIndex = 0;
@@ -372,6 +372,28 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 	if (ImGui::Combo("Shader Model", &shaderIndex, shaderItems, IM_ARRAYSIZE(shaderItems))) {
 		state.material.shaderModel = shaderIndex;
 		changed = true;
+	}
+
+	// 合成方法。加算は光・炎・魔法のように「重ねるほど明るくなる」表現に使う。
+	// KujataEngine::BlendMode と並び順を一致させること。
+	const char* blendItems[] = {"None (Opaque)", "Normal (Alpha)", "Add", "Subtract", "Multiply", "Screen", "Exclusion", "Premultiplied Alpha"};
+	int blendIndex = state.material.blendMode;
+	if (blendIndex < 0 || blendIndex >= static_cast<int>(IM_ARRAYSIZE(blendItems))) {
+		blendIndex = 1;
+	}
+	if (ImGui::Combo("Blend Mode", &blendIndex, blendItems, IM_ARRAYSIZE(blendItems))) {
+		state.material.blendMode = blendIndex;
+		changed = true;
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("重ね方。Addは光や炎など「重なるほど明るくなる」もの向け。\n加算や半透明にしたら Depth Write を切ること。");
+	}
+
+	if (ImGui::Checkbox("Depth Write", &state.material.depthWrite)) {
+		changed = true;
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("深度バッファへ書き込むか。半透明・加算はOFFにする。\nONのままだと後から描かれる背後の物を隠し、自分の裏面とも喧嘩する。\n深度テスト(不透明物に隠れること)は常に行われる。");
 	}
 
 	// UVトランスフォーム(タイリング・スクロール・回転)。サンプラーはWRAPなので範囲外はリピートする。

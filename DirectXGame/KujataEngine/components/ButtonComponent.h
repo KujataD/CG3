@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../math/Vector4.h"
 #include "../scene/Component.h"
 #include "../scene/UnityAction.h"
@@ -12,7 +13,7 @@ namespace KujataEngine {
 /// UIのボタン(UnityのButton相当)。同じGameObjectのImageをtarget graphicとし、
 /// ホバー/押下で色を変え、クリック時に名前付きイベント(UIEventBus)を発火する。
 /// </summary>
-class ButtonComponent : public Component {
+class KUJATA_API ButtonComponent : public Component {
 public:
 	enum class VisualState {
 		Normal,

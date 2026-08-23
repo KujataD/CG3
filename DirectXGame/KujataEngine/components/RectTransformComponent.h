@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../2d/UIRect.h"
 #include "../math/Vector2.h"
 #include "../scene/Component.h"
@@ -11,7 +12,7 @@ namespace KujataEngine {
 /// アンカー/ピボット/サイズ/オフセットを持ち、親矩形から自身の矩形を算出する。
 /// 座標系は左上原点(x右・y下)、アンカーは0..1(0,0=左上, 1,1=右下)。
 /// </summary>
-class RectTransformComponent : public Component {
+class KUJATA_API RectTransformComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "RectTransform"; }
 	bool AllowMultiple() const override { return false; }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../3d/DebugCamera.h"
 #include "../math/Vector3.h"
 #include "../scene/Component.h"
@@ -9,7 +10,7 @@ namespace KujataEngine {
 /// <summary>
 /// Edit中にGameObjectのCameraをDebugCamera操作で動かすComponent
 /// </summary>
-class DebugCameraComponent : public Component {
+class KUJATA_API DebugCameraComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "DebugCameraComponent"; }
 

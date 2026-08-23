@@ -1,10 +1,11 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include <list>
 #include "Collider.h"
 
 namespace KujataEngine{
 
-class CollisionManager {
+class KUJATA_API CollisionManager {
 public:
 
 	void Clear();

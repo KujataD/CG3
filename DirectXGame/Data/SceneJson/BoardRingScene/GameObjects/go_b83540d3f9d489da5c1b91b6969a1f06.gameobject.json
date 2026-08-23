@@ -1,0 +1,305 @@
+{
+  "assetType": "GameObject",
+  "instanceId": "go_b83540d3f9d489da5c1b91b6969a1f06",
+  "parentInstanceId": "",
+  "prefabAssetPath": "Prefabs/MeleeGrunt.prefab.json",
+  "prefabObjectId": "object_0",
+  "prefabInstanceRootId": "go_b83540d3f9d489da5c1b91b6969a1f06",
+  "prefabInstanceRoot": true,
+  "name": "MeleeGrunt",
+  "tag": "Enemy",
+  "layer": 9,
+  "active": true,
+  "components": [
+    {
+      "enabled": true,
+      "properties": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "Transform"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "damageHateScale": 1.0,
+        "decayPerSecond": 0.05999999865889549,
+        "loseTargetDistance": 0.0,
+        "proximityHatePerSecond": 6.0,
+        "proximityRange": 12.0,
+        "switchRatio": 1.2000000476837158,
+        "targetTag": "Ally"
+      },
+      "type": "HateTable"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "beamHeight": 1.2000000476837158,
+        "beamObjectName": "",
+        "btSetFolder": "MeleeGruntBT",
+        "recoilClipName": "",
+        "recoilDuration": 0.3499999940395355,
+        "recoilEnabled": true,
+        "stunClipName": "",
+        "targetTag": "Ally",
+        "treeKey": "MeleeGrunt",
+        "weaponObjectName": "Weapon"
+      },
+      "type": "GruntEnemyComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "alternateGait": true,
+        "dangleReachRatio": 0.800000011920929,
+        "dangleSmoothing": 9.0,
+        "dangleSpread": 0.3499999940395355,
+        "detachReachRatio": 0.949999988079071,
+        "footClearance": 0.10499999672174454,
+        "footDustStrength": 0.3499999940395355,
+        "groundLayerMask": 4294966783,
+        "groundY": 0.0,
+        "idleJitterAmplitude": 0.05999999865889549,
+        "idleJitterFadeSpeed": 1.0,
+        "idleJitterFrequency": 0.3499999940395355,
+        "landReachRatio": 0.8500000238418579,
+        "minStepDuration": 0.09000000357627869,
+        "rayDown": 8.0,
+        "rayUp": 4.0,
+        "raycastGround": true,
+        "staticGroundOnly": true,
+        "stepDuration": 0.2800000011920929,
+        "stepHeight": 0.5600000023841858,
+        "stepLeadFactor": 1.0,
+        "stepThreshold": 0.49000000953674316,
+        "strideLength": 0.9800000190734863,
+        "urgentReachRatio": 0.9200000166893005
+      },
+      "type": "GuardianGait"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "alignToFeet": true,
+        "bobAmplitude": 0.08399999886751175,
+        "bobFrequency": 2.4000000953674316,
+        "bobSpeedReference": 4.0,
+        "heightSmoothing": 8.0,
+        "idleSwayAmplitude": 0.05000000074505806,
+        "idleSwayFrequency": 0.2199999988079071,
+        "maxSuspensionTravel": 0.41999998688697815,
+        "maxTiltDeg": 20.0,
+        "rideHeight": 1.8200000524520874,
+        "spinSpeedDeg": 0.0,
+        "tiltSmoothing": 6.0,
+        "tiltStrength": 1.0
+      },
+      "type": "GuardianBody"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "applyHipPlacement": true,
+        "bodyObjectName": "Body",
+        "curveSampleCount": 32,
+        "leg0": {
+          "baseThickness": 0.23800000548362732,
+          "curveTarget": [
+            -1.4549000263214111,
+            0.0,
+            0.8399999737739563
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            -0.7793999910354614,
+            0.550000011920929,
+            0.44999998807907104
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 0.699999988079071,
+          "hipTangent": [
+            -0.8659999966621399,
+            -0.15000000596046448,
+            0.5
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": -60.0,
+          "homeDistance": 1.6799999475479126,
+          "homeYawDeg": -60.0,
+          "jointCount": 3,
+          "matchArcLength": true,
+          "name": "Leg0",
+          "tipThickness": 0.1120000034570694,
+          "totalLength": 2.5899999141693115
+        },
+        "leg1": {
+          "baseThickness": 0.23800000548362732,
+          "curveTarget": [
+            1.4549000263214111,
+            0.0,
+            0.8399999737739563
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            0.7793999910354614,
+            0.550000011920929,
+            0.44999998807907104
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 0.699999988079071,
+          "hipTangent": [
+            0.8659999966621399,
+            -0.15000000596046448,
+            0.5
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": 60.0,
+          "homeDistance": 1.6799999475479126,
+          "homeYawDeg": 60.0,
+          "jointCount": 3,
+          "matchArcLength": true,
+          "name": "Leg1",
+          "tipThickness": 0.1120000034570694,
+          "totalLength": 2.5899999141693115
+        },
+        "leg2": {
+          "baseThickness": 0.23800000548362732,
+          "curveTarget": [
+            0.0,
+            0.0,
+            -1.6799999475479126
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            0.0,
+            0.550000011920929,
+            -0.8999999761581421
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 0.699999988079071,
+          "hipTangent": [
+            0.0,
+            -0.15000000596046448,
+            -1.0
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": 180.0,
+          "homeDistance": 1.6799999475479126,
+          "homeYawDeg": 180.0,
+          "jointCount": 3,
+          "matchArcLength": true,
+          "name": "Leg2",
+          "tipThickness": 0.1120000034570694,
+          "totalLength": 2.5899999141693115
+        },
+        "leg3": {
+          "baseThickness": 0.23800000548362732,
+          "curveTarget": [
+            -1.6970562934875488,
+            0.0,
+            -1.6970562934875488
+          ],
+          "curveWeight": 0.0,
+          "footTangent": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "footTangentScale": 0.550000011920929,
+          "hipPitchDeg": -15.0,
+          "hipRadius": 0.699999988079071,
+          "hipTangent": [
+            -0.2474873661994934,
+            1.0,
+            -0.2474873661994934
+          ],
+          "hipTangentScale": 0.550000011920929,
+          "hipYawDeg": -135.0,
+          "homeDistance": 1.6799999475479126,
+          "homeYawDeg": -135.0,
+          "jointCount": 5,
+          "matchArcLength": true,
+          "name": "Leg3",
+          "tipThickness": 0.1120000034570694,
+          "totalLength": 2.5899999141693115
+        },
+        "legCount": 3
+      },
+      "type": "GuardianSplineRig"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "center": [
+          0.0,
+          1.190000057220459,
+          0.0
+        ],
+        "collisionMask": 4294967295,
+        "isTrigger": false,
+        "radius": 0.9800000190734863
+      },
+      "type": "SphereColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "bounciness": 0.5,
+        "freezePositionX": false,
+        "freezePositionY": false,
+        "freezePositionZ": false,
+        "freezeRotationX": false,
+        "freezeRotationY": false,
+        "freezeRotationZ": false,
+        "gravityScale": 1.0,
+        "isStatic": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "RigidbodyComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "health": 60.0,
+        "lockOnObjectName": "Body",
+        "lockOnOffset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "maxHealth": 60.0,
+        "poiseDecayDelay": 2.0,
+        "poiseDecayPerSecond": 20.0,
+        "poiseMax": 60.0,
+        "stunDuration": 2.5
+      },
+      "type": "HealthComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {},
+      "type": "HPBarUpdater"
+    }
+  ]
+}

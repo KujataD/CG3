@@ -136,6 +136,9 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClCompile Include="KujataEngine\components\DebugCameraComponent.cpp" />
     <ClCompile Include="KujataEngine\components\DirectionalLightComponent.cpp" />
     <ClCompile Include="KujataEngine\components\ModelRendererComponent.cpp" />
+    <ClCompile Include="KujataEngine\components\DecalComponent.cpp" />
+    <ClCompile Include="KujataEngine\components\ParticleSystemComponent.cpp" />
+    <ClCompile Include="KujataEngine\components\TrailRendererComponent.cpp" />
     <ClCompile Include="KujataEngine\components\OrbitCameraComponent.cpp" />
     <ClCompile Include="KujataEngine\scene\MovementUtil.cpp" />
     <ClCompile Include="KujataEngine\components\CanvasComponent.cpp" />
@@ -212,6 +215,7 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClCompile Include="KujataEngine\KujataEngine.cpp" />
     <ClCompile Include="KujataEngine\math\Easing.cpp" />
     <ClCompile Include="KujataEngine\math\MathUtil.cpp" />
+    <ClCompile Include="KujataEngine\math\Noise.cpp" />
     <ClCompile Include="KujataEngine\math\Matrix3x3.cpp" />
     <ClCompile Include="KujataEngine\math\Matrix4x4.cpp" />
     <ClCompile Include="KujataEngine\math\Random.cpp" />
@@ -271,6 +275,9 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClInclude Include="KujataEngine\components\DebugCameraComponent.h" />
     <ClInclude Include="KujataEngine\components\DirectionalLightComponent.h" />
     <ClInclude Include="KujataEngine\components\ModelRendererComponent.h" />
+    <ClInclude Include="KujataEngine\components\DecalComponent.h" />
+    <ClInclude Include="KujataEngine\components\ParticleSystemComponent.h" />
+    <ClInclude Include="KujataEngine\components\TrailRendererComponent.h" />
     <ClInclude Include="KujataEngine\components\OrbitCameraComponent.h" />
     <ClInclude Include="KujataEngine\scene\MovementUtil.h" />
     <ClInclude Include="KujataEngine\math\Quaternion.h" />
@@ -353,6 +360,7 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClInclude Include="KujataEngine\KujataEngineEditor.h" />
     <ClInclude Include="KujataEngine\math\Easing.h" />
     <ClInclude Include="KujataEngine\math\MathUtil.h" />
+    <ClInclude Include="KujataEngine\math\Noise.h" />
     <ClInclude Include="KujataEngine\math\Matrix3x3.h" />
     <ClInclude Include="KujataEngine\math\Matrix4x4.h" />
     <ClInclude Include="KujataEngine\math\Random.h" />

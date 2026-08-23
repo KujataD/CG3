@@ -345,6 +345,15 @@
     <ClCompile Include="KujataEngine\components\ModelRendererComponent.cpp">
       <Filter>KujataEngine\components</Filter>
     </ClCompile>
+    <ClCompile Include="KujataEngine\components\DecalComponent.cpp">
+      <Filter>KujataEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujataEngine\components\ParticleSystemComponent.cpp">
+      <Filter>KujataEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujataEngine\components\TrailRendererComponent.cpp">
+      <Filter>KujataEngine\components</Filter>
+    </ClCompile>
     <ClCompile Include="KujataEngine\components\PointLightComponent.cpp">
       <Filter>KujataEngine\components</Filter>
     </ClCompile>
@@ -364,6 +373,9 @@
       <Filter>KujataEngine</Filter>
     </ClCompile>
     <ClCompile Include="KujataEngine\math\MathUtil.cpp">
+      <Filter>KujataEngine\math</Filter>
+    </ClCompile>
+    <ClCompile Include="KujataEngine\math\Noise.cpp">
       <Filter>KujataEngine\math</Filter>
     </ClCompile>
     <ClCompile Include="KujataEngine\3d\AxisIndicator.cpp">
@@ -564,6 +576,15 @@
       <Filter>KujataEngine\math</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\components\ModelRendererComponent.h">
+      <Filter>KujataEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujataEngine\components\DecalComponent.h">
+      <Filter>KujataEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujataEngine\components\ParticleSystemComponent.h">
+      <Filter>KujataEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujataEngine\components\TrailRendererComponent.h">
       <Filter>KujataEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\components\PointLightComponent.h">
@@ -777,6 +798,9 @@
       <Filter>ImGuizmo</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\math\MathUtil.h">
+      <Filter>KujataEngine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="KujataEngine\math\Noise.h">
       <Filter>KujataEngine\math</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\base\Time.h">

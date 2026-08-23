@@ -31,19 +31,19 @@ public:
 	ParticleModel() = default;
 	~ParticleModel();
 
-	void Initialize();
+	KUJATA_API void Initialize();
 
 	/// <summary>
 	/// OBJファイルからモデルを生成する(省略版)
 	/// </summary>
-	static ParticleModel* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
+	static KUJATA_API ParticleModel* CreateFromOBJ(const std::string& objname, bool enableLighting = false);
 
-	static ParticleModel* CreateCube(const std::string& textureFilePath, bool enableLighting = false);
+	static KUJATA_API ParticleModel* CreateCube(const std::string& textureFilePath, bool enableLighting = false);
 
-	static ParticleModel* CreatePlane(const std::string& textureFilePath, bool enableLighting = false);
-	static ParticleModel* CreateTriangle(const std::string& textureFilePath, bool enableLighting = false);
+	static KUJATA_API ParticleModel* CreatePlane(const std::string& textureFilePath, bool enableLighting = false);
+	static KUJATA_API ParticleModel* CreateTriangle(const std::string& textureFilePath, bool enableLighting = false);
 
-	static ParticleModel* CreateTetrahedron(const std::string& textureFilePath, bool enableLighting = false);
+	static KUJATA_API ParticleModel* CreateTetrahedron(const std::string& textureFilePath, bool enableLighting = false);
 
 	/// <summary>
 	/// 描画前処理（全モデル共通・フレームに1回）
@@ -60,9 +60,9 @@ public:
 	/// <summary>
 	/// 描画（PreDraw の後に呼ぶ）
 	/// </summary>
-	void Draw();
+	KUJATA_API void Draw();
 
-	void UpdateBuffer();
+	KUJATA_API void UpdateBuffer();
 
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
@@ -117,8 +117,8 @@ private:
 	ParticleModel(const ParticleModel&) = delete;
 	ParticleModel& operator=(const ParticleModel&) = delete;
 
-	void CreateVertexBuffer(const std::vector<VertexData>& vertices);
-	void CreateMaterialBuffer(const MaterialData& material);
+	KUJATA_API void CreateVertexBuffer(const std::vector<VertexData>& vertices);
+	KUJATA_API void CreateMaterialBuffer(const MaterialData& material);
 };
 
 } // namespace KujataEngine

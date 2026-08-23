@@ -1,4 +1,5 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include "Vector3.h"
 #include <algorithm>
 #include <assert.h>
@@ -7,7 +8,7 @@
 
 namespace KujataEngine {
 struct TransformationMatrix;
-class Matrix4x4 {
+class KUJATA_API Matrix4x4 {
 public:
 	float m[4][4];
 

@@ -28,7 +28,7 @@ struct CameraForGPU {
 /// <summary>
 /// カメラ
 /// </summary>
-class Camera {
+class KUJATA_API Camera {
 public:
 	// ビュー行列の設定
 	Vector3 rotation_ = {0.0f, 0.0f, 0.0f};
@@ -50,9 +50,9 @@ public:
 	/// <summary>
 	/// 初期化（定数バッファの生成・マッピング）
 	/// </summary>
-	KUJATA_API void Initialize();
+	void Initialize();
 
-	KUJATA_API void UpdateMatrix();
+	void UpdateMatrix();
 
 	const Microsoft::WRL::ComPtr<ID3D12Resource>& GetConstBuffer() const { return constBuffer_; }
 

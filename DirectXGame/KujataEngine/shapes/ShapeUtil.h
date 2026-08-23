@@ -1,4 +1,5 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include "AABB.h"
 #include "Rect.h"
 #include <vector>
@@ -88,65 +89,65 @@ struct Contact {
 
 namespace ShapeUtil {
 
-bool IsCollision(const Sphere& sphere, const Plane& plane);
+KUJATA_API bool IsCollision(const Sphere& sphere, const Plane& plane);
 
-bool IsCollision(const Segment& line, const Plane& plane);
+KUJATA_API bool IsCollision(const Segment& line, const Plane& plane);
 
-bool IsCollision(const Segment& segment, const Triangle& triangle);
+KUJATA_API bool IsCollision(const Segment& segment, const Triangle& triangle);
 
-bool IsCollision(const AABB& aabb1, const AABB& aabb2);
+KUJATA_API bool IsCollision(const AABB& aabb1, const AABB& aabb2);
 
-bool IsCollision(const AABB& aabb, const Sphere& sphere);
+KUJATA_API bool IsCollision(const AABB& aabb, const Sphere& sphere);
 
-bool IsCollision(const AABB& aabb, const Vector3& point);
+KUJATA_API bool IsCollision(const AABB& aabb, const Vector3& point);
 
-bool IsCollision(const AABB& aabb, const Segment& segment);
+KUJATA_API bool IsCollision(const AABB& aabb, const Segment& segment);
 
-bool IsCollision(const AABB& aabb, const Line& line);
+KUJATA_API bool IsCollision(const AABB& aabb, const Line& line);
 
-bool IsCollision(const AABB& aabb, const Ray& ray);
+KUJATA_API bool IsCollision(const AABB& aabb, const Ray& ray);
 
-bool IsCollision(const OBB& obb, const Sphere& sphere);
+KUJATA_API bool IsCollision(const OBB& obb, const Sphere& sphere);
 
-bool IsCollision(const OBB& obb, const Segment& segment);
+KUJATA_API bool IsCollision(const OBB& obb, const Segment& segment);
 
-bool IsCollision(const OBB& obb, const Line& line);
+KUJATA_API bool IsCollision(const OBB& obb, const Line& line);
 
-bool IsCollision(const OBB& obb, const Ray& ray);
+KUJATA_API bool IsCollision(const OBB& obb, const Ray& ray);
 
-bool IsCollision(const OBB& obb1, const OBB& obb2);
+KUJATA_API bool IsCollision(const OBB& obb1, const OBB& obb2);
 
-bool IsCollision(const Sphere& a, const Sphere& b);
+KUJATA_API bool IsCollision(const Sphere& a, const Sphere& b);
 
-bool IsCollision(const Capsule& capsule, const Sphere& sphere);
+KUJATA_API bool IsCollision(const Capsule& capsule, const Sphere& sphere);
 
-bool IsCollision(const Capsule& a, const Capsule& b);
+KUJATA_API bool IsCollision(const Capsule& a, const Capsule& b);
 
-bool IsCollision(const Capsule& capsule, const OBB& obb);
+KUJATA_API bool IsCollision(const Capsule& capsule, const OBB& obb);
 
 /// <summary>
 /// 軸が重なっているかどうか
 /// </summary>
-bool IsOverlappingOnAxis(const OBB& A, const OBB& B, const Vector3& axis);
+KUJATA_API bool IsOverlappingOnAxis(const OBB& A, const OBB& B, const Vector3& axis);
 
 // 線分(origin〜origin+diff)と形状の交差を調べ、最初のヒット位置の割合t[0,1]を返す。
 // 始点が形状内部の場合は t=0 でヒット扱い。カメラの遮蔽判定などに使う。
-bool RaycastSegment(const Segment& segment, const Sphere& sphere, float& outT);
-bool RaycastSegment(const Segment& segment, const AABB& aabb, float& outT);
-bool RaycastSegment(const Segment& segment, const OBB& obb, float& outT);
-bool RaycastSegment(const Segment& segment, const Capsule& capsule, float& outT);
+KUJATA_API bool RaycastSegment(const Segment& segment, const Sphere& sphere, float& outT);
+KUJATA_API bool RaycastSegment(const Segment& segment, const AABB& aabb, float& outT);
+KUJATA_API bool RaycastSegment(const Segment& segment, const OBB& obb, float& outT);
+KUJATA_API bool RaycastSegment(const Segment& segment, const Capsule& capsule, float& outT);
 
 // 接触情報(法線・めり込み量・接触点)を計算する。交差していれば true。
 // normal は第1引数から第2引数へ向かう分離方向(単位)。詳細は Contact を参照。
-bool ComputeContact(const Sphere& a, const Sphere& b, Contact& out);
-bool ComputeContact(const Sphere& sphere, const OBB& obb, Contact& out);
-bool ComputeContact(const OBB& a, const OBB& b, Contact& out);
+KUJATA_API bool ComputeContact(const Sphere& a, const Sphere& b, Contact& out);
+KUJATA_API bool ComputeContact(const Sphere& sphere, const OBB& obb, Contact& out);
+KUJATA_API bool ComputeContact(const OBB& a, const OBB& b, Contact& out);
 // normal は capsule から相手へ向かう分離方向(単位)。
-bool ComputeContact(const Capsule& capsule, const Sphere& sphere, Contact& out);
-bool ComputeContact(const Capsule& a, const Capsule& b, Contact& out);
-bool ComputeContact(const Capsule& capsule, const OBB& obb, Contact& out);
+KUJATA_API bool ComputeContact(const Capsule& capsule, const Sphere& sphere, Contact& out);
+KUJATA_API bool ComputeContact(const Capsule& a, const Capsule& b, Contact& out);
+KUJATA_API bool ComputeContact(const Capsule& capsule, const OBB& obb, Contact& out);
 
-Vector3 Reflect(const Vector3& input, const Vector3& normal);
+KUJATA_API Vector3 Reflect(const Vector3& input, const Vector3& normal);
 
 ///< summary>
 /// CatmullRom補間
@@ -157,7 +158,7 @@ Vector3 Reflect(const Vector3& input, const Vector3& normal);
 ///< param name="p3">点3の座標</param>
 ///< param name="t">点1を0.0f、点2を1.0fとした割合指定</param>
 ///< returns>点1と点2の間で指定された座標</returns>
-Vector3 CatmullRomInterpolation(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
+KUJATA_API Vector3 CatmullRomInterpolation(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
 
 ///< summary>
 /// CatmullRomスプライン曲線上の座標を得る
@@ -165,10 +166,10 @@ Vector3 CatmullRomInterpolation(const Vector3& p0, const Vector3& p1, const Vect
 ///< param name="points">制御点の集合</param>
 /// <param name="t">スプラインの全区間の中での割合指定[0,1]</param>
 ///< returns>座標</returns>
-Vector3 CatmullRomPosition(const std::vector<Vector3>& points, float t);
+KUJATA_API Vector3 CatmullRomPosition(const std::vector<Vector3>& points, float t);
 
-Segment MakeLimitedSegment(const Vector3& start, const Vector3& end, float maxDistance);
-Segment MakeNattoSegment(const Vector3& start, const Vector3& end, float maxDistance, float minDistance);
+KUJATA_API Segment MakeLimitedSegment(const Vector3& start, const Vector3& end, float maxDistance);
+KUJATA_API Segment MakeNattoSegment(const Vector3& start, const Vector3& end, float maxDistance, float minDistance);
 
 } // namespace ShapeUtil
 

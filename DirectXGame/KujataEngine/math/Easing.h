@@ -1,4 +1,5 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 
 #include <cmath>
 
@@ -8,7 +9,7 @@ namespace EaseUtil {
 
 enum class EaseType { Linear, InQuad, OutQuad, InOutQuad, InBack, OutBack, OutBounce };
 
-float GetEaseCalc(float t, EaseType easeType);
+KUJATA_API float GetEaseCalc(float t, EaseType easeType);
 
 inline float EaseLerp(const float start, const float end, float t, EaseType type) {
 	float e = GetEaseCalc(t, type);

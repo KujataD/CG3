@@ -50,11 +50,11 @@ private:
 		bool valid = false;                               // 描画すべきグリフか(スペース/未収録はfalse)
 	};
 
-	bool Initialize(const std::string& fontPath);
+	KUJATA_API bool Initialize(const std::string& fontPath);
 	// コードポイントのグリフを(未ベイクなら)ベイクしてアトラスへ追記する。ピクセルを書いたらtrueを返す。
-	bool BakeGlyph(uint32_t codepoint);
+	KUJATA_API bool BakeGlyph(uint32_t codepoint);
 	// CPUアトラス(単色SDF)をRGBAへ展開してGPUへ再アップロードする。
-	void UploadAtlas();
+	KUJATA_API void UploadAtlas();
 
 	std::string fontPath_;
 	std::vector<uint8_t> fontData_;   // stbtt_fontinfoが参照するので生存させ続ける

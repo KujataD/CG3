@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../3d/PointLight.h"
 #include "../scene/Component.h"
 #include "../scene/IEditorBillboard.h"
@@ -9,7 +10,7 @@ namespace KujataEngine {
 /// <summary>
 /// GameObjectのTransform位置をPointLightへ反映するComponent
 /// </summary>
-class PointLightComponent : public Component, public IEditorBillboard {
+class KUJATA_API PointLightComponent : public Component, public IEditorBillboard {
 public:
 
 	const char* GetTypeName() const override { return "PointLightComponent"; }

@@ -5,6 +5,7 @@
 #pragma warning(disable : 26495)
 #pragma warning(disable : 26819)
 #endif
+#include "../runtime/KujataApi.h"
 #include "../../externals/nlohmann/json.hpp"
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -24,7 +25,7 @@ namespace KujataEngine {
 /// <summary>
 /// グローバル変数
 /// </summary>
-class GlobalVariables {
+class KUJATA_API GlobalVariables {
 public:
 	static GlobalVariables* GetInstance();
 

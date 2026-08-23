@@ -226,11 +226,26 @@ void GuardianSplineRig::Update() {
 		ResolveHierarchy();
 	}
 
-	for (int index = 0; index < kGuardianLegCount; ++index) {
+	const int usedLegCount = GetLegCount();
+	for (int index = 0; index < kGuardianLegSlotCount; ++index) {
 		GuardianSplineLeg* leg = GetLeg(index);
 		if (!leg) {
 			continue;
 		}
+
+		// **使わない脚は接合部ごと隠す。**
+		// 階層は4本ぶん用意したまま Leg Count を減らせるようにするため。
+		// 隠さないと、解かれないままの脚がPrefabの初期姿勢で取り残されて見える。
+		if (index >= usedLegCount) {
+			if (leg->hipObject_ && leg->hipObject_->IsActive()) {
+				leg->hipObject_->SetActive(false);
+			}
+			continue;
+		}
+		if (leg->hipObject_ && !leg->hipObject_->IsActive()) {
+			leg->hipObject_->SetActive(true);
+		}
+
 		if (applyHipPlacement_) {
 			ApplyHipPlacement(*leg);
 		}

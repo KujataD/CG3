@@ -4,6 +4,8 @@
 #include "IGuardianLegRig.h"
 #include "GuardianRigMath.h"
 
+#include <math/Noise.h>
+
 #include <algorithm>
 #include <cmath>
 #include <numbers>
@@ -30,6 +32,7 @@ float Approach(float current, float target, float rate, float deltaTime) {
 void GuardianBody::OnPlayStart() {
 	initialized_ = false;
 	bobPhase_ = 0.0f;
+	noiseTime_ = 0.0f;
 	currentSpin_ = 0.0f;
 }
 
@@ -103,6 +106,17 @@ void GuardianBody::Update() {
 	}
 	float bob = std::sin(bobPhase_) * bobAmplitude_ * speedFactor;
 
+	// --- 立ち止まっている間の揺れ。歩行のBobとちょうど入れ替わりで効く ---
+	// **正弦波ではなくノイズにするのが要点。** 周期が読めないので機械的にならず、
+	// 巨体が自重で微かに軋んでいるように見える。
+	noiseTime_ += deltaTime;
+	float idleSway = 0.0f;
+	if (idleSwayAmplitude_ > 0.0f) {
+		// 脚側(GuardianGait)とはレーンも周波数も別にしてある。噛み合うと共振して不自然に揺れる。
+		idleSway = KujataEngine::PerlinNoise(noiseTime_ * idleSwayFrequency_ + 1.3f, 41.7f) * idleSwayAmplitude_ *
+		           (1.0f - speedFactor);
+	}
+
 	// --- ボディだけを回す。脚は接地したままなので球体が独立して回って見える ---
 	currentSpin_ += spinSpeedDeg_ * kDegreeToRadian * deltaTime;
 	if (currentSpin_ > std::numbers::pi_v<float> * 2.0f) {
@@ -113,8 +127,9 @@ void GuardianBody::Update() {
 
 	WorldTransform& transform = bodyObject->GetTransform();
 	// heightOffset_ は平滑化の外側で足す。溜めの沈み込みなど、即座に効いてほしい用途のため。
-	transform.translation_.y = currentHeight_ + bob + heightOffset_;
-	transform.rotation_ = {currentPitch_, currentSpin_, currentRoll_};
+	transform.translation_.y = currentHeight_ + bob + idleSway + heightOffset_;
+	// pitchOffset_ は平滑化の外側で足す。仰け反りは即座に効いてほしいため。
+	transform.rotation_ = {currentPitch_ + pitchOffset_, currentSpin_, currentRoll_};
 }
 
 bool GuardianBody::GatherPlantedFeet(
@@ -127,7 +142,8 @@ bool GuardianBody::GatherPlantedFeet(
 	float total = 0.0f;
 	int count = 0;
 
-	for (int index = 0; index < kGuardianLegCount; ++index) {
+	const int legCount = rig.GetLegCount();
+	for (int index = 0; index < legCount; ++index) {
 		// 踏み出し中や攻撃で持ち上げ中の脚は、ボディを持ち上げる根拠にならないので除外する。
 		if (rig.IsCurveDriven(index)) {
 			continue;
@@ -147,40 +163,35 @@ bool GuardianBody::GatherPlantedFeet(
 	}
 	outAverageHeight = total / static_cast<float>(count);
 
-	// 前後・左右で「接地している側だけ」の平均を取り、その差を傾きの元にする。
-	// 片側が全部浮いている場合は傾けない(0を返す)。
-	auto averageOf = [&](int a, int b, float& outValue) {
-		float sum = 0.0f;
-		int used = 0;
-		if (planted[a]) {
-			sum += heights[a];
-			++used;
+	// --- 傾きは「足の定位置」で重み付けして求める ---
+	// **固定の添字で前後左右を組まない。** 0=前左/1=前右/2=後右/3=後左 という並びを前提にすると
+	// 脚を3本に減らした瞬間に前後の対応が壊れる。定位置のx(左右)とz(前後)を重みに使えば、
+	// 何本でも・どんな配置でも同じ式で扱える。4脚の既定配置では従来と同じ値になる。
+	float pitchNumerator = 0.0f;
+	float pitchWeight = 0.0f;
+	float rollNumerator = 0.0f;
+	float rollWeight = 0.0f;
+
+	for (int index = 0; index < legCount; ++index) {
+		if (!planted[index]) {
+			continue;
 		}
-		if (planted[b]) {
-			sum += heights[b];
-			++used;
-		}
-		if (used == 0) {
-			return false;
-		}
-		outValue = sum / static_cast<float>(used);
-		return true;
-	};
+		Vector3 home = rig.GetHomeLocal(index);
+		// 前が高いほど頭を上げたいので、zの符号を反転して掛ける。
+		pitchNumerator += heights[index] * -home.z;
+		pitchWeight += std::fabs(home.z);
+		rollNumerator += heights[index] * home.x;
+		rollWeight += std::fabs(home.x);
+	}
 
 	outPitchSlope = 0.0f;
 	outRollSlope = 0.0f;
-
-	float front = 0.0f;
-	float back = 0.0f;
-	if (averageOf(0, 1, front) && averageOf(2, 3, back)) {
-		// 前が高いほど頭を上げる。実距離で割らず素の高低差を使い、強さはtiltStrength_で調整する。
-		outPitchSlope = back - front;
+	// 重みの半分で割ると、4脚の既定配置で従来の「後ろ平均 - 前平均」と一致する。
+	if (pitchWeight > 1.0e-4f) {
+		outPitchSlope = pitchNumerator / (pitchWeight * 0.5f);
 	}
-
-	float left = 0.0f;
-	float right = 0.0f;
-	if (averageOf(0, 3, left) && averageOf(1, 2, right)) {
-		outRollSlope = right - left;
+	if (rollWeight > 1.0e-4f) {
+		outRollSlope = rollNumerator / (rollWeight * 0.5f);
 	}
 
 	return true;

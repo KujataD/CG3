@@ -1,4 +1,5 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include <cstdint>
 #include <d3d12.h>
 #include <deque>
@@ -19,7 +20,7 @@
 
 namespace KujataEngine {
 
-class TextureManager {
+class KUJATA_API TextureManager {
 public:
 	struct TextureLoadEvent {
 		std::string filePath;

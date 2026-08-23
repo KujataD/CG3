@@ -20,8 +20,11 @@ class IAbilitySet;
 /// 調整パラメータ(距離・倍率など)はすべてBTノードのParamsで指定する(コンポーネント側には持たない)。
 ///
 /// 登録Condition: IsLeaderFar(distance) / IsEnemyInRange(range) / IsEnemyInAttackRange(range)
+///                HasStamina(percent) = スタミナ残量が percent[%] 以上か
 /// 登録Action:    FollowLeader(stopDistance, speedScale) / StepToEnemy(speedScale)
-///                FaceEnemy() / UseAbility(slot)
+///                FaceEnemy() / UseAbility(slot: 0=通常, 1=溜め)
+///                Guard(duration) = duration秒ガード(剣士=盾構え/術師=バリア展開)を続ける(Running)
+/// 技のモーション中(IAbilitySet::IsBusy)は移動アクションが足を止める(プレイヤー操作と同じ)。
 ///
 /// 攻撃射程などのキャラ差(近接のPawnは短く、魔法のBishopは長く)を付けたい場合は、
 /// ツリー側のParams(IsEnemyInAttackRangeのrange等)を調整するか、bt_setをキャラ別に分ける。
@@ -37,6 +40,13 @@ public:
 
 	void RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) override;
 
+	/// <summary>
+	/// 操作キャラへ切り替えられて無効化されるときにPartyManagerが呼ぶ。
+	/// 監視オブザーバーを手放し(同一キー"Ally"のprimaryを、次にTickする側へ譲る)、
+	/// 実行中だったBTの分岐をリセットする(再び味方に戻ったとき途中状態から再開しないように)。
+	/// </summary>
+	void OnRelievedFromDuty();
+
 private:
 	void LoadBTSet();
 
@@ -45,17 +55,21 @@ private:
 	bool IsEnemyInRange(const BahamutAI::NodeParams& params);
 	/// <summary>敵が攻撃射程内か(索敵のIsEnemyInRangeとはデフォルト射程が異なるだけ)。</summary>
 	bool IsEnemyInAttackRange(const BahamutAI::NodeParams& params);
+	/// <summary>スタミナ残量がpercent[%]以上か(StaminaComponentが無ければ常にtrue)。</summary>
+	bool HasStamina(const BahamutAI::NodeParams& params);
 
 	// --- BT Actions(HammerEnemyと同じく毎Tick1歩だけ進めてSuccessを返し、ループはRootの再評価に任せる) ---
 	BahamutAI::BTStatus FollowLeader(const BahamutAI::NodeParams& params);
 	BahamutAI::BTStatus StepToEnemy(const BahamutAI::NodeParams& params);
 	BahamutAI::BTStatus FaceEnemy(const BahamutAI::NodeParams& params);
 	BahamutAI::BTStatus UseAbility(const BahamutAI::NodeParams& params);
+	/// <summary>duration秒ガードし続ける(Running)。終わったら解除してSuccess。</summary>
+	BahamutAI::BTStatus Guard(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params);
 
 	// --- helpers ---
 	/// <summary>リーダー(操作中キャラ)を探す。「自分以外のAllyタグでPlayer(入力頭脳)が有効な者」。</summary>
 	KujataEngine::GameObject* FindLeader();
-	/// <summary>最寄りの生存敵(EnemyHealth持ち)を探す。</summary>
+	/// <summary>最寄りの狙える敵(IEnemy持ちでIsTargetable)を探す。</summary>
 	KujataEngine::GameObject* FindNearestEnemy();
 
 private:
@@ -70,4 +84,9 @@ private:
 
 	CharacterMotor* motor_ = nullptr;
 	IAbilitySet* abilitySet_ = nullptr;
+	class IGuard* guard_ = nullptr;
+	class StaminaComponent* stamina_ = nullptr;
+
+	// Guardアクションの経過時間[s](Runningをまたぐ)。負なら未開始。
+	float guardTimer_ = -1.0f;
 };

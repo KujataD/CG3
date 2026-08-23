@@ -254,7 +254,14 @@
       "enabled": true,
       "properties": {
         "health": 600.0,
-        "maxHealth": 600.0
+        "lockOnObjectName": "Body",
+        "lockOnOffset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "maxHealth": 600.0,
+        "poiseMax": 300.0
       },
       "type": "HealthComponent"
     },

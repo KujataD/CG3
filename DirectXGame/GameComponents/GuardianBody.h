@@ -42,6 +42,13 @@ public:
 	void SetHeightOffset(float offset) { heightOffset_ = offset; }
 	float GetHeightOffset() const { return heightOffset_; }
 
+	/// <summary>
+	/// 足から求めた傾きへ足す追加のピッチ[rad]。**致命を受けた大きな仰け反り**のように、
+	/// 地形とは無関係に胴体を反らせたいときに使う。0で通常。
+	/// </summary>
+	void SetPitchOffset(float radian) { pitchOffset_ = radian; }
+	float GetPitchOffset() const { return pitchOffset_; }
+
 private:
 	/// <summary>接地中の脚だけを集めて、平均の高さと前後左右の高低差を求めます。</summary>
 	bool GatherPlantedFeet(
@@ -75,6 +82,12 @@ public:
 		    "揺れの速さ[Hz相当]。歩調とは連動していないので、合わないときはここで合わせる。");
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(bobSpeedReference_, "Bob Speed Reference", 0.01f, 0.01f, 50.0f,
 		    "この移動速度[unit/秒]で揺れ幅が最大になる。これ以上速くても揺れは増えない。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(idleSwayAmplitude_, "Idle Sway Amplitude", 0.005f, 0.0f, 2.0f,
+		    "立ち止まっている時に胴体を上下させる量。歩行中のBobとは別物で、\n"
+		    "**止まっている間に効く**。0で無効。Bob Amplitudeの半分くらいが目安。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(idleSwayFrequency_, "Idle Sway Frequency", 0.01f, 0.01f, 5.0f,
+		    "胴体の揺れの速さ[Hz相当]。脚(Idle Jitter Frequency)とは別の値にしておくと、\n"
+		    "周期が噛み合わずに自然な軋みになる。");
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(spinSpeedDeg_, "Spin Speed (deg/s)", 0.5f, -720.0f, 720.0f,
 		    "ボディだけを回し続ける速度。**脚は接地したまま球体だけが回る。**\n"
 		    "足の定位置がルート基準なので、ボディの回転に脚は影響されない。");
@@ -110,6 +123,11 @@ private:
 	// この速度[unit/s]で揺れ幅が最大になる。
 	float bobSpeedReference_ = 4.0f;
 
+	// --- 待機中の揺れ(パーリンノイズ) ---
+	// 歩行中のBobは正弦波だが、こちらはノイズ。周期が読めないので「生きている」感じになる。
+	float idleSwayAmplitude_ = 0.05f;
+	float idleSwayFrequency_ = 0.22f;
+
 	// ボディだけを回し続ける速度[deg/s]。脚は接地したまま球体が回る。
 	float spinSpeedDeg_ = 0.0f;
 
@@ -123,8 +141,12 @@ private:
 	float currentSpin_ = 0.0f;
 	// ボビングの位相[rad]。
 	float bobPhase_ = 0.0f;
+	// ノイズに入れる時刻[s]。
+	float noiseTime_ = 0.0f;
 	// 外部から与える高さオフセット(平滑化を通さず即座に効く)。
 	float heightOffset_ = 0.0f;
+	// 外部から与える追加ピッチ[rad](致命の仰け反りなど)。平滑化を通さず即座に効く。
+	float pitchOffset_ = 0.0f;
 	// 初回フレームは平滑せず即座に合わせる。
 	bool initialized_ = false;
 };

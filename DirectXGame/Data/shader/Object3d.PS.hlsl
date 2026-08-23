@@ -112,6 +112,47 @@ float32_t CalcShadowFactor(float32_t3 worldPosition)
     return sum / 9.0f;
 }
 
+// --- バリア(enableLighting == 6)用の定数 ---------------------------------
+// 切頂二十面体(サッカーボール)のセル中心方向。
+// 中心は「正二十面体の頂点12個(=五角形の中心)」+「正十二面体の頂点20個(=六角形の中心)」の計32個で、
+// この集合は原点対称なので、対になる向きは abs(dot) でまとめて16本ぶんだけ持てばよい。
+// 法線方向に対して最も近い中心と2番目に近い中心の差からセルの境界を出す(球面ボロノイ)。
+static const float32_t3 kBarrierCells[16] =
+{
+    // 正二十面体の頂点(五角形セルの中心) 6本
+    float32_t3(0.0000000f,  0.5257311f,  0.8506508f),
+    float32_t3(0.0000000f, -0.5257311f,  0.8506508f),
+    float32_t3(0.5257311f,  0.8506508f,  0.0000000f),
+    float32_t3(-0.5257311f, 0.8506508f,  0.0000000f),
+    float32_t3(0.8506508f,  0.0000000f,  0.5257311f),
+    float32_t3(0.8506508f,  0.0000000f, -0.5257311f),
+    // 正十二面体の頂点(六角形セルの中心) 10本
+    float32_t3(0.5773503f,  0.5773503f,  0.5773503f),
+    float32_t3(0.5773503f,  0.5773503f, -0.5773503f),
+    float32_t3(0.5773503f, -0.5773503f,  0.5773503f),
+    float32_t3(0.5773503f, -0.5773503f, -0.5773503f),
+    float32_t3(0.0000000f,  0.3568221f,  0.9341724f),
+    float32_t3(0.0000000f, -0.3568221f,  0.9341724f),
+    float32_t3(0.3568221f,  0.9341724f,  0.0000000f),
+    float32_t3(-0.3568221f, 0.9341724f,  0.0000000f),
+    float32_t3(0.9341724f,  0.0000000f,  0.3568221f),
+    float32_t3(0.9341724f,  0.0000000f, -0.3568221f),
+};
+
+// セルの境界線の太さ(最近傍と次近傍の内積差のしきい値)。大きいほど枠が太い。
+static const float32_t kBarrierLineWidth = 0.045f;
+// セル内側の不透明度(Base Colorのαに対する割合)。
+static const float32_t kBarrierFillAlpha = 0.18f;
+// 縁(視線と垂直な部分)の光り方。ドーム状に見せるためのフレネル。
+static const float32_t kBarrierRimPower = 2.5f;
+
+// 衝撃波の輪の断面。外側(進行方向)を鋭く、内側を長く尾引かせると「通り過ぎた圧」に見える。
+static const float32_t kShockwaveFrontWidth = 0.35f;
+static const float32_t kShockwaveTailWidth = 0.75f;
+
+// トレイルの幅方向のぼかし量。大きいほど縁が柔らかい。
+static const float32_t kTrailEdgeSoftness = 0.6f;
+
 PixelShaderOutput main(VertexShaderOutput input)
 {
     float32_t4 transformedUV = mul(float32_t4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
@@ -323,10 +364,79 @@ PixelShaderOutput main(VertexShaderOutput input)
             // アルファは今まで通り
             output.color.a = gMaterial.color.a * textureColor.a;
         }
+        else if (gMaterial.enableLighting == 5)
+        { // 衝撃波の輪(Ringプリミティブ前提)。土煙なので発光させず、帯の内外へ向けて薄くするだけ。
+            // v は帯の内周(0)→外周(1)。両端を0にして、輪の境界が線で切れないようにする。
+            float32_t band = input.texcoord.y;
+            // 外側は鋭く立ち上がり、内側は長く尾を引く(圧が前面に集まり、後ろへ散っていく見え方)。
+            float32_t front = smoothstep(0.0f, kShockwaveFrontWidth, 1.0f - band);
+            float32_t tail = smoothstep(0.0f, kShockwaveTailWidth, band);
+            float32_t profile = saturate(front * tail);
+
+            output.color.rgb = gMaterial.color.rgb * textureColor.rgb;
+            output.color.a = gMaterial.color.a * textureColor.a * profile;
+            // 完全に透けた部分はPS末尾でdiscardされるので、半透明が深度バッファを汚さない。
+        }
+        else if (gMaterial.enableLighting == 7)
+        { // トレイル(TrailRendererComponentの帯)。u=先頭(0)→末尾(1) / v=幅方向(0〜1)。
+            // 末尾ほど薄くする。帯の終端が線でスパッと切れないようにするのが主目的。
+            float32_t tailFade = 1.0f - input.texcoord.x;
+            // 幅方向の縁もぼかして、板の輪郭が出ないようにする。
+            float32_t edge = 1.0f - abs(input.texcoord.y * 2.0f - 1.0f);
+            float32_t profile = saturate(tailFade * smoothstep(0.0f, kTrailEdgeSoftness, edge));
+
+            output.color.rgb = gMaterial.color.rgb * textureColor.rgb;
+            output.color.a = gMaterial.color.a * textureColor.a * profile;
+        }
+        else if (gMaterial.enableLighting == 6)
+        { // バリア: 六角形20枚+五角形12枚のセルが浮かぶ半透明シェル
+            // 球の法線はそのまま中心からの向きなので、UVを使わずにセルを求められる
+            // (球のUVは極で潰れるため、UVで貼ると模様が歪む)。
+            float32_t3 normal = normalize(input.normal);
+
+            // 最も近いセル中心(d1)と2番目(d2)。対になる向きは abs でまとめている。
+            float32_t d1 = -2.0f;
+            float32_t d2 = -2.0f;
+            [unroll]
+            for (int32_t c = 0; c < 16; c++)
+            {
+                float32_t d = abs(dot(normal, kBarrierCells[c]));
+                if (d > d1)
+                {
+                    d2 = d1;
+                    d1 = d;
+                }
+                else if (d > d2)
+                {
+                    d2 = d;
+                }
+            }
+
+            // d1とd2が拮抗している場所 = 2つのセルの境界。ここを線として光らせる。
+            float32_t edge = 1.0f - smoothstep(0.0f, kBarrierLineWidth, d1 - d2);
+
+            // 縁(視線に対して垂直に近い面)を光らせてドーム感を出す。
+            float32_t3 toEye = normalize(gCamera.worldPosition - input.worldPosition);
+            float32_t rim = pow(1.0f - saturate(abs(dot(normal, toEye))), kBarrierRimPower);
+
+            float32_t glow = saturate(edge + rim * 0.6f);
+
+            output.color.rgb = gMaterial.color.rgb * textureColor.rgb * (0.6f + glow * 2.0f);
+            // 面の内側は薄く、枠と縁だけがはっきり出る。
+            output.color.a = gMaterial.color.a * textureColor.a * saturate(kBarrierFillAlpha + glow);
+
+            // 光る部分だけをブルームへ回す(一様に発光させると模様が潰れるため、
+            // マテリアルのEmissionチェックには頼らずここで書く)。
+            if (gMaterial.emissiveEnabled == 0)
+            {
+                float32_t3 barrierEmissive = gMaterial.color.rgb * glow * gMaterial.bloomIntensity;
+                output.emission.rgb = min(barrierEmissive, 65000.0f);
+            }
+        }
         else
         {
             float cos = saturate(dot(normalize(input.normal), -gDirectionalLight.direction)); // lambertModel
-    
+
             output.color.rgb = gMaterial.color.rgb * textureColor.rgb * gDirectionalLight.color.rgb * cos * gDirectionalLight.intensity;
             output.color.a = gMaterial.color.a * textureColor.a;
         }

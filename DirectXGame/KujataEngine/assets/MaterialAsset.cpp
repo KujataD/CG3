@@ -473,6 +473,14 @@ MaterialAssetData MaterialAsset::ReadJsonObject(const nlohmann::json& json, cons
 		material.shaderModel = json.at("shaderModel").get<int>();
 	}
 
+	// 合成方法と深度書き込み(キーが無い旧Material JSONは 通常αブレンド+深度書き込みあり のまま)。
+	if (json.contains("blendMode") && json.at("blendMode").is_number_integer()) {
+		material.blendMode = json.at("blendMode").get<int>();
+	}
+	if (json.contains("depthWrite") && json.at("depthWrite").is_boolean()) {
+		material.depthWrite = json.at("depthWrite").get<bool>();
+	}
+
 	// エミッション(キーが無い旧Material JSONはデフォルト=OFFのまま)。
 	if (json.contains("emissiveEnabled") && json.at("emissiveEnabled").is_boolean()) {
 		material.emissiveEnabled = json.at("emissiveEnabled").get<bool>();
@@ -518,6 +526,8 @@ void MaterialAsset::WriteJsonObject(nlohmann::json& json, const MaterialAssetDat
 	json["name"] = material.name;
 	json["baseColor"] = {material.baseColor.x, material.baseColor.y, material.baseColor.z, material.baseColor.w};
 	json["shaderModel"] = material.shaderModel;
+	json["blendMode"] = material.blendMode;
+	json["depthWrite"] = material.depthWrite;
 	json["emissiveEnabled"] = material.emissiveEnabled;
 	json["emissiveColor"] = {material.emissiveColor.x, material.emissiveColor.y, material.emissiveColor.z};
 	json["emissiveIntensity"] = material.emissiveIntensity;

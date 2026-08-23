@@ -13,13 +13,13 @@ struct DirectionalLightData {
 	float intensity = 1.0f;
 };
 
-class DirectionalLight {
+class KUJATA_API DirectionalLight {
 public:
-	static KUJATA_API DirectionalLight* GetInstance();
+	static DirectionalLight* GetInstance();
 
 	void Initialize();
-	KUJATA_API void Reset();
-	KUJATA_API void Update(); // ImGuiでの編集後にGPUへ反映
+	void Reset();
+	void Update(); // ImGuiでの編集後にGPUへ反映
 
 	// Drawから呼ぶ用
 	ID3D12Resource* GetResource() const { return lightResource_.Get(); }

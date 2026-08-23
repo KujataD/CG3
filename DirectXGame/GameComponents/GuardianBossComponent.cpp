@@ -1,11 +1,19 @@
 #include "GuardianBossComponent.h"
+#include "GameFx.h"
+#include <components/ParticleSystemComponent.h>
 
+#include "EnemyHealth.h"
+#include "HateTable.h"
 #include "EnemyWeapon.h"
 #include "GuardianBody.h"
 #include "GuardianGait.h"
 #include "GuardianRigMath.h"
 #include "IGuardianLegRig.h"
 #include "PlayerHealth.h"
+
+#include <Editor/PrefabAsset.h>
+#include <components/ModelRendererComponent.h>
+#include <components/DecalComponent.h>
 
 #include <algorithm>
 #include <cmath>
@@ -119,7 +127,13 @@ void GuardianBossComponent::Initialize() {
 	        .Description("対象へ向けて踏み下ろす。攻撃判定ON")
 	        .Float("duration", {0.22f}, "フェーズの長さ(s)。短いほど鋭い")
 	        .Float("reach", {3.2f}, "ルート中心から踏み込める最大の水平距離(m)")
-	        .Float("depth", {0.0f}, "着弾点の高さ(ルート基準)。負で地面へめり込ませる"),
+	        .Float("depth", {0.0f}, "着弾点の高さ(ルート基準)。負で地面へめり込ませる")
+	        .Float("waveRadius", {4.0f}, "衝撃刃が広がり切ったときの半径(m)。足そのものより広く取ると当てやすい")
+	        .Float("waveStart", {1.0f}, "衝撃刃の開始半径(m)")
+	        .Float("waveDuration", {0.35f}, "衝撃刃が広がって消えるまでの時間(s)")
+	        .Float("waveDamage", {14.0f}, "衝撃刃のダメージ")
+	        .Float("waveKnockback", {9.0f}, "衝撃刃の吹き飛ばし初速")
+	        .Float("waveStun", {0.6f}, "衝撃刃で動けなくなる時間(s)"),
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return StompSlam(context, params); });
 
 	BahamutAI::RegisterAction(
@@ -138,7 +152,13 @@ void GuardianBossComponent::Initialize() {
 	        .Float("duration", {0.5f}, "フェーズの長さ(s)")
 	        .Float("radius", {3.0f}, "薙ぎ払う円弧の半径(m)")
 	        .Float("arc", {150.0f}, "薙ぎ払う角度(deg)")
-	        .Float("height", {0.9f}, "薙ぎ払う高さ(ルート基準, m)"),
+	        .Float("height", {0.9f}, "薙ぎ払う高さ(ルート基準, m)")
+	        .Float("waveRadius", {4.5f}, "衝撃刃が広がり切ったときの半径(m)。足そのものより広く取ると当てやすい")
+	        .Float("waveStart", {1.5f}, "衝撃刃の開始半径(m)")
+	        .Float("waveDuration", {0.3f}, "衝撃刃が広がって消えるまでの時間(s)")
+	        .Float("waveDamage", {12.0f}, "衝撃刃のダメージ")
+	        .Float("waveKnockback", {11.0f}, "衝撃刃の吹き飛ばし初速")
+	        .Float("waveStun", {0.6f}, "衝撃刃で動けなくなる時間(s)"),
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return LegSweep(context, params); });
 
 	// --- 飛びかかり。遠距離から一気に詰めて全脚で踏み潰す ---
@@ -173,7 +193,13 @@ void GuardianBossComponent::Initialize() {
 	        .Description("着地。4本すべてを外へ叩きつける。全脚の攻撃判定ON")
 	        .Float("duration", {0.18f}, "叩きつけの長さ(s)。短いほど鋭い")
 	        .Float("spread", {3.6f}, "叩きつける水平距離(m)")
-	        .Float("depth", {-0.1f}, "叩きつける高さ(ルート基準, m)。負で地面へめり込む"),
+	        .Float("depth", {-0.1f}, "叩きつける高さ(ルート基準, m)。負で地面へめり込む")
+	        .Float("waveRadius", {6.0f}, "衝撃刃が広がり切ったときの半径(m)。足そのものより広く取ると当てやすい")
+	        .Float("waveStart", {1.5f}, "衝撃刃の開始半径(m)")
+	        .Float("waveDuration", {0.4f}, "衝撃刃が広がって消えるまでの時間(s)")
+	        .Float("waveDamage", {18.0f}, "衝撃刃のダメージ")
+	        .Float("waveKnockback", {12.0f}, "衝撃刃の吹き飛ばし初速")
+	        .Float("waveStun", {0.6f}, "衝撃刃で動けなくなる時間(s)"),
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return LeapSlam(context, params); });
 
 	BahamutAI::RegisterAction(
@@ -182,6 +208,20 @@ void GuardianBossComponent::Initialize() {
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return LeapRecover(context, params); });
 
 	// --- ジェット飛行。胴体下部のエンジンで低空を浮遊し、脚を高速回転させて追い回す ---
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog,
+	    BahamutAI::ActionDef("JetWarn")
+	        .Category("Jet")
+	        .Description("コマ回転の予兆。沈み込んで脚を抱え込み、胴体を点滅させながらゆっくり回り始める(判定なし)")
+	        .Float("duration", {1.2f}, "予兆の長さ(s)。長いほど避ける猶予が増える")
+	        .Float("sink", {0.6f}, "沈み込む量(m)")
+	        .Float("tuck", {0.35f}, "脚を内側へ引き寄せる割合(0〜1)")
+	        .Float("lift", {0.5f}, "脚を持ち上げる高さ(m)")
+	        .Float("spinSpeed", {240.0f}, "予兆中の回転速度(deg/s)。本番より遅くして「溜め」に見せる")
+	        .Float("flashHz", {6.0f}, "胴体の点滅の速さ(回/秒)")
+	        .Float("flashIntensity", {8.0f}, "点滅の明るさ"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return JetWarn(context, params); });
 
 	BahamutAI::RegisterAction(
 	    btFactory_, catalog,
@@ -202,10 +242,17 @@ void GuardianBossComponent::Initialize() {
 	        .Description("コマのまま対象へ寄っていく。回転中は全脚の攻撃判定ON")
 	        .Float("duration", {5.0f}, "回り続ける時間(s)")
 	        .Float("height", {-0.7f}, "地面からルートまでの高さ(m)。**負にすると胴体が地面に接地する**")
-	        .Float("speed", {6.5f}, "接近速度(m/s)。向きは変えず位置だけ寄せる")
+	        .Float("speed", {2.5f}, "接近速度(m/s)。向きは変えず位置だけ寄せる。速すぎると当たる前に通り過ぎる")
 	        .Float("spinReach", {1.0f}, "脚を伸ばす割合(最大長に対する。1.0でピンと伸ばし切る)")
 	        .Float("spinPitch", {0.0f}, "脚の傾き(deg)。0で地面と平行")
-	        .Float("spinSpeed", {900.0f}, "**胴体ごと**回る速度(deg/s)"),
+	        .Float("spinSpeed", {900.0f}, "**胴体ごと**回る速度(deg/s)")
+	        .Float("strikeScale", {2.0f}, "回転中だけ脚の攻撃判定を太らせる倍率。高速で振り回すとすり抜けるため")
+	        .Float("waveRadius", {4.5f}, "**掃いている円盤そのものの判定**の半径(m)。脚の先端だけでは輪の内側に入られると当たらない")
+	        .Float("waveHeight", {0.8f}, "円盤の判定の高さ(地面から, m)")
+	        .Float("waveDamage", {16.0f}, "轢いたときのダメージ")
+	        .Float("waveKnockback", {12.0f}, "轢いたときの吹き飛ばし初速")
+	        .Float("waveStun", {0.7f}, "轢かれて動けなくなる時間(s)")
+	        .Float("waveHitInterval", {0.7f}, "同じ相手へ轢き直すまでの間隔(s)。短いと乗られただけで即死する"),
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return JetChase(context, params); });
 
 	BahamutAI::RegisterAction(
@@ -264,12 +311,178 @@ void GuardianBossComponent::OnPlayStart() {
 	LoadBTSet();
 
 	if (!btObserver_) {
-		btObserver_ = std::make_unique<BahamutAI::UdpTreeObserver>("GuardianBoss");
+		// **キーはツリー名と完全に一致させること。**
+		// エディタは購読要求に「ツリー名のハッシュ」を載せて送ってくる。ここが違うと
+		// UdpTreeObserver::ShouldTransmit() が常にfalseになり、監視をONにしても
+		// 一切パケットが飛ばない(エラーも出ないので気づきにくい)。
+		// GuardianBT/BehaviorTree.json の activeTreeName は "Guardian"。
+		btObserver_ = std::make_unique<BahamutAI::UdpTreeObserver>("Guardian");
 	}
 
 	currentPhase_.clear();
 	phaseTimer_ = 0.0f;
+	stunElapsed_ = 0.0f;
+	// 致命の仰け反りも必ず解く。演出の途中でPlayを止めると、次のPlayが
+	// 仰け反ったまま始まってBTが一切回らなくなる(ボスが棒立ちになる)。
+	criticalRecoilTimer_ = 0.0f;
+	SetBodyPitchOffset(0.0f);
+	// カメラが脚に反応しないよう、体ごと専用レイヤーへ隔離する(当たり判定は残る)。
+	ApplyBodyPartLayer();
+	// **エンジンの炎へ魂の色を流し込む。**
+	// Prefabの色をそのまま使わないのは、プレイヤーの魂の炎と必ず同じ色にしたいから。
+	// GameFx::kSoulColor の1箇所を変えれば、魂の炎もエンジンの炎も一緒に変わる。
+	if (GameObject* flame = FindDescendantByName(owner_, "EngineFlame")) {
+		if (ParticleSystemComponent* system = flame->GetComponent<ParticleSystemComponent>()) {
+			system->SetColorOverride(GameFx::kSoulColor);
+		}
+	}
+
+	flinchTimer_ = 0.0f;
+	stunStartLocal_.clear();
+	// 衝撃刃はPlayインスタンスごとに作り直す(前回Playのポインタは無効)。
+	shockwave_ = nullptr;
+	shockwaveTried_ = false;
+	shockwaveTimer_ = 0.0f;
+	shockwaveHold_ = false;
 	AbortAttack();
+
+	// 体勢崩し(スタン)とのけぞりはEnemyHealthから通知を受ける。
+	health_ = GetComponent<EnemyHealth>();
+	if (health_) {
+		health_->SetOnStagger([this]() { OnStaggered(); });
+		health_->SetOnStaggerEnd([this]() { OnStaggerEnd(); });
+		health_->SetOnFlinch([this]() { OnFlinch(); });
+		health_->SetOnCritical([this](float seconds) { OnCriticalReceived(seconds); });
+	}
+}
+
+namespace {
+
+// 自分と全ての子孫のレイヤーを揃える。
+void SetLayerRecursive(GameObject* object, uint32_t layer) {
+	if (!object) {
+		return;
+	}
+	object->SetLayer(layer);
+	for (GameObject* child : object->GetChildren()) {
+		SetLayerRecursive(child, layer);
+	}
+}
+
+} // namespace
+
+void GuardianBossComponent::ApplyBodyPartLayer() {
+	if (!owner_) {
+		return;
+	}
+	uint32_t layer = static_cast<uint32_t>(std::clamp(bodyPartLayer_, 0, 31));
+	SetLayerRecursive(owner_, layer);
+}
+
+void GuardianBossComponent::OnStaggered() {
+	// 攻撃を中断し、実行中の分岐を捨てる(スタン明けに途中から再開しないように)。
+	AbortAttack();
+	if (btRuntime_.IsLoaded()) {
+		btRuntime_.Reset();
+	}
+	flinchTimer_ = 0.0f;
+	stunElapsed_ = 0.0f;
+
+	// 今の足先位置から広げ位置へ補間するため、開始時の位置を覚える。
+	stunStartLocal_.clear();
+	if (IGuardianLegRig* rig = GetRig()) {
+		for (int index = 0; index < rig->GetLegCount(); ++index) {
+			stunStartLocal_.push_back(ToRootLocal(rig->GetFootWorld(index)));
+		}
+	}
+}
+
+void GuardianBossComponent::OnStaggerEnd() {
+	// 全脚を歩行へ返し(AbortAttackはactiveLeg_しか戻さない)、沈みも戻す。
+	if (IGuardianLegRig* rig = GetRig()) {
+		for (int index = 0; index < rig->GetLegCount(); ++index) {
+			rig->SetCurveWeight(index, 0.0f);
+		}
+	}
+	AbortAttack();
+	stunStartLocal_.clear();
+}
+
+void GuardianBossComponent::OnCriticalReceived(float recoilSeconds) {
+	// **致命を受けたら攻撃を丸ごと畳む。** 仰け反っている最中に攻撃判定が残っていると、
+	// 決めたはずの一撃で相討ちになる。
+	StopShockwave();
+	SetAllStrikesActive(false);
+	btRuntime_.Reset();
+
+	criticalRecoilTimer_ = (recoilSeconds > 0.0f) ? recoilSeconds : 1.5f;
+	criticalRecoilDuration_ = criticalRecoilTimer_;
+	// 通常ののけぞりは打ち消す(二重に沈まないように)。
+	flinchTimer_ = 0.0f;
+}
+
+void GuardianBossComponent::UpdateCriticalRecoil(float deltaTime) {
+	if (criticalRecoilTimer_ <= 0.0f) {
+		return;
+	}
+	criticalRecoilTimer_ -= deltaTime;
+	float remain = (std::max)(criticalRecoilTimer_, 0.0f);
+	float t = 1.0f - remain / (std::max)(criticalRecoilDuration_, 1.0e-3f);
+
+	// **前半で一気に反り返り、後半でゆっくり戻る。**
+	// 対称な山形にすると「軽く揺れた」だけに見えるので、立ち上がりを鋭くして
+	// 戻りを長く取り、巨体が持ち直すのに時間がかかっている、という見え方にする。
+	float shape = (t < 0.25f) ? (t / 0.25f) : std::pow(1.0f - (t - 0.25f) / 0.75f, 1.6f);
+	shape = std::clamp(shape, 0.0f, 1.0f);
+
+	// 上を向いて反り返る(+Z前方の左手系ではX軸の負回転が上向き)。
+	SetBodyPitchOffset(-criticalRecoilPitch_ * shape);
+	SetBodySink(-criticalRecoilSink_ * shape);
+
+	if (criticalRecoilTimer_ <= 0.0f) {
+		criticalRecoilTimer_ = 0.0f;
+		SetBodyPitchOffset(0.0f);
+		SetBodySink(0.0f);
+	}
+}
+
+void GuardianBossComponent::OnFlinch() {
+	if (health_ && health_->IsStaggered()) {
+		return;
+	}
+	AbortAttack();
+	if (btRuntime_.IsLoaded()) {
+		btRuntime_.Reset();
+	}
+	flinchTimer_ = flinchDuration_;
+}
+
+void GuardianBossComponent::UpdateStunPose(float deltaTime) {
+	IGuardianLegRig* rig = GetRig();
+	if (!rig || !health_) {
+		return;
+	}
+	stunElapsed_ += deltaTime;
+
+	float total = (std::max)(health_->GetStunDuration(), 1.0e-3f);
+	float remaining = health_->GetStunRemaining();
+
+	// 入り: 0.25秒で崩れ落ちる / 出: 最後の0.5秒で起き上がる(weightを戻して歩行へ引き継ぐ)。
+	float collapse = SmoothStep(stunElapsed_ / 0.25f);
+	float riseWindow = (std::min)(0.5f, total * 0.3f);
+	float rise = remaining < riseWindow ? SmoothStep(1.0f - remaining / riseWindow) : 0.0f;
+
+	int legCount = rig->GetLegCount();
+	for (int index = 0; index < legCount; ++index) {
+		Vector3 from = (index < static_cast<int>(stunStartLocal_.size())) ? stunStartLocal_[index] : rig->GetHomeLocal(index);
+		Vector3 to = SpreadLocal(index, stunSpread_, 0.0f);
+		rig->SetCurveWeight(index, 1.0f - rise);
+		rig->SetCurveTargetLocal(index, GuardianRigMath::Lerp3(from, to, collapse));
+	}
+
+	// 胴体: 沈めて小さく震わせる。起き上がりで戻す。
+	float tremble = stunTremble_ * std::sin(stunElapsed_ * 28.0f) * (1.0f - rise);
+	SetBodySink((-stunSink_ * collapse + tremble) * (1.0f - rise));
 }
 
 void GuardianBossComponent::RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) {
@@ -285,6 +498,37 @@ void GuardianBossComponent::LoadBTSet() {
 
 void GuardianBossComponent::Update() {
 	if (!owner_ || !btRuntime_.IsLoaded()) {
+		return;
+	}
+
+	float deltaTime = Time::GetDeltaTime();
+
+	// 衝撃刃はBTの状態に関わらず進める(スタンで攻撃が中断されても、出ている刃は自分で畳む)。
+	UpdateShockwave(deltaTime);
+
+	// スタン中: BTを回さず、スタン姿勢だけを作る。
+	if (health_ && health_->IsStaggered()) {
+		UpdateStunPose(deltaTime);
+		return;
+	}
+
+	// のけぞり中: 胴体を一瞬沈めて戻すだけ。行動はしない。
+	// **致命の仰け反り中はBTを回さない。** 動き出すと演出の絵が壊れる。
+	if (criticalRecoilTimer_ > 0.0f) {
+		UpdateCriticalRecoil(deltaTime);
+		return;
+	}
+
+	if (flinchTimer_ > 0.0f) {
+		flinchTimer_ -= deltaTime;
+		float t = std::clamp(1.0f - flinchTimer_ / (std::max)(flinchDuration_, 1.0e-3f), 0.0f, 1.0f);
+		// 0→1で「沈んで戻る」山形。
+		float dip = std::sin(t * std::numbers::pi_v<float>);
+		SetBodySink(-flinchSink_ * dip);
+		if (flinchTimer_ <= 0.0f) {
+			flinchTimer_ = 0.0f;
+			SetBodySink(0.0f);
+		}
 		return;
 	}
 
@@ -464,6 +708,13 @@ BahamutAI::BTStatus GuardianBossComponent::StompSlam(BahamutAI::AIContext& conte
 
 	if (finished) {
 		SetStrikeActive(activeLeg_, false);
+		// 踏み抜いた地点から衝撃刃を広げる。足の判定は先端の球しかなく点でしか当たらないので、
+		// 「踏まれた場所の周り」を面で拾うのがこの刃の役目。
+		Vector3 impactWorld = GuardianRigMath::ComputeWorldPose(GetOwner()).TransformPoint(attackImpactLocal_);
+		impactWorld.y = SampleGroundUnderRoot();
+		StartShockwave(impactWorld, params.GetFloat("waveStart", 1.0f), params.GetFloat("waveRadius", 4.0f),
+		    params.GetFloat("waveDuration", 0.35f), false, params.GetFloat("waveDamage", 14.0f),
+		    params.GetFloat("waveKnockback", 9.0f), params.GetFloat("waveStun", 0.6f), 0.5f);
 		return BahamutAI::BTStatus::Success;
 	}
 	return BahamutAI::BTStatus::Running;
@@ -495,6 +746,13 @@ BahamutAI::BTStatus GuardianBossComponent::LegSweep(BahamutAI::AIContext& contex
 
 	if (finished) {
 		SetStrikeActive(activeLeg_, false);
+		// 薙いだ弧をまとめて拾う衝撃刃。脚の通り道は広いのに判定は先端の球だけなので、
+		// 薙ぎ終わりに足元から刃を広げて「薙ぎ払われた」範囲を成立させる。
+		Vector3 sweepWorld = GuardianRigMath::ComputeWorldPose(GetOwner()).TransformPoint(sweep);
+		sweepWorld.y = SampleGroundUnderRoot();
+		StartShockwave(sweepWorld, params.GetFloat("waveStart", 1.5f), params.GetFloat("waveRadius", 4.5f),
+		    params.GetFloat("waveDuration", 0.3f), false, params.GetFloat("waveDamage", 12.0f),
+		    params.GetFloat("waveKnockback", 11.0f), params.GetFloat("waveStun", 0.6f), 0.5f);
 		// 復帰フェーズの起点を薙ぎ終わりに合わせる。
 		attackRaisedLocal_ = sweep;
 		return BahamutAI::BTStatus::Success;
@@ -643,6 +901,12 @@ BahamutAI::BTStatus GuardianBossComponent::LeapSlam(BahamutAI::AIContext& contex
 
 	if (finished) {
 		SetAllStrikesActive(false);
+		// 着地の踏み潰しは全周へ。4本の脚の間をすり抜けられないようにする。
+		Vector3 landWorld = owner_->GetTransform().translation_;
+		landWorld.y = SampleGroundUnderRoot();
+		StartShockwave(landWorld, params.GetFloat("waveStart", 1.5f), params.GetFloat("waveRadius", 6.0f),
+		    params.GetFloat("waveDuration", 0.4f), false, params.GetFloat("waveDamage", 18.0f),
+		    params.GetFloat("waveKnockback", 12.0f), params.GetFloat("waveStun", 0.8f), 0.5f);
 		return BahamutAI::BTStatus::Success;
 	}
 	return BahamutAI::BTStatus::Running;
@@ -682,6 +946,51 @@ BahamutAI::BTStatus GuardianBossComponent::LeapRecover(BahamutAI::AIContext& con
 // ---------------------------------------------------------------------------
 // BT Actions: ジェット飛行
 // ---------------------------------------------------------------------------
+
+BahamutAI::BTStatus GuardianBossComponent::JetWarn(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+	IGuardianLegRig* rig = GetRig();
+	if (!owner_ || !rig) {
+		return BahamutAI::BTStatus::Failure;
+	}
+
+	bool starting = (currentPhase_ != "JetWarn");
+	if (starting) {
+		// 予兆中は当たらない。「これから来る」とだけ伝える時間にする。
+		SetAllStrikesActive(false);
+		SetAllStrikeScales(1.0f);
+	}
+
+	float progress = 0.0f;
+	bool finished = TickPhase("JetWarn", params.GetFloat("duration", 1.2f), context.deltaTime, progress);
+
+	float eased = SmoothStep(progress);
+
+	// 沈み込んで脚を抱え込む(バネを縮めるように見せる)。
+	SetBodySink(-params.GetFloat("sink", 0.6f) * eased);
+	float tuck = params.GetFloat("tuck", 0.35f);
+	float lift = params.GetFloat("lift", 0.5f);
+	for (int index = 0; index < rig->GetLegCount(); ++index) {
+		rig->SetCurveStraight(index, false);
+		// weightを0から上げるので、歩行姿勢から抱え込み姿勢へ自然に混ざる。
+		rig->SetCurveWeight(index, eased);
+		rig->SetCurveTargetLocal(index, TuckedLocal(index, tuck, lift));
+	}
+
+	// ゆっくり回り始める(本番の高速回転への助走)。
+	SpinRootYaw(params.GetFloat("spinSpeed", 240.0f) * eased, context.deltaTime);
+
+	// 胴体を赤く点滅させる。終盤ほど速く見えるよう、明滅は経過時間で回す。
+	float flashHz = params.GetFloat("flashHz", 6.0f);
+	float pulse = 0.5f + 0.5f * std::sin(phaseTimer_ * flashHz * 2.0f * std::numbers::pi_v<float>);
+	SetBodyEmissive(true, Vector3{1.0f, 0.15f, 0.05f}, params.GetFloat("flashIntensity", 8.0f) * pulse);
+
+	if (finished) {
+		// 発光は予兆の役目が終わった時点で消す(攻撃本体へ持ち込まない)。
+		SetBodyEmissive(false, Vector3{0.0f, 0.0f, 0.0f}, 0.0f);
+		return BahamutAI::BTStatus::Success;
+	}
+	return BahamutAI::BTStatus::Running;
+}
 
 BahamutAI::BTStatus GuardianBossComponent::JetLiftOff(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
 	IGuardianLegRig* rig = GetRig();
@@ -723,9 +1032,22 @@ BahamutAI::BTStatus GuardianBossComponent::JetChase(BahamutAI::AIContext& contex
 	}
 
 	bool starting = (currentPhase_ != "JetChase");
+	// 回転する脚がそのまま刃になる。**毎Tick入れ直す** —
+	// 開始時に一度だけONにする作りだと、途中で何かがOFFにしたときに気づけないため。
+	SetAllStrikesActive(true);
+	// 刃の先端は1フレームに1m近く進むので、判定を太らせないとプレイヤーをすり抜ける。
+	SetAllStrikeScales(params.GetFloat("strikeScale", 2.0f));
+
 	if (starting) {
-		// 回転する脚がそのまま刃になる。
-		SetAllStrikesActive(true);
+		// **脚の先端だけでは当たらない。** 刃は接合部から外へ伸びているので、
+		// 密着されるとプレイヤーが回転の輪の内側に入り、先端の球は永久にすり抜ける。
+		// 掃いている円盤そのものを判定にするため、ボスに追従する一定サイズの刃を出す。
+		Vector3 center = owner_->GetTransform().translation_;
+		center.y = SampleGroundUnderRoot() + params.GetFloat("waveHeight", 0.8f);
+		float bladeRadius = params.GetFloat("waveRadius", 4.5f);
+		// duration<=0 = JetChaseが終わるまで出しっぱなし。
+		StartShockwave(center, bladeRadius, bladeRadius, 0.0f, true, params.GetFloat("waveDamage", 16.0f),
+		    params.GetFloat("waveKnockback", 12.0f), params.GetFloat("waveStun", 0.7f), params.GetFloat("waveHitInterval", 0.7f));
 	}
 
 	float progress = 0.0f;
@@ -741,7 +1063,7 @@ BahamutAI::BTStatus GuardianBossComponent::JetChase(BahamutAI::AIContext& contex
 		toTarget.y = 0.0f;
 		float distance = Length(toTarget);
 		if (distance > 0.0001f) {
-			owner_->GetTransform().translation_ += toTarget * (params.GetFloat("speed", 6.5f) * context.deltaTime / distance);
+			owner_->GetTransform().translation_ += toTarget * (params.GetFloat("speed", 2.5f) * context.deltaTime / distance);
 		}
 	}
 
@@ -757,6 +1079,8 @@ BahamutAI::BTStatus GuardianBossComponent::JetChase(BahamutAI::AIContext& contex
 
 	if (finished) {
 		SetAllStrikesActive(false);
+		SetAllStrikeScales(1.0f);
+		StopShockwave();
 		return BahamutAI::BTStatus::Success;
 	}
 	return BahamutAI::BTStatus::Running;
@@ -1033,6 +1357,184 @@ void GuardianBossComponent::SetAllStrikesActive(bool active) {
 	}
 }
 
+KujataEngine::GameObject* GuardianBossComponent::AcquireShockwave() {
+	if (shockwave_ || shockwaveTried_) {
+		return shockwave_;
+	}
+	shockwaveTried_ = true;
+
+	Scene* scene = owner_ ? owner_->GetScene() : nullptr;
+	if (!scene || shockwavePrefabPath_.empty()) {
+		return nullptr;
+	}
+	// ランタイム生成なのでエディタのPrefab関連付けは不要(linkInstance=false)。
+	PrefabAsset::InstantiateResult result = PrefabAsset::Instantiate(*scene, shockwavePrefabPath_, false);
+	if (!result.succeeded || !result.rootObject) {
+		Logger::Log("[GuardianBossComponent] shockwave prefab load failed (" + shockwavePrefabPath_ + "): " + result.message);
+		return nullptr;
+	}
+	shockwave_ = result.rootObject;
+	// 減衰の基準になる既定色を覚えておく(以後はこれにαの倍率を掛けて個体へ上書きする)。
+	if (ModelRendererComponent* renderer = shockwave_->GetComponent<ModelRendererComponent>()) {
+		shockwaveBaseColor_ = renderer->GetBaseColor();
+	}
+	shockwave_->SetActive(false);
+	return shockwave_;
+}
+
+void GuardianBossComponent::StartShockwave(const Vector3& center, float startRadius, float endRadius, float duration, bool followOwner,
+    float damage, float knockback, float stunDuration, float hitInterval) {
+	GameObject* wave = AcquireShockwave();
+	// **自分の脚や胴に貼らないよう、出し元を教える。**
+	// 衝撃波は本体の子ではなくシーン直下に生成されるので、デカール側からは
+	// 「誰が出したのか」が分からない。教えないとガーディアンの脚へ貼り付く。
+	if (wave) {
+		if (KujataEngine::DecalComponent* decal = wave->GetComponent<KujataEngine::DecalComponent>()) {
+			decal->SetIgnoreRoot(owner_);
+		}
+	}
+	// **土埃はここ1箇所で賄う。** ストンプもレッグスイープもリープ着地も回転刃も
+	// 最後はこの関数を通るので、攻撃ごとに書くと必ずどれかを付け忘れる。
+	// 強さは波の半径から決める。大きい攻撃ほど濃い土煙が上がる。
+	if (owner_) {
+		float strength = std::clamp(endRadius / 4.0f, 0.5f, 3.0f);
+		GameFx::Burst(owner_->GetScene(), GameFx::Prefab::kDust, center, strength);
+	}
+
+	if (!wave) {
+		return;
+	}
+
+	shockwaveCenter_ = center;
+	shockwaveStartRadius_ = startRadius;
+	shockwaveEndRadius_ = endRadius;
+	shockwaveDuration_ = (std::max)(duration, 0.0f);
+	shockwaveTimer_ = shockwaveDuration_;
+	shockwaveFollow_ = followOwner;
+	// durationが0以下なら「止めるまで出しっぱなし」。コマ回転のように長さをBT側が決める攻撃で使う。
+	shockwaveHold_ = (duration <= 0.0f);
+
+	if (EnemyWeapon* weapon = wave->GetComponent<EnemyWeapon>()) {
+		weapon->SetHitParams(damage, knockback, stunDuration, hitInterval);
+		// OFF→ONの立ち上がりでヒット履歴がクリアされるので、出すたびに当たり直せる。
+		weapon->SetAttack(true);
+	}
+
+	WorldTransform& transform = wave->GetTransform();
+	transform.translation_ = shockwaveCenter_;
+	float radius = shockwaveStartRadius_;
+	// Ringプリミティブは半径1のXZ円環なので、スケールがそのまま半径になる。
+	// 当たりは球のままなので、輪の内側(通り過ぎた跡)にも判定は残る — 広がる波としてはこれで正しい。
+	// **Transformのscaleは当たり判定(SphereCollider)を広げるために残す。**
+	// 見た目はデカール側が世界座標で格子を組むので、このscaleの影響を受けない。
+	transform.scale_ = {radius, 1.0f, radius};
+	if (KujataEngine::DecalComponent* decal = shockwave_->GetComponent<KujataEngine::DecalComponent>()) {
+		decal->SetRadius(radius);
+	}
+	ApplyShockwaveFade(1.0f);
+	wave->SetActive(true);
+}
+
+void GuardianBossComponent::ApplyShockwaveFade(float alphaScale) {
+	if (!shockwave_) {
+		return;
+	}
+	// 色は基準色をそのまま使い、αだけを進捗で落とす。
+	Vector4 color = shockwaveBaseColor_;
+	color.w *= std::clamp(alphaScale, 0.0f, 1.0f);
+	if (KujataEngine::DecalComponent* decal = shockwave_->GetComponent<KujataEngine::DecalComponent>()) {
+		decal->SetColorOverride(color);
+		return;
+	}
+	// 板ポリ構成のPrefabが残っていても動くよう、従来の経路も残しておく。
+	if (ModelRendererComponent* renderer = shockwave_->GetComponent<ModelRendererComponent>()) {
+		renderer->SetColorOverride(color);
+	}
+}
+
+void GuardianBossComponent::StopShockwave() {
+	shockwaveTimer_ = 0.0f;
+	shockwaveHold_ = false;
+	if (!shockwave_) {
+		return;
+	}
+	if (EnemyWeapon* weapon = shockwave_->GetComponent<EnemyWeapon>()) {
+		weapon->SetAttack(false);
+	}
+	shockwave_->SetActive(false);
+}
+
+void GuardianBossComponent::UpdateShockwave(float deltaTime) {
+	if (!shockwave_ || !shockwave_->IsActive()) {
+		return;
+	}
+
+	if (!shockwaveHold_) {
+		shockwaveTimer_ -= deltaTime;
+		if (shockwaveTimer_ <= 0.0f) {
+			StopShockwave();
+			return;
+		}
+	}
+
+	// 経過に応じて広がる(hold中は常に終了半径のまま=一定の刃)。
+	float t = 1.0f;
+	if (!shockwaveHold_ && shockwaveDuration_ > 0.0f) {
+		t = 1.0f - std::clamp(shockwaveTimer_ / shockwaveDuration_, 0.0f, 1.0f);
+	}
+	float radius = shockwaveStartRadius_ + (shockwaveEndRadius_ - shockwaveStartRadius_) * SmoothStep(t);
+
+	WorldTransform& transform = shockwave_->GetTransform();
+	if (shockwaveFollow_ && owner_) {
+		// 追従する場合は高さだけ開始時の値を保つ(地面に沿って走る刃にする)。
+		Vector3 position = owner_->GetTransform().translation_;
+		position.y = shockwaveCenter_.y;
+		transform.translation_ = position;
+	}
+	transform.scale_ = {radius, 1.0f, radius};
+
+	// 広がるほど薄れて消える(土煙が散る)。出しっぱなしのコマ回転は濃さを保つ。
+	ApplyShockwaveFade(shockwaveHold_ ? 1.0f : (1.0f - t));
+}
+
+void GuardianBossComponent::SetAllStrikeScales(float scale) {
+	IGuardianLegRig* rig = GetRig();
+	if (!owner_ || !rig) {
+		return;
+	}
+	for (int index = 0; index < rig->GetLegCount(); ++index) {
+		std::string strikeName = "Leg" + std::to_string(index) + strikeObjectSuffix_;
+		if (GameObject* strike = FindDescendantByName(owner_, strikeName)) {
+			// SphereColliderComponentの半径はTransformのスケール(最大成分)に追従するので、
+			// スケールを変えるだけで判定の太さが変わる。見た目は空のオブジェクトなので影響しない。
+			strike->GetTransform().scale_ = {scale, scale, scale};
+		}
+	}
+}
+
+void GuardianBossComponent::SetBodyEmissive(bool active, const Vector3& color, float intensity) {
+	IGuardianLegRig* rig = GetRig();
+	GameObject* body = rig ? rig->GetBodyObject() : nullptr;
+	if (!body) {
+		return;
+	}
+	ModelRendererComponent* renderer = body->GetComponent<ModelRendererComponent>();
+	if (!renderer) {
+		return;
+	}
+	if (active) {
+		renderer->SetEmissiveOverride(color, intensity);
+	} else {
+		renderer->ClearEmissiveOverride();
+	}
+}
+
+void GuardianBossComponent::SetBodyPitchOffset(float radian) {
+	if (GuardianBody* body = GetComponent<GuardianBody>()) {
+		body->SetPitchOffset(radian);
+	}
+}
+
 void GuardianBossComponent::SetBodySink(float offset) {
 	if (GuardianBody* body = GetComponent<GuardianBody>()) {
 		body->SetHeightOffset(offset);
@@ -1063,6 +1565,15 @@ IGuardianLegRig* GuardianBossComponent::GetRig() { return GetComponent<IGuardian
 KujataEngine::GameObject* GuardianBossComponent::FindTarget() {
 	if (!owner_ || !owner_->GetScene()) {
 		return nullptr;
+	}
+
+	// **ヘイト表があればそちらに従う。**
+	// 最寄りを狙う方式だと、殴ってきた相手より単に近いだけの相手へ寄ってしまい、
+	// キャラを切り替えて攻めても敵の狙いが変わらない。表が無い個体は従来どおり最寄りを狙う。
+	if (HateTable* hate = GetComponent<HateTable>()) {
+		if (GameObject* hated = hate->GetTarget()) {
+			return hated;
+		}
 	}
 
 	// targetTag_の付いた生存キャラのうち最寄りを狙う(HammerEnemyComponentと同じ方針)。
@@ -1186,6 +1697,11 @@ void GuardianBossComponent::AbortAttack() {
 		}
 	}
 	SetAllStrikesActive(false);
+	// 衝撃刃も一時的なものなので必ず消す。
+	StopShockwave();
+	// 判定の太らせと予兆の発光も、一時的にONにするものなので必ず戻す。
+	SetAllStrikeScales(1.0f);
+	SetBodyEmissive(false, Vector3{0.0f, 0.0f, 0.0f}, 0.0f);
 	// 中断されても照射しっぱなしにならないよう、必ず消す。
 	// 「一時的にONにするものは、中断経路でも必ずOFFへ戻す」— 直線モードで一度やらかしている。
 	HideBeam();

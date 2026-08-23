@@ -16,4 +16,27 @@ public:
 
 	/// <summary>技の実行中(モーション中・詠唱中など)か。頭脳側の次行動判断に使う。</summary>
 	virtual bool IsBusy() const = 0;
+
+	/// <summary>
+	/// 致命の一撃の当たった瞬間に呼ばれる。**技ごとの決め方**をここで実装する。
+	/// trueを返すと「自分でダメージを出した」とみなされ、CriticalStrikeComponentは素のダメージを与えない。
+	///
+	/// 既定はfalse(=何もしない)なので、剣士のように「その場で斬るだけ」の技は実装不要。
+	/// 術師はこれを実装し、杖を地面へ突き立てて上空へ弾をばら撒く。
+	/// totalDamageは致命1回ぶんの総ダメージ。複数の弾に分ける場合は割って使う。
+	/// </summary>
+	virtual bool TryCritical(KujataEngine::GameObject* target, float totalDamage) {
+		(void)target;
+		(void)totalDamage;
+		return false;
+	}
+
+	/// <summary>
+	/// 致命の振りかぶり中に毎フレーム呼ばれる(progressは0→1)。溜めの見せ方に使う。
+	/// 術師は杖の球をここで育てる。既定は何もしない。
+	/// </summary>
+	virtual void OnCriticalWindup(float progress) { (void)progress; }
+
+	/// <summary>致命が終わった/中断されたときに呼ばれる。演出を元へ戻す。</summary>
+	virtual void OnCriticalEnd() {}
 };

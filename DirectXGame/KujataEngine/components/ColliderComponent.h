@@ -41,6 +41,18 @@ public:
 
 	bool IsTrigger() const { return isTrigger_; }
 
+	/// <summary>
+	/// **このコライダーは動くか。** 地面・足場として扱ってよいかを見る側が参照する
+	/// (歩行の接地点、デカールの貼り付け先など)。
+	///
+	/// Rigidbodyの有無から推測しないのは、**推測が当たらない構成が普通にあるため**。
+	/// 例: ガーディアンは脚の当たり判定を部位ごとに分けており、部位側はRigidbodyを持たない。
+	/// ルートのRigidbodyはコードで動かす都合でIs Staticなので、遡って見ても「動かない地面」と出る。
+	/// 動くかどうかは置いた本人にしか分からないので、明示して持たせる。
+	/// </summary>
+	bool IsMovingCollider() const { return movingCollider_; }
+	void SetMovingCollider(bool moving) { movingCollider_ = moving; }
+
 	void SetTrigger(bool isTrigger) { isTrigger_ = isTrigger; }
 
 	/// <summary>
@@ -122,6 +134,8 @@ protected:
 	virtual void ReadShapeJson(const nlohmann::json& json) { (void)json; }
 
 	bool isTrigger_ = false;
+	// 動くコライダーか(地面/足場として扱わせない印)。Rigidbodyの有無とは独立に指定する。
+	bool movingCollider_ = false;
 	Vector3 center_ = {0.0f, 0.0f, 0.0f};
 	uint32_t collisionMask_ = 0xffffffff;
 

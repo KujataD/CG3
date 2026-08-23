@@ -54,6 +54,20 @@
           "type": "int"
         }
       ]
+    },
+    {
+      "category": "Defense",
+      "description": "duration秒ガードし続ける(剣士=盾/術師=バリア)",
+      "kind": "action",
+      "name": "Guard",
+      "params": [
+        {
+          "default": 1.5,
+          "description": "ガード秒数",
+          "name": "duration",
+          "type": "float"
+        }
+      ]
     }
   ],
   "conditions": [
@@ -95,6 +109,20 @@
           "default": 2.5,
           "description": "攻撃射程",
           "name": "range",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Sense",
+      "description": "スタミナがpercent%以上あるか",
+      "kind": "condition",
+      "name": "HasStamina",
+      "params": [
+        {
+          "default": 30.0,
+          "description": "必要残量[%]",
+          "name": "percent",
           "type": "float"
         }
       ]

@@ -2,6 +2,7 @@
 
 #include "../KujataEngine/components/AnimatorComponent.h"
 #include "EnemyHealth.h"
+#include "HateTable.h"
 #include "PlayerHealth.h"
 #include <cmath>
 #include <numbers>
@@ -143,10 +144,29 @@ void HammerEnemyComponent::OnPlayStart() {
 	recoilTimer_ = 0.0f;
 	SetHammerVisible(false);
 
-	// 被弾(HPの変化)でのけぞりを起こす。
-	if (owner_) {
-		if (EnemyHealth* health = owner_->GetComponent<EnemyHealth>()) {
-			health->SetOnHealthChanged([this](float) { OnDamaged(); });
+	// 被弾(HPの変化)でのけぞり、体勢崩しでスタン、ジャストガードで強制のけぞり。
+	health_ = owner_ ? owner_->GetComponent<EnemyHealth>() : nullptr;
+	if (health_) {
+		health_->SetOnHealthChanged([this](float) { OnDamaged(); });
+		health_->SetOnStagger([this]() { OnStaggered(); });
+		health_->SetOnFlinch([this]() { PlayRecoil(true); });
+	}
+}
+
+bool HammerEnemyComponent::IsStunned() const {
+	return health_ && health_->IsStaggered();
+}
+
+void HammerEnemyComponent::OnStaggered() {
+	// 攻撃を中断し、実行中の分岐も捨てる(スタン明けに途中から再開しないように)。
+	FinishAttack();
+	if (btRuntime_.IsLoaded()) {
+		btRuntime_.Reset();
+	}
+	recoilTimer_ = 0.0f;
+	if (AnimatorComponent* animator = GetAnimator()) {
+		if (!stunClipName_.empty()) {
+			animator->PlayByName(stunClipName_.c_str());
 		}
 	}
 }
@@ -157,6 +177,11 @@ void HammerEnemyComponent::RegisterInvokableMethods(KujataEngine::InvokableMetho
 
 void HammerEnemyComponent::Update() {
 	if (!owner_ || !btRuntime_.IsLoaded()) {
+		return;
+	}
+
+	// スタン中はBTを回さない(何もせず立ち尽くす。姿勢はスタンクリップが担当)。
+	if (IsStunned()) {
 		return;
 	}
 
@@ -323,6 +348,15 @@ KujataEngine::GameObject* HammerEnemyComponent::FindPlayer() {
 		return nullptr;
 	}
 
+	// **ヘイト表があればそちらに従う。**
+	// 最寄りを狙う方式だと、殴ってきた相手より単に近いだけの相手へ寄ってしまい、
+	// キャラを切り替えて攻めても敵の狙いが変わらない。表が無い個体は従来どおり最寄りを狙う。
+	if (HateTable* hate = GetComponent<HateTable>()) {
+		if (GameObject* hated = hate->GetTarget()) {
+			return hated;
+		}
+	}
+
 	// targetTag_の付いた生存キャラ(PlayerHealth持ち)のうち、最も近いものを狙う。
 	// プレイアブル2人+味方NPC参戦の構成のため、名前固定ではなくタグで選ぶ。
 	// 片方が倒れたら自動的にもう片方へターゲットが移る。
@@ -359,15 +393,25 @@ KujataEngine::AnimatorComponent* HammerEnemyComponent::GetAnimator() {
 }
 
 void HammerEnemyComponent::OnDamaged() {
-	if (!recoilEnabled_) {
+	PlayRecoil(false);
+}
+
+void HammerEnemyComponent::PlayRecoil(bool force) {
+	// スタン中はスタンクリップを上書きしない。
+	if (IsStunned()) {
 		return;
 	}
-	// 状態ごとののけぞり可否。既定では回転攻撃中はのけぞらない(スーパーアーマー)。
-	if (spinActive_ && !recoilDuringSpin_) {
-		return;
-	}
-	if (slamActive_ && !recoilDuringSlam_) {
-		return;
+	if (!force) {
+		if (!recoilEnabled_) {
+			return;
+		}
+		// 状態ごとののけぞり可否。既定では回転攻撃中はのけぞらない(スーパーアーマー)。
+		if (spinActive_ && !recoilDuringSpin_) {
+			return;
+		}
+		if (slamActive_ && !recoilDuringSlam_) {
+			return;
+		}
 	}
 
 	AnimatorComponent* animator = GetAnimator();

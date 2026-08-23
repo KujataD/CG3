@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "Camera.h"
 #include "Model.h"
 #include "WorldTransform.h"
@@ -9,7 +10,7 @@
 namespace KujataEngine {
 
 // 軸方向表示
-class AxisIndicator {
+class KUJATA_API AxisIndicator {
 public:
 	// ビューポート矩形範囲
 	static const float kViewPortTopLeftX;

@@ -35,7 +35,14 @@
     {
       "enabled": true,
       "properties": {
+        "beamHeight": 1.7000000476837158,
+        "beamObjectName": "Beam",
+        "flinchDuration": 0.4000000059604645,
+        "flinchSink": 0.3499999940395355,
         "strikeObjectSuffix": "_Strike",
+        "stunSink": 0.8999999761581421,
+        "stunSpread": 3.4000000953674316,
+        "stunTremble": 0.05000000074505806,
         "targetTag": "Ally"
       },
       "type": "GuardianBossComponent"
@@ -254,7 +261,17 @@
       "enabled": true,
       "properties": {
         "health": 600.0,
-        "maxHealth": 600.0
+        "lockOnObjectName": "Body",
+        "lockOnOffset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "maxHealth": 600.0,
+        "poiseDecayDelay": 2.0,
+        "poiseDecayPerSecond": 20.0,
+        "poiseMax": 300.0,
+        "stunDuration": 3.0
       },
       "type": "HealthComponent"
     },

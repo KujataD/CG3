@@ -3,7 +3,10 @@
 #include <KujataEngine.h>
 
 /// <summary>ガーディアンの脚の本数。前左/前右/後右/後左の4本で固定。</summary>
-inline constexpr int kGuardianLegCount = 4;
+/// <summary>脚のスロット数(=階層に用意できる脚の上限)。実際に使う本数はIGuardianLegRig::GetLegCountが返す。</summary>
+inline constexpr int kGuardianLegSlotCount = 4;
+/// <summary>旧名。配列サイズ用途で残してある(意味はスロット数)。</summary>
+inline constexpr int kGuardianLegCount = kGuardianLegSlotCount;
 
 /// <summary>
 /// 脚リグの共通インターフェース。「足先をどこへ置くか」を決める側(GuardianGait)と

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../3d/Camera.h"
 #include "../scene/Component.h"
 #include "../scene/IEditorBillboard.h"
@@ -10,7 +11,7 @@ namespace KujataEngine {
 /// <summary>
 /// GameObjectのTransformをCameraへ反映するComponent
 /// </summary>
-class CameraComponent : public Component, public IEditorBillboard, public ISceneCamera {
+class KUJATA_API CameraComponent : public Component, public IEditorBillboard, public ISceneCamera {
 public:
 	const char* GetTypeName() const override { return "CameraComponent"; }
 

@@ -197,7 +197,11 @@ void GameObject::Update() {
 		return;
 	}
 
-	for (const std::unique_ptr<Component>& component : components_) {
+	// **添字で回すこと。範囲forは使えない。**
+	// Update中にAddComponentされるとcomponents_が再確保され、範囲forのイテレータが
+	// 無効化されて以降のUpdateが解放済みメモリを触る(thisが壊れる)。
+	for (size_t index = 0; index < components_.size(); ++index) {
+		Component* component = components_[index].get();
 		if (component && component->IsEnabled()) {
 			component->Update();
 		}
@@ -210,7 +214,9 @@ void GameObject::UpdateHierarchy() {
 	}
 
 	Update();
-	for (GameObject* child : children_) {
+	// 自分のUpdateが子を増やす可能性があるため、ここも添字で回す(再確保対策)。
+	for (size_t index = 0; index < children_.size(); ++index) {
+		GameObject* child = children_[index];
 		if (child) {
 			child->UpdateHierarchy();
 		}

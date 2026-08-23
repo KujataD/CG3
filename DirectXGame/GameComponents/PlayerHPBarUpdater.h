@@ -3,14 +3,14 @@
 #include <KujataEngine.h>
 #include <string>
 
-class PlayerHealth;
-
 namespace KujataEngine {
 class ImageComponent;
 }
 
 /// <summary>
-/// 画面左上のPlayer用HPバー。自分(HPBarFill)のImageComponentのfillAmountをPlayerのHP率で更新する。
+/// 画面のPlayer用HPバー。自分(PlayerHPBarFill)のImageComponentのfillAmountを
+/// 「現在のリーダー(PartyManagerが指す操作キャラ)」のHP率で毎フレーム更新する。
+/// キャラ切替で操作キャラが変わればバーも追従する。PartyManagerが無いシーンではPlayer Nameで探す。
 /// </summary>
 class PlayerHPBarUpdater : public KujataEngine::Component {
 public:
@@ -20,15 +20,12 @@ public:
 
 private:
 	KUJATA_SERIALIZED_FIELDS_BEGIN() {
-		KUJATA_REGISTER_STRING(playerName_);
+		KUJATA_REGISTER_STRING_NAMED_TIP(playerName_, "Player Name",
+		    "PartyManagerがシーンに無いときだけ使う保険の名前。あるときは現在のリーダーを自動で追う。");
 	}
 
-	// PlayerHealthを持つGameObjectの名前(シーンから検索する)。
+	// PartyManager不在時のフォールバック名。
 	KUJATA_FIELD_STRING(playerName_, "Pawn");
 
-	PlayerHealth* health_ = nullptr;
 	KujataEngine::ImageComponent* fillImage_ = nullptr;
-
-	// health_/fillImage_を未取得なら解決する。ロード順に依存しないよう毎フレーム試みる。
-	void AcquireRefs();
 };

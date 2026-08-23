@@ -10,6 +10,8 @@
 #include "../shadow/ShadowMap.h"
 #include "../shadow/ShadowPipeline.h"
 #include <filesystem>
+#include <algorithm>
+#include <cmath>
 #include <numbers>
 
 namespace KujataEngine {
@@ -274,6 +276,114 @@ Model* Model::CreateCapsule(const std::string& textureFilePath, ShaderModel shad
 	return model;
 }
 
+Model* Model::CreateDynamic(uint32_t maxVertices, const std::string& textureFilePath, ShaderModel shaderModel) {
+	Model* model = new Model();
+
+	if (maxVertices == 0) {
+		maxVertices = 3;
+	}
+
+	SubMesh subMesh{};
+	// 中身はまだ無いが、バッファだけ先に確保する。以後の更新はmemcpyだけで済む。
+	subMesh.vertexCount = 0;
+	subMesh.vertexCapacity = maxVertices;
+
+	subMesh.vertexResource = DirectXCommon::GetInstance()->CreateBufferResource(sizeof(VertexData) * maxVertices);
+	subMesh.vertexBufferView.BufferLocation = subMesh.vertexResource->GetGPUVirtualAddress();
+	subMesh.vertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(VertexData) * maxVertices);
+	subMesh.vertexBufferView.StrideInBytes = sizeof(VertexData);
+	// Uploadヒープなので張りっぱなしにしてよい(毎フレームMap/Unmapするより安い)。
+	subMesh.vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&subMesh.vertexMap));
+
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
+
+	subMesh.materialResource = DirectXCommon::GetInstance()->CreateBufferResource((sizeof(MaterialData) + 0xff) & ~0xff);
+	subMesh.materialResource->Map(0, nullptr, reinterpret_cast<void**>(&subMesh.materialMap));
+	subMesh.materialMap->color = defaultMaterial.color;
+	subMesh.materialMap->enableLighting = defaultMaterial.enableLighting;
+	subMesh.materialMap->uvTransform = MakeIdentity();
+	subMesh.materialMap->shininess = defaultMaterial.shininess;
+	subMesh.materialMap->emissiveColor = defaultMaterial.emissiveColor;
+	subMesh.materialMap->emissiveIntensity = defaultMaterial.emissiveIntensity;
+	subMesh.materialMap->emissiveEnabled = defaultMaterial.emissiveEnabled;
+	subMesh.materialMap->bloomIntensity = defaultMaterial.bloomIntensity;
+	subMesh.materialMap->bloomThreshold = defaultMaterial.bloomThreshold;
+	subMesh.materialMap->bloomSoftKnee = defaultMaterial.bloomSoftKnee;
+	subMesh.textureIndex = defaultMaterial.textureIndex;
+
+	model->subMeshes_.push_back(std::move(subMesh));
+	return model;
+}
+
+void Model::UpdateDynamicVertices(const std::vector<VertexData>& vertices) {
+	if (subMeshes_.empty()) {
+		return;
+	}
+	SubMesh& subMesh = subMeshes_[0];
+	if (!subMesh.vertexMap) {
+		return;
+	}
+
+	uint32_t count = static_cast<uint32_t>(vertices.size());
+	if (count > subMesh.vertexCapacity) {
+		count = subMesh.vertexCapacity;
+	}
+	if (count > 0) {
+		std::memcpy(subMesh.vertexMap, vertices.data(), sizeof(VertexData) * count);
+	}
+	// 描画数だけを変える。バッファそのものは作り直さない。
+	subMesh.vertexCount = count;
+}
+
+Model* Model::CreateRing(const std::string& textureFilePath, ShaderModel shaderModel, uint32_t subdivision, float innerRatio) {
+	Model* model = new Model();
+
+	if (subdivision < 3) {
+		subdivision = 3;
+	}
+	innerRatio = std::clamp(innerRatio, 0.0f, 0.99f);
+
+	std::vector<VertexData> vertices;
+	vertices.reserve(static_cast<size_t>(subdivision) * 6);
+
+	const float kAngleEvery = 2.0f * std::numbers::pi_v<float> / static_cast<float>(subdivision);
+
+	// 内周と外周の対応する点で四角形を作り、それを2つの三角形に割る。
+	// 上(+Y)から見て時計回りに並べる = 背面カリングで上から見えるようにする。
+	for (uint32_t index = 0; index < subdivision; ++index) {
+		float angle0 = kAngleEvery * static_cast<float>(index);
+		float angle1 = kAngleEvery * static_cast<float>(index + 1);
+
+		float sin0 = std::sin(angle0);
+		float cos0 = std::cos(angle0);
+		float sin1 = std::sin(angle1);
+		float cos1 = std::cos(angle1);
+
+		float u0 = static_cast<float>(index) / static_cast<float>(subdivision);
+		float u1 = static_cast<float>(index + 1) / static_cast<float>(subdivision);
+
+		// v=0が内周、v=1が外周。帯の内→外のグラデーションをシェーダーで作れるようにする。
+		VertexData inner0{.position = {sin0 * innerRatio, 0.0f, cos0 * innerRatio, 1.0f}, .texcoord = {u0, 0.0f}, .normal = {0.0f, 1.0f, 0.0f}};
+		VertexData outer0{.position = {sin0, 0.0f, cos0, 1.0f}, .texcoord = {u0, 1.0f}, .normal = {0.0f, 1.0f, 0.0f}};
+		VertexData inner1{.position = {sin1 * innerRatio, 0.0f, cos1 * innerRatio, 1.0f}, .texcoord = {u1, 0.0f}, .normal = {0.0f, 1.0f, 0.0f}};
+		VertexData outer1{.position = {sin1, 0.0f, cos1, 1.0f}, .texcoord = {u1, 1.0f}, .normal = {0.0f, 1.0f, 0.0f}};
+
+		vertices.push_back(inner0);
+		vertices.push_back(outer0);
+		vertices.push_back(inner1);
+
+		vertices.push_back(inner1);
+		vertices.push_back(outer0);
+		vertices.push_back(outer1);
+	}
+
+	MaterialData defaultMaterial = ModelUtil::CreateTexturedMaterial(textureFilePath, static_cast<int32_t>(shaderModel));
+
+	model->AddSubMesh(vertices, defaultMaterial);
+
+	return model;
+}
+
 Model* Model::CreatePlane(const std::string& textureFilePath, ShaderModel shaderModel) {
 	Model* model = new Model();
 
@@ -415,7 +525,15 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, Fil
 
 	// RootSignature と PSO をセット
 	if (fillMode == kFillModeSolid) {
-		GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3d, blendMode_);
+		// 背面カリングと深度書き込みの組み合わせでPSOを選ぶ。
+		// 半透明/加算が深度を書くと、後から描く背後の物を隠し、自分の裏面とも喧嘩する。
+		PipelineType pipelineType = PipelineType::kObject3d;
+		if (doubleSided_) {
+			pipelineType = depthWrite_ ? PipelineType::kObject3dDoubleSided : PipelineType::kObject3dDoubleSidedNoDepthWrite;
+		} else if (!depthWrite_) {
+			pipelineType = PipelineType::kObject3dNoDepthWrite;
+		}
+		GraphicsPipeline::GetInstance()->SetCommandList(pipelineType, blendMode_);
 	}
 	else if (fillMode == kFillModeWireframe) {
 		GraphicsPipeline::GetInstance()->SetCommandList(PipelineType::kObject3dWireframe, blendMode_);
@@ -440,6 +558,10 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, Fil
 
 	// サブメッシュごとに 頂点バッファ・マテリアル・テクスチャ を切り替えて描画する。
 	for (const SubMesh& subMesh : subMeshes_) {
+		// 動的メッシュは中身が空になることがある(トレイルの点がまだ無い等)。
+		if (subMesh.vertexCount == 0) {
+			continue;
+		}
 		commandList->IASetVertexBuffers(0, 1, &subMesh.vertexBufferView);
 		// マテリアルCBuffer（RootParameter[0]: PixelShader, b0）
 		commandList->SetGraphicsRootConstantBufferView(0, subMesh.materialResource->GetGPUVirtualAddress());
@@ -462,6 +584,10 @@ void Model::DrawShadow(const WorldTransform& worldTransform, const Matrix4x4& li
 
 	// マテリアルもテクスチャも要らないので、頂点バッファだけ差し替えて描く。
 	for (const SubMesh& subMesh : subMeshes_) {
+		// 動的メッシュは中身が空になることがある(トレイルの点がまだ無い等)。
+		if (subMesh.vertexCount == 0) {
+			continue;
+		}
 		commandList->IASetVertexBuffers(0, 1, &subMesh.vertexBufferView);
 		commandList->DrawInstanced(subMesh.vertexCount, 1, 0, 0);
 	}

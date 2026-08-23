@@ -38,6 +38,7 @@
         "billboardEnabled": true,
         "billboardFaceMode": 0,
         "cameraLocalZ": 0.019999999552965164,
+        "doubleSided": false,
         "material": {
           "baseColor": [
             1.0,

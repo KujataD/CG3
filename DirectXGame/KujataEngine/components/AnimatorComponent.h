@@ -37,9 +37,9 @@ struct AnimatorChannel {
 class KUJATA_API AnimatorComponent : public Component {
 public:
 	/// <summary>
-	/// 向き基準の移動チャンネル(Transform/moveForward・moveRight・moveUp)と
+	/// 向き基準の移動チャンネル(Transform/moveForward・moveRight)と
 	/// ローカル回転チャンネル(Transform/localRotation.x・y・z)の適用先。
-	/// axis: 0=右(+X), 1=上(+Y), 2=前(+Z)。
+	/// axis: 0=右(+X), 2=前(+Z)。**上(+Y)は用意しない**(加算のyは戻せず埋まる/浮く原因になるため)。
 	/// </summary>
 	struct LocalMoveTarget {
 		GameObject* object = nullptr;

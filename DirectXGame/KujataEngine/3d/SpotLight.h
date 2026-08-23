@@ -32,14 +32,14 @@ struct SpotLightForGPU {
 	int32_t count = 0;
 };
 
-class SpotLight {
+class KUJATA_API SpotLight {
 public:
-	static KUJATA_API SpotLight* GetInstance();
+	static SpotLight* GetInstance();
 
 	void Initialize();
-	KUJATA_API void Reset();
+	void Reset();
 
-	KUJATA_API void AddLight(const SpotLightData& light);
+	void AddLight(const SpotLightData& light);
 	void SetLight(uint32_t index, const SpotLightData& light);
 
 	ID3D12Resource* GetResource() const { return resource_.Get(); }

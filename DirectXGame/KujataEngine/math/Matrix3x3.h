@@ -1,10 +1,11 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include "Vector2.h"
 
 
 namespace KujataEngine{
 
-class Matrix3x3 {
+class KUJATA_API Matrix3x3 {
 public:
 	float m[3][3];
 

@@ -84,7 +84,7 @@ float ComputeViewDuration(const AnimationClipData& clip) {
 
 // 向き基準移動/ローカル回転の仮想チャンネル(実フィールドを持たず、Animatorが直接解決・適用する)か。
 bool IsLocalMoveChannelPath(const std::string& path) {
-	if (path.ends_with("Transform/moveForward") || path.ends_with("Transform/moveRight") || path.ends_with("Transform/moveUp")) {
+	if (path.ends_with("Transform/moveForward") || path.ends_with("Transform/moveRight")) {
 		return true;
 	}
 	return path.ends_with("Transform/localRotation.x") || path.ends_with("Transform/localRotation.y") || path.ends_with("Transform/localRotation.z");
@@ -122,7 +122,6 @@ void AnimationWindow::CollectChannels(GameObject& owner, const AnimatorComponent
 		std::string transformPrefix = objectPrefix + "Transform/";
 		outChannels.push_back({transformPrefix + "moveForward", nullptr});
 		outChannels.push_back({transformPrefix + "moveRight", nullptr});
-		outChannels.push_back({transformPrefix + "moveUp", nullptr});
 		outChannels.push_back({transformPrefix + "localRotation.x", nullptr});
 		outChannels.push_back({transformPrefix + "localRotation.y", nullptr});
 		outChannels.push_back({transformPrefix + "localRotation.z", nullptr});

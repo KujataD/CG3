@@ -1,111 +1,112 @@
 {
-  "assetType": "GameObject",
-  "instanceId": "go_197e59facd7a5e680cbf3bddc406f45e",
-  "parentInstanceId": "go_6e7417bbee55a88d373a1cfd55925699",
-  "prefabAssetPath": "Prefabs/GuardianSpline.prefab.json",
-  "prefabObjectId": "object_13",
-  "prefabInstanceRootId": "go_0903c9e03b929a320481f3d0bcdf7c74",
-  "prefabInstanceRoot": false,
-  "name": "Leg0_Bone4Mesh",
-  "tag": "Untagged",
-  "layer": 0,
-  "active": true,
-  "components": [
-    {
-      "enabled": true,
-      "properties": {
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          0.30000001192092896,
-          0.30000001192092896,
-          0.8399999737739563
-        ],
-        "translation": [
-          0.0,
-          0.0,
-          0.41999998688697815
-        ]
+   "active" : true,
+   "assetType" : "GameObject",
+   "components" : [
+      {
+         "enabled" : true,
+         "properties" : {
+            "rotation" : [
+               0,
+               0,
+               0
+            ],
+            "scale" : [
+               0.300000011920929,
+               0.300000011920929,
+               0.839999973773956
+            ],
+            "translation" : [
+               0,
+               0,
+               0.419999986886978
+            ]
+         },
+         "type" : "Transform"
       },
-      "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "billboardEnabled": false,
-        "billboardFaceMode": 0,
-        "cameraLocalZ": 1.0,
-        "material": {
-          "baseColor": [
-            1.0,
-            1.0,
-            1.0,
-            1.0
-          ],
-          "bloomIntensity": 1.0,
-          "bloomSoftKnee": 0.5,
-          "bloomThreshold": 0.0,
-          "emissiveColor": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "emissiveEnabled": false,
-          "emissiveIntensity": 1.0,
-          "name": "New Material",
-          "shaderModel": 4,
-          "textures": {
-            "BaseColor": {
-              "assetId": "asset_c380efbdd808cc3261c1efbb9c1c925a",
-              "path": "Resources/white1x1.png"
+      {
+         "enabled" : true,
+         "properties" : {
+            "billboardEnabled" : false,
+            "billboardFaceMode" : 0,
+            "cameraLocalZ" : 1,
+            "material" : {
+               "baseColor" : [
+                  1,
+                  1,
+                  1,
+                  1
+               ],
+               "bloomIntensity" : 1,
+               "bloomSoftKnee" : 0.5,
+               "bloomThreshold" : 0,
+               "emissiveColor" : [
+                  1,
+                  1,
+                  1
+               ],
+               "emissiveEnabled" : false,
+               "emissiveIntensity" : 1,
+               "name" : "New Material",
+               "shaderModel" : 4,
+               "textures" : {
+                  "BaseColor" : {
+                     "assetId" : "asset_c380efbdd808cc3261c1efbb9c1c925a",
+                     "path" : "Resources/white1x1.png"
+                  },
+                  "Environment" : {
+                     "assetId" : "",
+                     "path" : ""
+                  },
+                  "Normal" : {
+                     "assetId" : "",
+                     "path" : ""
+                  }
+               },
+               "uvOffset" : [
+                  0,
+                  0
+               ],
+               "uvRotation" : 0,
+               "uvScale" : [
+                  1,
+                  1
+               ]
             },
-            "Environment": {
-              "assetId": "",
-              "path": ""
-            },
-            "Normal": {
-              "assetId": "",
-              "path": ""
-            }
-          },
-          "uvOffset": [
-            0.0,
-            0.0
-          ],
-          "uvRotation": 0.0,
-          "uvScale": [
-            1.0,
-            1.0
-          ]
-        },
-        "materialAssetId": "",
-        "materialPath": "",
-        "modelAssetId": "asset_9c33c0e2074820164e18b6f4f356ec74",
-        "modelPath": "Resources/player/player.obj",
-        "primitive": "Cube"
+            "materialAssetId" : "",
+            "materialPath" : "",
+            "modelAssetId" : "asset_9c33c0e2074820164e18b6f4f356ec74",
+            "modelPath" : "Resources/player/player.obj",
+            "primitive" : "Cube"
+         },
+         "type" : "ModelRendererComponent"
       },
-      "type": "ModelRendererComponent"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "center": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "collisionMask": 4294967295,
-        "isTrigger": false,
-        "size": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      },
-      "type": "BoxColliderComponent"
-    }
-  ]
+      {
+         "enabled" : true,
+         "properties" : {
+            "center" : [
+               0,
+               0,
+               0
+            ],
+            "collisionMask" : 4294967295,
+            "isTrigger" : false,
+            "movingCollider" : true,
+            "size" : [
+               1,
+               1,
+               1
+            ]
+         },
+         "type" : "BoxColliderComponent"
+      }
+   ],
+   "instanceId" : "go_197e59facd7a5e680cbf3bddc406f45e",
+   "layer" : 0,
+   "name" : "Leg0_Bone4Mesh",
+   "parentInstanceId" : "go_6e7417bbee55a88d373a1cfd55925699",
+   "prefabAssetPath" : "Prefabs/GuardianSpline.prefab.json",
+   "prefabInstanceRoot" : false,
+   "prefabInstanceRootId" : "go_0903c9e03b929a320481f3d0bcdf7c74",
+   "prefabObjectId" : "object_13",
+   "tag" : "Untagged"
 }

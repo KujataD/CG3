@@ -129,7 +129,16 @@ public:
 	void Update() override;
 
 	// --- IGuardianLegRig ---
-	int GetLegCount() const override { return kGuardianLegCount; }
+	/// <summary>
+	/// 実際に使う脚の本数。**階層に用意されている本数より少なくてよい。**
+	/// 余った脚はUpdateで丸ごと非表示にするので、4本ぶんのPrefabのまま3脚にできる。
+	/// </summary>
+	int GetLegCount() const override {
+		if (legCount_ < 1) {
+			return 1;
+		}
+		return (legCount_ > kGuardianLegSlotCount) ? kGuardianLegSlotCount : legCount_;
+	}
 	KujataEngine::Vector3 GetHipWorld(int index) const override;
 	float GetMaxReach(int index) const override;
 	KujataEngine::Vector3 GetHomeWorld(int index) const override;
@@ -175,6 +184,10 @@ public:
 		KUJATA_REGISTER_INT_NAMED_TIP(curveSampleCount_, "Curve Samples", 1.0f, 8, 128,
 		    "曲線を折れ線に落とすときの分割数。多いほど弧長と関節位置が正確になるが重くなる。\n"
 		    "弧長合わせの二分探索でこの回数ぶん評価するので、負荷はこの値に比例する。");
+		KUJATA_REGISTER_INT_NAMED_TIP(legCount_, "Leg Count", 1.0f, 1, kGuardianLegSlotCount,
+		    "実際に使う脚の本数。ここを減らすと余った脚は丸ごと隠れるので、\n"
+		    "4本ぶんの階層を持つPrefabのまま3脚・2脚にできる。\n"
+		    "**減らしたら残る脚のYaw(Hip Yaw / Home Yaw)を配り直すこと。** 偏ったまま歩くと転んだように見える。");
 		KUJATA_REGISTER_OBJECT_NAMED_TIP(leg0_, "Leg 0 (Front Left)",
 		    "前左の脚。歩容では Leg2(後右)と同じグループで、対角ペアとして同時に踏み出す。");
 		KUJATA_REGISTER_OBJECT_NAMED_TIP(leg1_, "Leg 1 (Front Right)",
@@ -191,6 +204,9 @@ private:
 
 	// 曲線を折れ線に落とすときの分割数。多いほど弧長と関節位置が正確になる。
 	int curveSampleCount_ = 32;
+
+	// 使う脚の本数(1〜4)。階層は4本ぶん用意しておき、ここで使う数だけ絞る。
+	KUJATA_FIELD_INT(legCount_, kGuardianLegSlotCount);
 
 	GuardianSplineLeg leg0_{};
 	GuardianSplineLeg leg1_{};

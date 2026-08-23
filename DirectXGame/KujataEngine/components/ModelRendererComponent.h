@@ -27,6 +27,8 @@ public:
 		Sphere,
 		Capsule,
 		Plane,
+		// XZ平面に寝た円環。衝撃波・魔法陣・攻撃予告円のような「地面の輪」用。
+		Ring,
 		Model,
 	};
 
@@ -112,6 +114,20 @@ public:
 	void ClearEmissiveOverride() { emissiveOverrideActive_ = false; }
 	bool HasEmissiveOverride() const { return emissiveOverrideActive_; }
 
+	/// <summary>
+	/// ランタイム色上書き(衝撃波の減衰など、同じMaterialアセットを使う個体ごとに濃さを変えたい場合)。
+	/// **Materialアセット自体は書き換えない。** 上書きしないと濃さがアセット共有になり、
+	/// 同時に複数出ている演出が互いの濃さを奪い合う。
+	/// </summary>
+	void SetColorOverride(const Vector4& color) {
+		colorOverride_ = color;
+		colorOverrideActive_ = true;
+	}
+	void ClearColorOverride() { colorOverrideActive_ = false; }
+	/// <summary>現在のMaterialのBase Color(上書き前の既定値)。演出側が「既定を基準に薄める」ために使う。</summary>
+	const Vector4& GetBaseColor() const { return material_.baseColor; }
+	bool HasColorOverride() const { return colorOverrideActive_; }
+
 	void DrawInspector() override;
 
 	void WriteJson(nlohmann::json& json) const override;
@@ -152,9 +168,13 @@ private:
 	// サブメッシュ別UVトランスフォーム(index=サブメッシュ順)。マテリアル/テクスチャは.mtl由来を維持する。
 	std::vector<SubMeshUVTransform> subMeshUVTransforms_;
 	bool billboardEnabled_ = false;
+	// 両面描画(背面カリングなし)。バリア球など内側からも見せたいものに使う。
+	bool doubleSided_ = false;
 	int billboardFaceMode_ = 0;
 	float cameraLocalZ_ = 1.0f;
 	// ランタイム発光上書き(演出用の一時値。シリアライズしない)。
+	Vector4 colorOverride_ = {1.0f, 1.0f, 1.0f, 1.0f};
+	bool colorOverrideActive_ = false;
 	Vector3 emissiveOverrideColor_ = {0.0f, 0.0f, 0.0f};
 	float emissiveOverrideIntensity_ = 1.0f;
 	bool emissiveOverrideActive_ = false;

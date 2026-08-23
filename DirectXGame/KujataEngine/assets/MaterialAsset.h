@@ -49,6 +49,12 @@ struct MaterialAssetData {
 	// シェーダー方式(ShaderModel enum値)。0=None(Unlit/ライティングなし)..4=Blinn-Phong。
 	// 既定はBlinn-Phong(4)。UI等でライティングを無効にしたい場合は0を選ぶ。
 	int shaderModel = 4;
+	// 合成方法(KujataEngine::BlendMode の値)。既定は1=kNormal(通常のαブレンド)。
+	// 2=kAdd(加算)にすると光・炎・魔法のように「重ねるほど明るくなる」表現になる。
+	int blendMode = 1;
+	// 深度バッファへ書き込むか。**半透明/加算はOFFにする** —
+	// ONのままだと後から描かれる背後の物を隠し、自分の裏面とも喧嘩する(深度テスト自体は常に行う)。
+	bool depthWrite = true;
 	// エミッション(自己発光)。emissiveEnabledがtrueのマテリアルだけ、
 	// ライティングと無関係に emissiveColor × emissiveIntensity を加算する(Unityの Emission チェックと同じ)。
 	// 既定はOFFで既存アセットと互換。強度>1でHDR輝度になりブルームが乗る。

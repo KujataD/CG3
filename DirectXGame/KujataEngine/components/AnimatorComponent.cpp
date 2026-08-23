@@ -62,8 +62,9 @@ void CollectLocalMoveTargetsRecursive(
     std::unordered_map<std::string, AnimatorComponent::LocalMoveTarget>& outMoveTargets,
     std::unordered_map<std::string, AnimatorComponent::LocalMoveTarget>& outRotationTargets) {
 	std::string transformPrefix = objectPrefix + "Transform/";
+	// **移動チャンネルは水平2軸だけ。** 上下(moveUp)は用意しない。
+	// 加算で積まれたyは誰も戻さないため、少しでも残ると地面に埋まる/宙に浮くまま固定されてしまう。
 	outMoveTargets.emplace(transformPrefix + "moveRight", AnimatorComponent::LocalMoveTarget{&object, 0});
-	outMoveTargets.emplace(transformPrefix + "moveUp", AnimatorComponent::LocalMoveTarget{&object, 1});
 	outMoveTargets.emplace(transformPrefix + "moveForward", AnimatorComponent::LocalMoveTarget{&object, 2});
 	outRotationTargets.emplace(transformPrefix + "localRotation.x", AnimatorComponent::LocalMoveTarget{&object, 0});
 	outRotationTargets.emplace(transformPrefix + "localRotation.y", AnimatorComponent::LocalMoveTarget{&object, 1});
@@ -404,7 +405,7 @@ void AnimatorComponent::EvaluateAt(float time) {
 		*found->second = track.curve.Evaluate(time) >= 0.5f;
 	}
 
-	// --- 向き基準の移動チャンネル(moveForward/moveRight/moveUp) ---
+	// --- 向き基準の移動チャンネル(moveForward/moveRight) ---
 	// カーブ値の「前回評価からの増分」を、その時点の自身の向きで回してtranslationへ加算する。
 	// 移動中に旋回すると軌道が曲がる(ルートモーション風)。
 	for (const AnimationTrack& track : clip_.tracks) {
@@ -429,14 +430,26 @@ void AnimatorComponent::EvaluateAt(float time) {
 		Vector3 localAxis = {0.0f, 0.0f, 0.0f};
 		if (target->second.axis == 0) {
 			localAxis.x = 1.0f;
-		} else if (target->second.axis == 1) {
-			localAxis.y = 1.0f;
 		} else {
 			localAxis.z = 1.0f;
 		}
 
 		WorldTransform& transform = target->second.object->GetTransform();
-		transform.translation_ += transform.GetRotationQuaternion().RotateVector(localAxis * delta);
+		Vector3 moveDelta = localAxis * delta;
+
+		// **自分の回転では回さない。**
+		// translation_は親から見たローカル座標なので、キャラの向き(=親の回転)はワールド行列の
+		// 合成時に自動で掛かる。ここで自分の回転まで掛けると、前傾や腰のひねりといった
+		// 「ポーズ」に踏み込みが引きずられ、斜め下へ進んで地面に潜る/横へずれる。
+		// 親がいない(Animatorが最上位に付く旧構成)ときだけ、自分の回転が向きそのものなので回す。
+		if (!transform.parent_) {
+			moveDelta = transform.GetRotationQuaternion().RotateVector(moveDelta);
+		}
+
+		// **上下成分は常に捨てる。**
+		// 加算で積まれたyは誰も戻さないので、わずかでも残ると地面に埋まる/宙に浮くまま固定される。
+		moveDelta.y = 0.0f;
+		transform.translation_ += moveDelta;
 	}
 
 	// --- ローカル回転チャンネル(localRotation.x/.y/.z) ---

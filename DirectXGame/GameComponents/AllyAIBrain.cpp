@@ -1,10 +1,12 @@
 #include "AllyAIBrain.h"
 
 #include "CharacterMotor.h"
-#include "EnemyHealth.h"
 #include "IAbilitySet.h"
+#include "IEnemy.h"
+#include "IGuard.h"
 #include "Player.h"
 #include "PlayerHealth.h"
+#include "StaminaComponent.h"
 
 namespace {
 
@@ -89,17 +91,39 @@ void AllyAIBrain::Initialize() {
 		    return UseAbility(params);
 	    });
 
+	BahamutAI::RegisterCondition(
+	    btFactory_, catalog,
+	    BahamutAI::ConditionDef("HasStamina").Category("Sense").Description("スタミナがpercent%以上あるか").Float("percent", {30.0f}, "必要残量[%]"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+		    (void)context;
+		    return HasStamina(params);
+	    });
+
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog,
+	    BahamutAI::ActionDef("Guard").Category("Defense").Description("duration秒ガードし続ける(剣士=盾/術師=バリア)").Float("duration", {1.5f}, "ガード秒数"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return Guard(context, params); });
+
 	catalog.SaveToBTSetFolder(BTSetFolder());
 }
 
 void AllyAIBrain::OnPlayStart() {
 	motor_ = GetComponent<CharacterMotor>();
 	abilitySet_ = GetComponent<IAbilitySet>();
+	guard_ = GetComponent<IGuard>();
+	stamina_ = GetComponent<StaminaComponent>();
+	guardTimer_ = -1.0f;
 
 	LoadBTSet();
 }
 
 void AllyAIBrain::Update() {
+	// 倒れている間はAIも止める。動かないことが「起こしに行く必要がある」という合図になる。
+	if (PlayerHealth* health = GetComponent<PlayerHealth>()) {
+		if (health->IsDead()) {
+			return;
+		}
+	}
 	if (!owner_ || !btRuntime_.IsLoaded()) {
 		return;
 	}
@@ -118,6 +142,18 @@ void AllyAIBrain::Update() {
 	context.observer = btObserver_.get();
 
 	btRuntime_.Tick(context);
+}
+
+void AllyAIBrain::OnRelievedFromDuty() {
+	btObserver_.reset();
+	// ガードし続けたまま操作側へ渡さない。
+	if (guard_) {
+		guard_->SetGuardInput(false);
+	}
+	guardTimer_ = -1.0f;
+	if (btRuntime_.IsLoaded()) {
+		btRuntime_.Reset();
+	}
 }
 
 void AllyAIBrain::RegisterInvokableMethods(KujataEngine::InvokableMethodRegistry& registry) {
@@ -180,6 +216,10 @@ BahamutAI::BTStatus AllyAIBrain::FollowLeader(const BahamutAI::NodeParams& param
 		return BahamutAI::BTStatus::Success;
 	}
 
+	// 技のモーション中(振り・詠唱・隙)は足を止める(プレイヤー操作と同じ規則)。
+	if (abilitySet_ && abilitySet_->IsBusy()) {
+		return BahamutAI::BTStatus::Success;
+	}
 	motor_->MoveWorld(toLeader, speedScale);
 	return BahamutAI::BTStatus::Success;
 }
@@ -190,9 +230,41 @@ BahamutAI::BTStatus AllyAIBrain::StepToEnemy(const BahamutAI::NodeParams& params
 		return BahamutAI::BTStatus::Failure;
 	}
 
+	if (abilitySet_ && abilitySet_->IsBusy()) {
+		return BahamutAI::BTStatus::Success;
+	}
 	float speedScale = params.GetFloat("speedScale", 1.0f);
 	motor_->MoveWorld(HorizontalTo(*owner_, *enemy), speedScale);
 	return BahamutAI::BTStatus::Success;
+}
+
+bool AllyAIBrain::HasStamina(const BahamutAI::NodeParams& params) {
+	if (!stamina_) {
+		return true;
+	}
+	float percent = params.GetFloat("percent", 30.0f);
+	return stamina_->GetPercent() * 100.0f >= percent;
+}
+
+BahamutAI::BTStatus AllyAIBrain::Guard(BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+	if (!guard_) {
+		return BahamutAI::BTStatus::Failure;
+	}
+	float duration = params.GetFloat("duration", 1.5f);
+
+	if (guardTimer_ < 0.0f) {
+		guardTimer_ = 0.0f;
+	}
+	guardTimer_ += context.deltaTime;
+	guard_->SetGuardInput(true);
+
+	// 構え/展開できなかった(スタミナ切れ・モーション中)ならその場で終える。
+	if (!guard_->IsGuarding() || guardTimer_ >= duration) {
+		guard_->SetGuardInput(false);
+		guardTimer_ = -1.0f;
+		return BahamutAI::BTStatus::Success;
+	}
+	return BahamutAI::BTStatus::Running;
 }
 
 BahamutAI::BTStatus AllyAIBrain::FaceEnemy(const BahamutAI::NodeParams& params) {
@@ -260,8 +332,8 @@ KujataEngine::GameObject* AllyAIBrain::FindNearestEnemy() {
 		if (!object || !object->IsActiveInHierarchy()) {
 			continue;
 		}
-		EnemyHealth* health = object->GetComponent<EnemyHealth>();
-		if (!health || !health->IsAlive()) {
+		IEnemy* enemy = object->GetComponent<IEnemy>();
+		if (!enemy || !enemy->IsTargetable()) {
 			continue;
 		}
 		Vector3 diff = object->GetTransform().translation_ - selfPosition;

@@ -46,7 +46,37 @@ void OrbitCameraComponent::OnPlayStart() {
 	snapNextUpdate_ = true;
 }
 
+void OrbitCameraComponent::UpdateCutscene() {
+	GameObject* owner = GetOwner();
+	if (!owner) {
+		return;
+	}
+	float deltaTime = Time::GetDeltaTime();
+	// **実時間ではなくスケール後の時間を使う。** ヒットストップ中はカメラも止まってほしい。
+	float t = std::clamp(cutsceneBlendSpeed_ * deltaTime, 0.0f, 1.0f);
+
+	WorldTransform& transform = owner->GetTransform();
+	transform.translation_ += (cutscenePosition_ - transform.translation_) * t;
+
+	// 注視点を向く。+Z前方の左手系なので、Yawはatan2(x, z)、Pitchは水平距離との比で出す。
+	Vector3 toTarget = cutsceneLookAt_ - transform.translation_;
+	float horizontal = std::sqrt(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
+	if (horizontal > 1.0e-4f || std::fabs(toTarget.y) > 1.0e-4f) {
+		float targetYaw = std::atan2(toTarget.x, toTarget.z);
+		float targetPitch = std::atan2(-toTarget.y, (std::max)(horizontal, 1.0e-4f));
+		transform.rotation_.y = targetYaw;
+		transform.rotation_.x = targetPitch;
+		transform.rotation_.z = 0.0f;
+	}
+}
+
 void OrbitCameraComponent::Update() {
+	// **カットシーン中は通常の追従を丸ごと止める。**
+	// 追従と演出を混ぜると、寄せている最中に注視点が動いて絵が落ち着かない。
+	if (cutscene_) {
+		UpdateCutscene();
+		return;
+	}
 	if (!IsGamePlaying()) {
 		snapNextUpdate_ = true;
 		return;
@@ -64,43 +94,69 @@ void OrbitCameraComponent::Update() {
 
 	float deltaTime = Time::GetDeltaTime();
 
-	// --- 右スティック → yaw/pitch(スティック上=見下ろしへ回り込み。Invert Yで反転) ---
-	// 上下左右キーも右スティックと同じ入力として合成する。
-	Vector2 stick = Input::GetRightStick();
-	if (Input::GetKey(DIK_LEFT)) {
-		stick.x -= 1.0f;
-	}
-	if (Input::GetKey(DIK_RIGHT)) {
-		stick.x += 1.0f;
-	}
-	if (Input::GetKey(DIK_UP)) {
-		stick.y += 1.0f;
-	}
-	if (Input::GetKey(DIK_DOWN)) {
-		stick.y -= 1.0f;
-	}
-	stick.x = std::clamp(stick.x, -1.0f, 1.0f);
-	stick.y = std::clamp(stick.y, -1.0f, 1.0f);
-	yaw_ = WrapYawAngle(yaw_ + stick.x * sensitivityX_ * deltaTime);
-	float pitchInput = invertY_ ? -stick.y : stick.y;
-	pitch_ = std::clamp(pitch_ + pitchInput * sensitivityY_ * deltaTime, pitchMin_, pitchMax_);
+	Vector3 pivotTarget = target->GetTransform().translation_ + Vector3{0.0f, pivotHeight_, 0.0f};
 
-	// --- リセンタリング: 無入力が続いたらターゲットの背後(ターゲットのyaw)へゆっくり回り込む ---
-	bool stickIdle = (stick.x * stick.x + stick.y * stick.y) < 0.0025f;
-	if (recenterEnabled_ && stickIdle) {
-		recenterTimer_ += deltaTime;
-		if (recenterTimer_ >= recenterWaitTime_) {
-			float yawDifference = WrapYawAngle(target->GetTransform().rotation_.y - yaw_);
-			float recenterT = 1.0f - std::exp(-recenterSpeed_ * deltaTime);
-			yaw_ = WrapYawAngle(yaw_ + yawDifference * recenterT);
+	// 注目対象が無効(非アクティブ)になっていたら外す(消える前に外すのはゲーム側の責任だが保険)。
+	if (lockOnTarget_ && !lockOnTarget_->IsActiveInHierarchy()) {
+		lockOnTarget_ = nullptr;
+	}
+
+	if (lockOnTarget_) {
+		// --- Z注目: 右スティックは無視し、自機の背後から対象を見る向きへ寄せる ---
+		Vector3 aimPoint = lockOnTarget_->GetTransform().translation_ + Vector3{0.0f, lockOnTargetHeight_, 0.0f};
+		Vector3 toTarget = aimPoint - pivotTarget;
+		float horizontal = std::sqrt(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
+		if (horizontal > 0.001f) {
+			float desiredYaw = std::atan2(toTarget.x, toTarget.z);
+			// 対象が高い/低い位置にいるぶんだけ基本ピッチから起こす/伏せる(半分だけ効かせて酔いを抑える)。
+			float elevation = std::atan2(toTarget.y, horizontal);
+			float desiredPitch = std::clamp(lockOnPitch_ - elevation * 0.5f, pitchMin_, pitchMax_);
+
+			float lockT = (lockOnDamping_ > 0.0f) ? (1.0f - std::exp(-lockOnDamping_ * deltaTime)) : 1.0f;
+			yaw_ = WrapYawAngle(yaw_ + WrapYawAngle(desiredYaw - yaw_) * lockT);
+			pitch_ = pitch_ + (desiredPitch - pitch_) * lockT;
 		}
-	} else {
+		// 注視点を対象側へ少し寄せ、自機と対象の両方を画面に収める。
+		pivotTarget = pivotTarget + toTarget * std::clamp(lockOnPivotBias_, 0.0f, 1.0f);
 		recenterTimer_ = 0.0f;
+	} else {
+		// --- 右スティック → yaw/pitch(スティック上=見下ろしへ回り込み。Invert Yで反転) ---
+		// 上下左右キーも右スティックと同じ入力として合成する。
+		Vector2 stick = Input::GetRightStick();
+		if (Input::GetKey(DIK_LEFT)) {
+			stick.x -= 1.0f;
+		}
+		if (Input::GetKey(DIK_RIGHT)) {
+			stick.x += 1.0f;
+		}
+		if (Input::GetKey(DIK_UP)) {
+			stick.y += 1.0f;
+		}
+		if (Input::GetKey(DIK_DOWN)) {
+			stick.y -= 1.0f;
+		}
+		stick.x = std::clamp(stick.x, -1.0f, 1.0f);
+		stick.y = std::clamp(stick.y, -1.0f, 1.0f);
+		yaw_ = WrapYawAngle(yaw_ + stick.x * sensitivityX_ * deltaTime);
+		float pitchInput = invertY_ ? -stick.y : stick.y;
+		pitch_ = std::clamp(pitch_ + pitchInput * sensitivityY_ * deltaTime, pitchMin_, pitchMax_);
+
+		// --- リセンタリング: 無入力が続いたらターゲットの背後(ターゲットのyaw)へゆっくり回り込む ---
+		bool stickIdle = (stick.x * stick.x + stick.y * stick.y) < 0.0025f;
+		if (recenterEnabled_ && stickIdle) {
+			recenterTimer_ += deltaTime;
+			if (recenterTimer_ >= recenterWaitTime_) {
+				float yawDifference = WrapYawAngle(target->GetTransform().rotation_.y - yaw_);
+				float recenterT = 1.0f - std::exp(-recenterSpeed_ * deltaTime);
+				yaw_ = WrapYawAngle(yaw_ + yawDifference * recenterT);
+			}
+		} else {
+			recenterTimer_ = 0.0f;
+		}
 	}
 
 	// --- 目標の姿勢と注視点 ---
 	Quaternion desiredOrientation = Quaternion::FromEuler({pitch_, yaw_, 0.0f});
-	Vector3 pivotTarget = target->GetTransform().translation_ + Vector3{0.0f, pivotHeight_, 0.0f};
 
 	if (snapNextUpdate_) {
 		currentOrientation_ = desiredOrientation;
@@ -116,9 +172,10 @@ void OrbitCameraComponent::Update() {
 	currentPivot_ = currentPivot_ + (pivotTarget - currentPivot_) * positionT;
 
 	// --- 遮蔽回避: 引き寄せは即時(めり込み防止)、復帰は滑らか ---
-	float desiredDistance = distance_;
+	// 演出用の一時倍率を掛けた距離を基準にする(遮蔽回避はこの後に効く)。
+	float desiredDistance = distance_ * distanceScale_;
 	if (collisionEnabled_) {
-		desiredDistance = ComputeOccludedDistance(*owner->GetScene(), owner, target);
+		desiredDistance = (std::min)(desiredDistance, ComputeOccludedDistance(*owner->GetScene(), owner, target));
 	}
 	if (desiredDistance < currentDistance_) {
 		currentDistance_ = desiredDistance;
@@ -254,6 +311,13 @@ void OrbitCameraComponent::DrawInspector() {
 	InspectorUI::Checkbox("Enable Recenter", &recenterEnabled_);
 	InspectorUI::DragFloat("Recenter Wait", &recenterWaitTime_, 0.05f, 0.0f, 30.0f);
 	InspectorUI::DragFloat("Recenter Speed", &recenterSpeed_, 0.05f, 0.0f, 30.0f);
+
+	// --- Z注目 ---
+	InspectorUI::TextUnformatted("Lock On");
+	InspectorUI::DragFloat("Lock On Pitch", &lockOnPitch_, 0.01f, -1.55f, 1.55f);
+	InspectorUI::DragFloat("Lock On Damping", &lockOnDamping_, 0.1f, 0.0f, 100.0f);
+	InspectorUI::DragFloat("Lock On Pivot Bias", &lockOnPivotBias_, 0.01f, 0.0f, 1.0f);
+	InspectorUI::TextUnformatted(lockOnTarget_ ? ("Target: " + lockOnTarget_->GetName()).c_str() : "Target: (none)");
 #endif // USE_IMGUI
 }
 
@@ -276,6 +340,9 @@ void OrbitCameraComponent::WriteJson(nlohmann::json& json) const {
 	json["recenterEnabled"] = recenterEnabled_;
 	json["recenterWaitTime"] = recenterWaitTime_;
 	json["recenterSpeed"] = recenterSpeed_;
+	json["lockOnPitch"] = lockOnPitch_;
+	json["lockOnDamping"] = lockOnDamping_;
+	json["lockOnPivotBias"] = lockOnPivotBias_;
 }
 
 void OrbitCameraComponent::ReadJson(const nlohmann::json& json) {
@@ -311,6 +378,9 @@ void OrbitCameraComponent::ReadJson(const nlohmann::json& json) {
 	}
 	recenterWaitTime_ = ReadFloat(json, "recenterWaitTime", recenterWaitTime_);
 	recenterSpeed_ = ReadFloat(json, "recenterSpeed", recenterSpeed_);
+	lockOnPitch_ = ReadFloat(json, "lockOnPitch", lockOnPitch_);
+	lockOnDamping_ = ReadFloat(json, "lockOnDamping", lockOnDamping_);
+	lockOnPivotBias_ = ReadFloat(json, "lockOnPivotBias", lockOnPivotBias_);
 }
 
 } // namespace KujataEngine

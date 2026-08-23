@@ -857,7 +857,14 @@ void Scene::Update() {
 	}
 
 	// ゲームロジック(Component::Update)がSetVeloc/移動を行う → 速度積分 → 衝突検出+応答 の順。
-	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
+	//
+	// **添字で回すこと。範囲forは使えない。**
+	// Update中に PrefabAsset::Instantiate されると gameObjects_ に push_back されて再確保が起き、
+	// 範囲forのイテレータが無効化されて以降のUpdateが解放済みメモリを触る(thisが壊れる)。
+	// 要素は unique_ptr なので、再確保で動くのはポインタだけ。GameObject自体は動かないため添字なら安全。
+	// size()を毎回読み直すことで、その場で増えた分も安全に扱える(同フレームで1回Updateされる)。
+	for (size_t index = 0; index < gameObjects_.size(); ++index) {
+		GameObject* gameObject = gameObjects_[index].get();
 		if (gameObject && gameObject->IsRoot()) {
 			gameObject->UpdateHierarchy();
 		}
@@ -1243,7 +1250,9 @@ GameObject* Scene::FindGameObjectByInstanceId(const std::string& instanceId) con
 }
 
 void Scene::UpdateWorldTransforms() {
-	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
+	// ここも添字で回す(Update同様、途中で生成されても壊れないように)。
+	for (size_t index = 0; index < gameObjects_.size(); ++index) {
+		GameObject* gameObject = gameObjects_[index].get();
 		if (gameObject && gameObject->IsRoot()) {
 			gameObject->UpdateWorldTransformHierarchy();
 		}

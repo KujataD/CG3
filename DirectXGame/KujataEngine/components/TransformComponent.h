@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../3d/WorldTransform.h"
 #include "../scene/Component.h"
 
@@ -8,7 +9,7 @@ namespace KujataEngine {
 /// <summary>
 /// GameObjectが必ず持つTransform Component
 /// </summary>
-class TransformComponent : public Component {
+class KUJATA_API TransformComponent : public Component {
 public:
 	const char* GetTypeName() const override { return "Transform"; }
 	void Initialize() override;

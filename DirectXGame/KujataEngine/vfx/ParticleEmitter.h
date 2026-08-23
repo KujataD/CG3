@@ -1,4 +1,5 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include "Particle.h"
 #include "ParticleField.h"
 #include "ParticleModel.h"
@@ -10,7 +11,7 @@
 
 namespace KujataEngine {
 
-class ParticleEmitter {
+class KUJATA_API ParticleEmitter {
 public:
 	// 生成図形タイプ
 	enum EmitShape {

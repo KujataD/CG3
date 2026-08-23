@@ -40,7 +40,7 @@ struct AnimatableChannel {
 /// <summary>
 /// 登録された調整項目をInspector表示、JSON保存、JSON読み込みへ流すRegistry。
 /// </summary>
-class SerializedFieldRegistry {
+class KUJATA_API SerializedFieldRegistry {
 public:
 	enum class Mode {
 		DrawInspector,

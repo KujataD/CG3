@@ -86,6 +86,11 @@ enum class PipelineType {
 	kParticle,
 	kInstancingObject3d,
 	kObject3dWireframe,
+	kObject3dDoubleSided, // kObject3dと同じだが背面カリングなし(バリア球・リボン等の薄いものを内側からも見せる)
+	// 深度書き込みOFF版。半透明/加算は深度を書くと「後から描く背後の物」を隠し、
+	// 自分の裏面とも喧嘩するため、透ける材質はこちらを使う(深度テストは行う)。
+	kObject3dNoDepthWrite,
+	kObject3dDoubleSidedNoDepthWrite,
 	kLine,
 	kUI,      // スクリーン空間UI(深度OFF・アルファブレンド・ポスト適用後のLDR RTへ出力)
 	kSprite2D, // world空間2Dスプライト(深度テストON・深度書き込みOFF・両面・アルファブレンド)
@@ -98,6 +103,17 @@ enum class ShaderModel {
 	kHalfLambert,          // ハーフランバート
 	kPhongReflection,      // フォンリフレクション
 	kBlingPhongReflection, // ブリンフォンリフレクション
+	// 衝撃波の輪。UVの中心からの距離で中空のリングを描く。光らせない土煙の表現で、
+	// **オブジェクトを拡大すればリングがそのまま外へ広がる**(進捗パラメータの受け渡しが要らない)。
+	// リングの外と内は完全に透明にしてdiscardさせるため、半透明が深度を汚さない。
+	kShockwaveRing,
+	// 六角形20枚+五角形12枚(切頂二十面体)のセルが浮かぶバリア。
+	// UVではなく法線方向から手続き的にセルを求めるため、球のUVの極の潰れが出ない。
+	// セルの境界だけが光り、面の内側は薄く透ける。色と不透明度はマテリアルのBase Colorで決める。
+	kBarrier,
+	// トレイル(TrailRendererComponentの帯)。UVのu(先頭0→末尾1)に沿って薄くなり、
+	// 幅方向(v)の縁もぼかす。末尾が自然に消えるので、帯の切れ目が線として見えない。
+	kTrail,
 };
 
 /// <summary>

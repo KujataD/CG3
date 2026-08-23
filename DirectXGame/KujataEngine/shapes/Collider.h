@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../runtime/KujataApi.h"
 #include "../math/Vector3.h"
 #include "AABB.h"
 #include "Rect.h"
@@ -12,7 +13,7 @@ const uint32_t kCollisionAttributePlayer = 0b1;
 // 敵陣営
 const uint32_t kCollisionAttributeEnemy = 0b1 << 1;
 
-class Collider {
+class KUJATA_API Collider {
 public:
 	// 半径を取得
 	float GetRadius() const { return radius_; }

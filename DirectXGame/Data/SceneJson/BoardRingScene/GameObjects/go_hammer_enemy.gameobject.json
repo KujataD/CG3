@@ -72,7 +72,17 @@
       "enabled": true,
       "properties": {
         "health": 300.0,
-        "maxHealth": 300.0
+        "lockOnObjectName": "",
+        "lockOnOffset": [
+          0.0,
+          1.5,
+          0.0
+        ],
+        "maxHealth": 300.0,
+        "poiseDecayDelay": 2.0,
+        "poiseDecayPerSecond": 20.0,
+        "poiseMax": 100.0,
+        "stunDuration": 3.0
       },
       "type": "HealthComponent"
     },
@@ -88,6 +98,7 @@
         "recoilDuringSlam": true,
         "recoilDuringSpin": true,
         "recoilEnabled": true,
+        "stunClipName": "HammerStun",
         "targetTag": "Ally"
       },
       "type": "HammerEnemyComponent"

@@ -75,6 +75,7 @@
         "dodgeCooldownFrames": 5,
         "dodgeDurationFrames": 30,
         "dodgeSpeed": 12.0,
+        "dodgeStaminaCost": 20.0,
         "invincibleFrames": 27,
         "knockbackDamping": 6.0,
         "recoilClipName": "PlayerRecoil",

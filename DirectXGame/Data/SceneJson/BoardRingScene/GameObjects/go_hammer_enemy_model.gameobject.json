@@ -38,6 +38,7 @@
         "billboardEnabled": false,
         "billboardFaceMode": 0,
         "cameraLocalZ": 1.0,
+        "doubleSided": false,
         "material": {
           "baseColor": [
             0.8999999761581421,
@@ -45,9 +46,11 @@
             0.20000000298023224,
             1.0
           ],
+          "blendMode": 1,
           "bloomIntensity": 1.0,
           "bloomSoftKnee": 0.5,
           "bloomThreshold": 0.0,
+          "depthWrite": true,
           "emissiveColor": [
             0.0,
             0.0,
@@ -112,6 +115,10 @@
           {
             "assetId": "",
             "path": "Animations/HammerRecoil.anim.json"
+          },
+          {
+            "assetId": "",
+            "path": "Animations/HammerStun.anim.json"
           }
         ],
         "currentClip": 3,

@@ -1,10 +1,11 @@
 #pragma once
+#include "../runtime/KujataApi.h"
 #include "Camera.h"
 #include "WorldTransform.h"
 
 namespace KujataEngine {
 
-class RailCameraController {
+class KUJATA_API RailCameraController {
 public:
 	void Initialize(Vector3 rotation, Vector3 position);
 

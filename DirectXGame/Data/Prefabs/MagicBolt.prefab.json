@@ -59,6 +59,21 @@
           "enabled": true,
           "properties": {},
           "type": "MagicProjectile"
+        },
+        {
+          "enabled": true,
+          "properties": {
+            "emitting": true,
+            "endWidth": 0.0,
+            "lifetime": 0.3,
+            "materialAssetId": "asset_6e1f3a2b8c4d5e60718293a4b5c6d7e8",
+            "materialPath": "Materials/MagicTrail.material.json",
+            "maxPoints": 48,
+            "minDistance": 0.08,
+            "startWidth": 0.35,
+            "teleportDistance": 5.0
+          },
+          "type": "TrailRendererComponent"
         }
       ]
     }

@@ -189,6 +189,21 @@ bool ReadBool(const json& value, const std::string& key, bool defaultValue) {
 	return value.at(key).get<bool>();
 }
 
+uint32_t ReadUint32(const json& value, const std::string& key, uint32_t defaultValue) {
+	if (!value.contains(key)) {
+		return defaultValue;
+	}
+	if (!value.at(key).is_number_integer() && !value.at(key).is_number_unsigned()) {
+		return defaultValue;
+	}
+
+	int64_t rawValue = value.at(key).get<int64_t>();
+	if (rawValue < 0) {
+		return defaultValue;
+	}
+	return static_cast<uint32_t>(rawValue);
+}
+
 bool IsTransformTypeName(const std::string& typeName) {
 	if (typeName == "Transform") {
 		return true;
@@ -269,6 +284,11 @@ std::string BuildPrefabJson(const GameObject& rootObject, size_t& outGameObjectC
 		os << "      \"prefabObjectId\": \"" << EscapeJsonString(writeObject.prefabObjectId) << "\",\n";
 		os << "      \"parentPrefabObjectId\": \"" << EscapeJsonString(writeObject.parentPrefabObjectId) << "\",\n";
 		os << "      \"name\": \"" << EscapeJsonString(gameObject->GetName()) << "\",\n";
+		// タグとレイヤーもPrefabに残す。
+		// これが無いとPrefabから生成したオブジェクトが必ずUntagged/レイヤー0になり、
+		// タグで対象を選ぶ仕組み(ヘイト・ロックオン)やカメラの遮蔽マスクがPrefab経由で機能しない。
+		os << "      \"tag\": \"" << EscapeJsonString(gameObject->GetTag()) << "\",\n";
+		os << "      \"layer\": " << gameObject->GetLayer() << ",\n";
 		os << "      \"active\": ";
 		if (gameObject->IsActive()) {
 			os << "true,\n";
@@ -498,6 +518,9 @@ PrefabAsset::InstantiateResult InstantiateFromEntries(Scene& scene, const std::v
 		}
 
 		gameObject->SetActive(ReadBool(objectJson, "active", gameObject->IsActive()));
+		// 古いPrefabにはtag/layerが無い。その場合は生成直後の既定値(Untagged / 0)のままにする。
+		gameObject->SetTag(ReadString(objectJson, "tag", gameObject->GetTag()));
+		gameObject->SetLayer(ReadUint32(objectJson, "layer", gameObject->GetLayer()));
 		result.componentCount += ApplyPrefabComponents(scene, *gameObject, objectJson);
 
 		outObjectsByPrefabId[prefabObjectId] = gameObject;
@@ -740,6 +763,9 @@ PrefabAsset::InstantiateResult PrefabAsset::RevertPrefabInstance(Scene& scene, G
 
 		gameObject->SetName(objectName);
 		gameObject->SetActive(ReadBool(objectJson, "active", gameObject->IsActive()));
+		// 古いPrefabにはtag/layerが無い。その場合は生成直後の既定値(Untagged / 0)のままにする。
+		gameObject->SetTag(ReadString(objectJson, "tag", gameObject->GetTag()));
+		gameObject->SetLayer(ReadUint32(objectJson, "layer", gameObject->GetLayer()));
 		result.componentCount += ApplyPrefabComponents(scene, *gameObject, objectJson);
 		importedPrefabObjectIds.push_back(prefabObjectId);
 		parentLinks.push_back({gameObject, parentPrefabObjectId});

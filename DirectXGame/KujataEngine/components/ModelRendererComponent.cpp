@@ -43,6 +43,10 @@ ModelRendererComponent::PrimitiveType ReadPrimitiveType(const std::string& primi
 		return ModelRendererComponent::PrimitiveType::Plane;
 	}
 
+	if (primitiveName == "Ring") {
+		return ModelRendererComponent::PrimitiveType::Ring;
+	}
+
 	if (primitiveName == "Model") {
 		return ModelRendererComponent::PrimitiveType::Model;
 	}
@@ -201,6 +205,11 @@ void ModelRendererComponent::Update() {
 		return;
 	}
 
+	// 色の上書き(衝撃波の減衰など)。個体ごとの濃さなのでMaterialアセットには触らない。
+	if (colorOverrideActive_) {
+		model_->SetColor(colorOverride_);
+	}
+
 	// ランタイム上書き(被弾フラッシュ等)が有効なら最優先で適用する(Emissionチェックに関係なく光らせる)。
 	if (emissiveOverrideActive_) {
 		model_->SetEmissive(emissiveOverrideColor_, emissiveOverrideIntensity_, true);
@@ -240,6 +249,7 @@ void ModelRendererComponent::Draw() {
 		owner->GetTransform().UpdateMatrix(*camera_);
 	}
 
+	model_->SetDoubleSided(doubleSided_);
 	model_->Draw(owner->GetTransform(), *camera_);
 }
 
@@ -274,14 +284,17 @@ void ModelRendererComponent::DrawInspector() {
 	case KujataEngine::ModelRendererComponent::PrimitiveType::Plane:
 		primitiveIndex = 4;
 		break;
-	case KujataEngine::ModelRendererComponent::PrimitiveType::Model:
+	case KujataEngine::ModelRendererComponent::PrimitiveType::Ring:
 		primitiveIndex = 5;
+		break;
+	case KujataEngine::ModelRendererComponent::PrimitiveType::Model:
+		primitiveIndex = 6;
 		break;
 	default:
 		break;
 	}
 
-	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Capsule", "Plane", "Model"};
+	const char* primitiveItems[] = {"Custom", "Cube", "Sphere", "Capsule", "Plane", "Ring", "Model"};
 	constexpr int primitiveItemCount = static_cast<int>(sizeof(primitiveItems) / sizeof(primitiveItems[0]));
 	if (InspectorUI::Combo("Primitive", &primitiveIndex, primitiveItems, primitiveItemCount)) {
 		PrimitiveType selectedPrimitive = PrimitiveType::Custom;
@@ -294,6 +307,8 @@ void ModelRendererComponent::DrawInspector() {
 		} else if (primitiveIndex == 4) {
 			selectedPrimitive = PrimitiveType::Plane;
 		} else if (primitiveIndex == 5) {
+			selectedPrimitive = PrimitiveType::Ring;
+		} else if (primitiveIndex == 6) {
 			selectedPrimitive = PrimitiveType::Model;
 		}
 		SetPrimitive(selectedPrimitive, GetBaseColorTexturePath(material_));
@@ -339,6 +354,8 @@ void ModelRendererComponent::DrawInspector() {
 		}
 	}
 
+	InspectorUI::Checkbox("Double Sided", &doubleSided_);
+
 	InspectorUI::TextUnformatted("--- Billboard ---");
 	InspectorUI::Checkbox("Billboard Enabled", &billboardEnabled_);
 
@@ -362,6 +379,7 @@ void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	json["materialAssetId"] = materialAssetId_;
 	json["materialPath"] = materialPath_;
 	json["billboardEnabled"] = billboardEnabled_;
+	json["doubleSided"] = doubleSided_;
 	json["billboardFaceMode"] = billboardFaceMode_;
 	json["cameraLocalZ"] = cameraLocalZ_;
 
@@ -405,6 +423,9 @@ void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 
 	if (json.contains("billboardEnabled") && json.at("billboardEnabled").is_boolean()) {
 		billboardEnabled_ = json.at("billboardEnabled").get<bool>();
+	}
+	if (json.contains("doubleSided") && json.at("doubleSided").is_boolean()) {
+		doubleSided_ = json.at("doubleSided").get<bool>();
 	}
 
 	if (json.contains("billboardFaceMode") && json.at("billboardFaceMode").is_number_integer()) {
@@ -474,6 +495,14 @@ void ModelRendererComponent::RebuildPrimitiveModel() {
 		return;
 	}
 
+	if (primitive_ == PrimitiveType::Ring) {
+		// 輪は土煙や魔法陣など「面で見せる」用途なので、既定はライティング無し(Unlit)。
+		// マテリアルのShader Modelで上書きされる。
+		model_.reset(Model::CreateRing(texturePath, ShaderModel::kNone));
+		ApplyMaterialToModel();
+		return;
+	}
+
 	if (primitive_ == PrimitiveType::Model) {
 		// assetId優先で現在のパスへ解決してから読み込む(移動済みアセットは.meta経由で新パスが返る)。
 		std::filesystem::path modelFilePath = ResolveModelFilePath();
@@ -493,6 +522,9 @@ void ModelRendererComponent::ApplyMaterialToModel() {
 
 	// シェーダー方式(ライティング)はMaterialの選択を常に全サブメッシュへ反映する。
 	model_->SetShaderModel(static_cast<ShaderModel>(material_.shaderModel));
+	// 合成方法と深度書き込みもMaterialの選択をそのまま全サブメッシュへ反映する。
+	model_->SetBlendMode(static_cast<BlendMode>(material_.blendMode));
+	model_->SetDepthWrite(material_.depthWrite);
 
 	// 色/テクスチャの上書き方針(方式B):
 	//  - Material Assetを参照している場合は、Unityの共有Material同様に全サブメッシュを一括上書き。
@@ -565,6 +597,10 @@ const char* ModelRendererComponent::GetPrimitiveName() const {
 
 	if (primitive_ == PrimitiveType::Plane) {
 		return "Plane";
+	}
+
+	if (primitive_ == PrimitiveType::Ring) {
+		return "Ring";
 	}
 
 	if (primitive_ == PrimitiveType::Model) {

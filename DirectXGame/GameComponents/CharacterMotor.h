@@ -44,10 +44,47 @@ public:
 	void FaceWorld(const KujataEngine::Vector3& direction);
 
 	/// <summary>
-	/// 回避(前転)を開始する(無敵付与+前転クリップ再生)。
-	/// 行動不能中・クールダウン中は開始せずfalseを返す。
+	/// 回避(前転)を開始する(無敵付与+前転クリップ再生)。向いている方向へ転がる。
+	/// 行動不能中・クールダウン中・スタミナ切れでは開始せずfalseを返す。
+	/// スタミナは Dodge Stamina Cost[%] だけ消費する(攻撃・ガードと同じく残量>0なら出せて0で止まる)。
 	/// </summary>
 	bool TryDodge();
+
+	/// <summary>
+	/// カメラ基準の入力方向へ回避する(Z注目中用。入力方向へ即座に向き直ってから転がる)。
+	/// 入力がほぼゼロなら向いている方向へ(TryDodgeと同じ)。
+	/// </summary>
+	bool TryDodgeCameraRelative(const KujataEngine::Vector3& input);
+
+	/// <summary>
+	/// 注目対象を設定する(Z注目)。設定中はMoveCameraRelativeが「入力方向へ移動しつつ対象の方を向く」
+	/// ストレイフ移動になる。nullptrで解除(通常の移動方向への旋回に戻る)。
+	/// </summary>
+	void SetFacingTarget(KujataEngine::GameObject* target) { facingTarget_ = target; }
+	KujataEngine::GameObject* GetFacingTarget() const { return facingTarget_; }
+
+	/// <summary>移動速度の倍率(ガード中の鈍足など)。毎フレーム頭脳側が設定する。1で等速。</summary>
+	void SetMoveSpeedScale(float scale) { moveSpeedScale_ = scale; }
+
+	/// <summary>
+	/// 旋回速度の倍率(攻撃モーション中の方向補正など)。毎フレーム頭脳側が設定する。1で等速。
+	/// **MoveCameraRelativeにだけ効く。** AIが使うMoveWorldは素のTurn Speedのまま。
+	/// </summary>
+	void SetTurnSpeedScale(float scale) { turnSpeedScale_ = scale; }
+
+	/// <summary>
+	/// 進行中の移動をすべて止める(ノックバック・回避・Rigidbodyの速度)。
+	/// **死亡した瞬間のように「その場で完全に止めたい」ときに使う。**
+	/// 個別に消すと、回避の途中で死んだ場合だけ滑り続ける、といった取りこぼしが出る。
+	/// </summary>
+	void StopAllMotion();
+
+	/// <summary>
+	/// 一定時間その場に固定する(致命の一撃など、専用モーションを出し切らせたいとき)。
+	/// 硬直と同じ扱いなので移動・攻撃・回避を受け付けなくなるが、
+	/// **ノックバックものけぞりクリップも起こさない**点が被弾と違う。
+	/// </summary>
+	void BeginActionLock(float seconds);
 
 	/// <summary>
 	/// ノックバックを与える。stunDurationの間は行動不能になり、初速velocityから減衰しながら滑る。
@@ -91,6 +128,10 @@ private:
 		KUJATA_REGISTER_INT_NAMED(invincibleFrames_, "Dodge Invincible Frames", 1.0f, 0, 600);
 		KUJATA_REGISTER_INT_NAMED(dodgeCooldownFrames_, "Dodge Cooldown Frames", 1.0f, 0, 600);
 		KUJATA_REGISTER_FLOAT_NAMED(dodgeSpeed_, "Dodge Speed", 0.1f, 0.0f, 100.0f);
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(dodgeStaminaCost_, "Dodge Stamina Cost", 1.0f, 0.0f, 100.0f,
+		    "回避1回のスタミナ消費[最大値比%]。\n"
+		    "残量が0より大きければ回避でき、消費で0に張り付く(攻撃・ガードと同じ流儀)。\n"
+		    "StaminaComponentが付いていないキャラは消費しない。");
 		KUJATA_REGISTER_STRING_NAMED(dodgeClipName_, "Dodge Clip");
 		KUJATA_REGISTER_STRING_NAMED(recoilClipName_, "Recoil Clip");
 	}
@@ -111,6 +152,8 @@ private:
 	KUJATA_FIELD_INT(dodgeCooldownFrames_, 10);
 	// 回避中の前進速度[unit/s]。
 	KUJATA_FIELD_FLOAT(dodgeSpeed_, 8.0f);
+	// 回避1回のスタミナ消費[最大値比%]。
+	KUJATA_FIELD_FLOAT(dodgeStaminaCost_, 20.0f);
 
 	// --- クリップ名(キャラごとに差し替え可能。空なら再生しない) ---
 	// 回避(前転)クリップ。
@@ -139,4 +182,14 @@ private:
 
 	// 同じGameObjectのPlayerHealth(無敵の付与先)。
 	class PlayerHealth* health_ = nullptr;
+	// 同じGameObjectのStaminaComponent(無ければ回避はスタミナを消費しない)。
+	class StaminaComponent* stamina_ = nullptr;
+
+	// --- 注目 ---
+	// 注目対象(nullptr=非注目)。移動中もこちらを向き続ける。
+	KujataEngine::GameObject* facingTarget_ = nullptr;
+	// 移動速度倍率(ガード中など)。
+	float moveSpeedScale_ = 1.0f;
+	// 旋回速度倍率(攻撃中の方向補正など)。
+	float turnSpeedScale_ = 1.0f;
 };
