@@ -22,6 +22,7 @@ namespace KujataEngine {
 
 class ColliderComponent;
 class GameObject;
+class ModelRendererComponent;
 class SerializedFieldRegistry;
 struct AnimatableChannel;
 struct Collision;
@@ -148,6 +149,18 @@ public:
 	bool IsEnabled() const { return enabled_; }
 
 	virtual bool IsTransformComponent() const { return false; }
+
+	/// <summary>
+	/// ColliderComponentなら自身を返す高速ダウンキャスト(dynamic_castの代替)。
+	/// Scene::UpdateCollisions等、毎フレーム全Componentを型判定する箇所でRTTIコストを避けるために使う。
+	/// </summary>
+	virtual ColliderComponent* AsColliderComponent() { return nullptr; }
+
+	/// <summary>
+	/// ModelRendererComponentなら自身を返す高速ダウンキャスト(dynamic_castの代替)。
+	/// Scene::RenderShadowPass等、毎フレーム全Componentを型判定する箇所でRTTIコストを避けるために使う。
+	/// </summary>
+	virtual ModelRendererComponent* AsModelRendererComponent() { return nullptr; }
 
 protected:
 	GameObject* owner_ = nullptr;

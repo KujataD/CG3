@@ -272,7 +272,7 @@ void CollectSceneColliders(Scene& scene, std::vector<ColliderComponent*>& outCol
 				continue;
 			}
 
-			ColliderComponent* collider = dynamic_cast<ColliderComponent*>(component.get());
+			ColliderComponent* collider = component->AsColliderComponent();
 			if (!collider) {
 				continue;
 			}
@@ -923,8 +923,10 @@ void Scene::RenderShadowPass() {
 			if (!component || !component->IsEnabled()) {
 				continue;
 			}
-			ModelRendererComponent* renderer = dynamic_cast<ModelRendererComponent*>(component.get());
-			if (renderer) {
+			ModelRendererComponent* renderer = component->AsModelRendererComponent();
+			// **Cast Shadowを切ったものは影パスで描かない。**
+			// 小さなパーツを大量に置くと、個別の影は絵に効かないのにドローコールだけ倍になる。
+			if (renderer && renderer->CastsShadow()) {
 				renderer->DrawShadow(shadowMap->GetLightViewProjection());
 			}
 		}
@@ -1042,19 +1044,49 @@ void Scene::UpdateCollisions() {
 		activeColliders.insert(collider);
 	}
 
-	std::unordered_map<std::string, CollisionPairState> currentPairStates;
-	for (size_t indexA = 0; indexA < colliders.size(); ++indexA) {
-		ColliderComponent* colliderA = colliders[indexA];
-		if (!colliderA) {
-			continue;
-		}
+	// ブロードフェーズ(Sweep and Prune): X軸のAABB minでソートし、Xレンジが重ならない組は
+	// 候補から外す。真に交差するペアは全軸でAABBが重なっているはずなので、X軸だけ見ても
+	// 取りこぼしは起きない(候補が減るだけで、絞り込みすぎることはない)。
+	// コライダー数がN個ある今の規模(ガーディアン等ボーンだらけの敵込みで100前後)では、
+	// 総当たり(N^2)よりペア数を大きく減らせる。
+	struct BroadPhaseEntry {
+		size_t originalIndex;
+		AABB aabb;
+	};
+	std::vector<BroadPhaseEntry> entries;
+	entries.reserve(colliders.size());
+	for (size_t index = 0; index < colliders.size(); ++index) {
+		entries.push_back({index, colliders[index]->GetWorldAABB()});
+	}
+	std::sort(entries.begin(), entries.end(), [](const BroadPhaseEntry& lhs, const BroadPhaseEntry& rhs) { return lhs.aabb.min.x < rhs.aabb.min.x; });
 
-		for (size_t indexB = indexA + 1; indexB < colliders.size(); ++indexB) {
+	std::unordered_map<std::string, CollisionPairState> currentPairStates;
+
+	std::vector<BroadPhaseEntry> active;
+	for (const BroadPhaseEntry& entry : entries) {
+		// activeのうち、今回のentryより手前でXレンジが終わっている(=もう重なりようがない)ものを外す。
+		active.erase(std::remove_if(active.begin(), active.end(),
+		                 [&entry](const BroadPhaseEntry& candidate) { return candidate.aabb.max.x < entry.aabb.min.x; }),
+		    active.end());
+
+		for (const BroadPhaseEntry& other : active) {
+			// 元のcolliders配列でのindexが小さい方をA、大きい方をBに揃える
+			// (Sweep順ではなく元の並びで固定し、接触法線の向き等の既存挙動を変えない)。
+			size_t indexA = (std::min)(entry.originalIndex, other.originalIndex);
+			size_t indexB = (std::max)(entry.originalIndex, other.originalIndex);
+			ColliderComponent* colliderA = colliders[indexA];
 			ColliderComponent* colliderB = colliders[indexB];
-			if (!colliderB) {
+
+			GameObject* ownerA = colliderA->GetOwner();
+			GameObject* ownerB = colliderB->GetOwner();
+			if (ownerA == ownerB) {
 				continue;
 			}
-			if (colliderA->GetOwner() == colliderB->GetOwner()) {
+			// 同じ階層ルート(=同じキャラクター)に属するコライダー同士は既定では判定しない。
+			// ガーディアンの脚ボーンのように部位ごとにコライダーを分けた構成で、
+			// 自分自身の部位同士が毎フレーム無意味に交差判定されるのを防ぐ
+			// (絵にもゲームプレイにも出ない負荷。ボーン数が増えるほどO(n^2)で効いてくる)。
+			if (ownerA && ownerB && ownerA->GetHierarchyRoot() == ownerB->GetHierarchyRoot()) {
 				continue;
 			}
 			if (!colliderA->Intersects(*colliderB)) {
@@ -1092,6 +1124,8 @@ void Scene::UpdateCollisions() {
 
 			NotifyCollisionPair(colliderA, colliderB, isTrigger, CollisionEventPhase::Stay, contactPtr);
 		}
+
+		active.push_back(entry);
 	}
 
 	for (const auto& [pairKey, previousState] : collisionPairStates_) {

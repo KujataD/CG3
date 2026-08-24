@@ -37,6 +37,8 @@ public:
 
 	const char* GetTypeName() const override { return "ColliderComponent"; }
 
+	ColliderComponent* AsColliderComponent() override { return this; }
+
 	virtual ColliderShapeType GetShapeType() const = 0;
 
 	bool IsTrigger() const { return isTrigger_; }

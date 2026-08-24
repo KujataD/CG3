@@ -356,6 +356,11 @@ void ModelRendererComponent::DrawInspector() {
 
 	InspectorUI::Checkbox("Double Sided", &doubleSided_);
 
+	InspectorUI::Checkbox("Cast Shadow", &castShadow_);
+	InspectorUI::ItemTooltip(
+	    "影パスでも描くか。offにすると影を落とさなくなる代わりに、**ドローコールが半分になる**。\n"
+	    "多数の小さなパーツ(脚のボーンなど)は、個別の影が絵に効かない割に描画回数だけ倍にする。");
+
 	InspectorUI::TextUnformatted("--- Billboard ---");
 	InspectorUI::Checkbox("Billboard Enabled", &billboardEnabled_);
 
@@ -380,6 +385,7 @@ void ModelRendererComponent::WriteJson(nlohmann::json& json) const {
 	json["materialPath"] = materialPath_;
 	json["billboardEnabled"] = billboardEnabled_;
 	json["doubleSided"] = doubleSided_;
+	json["castShadow"] = castShadow_;
 	json["billboardFaceMode"] = billboardFaceMode_;
 	json["cameraLocalZ"] = cameraLocalZ_;
 
@@ -426,6 +432,9 @@ void ModelRendererComponent::ReadJson(const nlohmann::json& json) {
 	}
 	if (json.contains("doubleSided") && json.at("doubleSided").is_boolean()) {
 		doubleSided_ = json.at("doubleSided").get<bool>();
+	}
+	if (json.contains("castShadow") && json.at("castShadow").is_boolean()) {
+		castShadow_ = json.at("castShadow").get<bool>();
 	}
 
 	if (json.contains("billboardFaceMode") && json.at("billboardFaceMode").is_number_integer()) {

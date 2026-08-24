@@ -53,6 +53,13 @@ public:
 
 	bool IsRoot() const { return parent_ == nullptr; }
 
+	/// <summary>
+	/// 階層を親へ辿った先の最上位GameObjectを返します(自身がRootならthis)。
+	/// 「同じキャラクター/オブジェクトに属するか」の判定に使います
+	/// (例: ガーディアンの脚ボーン同士は同じRootを持つので同一個体とみなせる)。
+	/// </summary>
+	KUJATA_API GameObject* GetHierarchyRoot();
+
 	KUJATA_API bool IsDescendantOf(const GameObject* ancestor) const;
 
 	KUJATA_API void UpdateHierarchy();

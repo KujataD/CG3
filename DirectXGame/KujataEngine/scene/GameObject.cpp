@@ -114,6 +114,14 @@ bool GameObject::ReorderChild(GameObject* child, GameObject* reference, bool ins
 	return true;
 }
 
+GameObject* GameObject::GetHierarchyRoot() {
+	GameObject* current = this;
+	while (current->parent_) {
+		current = current->parent_;
+	}
+	return current;
+}
+
 bool GameObject::IsDescendantOf(const GameObject* ancestor) const {
 	if (!ancestor) {
 		return false;

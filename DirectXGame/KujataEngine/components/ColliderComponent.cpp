@@ -139,32 +139,27 @@ bool HasWorldRotation(const Matrix4x4& matrix) {
 	return false;
 }
 
-const BoxColliderComponent* AsBoxCollider(const ColliderComponent& collider) {
-	return dynamic_cast<const BoxColliderComponent*>(&collider);
-}
+// GetShapeType()で型を確認済みの前提でBox派生へ落とす(dynamic_castよりRTTIコストが無い分速い)。
+const BoxColliderComponent& AsBoxColliderUnchecked(const ColliderComponent& collider) { return static_cast<const BoxColliderComponent&>(collider); }
+
+// GetShapeType()で型を確認済みの前提でCapsule派生へ落とす。
+const CapsuleColliderComponent& AsCapsuleColliderUnchecked(const ColliderComponent& collider) { return static_cast<const CapsuleColliderComponent&>(collider); }
 
 bool IsCollisionBoxAndBox(const ColliderComponent& a, const ColliderComponent& b) {
-	const BoxColliderComponent* boxA = AsBoxCollider(a);
-	const BoxColliderComponent* boxB = AsBoxCollider(b);
-	if (!boxA || !boxB) {
-		return ShapeUtil::IsCollision(a.GetWorldAABB(), b.GetWorldAABB());
+	const BoxColliderComponent& boxA = AsBoxColliderUnchecked(a);
+	const BoxColliderComponent& boxB = AsBoxColliderUnchecked(b);
+
+	if (boxA.UsesWorldOBB() || boxB.UsesWorldOBB()) {
+		return ShapeUtil::IsCollision(boxA.GetWorldOBB(), boxB.GetWorldOBB());
 	}
 
-	if (boxA->UsesWorldOBB() || boxB->UsesWorldOBB()) {
-		return ShapeUtil::IsCollision(boxA->GetWorldOBB(), boxB->GetWorldOBB());
-	}
-
-	return ShapeUtil::IsCollision(boxA->GetWorldAABB(), boxB->GetWorldAABB());
-}
-
-const CapsuleColliderComponent* AsCapsuleCollider(const ColliderComponent& collider) {
-	return dynamic_cast<const CapsuleColliderComponent*>(&collider);
+	return ShapeUtil::IsCollision(boxA.GetWorldAABB(), boxB.GetWorldAABB());
 }
 
 // Sphere/CapsuleをワールドCapsuleへ変換する(球はp0==p1の退化カプセルとして扱う)。Boxには使わない。
 Capsule MakeWorldCapsule(const ColliderComponent& collider) {
-	if (const CapsuleColliderComponent* capsule = AsCapsuleCollider(collider)) {
-		return capsule->GetWorldCapsule();
+	if (collider.GetShapeType() == ColliderShapeType::Capsule) {
+		return AsCapsuleColliderUnchecked(collider).GetWorldCapsule();
 	}
 	Sphere sphere = collider.GetWorldSphere();
 	return {sphere.center, sphere.center, sphere.radius};
@@ -172,8 +167,8 @@ Capsule MakeWorldCapsule(const ColliderComponent& collider) {
 
 // 任意ColliderをワールドOBBへ変換する(Box以外はAABBから軸並行OBBを作る)。
 OBB MakeWorldOBB(const ColliderComponent& collider) {
-	if (const BoxColliderComponent* box = AsBoxCollider(collider)) {
-		return box->GetWorldOBB();
+	if (collider.GetShapeType() == ColliderShapeType::Box) {
+		return AsBoxColliderUnchecked(collider).GetWorldOBB();
 	}
 	AABB aabb = collider.GetWorldAABB();
 	OBB obb{};
