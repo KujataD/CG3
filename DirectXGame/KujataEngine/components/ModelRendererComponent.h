@@ -133,6 +133,22 @@ public:
 		colorOverrideActive_ = true;
 	}
 	void ClearColorOverride() { colorOverrideActive_ = false; }
+
+	/// <summary>
+	/// 現在のModelのテクスチャを、指定SRVインデックスへ直接差し替える(ランタイム上書き)。
+	/// Materialアセットのpath解決を経由しないので、NoiseTextureComponentのような
+	/// メモリ生成テクスチャ(実ファイルを持たない)を貼るのに使う。毎フレーム呼ぶ必要はない
+	/// (Model::Updateはテクスチャを触らないので、一度呼べば次のマテリアル変更まで保持される)。
+	/// </summary>
+	void SetTextureOverride(uint32_t textureIndex);
+
+	/// <summary>
+	/// UVタイリング(繰り返し回数)を直接差し替える(ランタイム上書き)。
+	/// プリミティブのUVは常に0..1固定でTransform.scaleでは伸びないため、
+	/// 巨大なオブジェクト(地面など)に手続きテクスチャを敷くと模様が1枚だけ間延びして見える。
+	/// tilingを1より大きくすると、そのぶんテクスチャが繰り返し敷き詰められる。
+	/// </summary>
+	void SetUVTilingOverride(float tiling);
 	/// <summary>現在のMaterialのBase Color(上書き前の既定値)。演出側が「既定を基準に薄める」ために使う。</summary>
 	const Vector4& GetBaseColor() const { return material_.baseColor; }
 	bool HasColorOverride() const { return colorOverrideActive_; }

@@ -67,6 +67,8 @@ public:
 	// --- set ---
 	void SetColor(const Vector4& color) { materialMap_->color = color; }
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
+	/// <summary>描画に使うテクスチャをSRVインデックスで直接差し替える(Draw時に毎回参照するので即座に反映される)。</summary>
+	void SetTexture(uint32_t textureIndex) { textureIndex_ = textureIndex; }
 	bool AddInstanceParticle(const TransformationMatrix& transformationMatrix, const Vector4& color) {
 		// 最大値を超えたらプッシュしない
 		if (static_cast<uint32_t>(instanceParticles_.size()) >= kMaxInstance) {

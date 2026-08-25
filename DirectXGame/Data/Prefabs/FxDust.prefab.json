@@ -72,6 +72,15 @@
                   "worldSpace" : true
                },
                "type" : "ParticleSystemComponent"
+            },
+            {
+               "enabled" : true,
+               "properties" : {
+                  "kind" : 1,
+                  "seedLane" : 100,
+                  "textureSize" : 128
+               },
+               "type" : "NoiseTextureComponent"
             }
          ],
          "layer" : 0,

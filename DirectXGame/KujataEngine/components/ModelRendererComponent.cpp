@@ -227,6 +227,20 @@ void ModelRendererComponent::Update() {
 	}
 }
 
+void ModelRendererComponent::SetTextureOverride(uint32_t textureIndex) {
+	if (!model_) {
+		return;
+	}
+	model_->SetTexture(textureIndex);
+}
+
+void ModelRendererComponent::SetUVTilingOverride(float tiling) {
+	if (!model_) {
+		return;
+	}
+	model_->SetUVTransform({0.0f, 0.0f}, {tiling, tiling}, 0.0f);
+}
+
 void ModelRendererComponent::CollectAnimatableChannels(std::vector<AnimatableChannel>& channels) {
 	// 発光の明滅(ランプ/チャージ演出等)をAnimationWindowのカーブで作れるように公開する。
 	channels.push_back({"emissiveIntensity", &material_.emissiveIntensity, nullptr});

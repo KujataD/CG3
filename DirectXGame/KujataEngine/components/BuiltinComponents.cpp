@@ -10,6 +10,7 @@
 #include "ImageComponent.h"
 #include "ModelRendererComponent.h"
 #include "DecalComponent.h"
+#include "NoiseTextureComponent.h"
 #include "ParticleSystemComponent.h"
 #include "TrailRendererComponent.h"
 #include "OrbitCameraComponent.h"
@@ -37,6 +38,7 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<RotatorComponent>();
 	factory.RegisterComponent<ModelRendererComponent>();
 	factory.RegisterComponent<DecalComponent>();
+	factory.RegisterComponent<NoiseTextureComponent>();
 	factory.RegisterComponent<ParticleSystemComponent>();
 	factory.RegisterComponent<TrailRendererComponent>();
 	// world空間2D(Sprite方式)。スクリーン空間UIはCanvas方式のImageComponent側。

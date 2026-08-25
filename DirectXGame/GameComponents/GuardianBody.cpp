@@ -27,6 +27,23 @@ float Approach(float current, float target, float rate, float deltaTime) {
 	return current + (target - current) * t;
 }
 
+/// <summary>
+/// ownerの直下の子からname一致のGameObjectを探す(孫は見ない)。
+/// 見つからなくてもエラーにしない = 未対応のプレハブ(BodyMeshがBodyの子のままの構成)は
+/// 従来どおりBodyの回転をそのまま継承する。
+/// </summary>
+GameObject* FindDirectChildByName(GameObject* parent, const char* name) {
+	if (!parent) {
+		return nullptr;
+	}
+	for (GameObject* child : parent->GetChildren()) {
+		if (child && child->GetName() == name) {
+			return child;
+		}
+	}
+	return nullptr;
+}
+
 } // namespace
 
 void GuardianBody::OnPlayStart() {
@@ -130,6 +147,17 @@ void GuardianBody::Update() {
 	transform.translation_.y = currentHeight_ + bob + idleSway + heightOffset_;
 	// pitchOffset_ は平滑化の外側で足す。仰け反りは即座に効いてほしいため。
 	transform.rotation_ = {currentPitch_ + pitchOffset_, currentSpin_, currentRoll_};
+
+	// 頭/胴体の外装(BodyMesh)は、足の接地状況から来る傾き(currentPitch_/currentRoll_)を
+	// 受けさせない。頭独自で動くギミックが将来ここへ自由に回転を書き込めるようにするため。
+	// 高さとYaw(spin)・pitchOffset_(致命の仰け反りなど地形と無関係な演出)は揃えるが、
+	// 足の傾きだけは意図的に外す。BodyMeshがルート直下に置かれているプレハブだけが対象
+	// (見つからなければ何もしない=Bodyの子のままの構成は従来どおり傾きも継承する)。
+	if (GameObject* eyeObject = FindDirectChildByName(owner, "BodyMesh")) {
+		WorldTransform& eyeTransform = eyeObject->GetTransform();
+		eyeTransform.translation_.y = transform.translation_.y;
+		eyeTransform.rotation_ = {pitchOffset_, currentSpin_, 0.0f};
+	}
 }
 
 bool GuardianBody::GatherPlantedFeet(

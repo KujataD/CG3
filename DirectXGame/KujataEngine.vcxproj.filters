@@ -159,6 +159,9 @@
     <ClCompile Include="KujataEngine\assets\MaterialAsset.cpp">
       <Filter>KujataEngine\assets</Filter>
     </ClCompile>
+    <ClCompile Include="KujataEngine\assets\NoiseTexture.cpp">
+      <Filter>KujataEngine\assets</Filter>
+    </ClCompile>
     <ClCompile Include="KujataEngine\components\AnimatorComponent.cpp">
       <Filter>KujataEngine\components</Filter>
     </ClCompile>
@@ -346,6 +349,9 @@
       <Filter>KujataEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujataEngine\components\DecalComponent.cpp">
+      <Filter>KujataEngine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="KujataEngine\components\NoiseTextureComponent.cpp">
       <Filter>KujataEngine\components</Filter>
     </ClCompile>
     <ClCompile Include="KujataEngine\components\ParticleSystemComponent.cpp">
@@ -551,6 +557,9 @@
     <ClInclude Include="KujataEngine\assets\MaterialAsset.h">
       <Filter>KujataEngine\assets</Filter>
     </ClInclude>
+    <ClInclude Include="KujataEngine\assets\NoiseTexture.h">
+      <Filter>KujataEngine\assets</Filter>
+    </ClInclude>
     <ClInclude Include="KujataEngine\components\AnimatorComponent.h">
       <Filter>KujataEngine\components</Filter>
     </ClInclude>
@@ -579,6 +588,9 @@
       <Filter>KujataEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\components\DecalComponent.h">
+      <Filter>KujataEngine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="KujataEngine\components\NoiseTextureComponent.h">
       <Filter>KujataEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\components\ParticleSystemComponent.h">

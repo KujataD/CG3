@@ -59,6 +59,18 @@ public:
 	void SetColorOverride(const Vector4& color);
 	void ClearColorOverride() { hasColorOverride_ = false; }
 
+	/// <summary>
+	/// 粒のテクスチャをSRVインデックスで直接差し替える(ランタイム上書き)。
+	/// texturePath_のファイル解決を経由しないので、NoiseTextureComponentのような
+	/// メモリ生成テクスチャ(実ファイルを持たない)を貼るのに使う。
+	/// まだモデルが作られていなければ何もしない(先にshape_等の設定でモデル生成が必要)。
+	/// </summary>
+	void SetTextureOverride(uint32_t textureIndex) {
+		if (model_) {
+			model_->SetTexture(textureIndex);
+		}
+	}
+
 	/// <summary>生きている粒の数。消えたら片付けたい側が見る。</summary>
 	size_t GetAliveCount() const { return particles_.size(); }
 

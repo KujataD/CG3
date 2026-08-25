@@ -314,7 +314,7 @@
                   ],
                   "translation" : [
                      0,
-                     0,
+                     1.7,
                      0
                   ]
                },
@@ -380,7 +380,7 @@
             }
          ],
          "name" : "BodyMesh",
-         "parentPrefabObjectId" : "object_1",
+         "parentPrefabObjectId" : "object_0",
          "prefabObjectId" : "object_2"
       },
       {
@@ -5333,13 +5333,13 @@
                      0
                   ],
                   "scale" : [
-                     1.2,
-                     1.2,
-                     1.2
+                     0.35,
+                     0.35,
+                     0.35
                   ],
                   "translation" : [
                      0,
-                     -0.42,
+                     0,
                      0
                   ]
                },
@@ -5359,9 +5359,138 @@
             }
          ],
          "layer" : 0,
-         "name" : "BaseMesh",
-         "parentPrefabObjectId" : "object_1",
+         "name" : "Leg0_HipBase",
+         "parentPrefabObjectId" : "object_3",
          "prefabObjectId" : "object_3078",
+         "tag" : "Untagged"
+      },
+      {
+         "active" : true,
+         "components" : [
+            {
+               "enabled" : true,
+               "properties" : {
+                  "rotation" : [
+                     0,
+                     0,
+                     0
+                  ],
+                  "scale" : [
+                     0.35,
+                     0.35,
+                     0.35
+                  ],
+                  "translation" : [
+                     0,
+                     0,
+                     0
+                  ]
+               },
+               "type" : "Transform"
+            },
+            {
+               "enabled" : true,
+               "properties" : {
+                  "doubleSided" : false,
+                  "materialAssetId" : "",
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
+                  "primitive" : "Model"
+               },
+               "type" : "ModelRendererComponent"
+            }
+         ],
+         "layer" : 0,
+         "name" : "Leg1_HipBase",
+         "parentPrefabObjectId" : "object_20",
+         "prefabObjectId" : "object_3079",
+         "tag" : "Untagged"
+      },
+      {
+         "active" : true,
+         "components" : [
+            {
+               "enabled" : true,
+               "properties" : {
+                  "rotation" : [
+                     0,
+                     0,
+                     0
+                  ],
+                  "scale" : [
+                     0.35,
+                     0.35,
+                     0.35
+                  ],
+                  "translation" : [
+                     0,
+                     0,
+                     0
+                  ]
+               },
+               "type" : "Transform"
+            },
+            {
+               "enabled" : true,
+               "properties" : {
+                  "doubleSided" : false,
+                  "materialAssetId" : "",
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
+                  "primitive" : "Model"
+               },
+               "type" : "ModelRendererComponent"
+            }
+         ],
+         "layer" : 0,
+         "name" : "Leg2_HipBase",
+         "parentPrefabObjectId" : "object_37",
+         "prefabObjectId" : "object_3080",
+         "tag" : "Untagged"
+      },
+      {
+         "active" : true,
+         "components" : [
+            {
+               "enabled" : true,
+               "properties" : {
+                  "rotation" : [
+                     0,
+                     0,
+                     0
+                  ],
+                  "scale" : [
+                     0.35,
+                     0.35,
+                     0.35
+                  ],
+                  "translation" : [
+                     0,
+                     0,
+                     0
+                  ]
+               },
+               "type" : "Transform"
+            },
+            {
+               "enabled" : true,
+               "properties" : {
+                  "doubleSided" : false,
+                  "materialAssetId" : "",
+                  "materialPath" : "Materials/Guardian.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
+                  "primitive" : "Model"
+               },
+               "type" : "ModelRendererComponent"
+            }
+         ],
+         "layer" : 0,
+         "name" : "Leg3_HipBase",
+         "parentPrefabObjectId" : "object_54",
+         "prefabObjectId" : "object_3081",
          "tag" : "Untagged"
       }
    ],

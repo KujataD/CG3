@@ -109,6 +109,16 @@
         ]
       },
       "type": "BoxColliderComponent"
+    },
+    {
+      "enabled": true,
+      "properties": {
+        "kind": 2,
+        "seedLane": 50.0,
+        "textureSize": 256,
+        "uvTiling": 25.0
+      },
+      "type": "NoiseTextureComponent"
     }
   ]
 }
