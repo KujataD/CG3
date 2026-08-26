@@ -122,6 +122,15 @@ public:
 			subMesh.textureIndex = textureIndex;
 		}
 	}
+	/// <summary>
+	/// エミッションマップ(自己発光の分布)を差し替える。SetEmissiveの色/強度へ乗算されるので、
+	/// 黒い箇所は光らず白い箇所だけが光る。未設定(白1x1)ならマップ無しと同じ挙動になる。
+	/// </summary>
+	void SetEmissiveTexture(uint32_t textureIndex) {
+		for (SubMesh& subMesh : subMeshes_) {
+			subMesh.emissiveTextureIndex = textureIndex;
+		}
+	}
 	// シェーダー方式を切り替える(MaterialData.enableLightingがShaderModel番号を兼ねる。0=Unlit)。
 	void SetShaderModel(ShaderModel model) {
 		for (SubMesh& subMesh : subMeshes_) {
@@ -185,6 +194,8 @@ private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> materialResource;
 		MaterialData* materialMap = nullptr;
 		uint32_t textureIndex = 0;
+		// エミッションマップ(t2)。既定0はTextureManagerの未使用枠なので、Draw時に白へフォールバックする。
+		uint32_t emissiveTextureIndex = 0;
 	};
 
 	std::vector<SubMesh> subMeshes_;

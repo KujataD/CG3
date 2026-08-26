@@ -1,6 +1,8 @@
 #include "object3d.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);
+// エミッションマップ(自己発光の分布)。未指定のマテリアルには白1x1が入るので常に乗算してよい。
+Texture2D<float32_t4> gEmissiveTexture : register(t2);
 SamplerState gSampler : register(s0);
 
 struct Material
@@ -450,7 +452,10 @@ PixelShaderOutput main(VertexShaderOutput input)
     // ライティングの有無に関わらず加算する(αには影響させない)。
     if (gMaterial.emissiveEnabled != 0)
     {
-        float32_t3 emissive = gMaterial.emissiveColor * gMaterial.emissiveIntensity;
+        // エミッションマップ(t2)を乗算する。**マップ未指定のマテリアルには白1x1が入る**ので、
+        // ここに分岐は要らない(白=1倍=マップ無しと同じ)。黒い箇所は光らず、白い箇所だけが光る。
+        float32_t3 emissiveMask = gEmissiveTexture.Sample(gSampler, transformedUV.xy).rgb;
+        float32_t3 emissive = gMaterial.emissiveColor * gMaterial.emissiveIntensity * emissiveMask;
         output.color.rgb += emissive;
 
         // 露出光(ブルーム)へ回す成分。マテリアル別の閾値(soft knee付き)で絞り、滲み強度を掛けて

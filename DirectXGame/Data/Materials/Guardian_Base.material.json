@@ -9,16 +9,16 @@
   "blendMode": 1,
   "bloomIntensity": 1.0,
   "bloomSoftKnee": 0.5,
-  "bloomThreshold": 0.6,
+  "bloomThreshold": 0.0,
   "depthWrite": true,
   "emissiveColor": [
-    0.35,
     1.0,
-    0.55
+    1.0,
+    1.0
   ],
-  "emissiveEnabled": true,
-  "emissiveIntensity": 2.0,
-  "name": "Guardian",
+  "emissiveEnabled": false,
+  "emissiveIntensity": 0.0,
+  "name": "Guardian_Base",
   "shaderModel": 4,
   "textures": {
     "BaseColor": {
@@ -26,8 +26,8 @@
       "path": "Resources/guardian.png"
     },
     "Emissive": {
-      "assetId": "asset_433ef4d58411bd9e219ed8cc05b4d130",
-      "path": "Resources/guardian.png"
+      "assetId": "",
+      "path": ""
     },
     "Environment": {
       "assetId": "",

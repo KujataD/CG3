@@ -29,6 +29,9 @@ enum class MaterialTextureSlot {
 	BaseColor,
 	Normal,
 	Environment,
+	// 自己発光の分布(エミッションマップ)。emissiveColor×emissiveIntensityへ乗算されるので、
+	// 黒い箇所は光らず白い箇所だけが光る。面の一部だけを光らせたい時に使う。
+	Emissive,
 };
 
 /// <summary>

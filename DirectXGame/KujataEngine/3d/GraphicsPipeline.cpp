@@ -125,7 +125,7 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 
 	// RootParameter作成
 	// b0 Material
-	D3D12_ROOT_PARAMETER rootParameters[9] = {};
+	D3D12_ROOT_PARAMETER rootParameters[10] = {};
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;    // CBVを使う b0のbに対応する bはConstantBuffer
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // PixelShaderで使う
 	rootParameters[0].Descriptor.ShaderRegister = 0;                    // レジスタ番号0とバインド b0の0に対応する。もしb11と紐づけたいなら11となる。
@@ -184,6 +184,19 @@ void GraphicsPipeline::CreateObject3dRootSignature() {
 	rootParameters[8].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[8].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[8].Descriptor.ShaderRegister = 5;
+
+	// t2 エミッションマップ(自己発光の分布)。未指定のマテリアルには白1x1が入るので、
+	// シェーダー側は常に乗算するだけでよい(マップ有無の分岐が要らない)。
+	D3D12_DESCRIPTOR_RANGE emissiveMapRange[1] = {};
+	emissiveMapRange[0].BaseShaderRegister = 2; // t2
+	emissiveMapRange[0].NumDescriptors = 1;
+	emissiveMapRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	emissiveMapRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	rootParameters[9].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[9].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[9].DescriptorTable.pDescriptorRanges = emissiveMapRange;
+	rootParameters[9].DescriptorTable.NumDescriptorRanges = _countof(emissiveMapRange);
 
 	descriptionRootSignature.pParameters = rootParameters;             // ルートパラメータ配列へのポインタ
 	descriptionRootSignature.NumParameters = _countof(rootParameters); // 配列の長さ

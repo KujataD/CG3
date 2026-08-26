@@ -568,6 +568,12 @@ void Model::Draw(const WorldTransform& worldTransform, const Camera& camera, Fil
 		// テクスチャSRV（RootParameter[2]: DescriptorTable）
 		auto handle = TextureManager::GetInstance()->GetSrvHandle(subMesh.textureIndex);
 		commandList->SetGraphicsRootDescriptorTable(2, handle);
+		// エミッションマップ(RootParameter[9]: t2)。未指定(0)は白へ倒して「マップ無し=1倍」にする。
+		uint32_t emissiveIndex = subMesh.emissiveTextureIndex;
+		if (emissiveIndex == 0) {
+			emissiveIndex = TextureManager::GetInstance()->GetDefaultWhiteTexture();
+		}
+		commandList->SetGraphicsRootDescriptorTable(9, TextureManager::GetInstance()->GetSrvHandle(emissiveIndex));
 		commandList->DrawInstanced(subMesh.vertexCount, 1, 0, 0);
 	}
 }

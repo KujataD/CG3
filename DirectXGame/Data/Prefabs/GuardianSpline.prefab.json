@@ -5350,7 +5350,7 @@
                "properties" : {
                   "doubleSided" : false,
                   "materialAssetId" : "",
-                  "materialPath" : "Materials/Guardian.material.json",
+                  "materialPath" : "Materials/Guardian_Base.material.json",
                   "modelAssetId" : "",
                   "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
                   "primitive" : "Model"
@@ -5393,7 +5393,7 @@
                "properties" : {
                   "doubleSided" : false,
                   "materialAssetId" : "",
-                  "materialPath" : "Materials/Guardian.material.json",
+                  "materialPath" : "Materials/Guardian_Base.material.json",
                   "modelAssetId" : "",
                   "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
                   "primitive" : "Model"
@@ -5436,7 +5436,7 @@
                "properties" : {
                   "doubleSided" : false,
                   "materialAssetId" : "",
-                  "materialPath" : "Materials/Guardian.material.json",
+                  "materialPath" : "Materials/Guardian_Base.material.json",
                   "modelAssetId" : "",
                   "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
                   "primitive" : "Model"
@@ -5479,7 +5479,7 @@
                "properties" : {
                   "doubleSided" : false,
                   "materialAssetId" : "",
-                  "materialPath" : "Materials/Guardian.material.json",
+                  "materialPath" : "Materials/Guardian_Base.material.json",
                   "modelAssetId" : "",
                   "modelPath" : "Resources/Guardian_base/Guardian_base.obj",
                   "primitive" : "Model"

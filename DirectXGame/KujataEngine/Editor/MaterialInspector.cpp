@@ -39,6 +39,7 @@ struct MaterialInspectorState {
 	std::array<char, 256> baseColorTextureBuffer{};
 	std::array<char, 256> normalTextureBuffer{};
 	std::array<char, 256> environmentTextureBuffer{};
+	std::array<char, 256> emissiveTextureBuffer{};
 	std::string errorMessage;
 	bool loaded = false;
 };
@@ -58,12 +59,14 @@ void FillMaterialInspectorBuffers(MaterialInspectorState& state) {
 	CopyTextToBuffer(state.baseColorTextureBuffer, MaterialAsset::GetTexturePath(state.material, MaterialTextureSlot::BaseColor));
 	CopyTextToBuffer(state.normalTextureBuffer, MaterialAsset::GetTexturePath(state.material, MaterialTextureSlot::Normal));
 	CopyTextToBuffer(state.environmentTextureBuffer, MaterialAsset::GetTexturePath(state.material, MaterialTextureSlot::Environment));
+	CopyTextToBuffer(state.emissiveTextureBuffer, MaterialAsset::GetTexturePath(state.material, MaterialTextureSlot::Emissive));
 }
 
 void ApplyMaterialInspectorBuffers(MaterialInspectorState& state) {
 	MaterialAsset::SetTexture(state.material, MaterialTextureSlot::BaseColor, "", state.baseColorTextureBuffer.data());
 	MaterialAsset::SetTexture(state.material, MaterialTextureSlot::Normal, "", state.normalTextureBuffer.data());
 	MaterialAsset::SetTexture(state.material, MaterialTextureSlot::Environment, "", state.environmentTextureBuffer.data());
+	MaterialAsset::SetTexture(state.material, MaterialTextureSlot::Emissive, "", state.emissiveTextureBuffer.data());
 }
 
 bool LoadMaterialInspectorState(const std::filesystem::path& materialPath, MaterialInspectorState& state) {
@@ -419,6 +422,11 @@ void DrawMaterialAssetInspector(ProjectWindow& projectWindow) {
 	if (DrawTextureSlotEditor("Environment Texture", "EnvironmentTexturePicker", state, MaterialTextureSlot::Environment, state.environmentTextureBuffer)) {
 		changed = true;
 	}
+
+	if (DrawTextureSlotEditor("Emissive Texture", "EmissiveTexturePicker", state, MaterialTextureSlot::Emissive, state.emissiveTextureBuffer)) {
+		changed = true;
+	}
+	ImGui::TextDisabled("(Emissiveは上のEmissionをONにしないと効きません)");
 
 	if (changed) {
 		if (SaveMaterialInspectorState(state)) {

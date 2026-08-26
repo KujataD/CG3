@@ -92,11 +92,12 @@ Vector4 ReadVector4(const nlohmann::json& value, const char* key, const Vector4&
 	return result;
 }
 
-std::array<MaterialTextureSlot, 3> GetKnownTextureSlots() {
+std::array<MaterialTextureSlot, 4> GetKnownTextureSlots() {
 	return {
 	    MaterialTextureSlot::BaseColor,
 	    MaterialTextureSlot::Normal,
 	    MaterialTextureSlot::Environment,
+	    MaterialTextureSlot::Emissive,
 	};
 }
 
@@ -170,7 +171,8 @@ bool ReadTexturesObject(const nlohmann::json& json, MaterialAssetData& material)
 
 std::filesystem::path ResolveMaterialTexturePath(const MaterialTexture* texture, MaterialTextureSlot slot) {
 	if (!texture) {
-		if (slot == MaterialTextureSlot::BaseColor) {
+		// Emissiveも白を既定にする。シェーダーは発光へ乗算するので、白=マップ無しと同じ挙動になる。
+		if (slot == MaterialTextureSlot::BaseColor || slot == MaterialTextureSlot::Emissive) {
 			return ResolveProjectPath("resources/white1x1.png");
 		}
 		return {};
@@ -233,6 +235,8 @@ const char* MaterialAsset::ToString(MaterialTextureSlot slot) {
 		return "Normal";
 	case MaterialTextureSlot::Environment:
 		return "Environment";
+	case MaterialTextureSlot::Emissive:
+		return "Emissive";
 	default:
 		return "BaseColor";
 	}
@@ -250,6 +254,10 @@ bool MaterialAsset::TryGetTextureSlotFromString(const std::string& slotName, Mat
 	}
 	if (lowerName == "environment" || lowerName == "environmentmap" || lowerName == "environment_map" || lowerName == "env") {
 		outSlot = MaterialTextureSlot::Environment;
+		return true;
+	}
+	if (lowerName == "emissive" || lowerName == "emissivemap" || lowerName == "emissive_map" || lowerName == "emission") {
+		outSlot = MaterialTextureSlot::Emissive;
 		return true;
 	}
 
@@ -567,7 +575,7 @@ uint32_t MaterialAsset::ResolveTextureIndex(const MaterialAssetData& material, M
 		}
 	}
 
-	if (slot != MaterialTextureSlot::BaseColor) {
+	if (slot != MaterialTextureSlot::BaseColor && slot != MaterialTextureSlot::Emissive) {
 		return 0;
 	}
 

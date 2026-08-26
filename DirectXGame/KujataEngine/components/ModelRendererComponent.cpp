@@ -558,6 +558,7 @@ void ModelRendererComponent::ApplyMaterialToModel() {
 	if (hasMaterialAsset || !isMultiMesh) {
 		model_->SetColor(material_.baseColor);
 		model_->SetTexture(MaterialAsset::ResolveTextureIndex(material_, MaterialTextureSlot::BaseColor));
+		model_->SetEmissiveTexture(MaterialAsset::ResolveTextureIndex(material_, MaterialTextureSlot::Emissive));
 		model_->SetEmissive(material_.emissiveColor, material_.emissiveIntensity, material_.emissiveEnabled);
 		model_->SetEmissiveBloom(material_.bloomIntensity, material_.bloomThreshold, material_.bloomSoftKnee);
 		model_->SetUVTransform(material_.uvOffset, material_.uvScale, material_.uvRotation);
