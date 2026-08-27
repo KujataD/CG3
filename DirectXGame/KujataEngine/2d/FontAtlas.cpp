@@ -45,9 +45,11 @@ std::filesystem::path SystemFontDirectory() {
 /// 太字の見出しを細字にしたりしないようにファイル名から読み取る。
 /// </summary>
 const std::vector<const char*>& SystemFallbackCandidates(const std::string& lowerName) {
-	static const std::vector<const char*> kSerif = {"yumin.ttf", "msmincho.ttc", "yugothm.ttc", "meiryo.ttc"};
-	static const std::vector<const char*> kSansBold = {"YuGothB.ttc", "meiryob.ttc", "msgothic.ttc", "yumin.ttf"};
-	static const std::vector<const char*> kSans = {"YuGothR.ttc", "meiryo.ttc", "msgothic.ttc", "yumin.ttf"};
+	// **末尾は必ず「どのWindowsにも入っているゴシック」で締める。** 明朝(游明朝・MS明朝)は
+	// 日本語以外のロケールでは省かれることがあり、そこで打ち切ると文字が丸ごと消える。
+	static const std::vector<const char*> kSerif = {"yumin.ttf", "msmincho.ttc", "yugothm.ttc", "meiryo.ttc", "YuGothR.ttc", "msgothic.ttc"};
+	static const std::vector<const char*> kSansBold = {"YuGothB.ttc", "meiryob.ttc", "YuGothR.ttc", "msgothic.ttc"};
+	static const std::vector<const char*> kSans = {"YuGothR.ttc", "meiryo.ttc", "msgothic.ttc", "YuGothB.ttc"};
 
 	if (lowerName.find("bold") != std::string::npos) {
 		return kSansBold;
@@ -59,16 +61,18 @@ const std::vector<const char*>& SystemFallbackCandidates(const std::string& lowe
 }
 
 /// <summary>
-/// **フォントの置き場所を解決する。** JSONには相対パス(`Fonts/JapaneseSerif.ttf` など)を書き、
+/// **フォントの置き場所を解決する。** JSONには論理名(`Fonts/JapaneseSerif.ttf` など)を書き、
 /// 実体をどこから拾うかはここだけで決める。探す順は:
 ///   1. 書かれたパスそのもの(絶対パスをまだ使っている古いデータのため)
-///   2. `Data/<書かれたパス>`  ← **同梱フォントの正規の置き場**
-///   3. `Data/Fonts/<ファイル名>`
-///   4. システムのフォント(明朝/ゴシックの別だけ合わせる)
+///   2. `Data/<書かれたパス>` / `Data/Fonts/<ファイル名>` — 置けば使う、任意の差し替え口
+///   3. **システムのフォント**(明朝/ゴシック/太字の別だけ合わせる) ← 通常はここに落ちる
 ///
-/// **同梱フォントが無くても日本語が出るようにする**のが4段目の役目。
-/// 再配布して良いフォント(IPAex / Noto 等)を `Data/Fonts/` へ置けば、
-/// 何も書き換えずにそちらが使われるようになる。
+/// **配布物にフォントは同梱していない。** 配布先はWindows前提で、日本語フォントは
+/// OSに入っているものを使う。候補を複数並べてあるのは、**明朝が入っていない環境
+/// (日本語以外のロケールのWindowsでは游明朝・MS明朝が省かれることがある)でも
+/// ゴシックへ落ちて文字が消えないようにする**ため。
+/// 特定の見た目を確実に出したくなったら `Data/Fonts/` へ実体を置けばそちらが優先される
+/// (その場合は再配布が許諾されたフォントを使うこと)。
 /// </summary>
 std::string ResolveFontPath(const std::string& requested) {
 	if (requested.empty()) {

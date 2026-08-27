@@ -1,6 +1,7 @@
 #include "GameFlowManager.h"
 #include "GameAudio.h"
 
+#include "BossIntroCutscene.h"
 #include "EnemyHealth.h"
 #include "GameSession.h"
 #include "PartyManager.h"
@@ -106,9 +107,10 @@ void GameFlowManager::Update() {
 	switch (state_) {
 	case State::Playing:
 		// 戦っている間だけ時計を進める。演出の時間は状態が Playing から外れるので自然に除かれるが、
-		// **ポーズはstate_を変えない**ので、ここで明示的に止める。
-		// 実時間で数えている以上、メニューを開いて放置した時間もそのまま乗ってしまうため。
-		if (!PauseMenu::IsScenePaused(owner_ ? owner_->GetScene() : nullptr)) {
+		// **ポーズと開幕演出はstate_を変えない**ので、ここで明示的に止める。
+		// 実時間で数えている以上、メニューを開いて放置した時間も、幕開けを眺めていた時間も乗ってしまう。
+		if (!PauseMenu::IsScenePaused(owner_ ? owner_->GetScene() : nullptr) &&
+		    !BossIntroCutscene::IsSceneIntroPlaying(owner_ ? owner_->GetScene() : nullptr)) {
 			battleSeconds_ += deltaTime;
 		}
 		if (IsBossDefeated()) {
@@ -121,9 +123,11 @@ void GameFlowManager::Update() {
 				timer_ = 0.0f;
 				break;
 			}
-			// 勝敗が決まった瞬間にBGMを止める。曲が流れ続けたまま演出に入ると台無しになる。
+			// 勝敗が決まった瞬間に戦闘のBGMを止め、撃破の曲へ差し替える。
+			// **PlayBgmが前の曲を止めてから差し替える**ので、ここで止めるのは
+			// 「同じフレームで確実に切れている」ことを読み手に見せるため。
 			GameAudio::StopBgm();
-			GameAudio::PlaySe(GameAudio::Se::Clear);
+			GameAudio::PlayBgm(GameAudio::kClearBgmPath);
 			RecordOutcome(true);
 			state_ = State::ClearDelay;
 			timer_ = 0.0f;

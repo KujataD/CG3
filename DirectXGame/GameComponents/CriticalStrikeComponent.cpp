@@ -221,10 +221,14 @@ void CriticalStrikeComponent::Begin(GameObject* target) {
 		}
 	}
 
-	// 出し切りの保証: モーション中は動けず、かつ無敵。
+	// 出し切りの保証: 演出が終わるまで動けず、かつ無敵。
 	// 「決めに行ったのに横槍で潰された」が起きないことが、思い切って踏み込める理由になる。
+	//
+	// **見せ場(Aftermath)のぶんまで必ず含める。** ここを足し忘れると、カメラがまだ寄っている
+	// 最中に行動ロックだけ先に切れ、演出の画のまま操作キャラが走り出す。
+	// 拍の合計 = 振りかぶり + ヒットストップ + 見せ場 + 硬直。Updateの遷移と同じ順で足すこと。
 	if (motor_) {
-		motor_->BeginActionLock(windupSeconds_ + hitstopSeconds_ + recoverSeconds_);
+		motor_->BeginActionLock(windupSeconds_ + hitstopSeconds_ + aftermathSeconds_ + recoverSeconds_);
 	}
 	if (health_) {
 		health_->SetInvincible(true);

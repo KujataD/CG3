@@ -92,6 +92,13 @@ public:
 	}
 
 private:
+	/// <summary>
+	/// 倒れた合図。土埃を上げて縮み始める。**演出を別に持つ相手(第1形態のボス)では何もしない。**
+	/// </summary>
+	void BeginDissolve();
+	/// <summary>縮みを進め、消えきったらオブジェクトを伏せる。</summary>
+	void UpdateDissolve();
+
 	KUJATA_SERIALIZED_FIELDS_BEGIN() {
 		KUJATA_REGISTER_FLOAT(maxHealth_, 1.0f, 0.0f, 0.0f);
 		KUJATA_REGISTER_FLOAT(health_, 1.0f, 0.0f, 0.0f);
@@ -117,6 +124,16 @@ private:
 		KUJATA_REGISTER_VECTOR3_NAMED_TIP(lockOnOffset_, "Lock On Offset", 0.05f, -50.0f, 50.0f,
 		    "狙い点の基準位置からのオフセット(ワールド軸)。レティクル・カメラの注視点・ホーミング弾の目標になる。\n"
 		    "小型敵は頭のあたり、ボスは胴体中心など、敵ごとに自由に決められる。");
+		KUJATA_REGISTER_BOOL_NAMED_TIP(dissolveOnDeath_, "Dissolve On Death",
+		    "倒れたら土埃を上げて縮みながら消えるか。\n"
+		    "**演出が別に用意されている相手ではOFFにする**(第1形態のボスは撃破ではなく\n"
+		    "[[Phase2Cutscene]]へ渡すので、ここで消すと演出が空振りする)。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(dissolveSeconds_, "Dissolve Seconds", 0.05f, 0.1f, 6.0f,
+		    "縮んで消えきるまでの秒数。**短すぎると「消えた」だけになり、倒した手応えが残らない。**");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(dustScale_, "Dust Scale", 0.1f, 0.1f, 30.0f,
+		    "撃破時に上げる土埃の量。大きい敵ほど増やす。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(dustHeight_, "Dust Height", 0.05f, 0.0f, 20.0f,
+		    "土埃を出す高さ(足元からの差)。大きい敵は胴の高さから出したほうが見栄えする。");
 	}
 
 	KUJATA_FIELD_FLOAT(maxHealth_, 100);
@@ -135,6 +152,10 @@ private:
 	KUJATA_FIELD_STRING(lockOnObjectName_, "");
 	// 注目点のオフセット。
 	KUJATA_FIELD_VECTOR3(lockOnOffset_, (KujataEngine::Vector3{0.0f, 1.0f, 0.0f}));
+	KUJATA_FIELD_BOOL(dissolveOnDeath_, true);
+	KUJATA_FIELD_FLOAT(dissolveSeconds_, 0.7f);
+	KUJATA_FIELD_FLOAT(dustScale_, 1.6f);
+	KUJATA_FIELD_FLOAT(dustHeight_, 0.8f);
 
 	std::function<void(float)> onHealthChanged_;
 	std::function<void()> onDeath_;
@@ -151,4 +172,12 @@ private:
 	float poiseDecayTimer_ = 0.0f;
 	// スタン残り[s]。
 	float stunTimer_ = 0.0f;
+
+	// 消えていく最中か。
+	bool dissolving_ = false;
+	// 消え始めてからの経過[s]。
+	float dissolveTimer_ = 0.0f;
+	// 消え始めた時点のスケール。**縮めた値から縮め直さない**ために控える
+	// (Playインスタンスは使い回されるので、戻さないと2回目が最初から潰れて出てくる)。
+	KujataEngine::Vector3 dissolveBaseScale_ = {1.0f, 1.0f, 1.0f};
 };

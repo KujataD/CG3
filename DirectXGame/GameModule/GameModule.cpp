@@ -2,6 +2,7 @@
 #include "../KujataEngine/scene/SampleScene.h"
 #include "../GameComponents/ActionFeedback.h"
 #include "../GameComponents/AllyAIBrain.h"
+#include "../GameComponents/BossIntroCutscene.h"
 #include "../GameComponents/CharacterMotor.h"
 #include "../GameComponents/CharacterSelectManager.h"
 #include "../GameComponents/EnemyComponent.h"
@@ -167,6 +168,7 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujataEngine::Compo
 	factory.RegisterComponent<ScreenFader>(kGameModuleName);
 	factory.RegisterComponent<LoadingScreen>(kGameModuleName);
 	factory.RegisterComponent<GameFlowManager>(kGameModuleName);
+	factory.RegisterComponent<BossIntroCutscene>(kGameModuleName);
 	factory.RegisterComponent<MistBackdrop>(kGameModuleName);
 	factory.RegisterComponent<FogGate>(kGameModuleName);
 	factory.RegisterComponent<BgmPlayer>(kGameModuleName);

@@ -2,6 +2,7 @@
 
 #include "GameAudio.h"
 #include "GameFlowManager.h"
+#include "BossIntroCutscene.h"
 #include "SettingsMenu.h"
 #include "TutorialManager.h"
 
@@ -84,6 +85,16 @@ void PauseMenu::Update() {
 			}
 			return;
 		}
+	}
+
+	// **開幕演出の最中はポーズさせない。** カメラを預かっている最中に時間を止めると、
+	// 演出が実時間で進んだまま画だけが固まり、明けた先で辻褄が合わなくなる。
+	// (演出はSTARTでも飛ばせるので、押した操作が無視されるわけではない)
+	if (BossIntroCutscene::IsSceneIntroPlaying(owner_ ? owner_->GetScene() : nullptr)) {
+		if (paused_) {
+			SetPaused(false);
+		}
+		return;
 	}
 
 	if (paused_) {

@@ -45,13 +45,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <!-- 生成物はすべてリポジトリ直下の build/ に集約する(bin=実行ファイル, obj=中間ファイル)。 -->
+  <!--
+    TargetName はゲーム名に合わせる。**exeを後からリネームしてはいけない。**
+    GameModule.dll はこのexeから関数をインポートする(エンジンをextから公開する構成)ので、
+    インポート表に「ビルド時のexe名」が焼き込まれる。名前だけ変えるとDLLが読めなくなり、
+    ウィンドウは出るが**何も描画されない**(背景色のまま)という分かりにくい壊れ方をする。
+    名前を変えるときは GameModule 側の AdditionalDependencies(*.lib)も必ず揃えること。
+  -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)..\build\bin\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\build\obj\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>LE2B_04_オオツカ_ダイチ_BoardBorder</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)..\build\bin\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\build\obj\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>LE2B_04_オオツカ_ダイチ_BoardBorder</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -69,7 +78,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
+      <!-- LNK4232: exe名に非ASCIIが含まれる警告。提出名(日本語)を使うため個別に見送る。
+           **CP932以外のANSIコードページのWindowsではGameModule.dllが読めない**点は承知の上。 -->
+      <AdditionalOptions>/ignore:4049 /ignore:4098 /ignore:4232 /ignore:4233 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalLibraryDirectories>$(ProjectDir)externals\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>assimp-vc143-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>

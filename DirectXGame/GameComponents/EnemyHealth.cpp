@@ -1,5 +1,6 @@
 #include "EnemyHealth.h"
 #include "GameAudio.h"
+#include "GameFx.h"
 
 #include "HateTable.h"
 #include <algorithm>
@@ -71,10 +72,16 @@ void EnemyHealth::OnPlayStart() {
 	poise_ = 0.0f;
 	poiseDecayTimer_ = 0.0f;
 	stunTimer_ = 0.0f;
+	// Playインスタンスは使い回される。消えかけのまま次のPlayに入らないよう必ず戻す。
+	dissolving_ = false;
+	dissolveTimer_ = 0.0f;
 }
 
 void EnemyHealth::Update() {
 	float deltaTime = Time::GetDeltaTime();
+
+	// 倒れた後の消滅演出。ここで早期returnはしない(共有HPの部位も同じUpdateを通る)。
+	UpdateDissolve();
 
 	// スタン中: 時間だけ進める(蓄積は0のまま)。
 	if (stunTimer_ > 0.0f) {
@@ -120,9 +127,49 @@ void EnemyHealth::TakeDamage(float damage) {
 
 	if (health_ <= 0) {
 		GameAudio::PlaySe(GameAudio::Se::EnemyDown);
+		BeginDissolve();
 		if (onDeath_) {
 			onDeath_();
 		}
+	}
+}
+
+void EnemyHealth::BeginDissolve() {
+	// **演出が別に用意されている相手では消さない。** 第1形態のボスは撃破ではなく
+	// 次の形態への繋ぎへ渡すので、ここで消すと演出が空振りする。
+	if (!dissolveOnDeath_ || dissolving_ || !owner_) {
+		return;
+	}
+	dissolving_ = true;
+	dissolveTimer_ = 0.0f;
+	dissolveBaseScale_ = owner_->GetTransform().scale_;
+
+	// 崩れた足元から土埃が上がる。**縮み始めと同時に出す**ことで、
+	// 「消えた」ではなく「崩れて土に還った」に見える。
+	Vector3 origin = owner_->GetTransform().translation_;
+	origin.y += dustHeight_;
+	GameFx::Burst(owner_->GetScene(), GameFx::Prefab::kDust, origin, dustScale_);
+}
+
+void EnemyHealth::UpdateDissolve() {
+	if (!dissolving_ || !owner_) {
+		return;
+	}
+	dissolveTimer_ += Time::GetDeltaTime();
+	const float span = (std::max)(dissolveSeconds_, 0.01f);
+	const float t = std::clamp(dissolveTimer_ / span, 0.0f, 1.0f);
+
+	// 素直に縮める。**最後まで縮めきってから消す**ので、消える瞬間が目に付かない。
+	const float shrink = 1.0f - t;
+	owner_->GetTransform().scale_ = {
+	    dissolveBaseScale_.x * shrink, dissolveBaseScale_.y * shrink, dissolveBaseScale_.z * shrink};
+
+	if (t >= 1.0f) {
+		// **スケールは戻してから伏せる。** コンポーネントは使い回されるので、
+		// 潰れたまま伏せると次のPlayで見えない敵が立つ。
+		owner_->GetTransform().scale_ = dissolveBaseScale_;
+		owner_->SetActive(false);
+		dissolving_ = false;
 	}
 }
 

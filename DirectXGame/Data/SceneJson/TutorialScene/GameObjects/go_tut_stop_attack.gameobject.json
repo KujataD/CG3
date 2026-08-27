@@ -46,7 +46,7 @@
         "objectiveCount": 1,
         "requireCharacter": "Pawn",
         "requireTag": "Ally",
-        "title": "攻める(剣士)"
+        "title": "攻める(PAWN)"
       },
       "type": "TutorialTrigger"
     }

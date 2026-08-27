@@ -105,8 +105,8 @@
                                                             1
                                                         ],
                                               "decay":  1,
-                                              "intensity":  1.15,
-                                              "radius":  30
+                                              "intensity":  1.6,
+                                              "radius":  55
                                           },
                            "type":  "PointLightComponent"
                        },

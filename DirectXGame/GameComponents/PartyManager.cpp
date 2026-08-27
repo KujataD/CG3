@@ -1,4 +1,5 @@
 #include "PartyManager.h"
+#include "GameAudio.h"
 #include "GameFx.h"
 #include "AllyAIBrain.h"
 #include "CharacterMotor.h"
@@ -73,6 +74,7 @@ void PartyManager::Update() {
 	if (swapEnabled_ && !autoBattle_ && GameInput::IsSwapCharacterTriggered()) {
 		SwapLeader();
 	}
+
 }
 
 bool PartyManager::SwapLeader() {
@@ -103,6 +105,9 @@ bool PartyManager::SwapLeader() {
 	PerformSwap();
 	swapCooldownTimer_ = swapCooldown_;
 	++GameEvents::SwapCountRef();
+	// **通ったときだけ鳴らす。** 失敗の合図は [[ActionFeedback]] が別の音で出すので、
+	// ここで両方鳴らすと成功と失敗が同じ手応えになってしまう。
+	GameAudio::PlaySe(GameAudio::Se::CharacterSwitch);
 	return true;
 }
 

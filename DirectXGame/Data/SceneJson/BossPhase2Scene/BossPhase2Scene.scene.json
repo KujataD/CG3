@@ -1993,6 +1993,42 @@
                             "tag":  "Untagged",
                             "layer":  0,
                             "assetPath":  "SceneJson/BossPhase2Scene/GameObjects/p2_feedback_text.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "p2_ctrl_l11",
+                            "parentInstanceId":  "p2_ctrl_menu",
+                            "prefabAssetPath":  "",
+                            "prefabObjectId":  "",
+                            "prefabInstanceRootId":  "",
+                            "prefabInstanceRoot":  false,
+                            "name":  "ControlsLabel11",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/BossPhase2Scene/GameObjects/p2_ctrl_l11.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "p2_ctrl_p11",
+                            "parentInstanceId":  "p2_ctrl_menu",
+                            "prefabAssetPath":  "",
+                            "prefabObjectId":  "",
+                            "prefabInstanceRootId":  "",
+                            "prefabInstanceRoot":  false,
+                            "name":  "ControlsPad11",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/BossPhase2Scene/GameObjects/p2_ctrl_p11.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "p2_ctrl_k11",
+                            "parentInstanceId":  "p2_ctrl_menu",
+                            "prefabAssetPath":  "",
+                            "prefabObjectId":  "",
+                            "prefabInstanceRootId":  "",
+                            "prefabInstanceRoot":  false,
+                            "name":  "ControlsKey11",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/BossPhase2Scene/GameObjects/p2_ctrl_k11.gameobject.json"
                         }
                     ]
 }

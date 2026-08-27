@@ -15,34 +15,39 @@ namespace {
 
 /// <summary>効果音1種類ぶんの設定。</summary>
 struct SeEntry {
-	// Data相対のWAVパス。**今は全部mokugyoの仮音源。**本番音源はここだけ差し替える。
+	// Data相対のパス。mp3もwavも同じ扱いで読める(AudioManager::LoadAudio)。
 	const char* path;
-	// 種類ごとの音量比(0〜1)。同じ音源しか無い今、鳴り分けの唯一の手がかりになっている。
-	// 頻度の高い音ほど小さくしないと、戦闘中ずっと鳴り続けてうるさくなる。
+	// 種類ごとの音量比(0〜1)。**頻度の高い音ほど小さく**しないと、戦闘中ずっと鳴り続けてうるさくなる。
 	float volume;
 };
 
-constexpr const char* kPlaceholderSe = "Resources/mokugyo.wav";
-constexpr const char* kFanfare = "Resources/fanfare.wav";
-
 // Se enumと**必ず同じ並び**にすること(添字で引く)。
 constexpr std::array<SeEntry, static_cast<size_t>(GameAudio::Se::Count)> kSeTable = {{
-    {kPlaceholderSe, 0.25f}, // PlayerSwing  … 連打されるので控えめ
-    {kPlaceholderSe, 0.55f}, // PlayerHit
-    {kPlaceholderSe, 0.45f}, // Guard
-    {kPlaceholderSe, 0.90f}, // JustGuard    … 成立を分からせたいので一番大きく
-    {kPlaceholderSe, 0.70f}, // GuardBreak
-    {kPlaceholderSe, 0.30f}, // Dodge
-    {kPlaceholderSe, 0.65f}, // PlayerDamage
-    {kPlaceholderSe, 0.85f}, // Critical
-    {kPlaceholderSe, 0.35f}, // MagicShot
-    {kPlaceholderSe, 0.60f}, // BossSlam
-    {kPlaceholderSe, 0.50f}, // EnemyDown
-    {kPlaceholderSe, 0.20f}, // UiMove       … カーソルを動かすたびなので最小
-    {kPlaceholderSe, 0.40f}, // UiDecide
-    {kPlaceholderSe, 0.30f}, // UiCancel
-    {kPlaceholderSe, 0.80f}, // Death
-    {kFanfare, 0.80f},       // Clear        … これだけ本物がある
+    {"Audio/se_PlayerSwing.mp3", 0.25f},  // PlayerSwing  … 連打されるので控えめ
+    {"Audio/se_PlayerHit.mp3", 0.55f},    // PlayerHit
+    {"Audio/se_Guard.mp3", 0.45f},        // Guard
+    {"Audio/se_JustGuard.mp3", 0.90f},    // JustGuard    … 成立を分からせたいので一番大きく
+    {"Audio/se_GuardBreak.mp3", 0.70f},   // GuardBreak
+    {"Audio/se_Dodge.mp3", 0.30f},        // Dodge
+    {"Audio/se_PlayerDamage.mp3", 0.65f}, // PlayerDamage
+    {"Audio/se_Critical.mp3", 0.85f},     // Critical
+    {"Audio/se_MagicShot.mp3", 0.35f},    // MagicShot
+    {"Audio/se_BossSlam.mp3", 0.60f},     // BossSlam
+    {"Audio/se_EnemyDown.mp3", 0.50f},    // EnemyDown
+    {"Audio/se_UiMove.mp3", 0.20f},       // UiMove       … カーソルを動かすたびなので最小
+    {"Audio/se_UiDecide.mp3", 0.40f},     // UiDecide
+    {"Audio/se_UiCancel.mp3", 0.30f},     // UiCancel
+    {"Audio/se_Death.mp3", 0.80f},        // Death
+
+    {"Audio/se_CharacterSwitch.mp3", 0.45f}, // CharacterSwitch
+    {"Audio/se_StaminaEmpty.mp3", 0.50f},    // StaminaEmpty
+    {"Audio/se_LockOn.mp3", 0.30f},          // LockOn
+    {"Audio/se_LockOff.mp3", 0.25f},         // LockOff   … 外すほうは控えめ
+    {"Audio/se_BarrierHit.mp3", 0.55f},      // BarrierHit
+    {"Audio/se_ReviveStart.mp3", 0.60f},     // ReviveStart
+    {"Audio/se_ReviveComplete.mp3", 0.65f},  // ReviveComplete
+
+    {"Audio/se_Phase2Transition.mp3", 0.85f}, // Phase2Transition
 }};
 
 /// <summary>Data相対パスからサウンドハンドルを引く(読み込みは初回だけ)。</summary>
@@ -54,12 +59,12 @@ uint32_t AcquireSound(const std::string& relativePath) {
 	}
 
 	const std::string absolutePath = (GetProjectDataRoot() / relativePath).string();
-	const uint32_t handle = AudioManager::GetInstance()->LoadWav(absolutePath);
+	const uint32_t handle = AudioManager::GetInstance()->LoadAudio(absolutePath);
 	// **失敗もキャッシュする。** 毎フレーム鳴らそうとするSEでファイルが無いと、
 	// 毎回ディスクを叩きに行って盛大に重くなる。
 	handleByPath[relativePath] = handle;
 	if (handle == AudioManager::kInvalidHandle) {
-		Logger::Log("[GameAudio] wav load failed: " + absolutePath);
+		Logger::Log("[GameAudio] audio load failed: " + absolutePath);
 	}
 	return handle;
 }

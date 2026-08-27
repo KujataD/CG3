@@ -4,9 +4,9 @@
 /// <summary>
 /// ゲーム側から音を鳴らす唯一の窓口。AudioManager(エンジン)を直接叩かず必ずここを通す。
 ///
-/// **今は全てのSEが仮音源(mokugyo.wav)**で、種類ごとに音量だけ変えて区別している。
-/// 時間がかかるのは「どこで鳴らすか」を決めて仕込む方で、本番の音への差し替えは
-/// GameAudio.cppの表を1行書き換えるだけで済む。**呼び出し側は一切触らなくてよい。**
+/// **音源は `Data/Audio/` のmp3**(出典とライセンスは `Data/Audio/AudioSources.md`)。
+/// 差し替えは GameAudio.cpp の表を1行書き換えるだけで済み、**呼び出し側は一切触らなくてよい。**
+/// mp3はエンジン側(`AudioManager::LoadAudio`)が読み込み時にPCMへ展開する。
 ///
 /// 音量は [[GameSettings]] を毎回参照するので、設定画面の変更が次の1発から効く。
 /// BGMだけは鳴りっぱなしなので、RefreshVolumes()で再生中のボイスへ反映する。
@@ -33,7 +33,18 @@ enum class Se {
 	UiDecide,     // メニュー決定
 	UiCancel,     // メニュー取り消し
 	Death,        // 全滅
-	Clear,        // ボス撃破
+
+	// --- 操作の手応えを返すためのもの ---
+	CharacterSwitch, // キャラ切替が通った
+	StaminaEmpty,    // スタミナ切れで技が出せなかった
+	LockOn,          // Z注目で対象を掴んだ
+	LockOff,         // Z注目を外した
+	BarrierHit,      // 術師のバリアが魔法を受け止めた
+	ReviveStart,     // 倒れた(自動蘇生のカウント開始)
+	ReviveComplete,  // 自力で起き上がった
+
+	// --- ボスの大技 ---
+	Phase2Transition, // 第2形態への移行
 	Count,
 };
 
@@ -48,9 +59,15 @@ void PlaySe(Se se);
 
 /// <summary>
 /// BGMをループ再生する(既に同じ曲が鳴っていれば何もしない)。
-/// パスはプロジェクトのData相対(例: "Resources/audio/springMountain.wav")。
+/// パスはプロジェクトのData相対(例: "Audio/bg_Title.mp3")。mp3もwavも読める。
 /// </summary>
 void PlayBgm(const std::string& relativePath);
+
+/// <summary>
+/// ボス撃破のBGM。**一発の効果音ではなく曲**として鳴らす —
+/// 撃破からリザルト画面まで同じシーンで続くので、鳴らしっぱなしにしたいのはこちら。
+/// </summary>
+inline constexpr const char* kClearBgmPath = "Audio/bg_Clear.mp3";
 
 /// <summary>BGMを止める。</summary>
 void StopBgm();

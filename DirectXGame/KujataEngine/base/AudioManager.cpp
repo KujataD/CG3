@@ -1,9 +1,19 @@
 #include "AudioManager.h"
 #include "Logger.h"
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 
+#include <mfapi.h>
+#include <mferror.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
+
 #pragma comment(lib, "xaudio2.lib")
+// 圧縮音声(mp3等)の展開に使う。Windows標準なので追加の再頒布物は要らない。
+#pragma comment(lib, "mfplat.lib")
+#pragma comment(lib, "mfreadwrite.lib")
+#pragma comment(lib, "mfuuid.lib")
 
 namespace KujataEngine {
 
@@ -15,6 +25,15 @@ struct ChunkHeader {
 };
 
 bool ChunkIdEquals(const ChunkHeader& header, const char* id) { return std::memcmp(header.id, id, 4) == 0; }
+
+/// <summary>拡張子を小文字で返す(先頭のドットを含む)。無ければ空。</summary>
+std::string LowerExtension(const std::string& filePath) {
+	std::string extension = std::filesystem::path(filePath).extension().string();
+	for (char& character : extension) {
+		character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+	}
+	return extension;
+}
 
 } // namespace
 
@@ -63,6 +82,132 @@ void AudioManager::Finalize() {
 	}
 	xaudio2_.Reset();
 	initialized_ = false;
+
+	// **起動したら必ず落とす。** MFStartup/MFShutdownは対で呼ぶ約束になっている。
+	if (mediaFoundationReady_) {
+		MFShutdown();
+		mediaFoundationReady_ = false;
+	}
+}
+
+bool AudioManager::EnsureMediaFoundation() {
+	if (mediaFoundationReady_) {
+		return true;
+	}
+	if (mediaFoundationFailed_) {
+		return false; // 一度失敗した環境では二度と試さない。
+	}
+	const HRESULT result = MFStartup(MF_VERSION, MFSTARTUP_LITE);
+	if (FAILED(result)) {
+		Logger::Log("[Audio] MFStartup failed. hr=" + std::to_string(result));
+		mediaFoundationFailed_ = true;
+		return false;
+	}
+	mediaFoundationReady_ = true;
+	return true;
+}
+
+uint32_t AudioManager::LoadAudio(const std::string& filePath) {
+	// **拡張子で読み方を選ぶ。** WAVは自前で読んだほうが速く、依存も増えない。
+	if (LowerExtension(filePath) == ".wav") {
+		return LoadWav(filePath);
+	}
+	return LoadCompressed(filePath);
+}
+
+uint32_t AudioManager::LoadCompressed(const std::string& filePath) {
+	auto found = soundHandleByPath_.find(filePath);
+	if (found != soundHandleByPath_.end()) {
+		return found->second;
+	}
+	if (!EnsureMediaFoundation()) {
+		return kInvalidHandle;
+	}
+
+	// **必ずpathを経由してワイド化する。** 素朴なchar→wchar_tの引き伸ばしだと、
+	// 日本語を含むパスで開けなくなる(プロジェクトルートに日本語が入る構成がある)。
+	const std::wstring widePath = std::filesystem::path(filePath).wstring();
+
+	Microsoft::WRL::ComPtr<IMFSourceReader> reader;
+	HRESULT result = MFCreateSourceReaderFromURL(widePath.c_str(), nullptr, reader.GetAddressOf());
+	if (FAILED(result) || !reader) {
+		Logger::Log("[Audio] Failed to open audio: " + filePath + " hr=" + std::to_string(result));
+		return kInvalidHandle;
+	}
+
+	// 音声の第1ストリームだけを使う(映像や字幕が混ざっていても無視する)。
+	reader->SetStreamSelection(static_cast<DWORD>(MF_SOURCE_READER_ALL_STREAMS), FALSE);
+	reader->SetStreamSelection(static_cast<DWORD>(MF_SOURCE_READER_FIRST_AUDIO_STREAM), TRUE);
+
+	// 「PCMで寄こせ」とだけ指定する。ビット深度やサンプリングレートはMFに決めさせ、
+	// 決まった形式をあとから引き取ってWAVEFORMATEXへ写す。
+	Microsoft::WRL::ComPtr<IMFMediaType> requested;
+	if (FAILED(MFCreateMediaType(requested.GetAddressOf()))) {
+		return kInvalidHandle;
+	}
+	requested->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+	requested->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+	result = reader->SetCurrentMediaType(static_cast<DWORD>(MF_SOURCE_READER_FIRST_AUDIO_STREAM), nullptr, requested.Get());
+	if (FAILED(result)) {
+		Logger::Log("[Audio] PCM decode not available: " + filePath + " hr=" + std::to_string(result));
+		return kInvalidHandle;
+	}
+
+	Microsoft::WRL::ComPtr<IMFMediaType> actual;
+	if (FAILED(reader->GetCurrentMediaType(static_cast<DWORD>(MF_SOURCE_READER_FIRST_AUDIO_STREAM), actual.GetAddressOf()))) {
+		return kInvalidHandle;
+	}
+	WAVEFORMATEX* format = nullptr;
+	UINT32 formatSize = 0;
+	if (FAILED(MFCreateWaveFormatExFromMFMediaType(actual.Get(), &format, &formatSize)) || !format) {
+		return kInvalidHandle;
+	}
+
+	SoundData sound{};
+	sound.formatBytes.resize((std::max)(static_cast<size_t>(formatSize), sizeof(WAVEFORMATEX)), 0);
+	std::memcpy(sound.formatBytes.data(), format, formatSize);
+	CoTaskMemFree(format);
+
+	// 最後まで読み切って連結する。XAudio2は圧縮のままでは鳴らせないので、丸ごと展開する。
+	for (;;) {
+		DWORD flags = 0;
+		Microsoft::WRL::ComPtr<IMFSample> sample;
+		result = reader->ReadSample(static_cast<DWORD>(MF_SOURCE_READER_FIRST_AUDIO_STREAM), 0, nullptr, &flags, nullptr,
+		    sample.GetAddressOf());
+		if (FAILED(result)) {
+			Logger::Log("[Audio] ReadSample failed: " + filePath + " hr=" + std::to_string(result));
+			return kInvalidHandle;
+		}
+		if (flags & MF_SOURCE_READERF_ENDOFSTREAM) {
+			break;
+		}
+		if (!sample) {
+			continue; // ギャップ。データは無いが終端でもない。
+		}
+
+		Microsoft::WRL::ComPtr<IMFMediaBuffer> buffer;
+		if (FAILED(sample->ConvertToContiguousBuffer(buffer.GetAddressOf())) || !buffer) {
+			continue;
+		}
+		BYTE* data = nullptr;
+		DWORD length = 0;
+		if (FAILED(buffer->Lock(&data, nullptr, &length))) {
+			continue;
+		}
+		sound.pcmBytes.insert(sound.pcmBytes.end(), data, data + length);
+		buffer->Unlock();
+	}
+
+	if (sound.pcmBytes.empty()) {
+		Logger::Log("[Audio] Decoded no samples: " + filePath);
+		return kInvalidHandle;
+	}
+
+	const uint32_t handle = static_cast<uint32_t>(sounds_.size());
+	sounds_.push_back(std::move(sound));
+	soundHandleByPath_[filePath] = handle;
+	Logger::Log("[Audio] Decoded: " + filePath);
+	return handle;
 }
 
 uint32_t AudioManager::LoadWav(const std::string& filePath) {

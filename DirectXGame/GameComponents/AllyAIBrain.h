@@ -98,6 +98,9 @@ private:
 	/// <summary>相方の位置へバリアを張る(術師専用。自分は間合いを保ったまま)。</summary>
 	BahamutAI::BTStatus ShieldPartner(const BahamutAI::NodeParams& params);
 
+	/// <summary>(廃止)常に失敗する。**登録を消すとツリーが読み込めなくなる**ので残してある。</summary>
+	BahamutAI::BTStatus ReviveAlly(const BahamutAI::NodeParams& params);
+
 	/// <summary>スタンした敵へ寄って致命を入れる。</summary>
 	BahamutAI::BTStatus CriticalStrike(const BahamutAI::NodeParams& params);
 

@@ -71,11 +71,12 @@
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\build\bin\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Debug;$(SolutionDir)build\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>KujataEngine.lib;assimp-vc143-mdd.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>LE2B_04_オオツカ_ダイチ_BoardBorder.lib;assimp-vc143-mdd.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!-- LNK4232: インポート元のexe名に非ASCIIが含まれる警告。提出名(日本語)を使うため個別に見送る。 -->
+      <AdditionalOptions>/ignore:4049 /ignore:4098 /ignore:4232 /ignore:4233 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <!-- KujataEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
+      <!-- エンジンのexe(BoardBorder.exe)と同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
       <Command>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\build\bin\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -98,11 +99,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDataBaseFile>$(IntDir)$(TargetName).pdb</ProgramDataBaseFile>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\build\bin\$(Configuration);$(ProjectDir)..\externals\assimp\lib\Release;$(SolutionDir)build\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>KujataEngine.lib;assimp-vc143-md.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LE2B_04_オオツカ_ダイチ_BoardBorder.lib;assimp-vc143-md.lib;BahamutAICore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4049 /ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <!-- KujataEngine.exeと同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
+      <!-- エンジンのexe(BoardBorder.exe)と同じフォルダにもDLLを複製する。zip配布時にexe隣を探すEditorApplication::GetGameModuleDllPathのフォールバックに対応するため。 -->
       <Command>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\build\bin\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

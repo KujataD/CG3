@@ -63,6 +63,7 @@ void ActionFeedback::Update() {
 	showTimer_ = showSeconds_;
 	cooldownTimer_ = cooldownSeconds_;
 	if (playSound_) {
-		GameAudio::PlaySe(GameAudio::Se::UiCancel);
+		// **理由ごとに音を変える。** 文字を読まなくても「何が足りないのか」が分かるようにする。
+		GameAudio::PlaySe(failure == GameEvents::Failure::NoStamina ? GameAudio::Se::StaminaEmpty : GameAudio::Se::UiCancel);
 	}
 }

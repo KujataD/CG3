@@ -62,6 +62,8 @@ void Phase2Cutscene::Begin() {
 	phase_ = Phase::FadeToBlack;
 	timer_ = 0.0f;
 	shotsFired_ = 0;
+	// **「まだ終わっていない」を音で突きつける。** 削り切った直後に鳴らすのが効く。
+	GameAudio::PlaySe(GameAudio::Se::Phase2Transition);
 
 	// **ボスの体をこちらで預かる。** 預からないとBTが裏で回り続け、
 	// 演出で置いた位置から歩き出したり、跳んでいる最中に攻撃を出したりする。

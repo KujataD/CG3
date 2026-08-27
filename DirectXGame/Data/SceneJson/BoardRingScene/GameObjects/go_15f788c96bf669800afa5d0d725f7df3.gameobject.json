@@ -156,22 +156,22 @@
       "enabled": true,
       "properties": {
         "aftermathSeconds": 1.899999976158142,
-        "cameraDistanceScale": 0.6000000238418579,
+        "cameraDistanceScale": 0.46,
         "criticalClipName": "PawnAttackCharge",
         "damage": 120.0,
-        "hitstopSeconds": 0.11999999731779099,
-        "hitstopTimeScale": 0.0,
+        "hitstopSeconds": 0.22,
+        "hitstopTimeScale": 0.05,
         "promptHeight": 1.2000000476837158,
         "promptPrefabPath": "Prefabs/CriticalPrompt.prefab.json",
         "promptShowDistance": 12.0,
-        "recoverSeconds": 0.550000011920929,
+        "recoverSeconds": 0.78,
         "shotBackOffset": 1.399999976158142,
         "shotHeight": 1.899999976158142,
         "shotOrbitDeg": 38.0,
         "shotSideOffset": 3.200000047683716,
         "strikeOffset": 1.7999999523162842,
         "triggerDistance": 3.0,
-        "windupSeconds": 0.3499999940395355
+        "windupSeconds": 0.52
       },
       "type": "CriticalStrikeComponent"
     }

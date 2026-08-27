@@ -1,4 +1,5 @@
 #include "LockOnController.h"
+#include "GameAudio.h"
 #include "GameEvents.h"
 #include "CharacterMotor.h"
 #include "GameInput.h"
@@ -89,10 +90,16 @@ void LockOnController::Toggle() {
 	target_ = best ? best->object : nullptr;
 	if (target_) {
 		++GameEvents::LockOnCountRef(); // チュートリアルの課題判定用。
+		GameAudio::PlaySe(GameAudio::Se::LockOn);
 	}
 }
 
 void LockOnController::Clear() {
+	// **掴んでいたときだけ鳴らす。** 何も掴んでいない状態でも Clear は通るので、
+	// 無条件に鳴らすと解除音だけが空撃ちで鳴る。
+	if (target_) {
+		GameAudio::PlaySe(GameAudio::Se::LockOff);
+	}
 	target_ = nullptr;
 }
 

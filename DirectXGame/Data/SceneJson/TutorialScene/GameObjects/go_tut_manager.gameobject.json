@@ -31,7 +31,7 @@
         "objectiveRootName": "TutorialObjective",
         "objectiveTextName": "ObjectiveText",
         "popupName": "TutorialPopup",
-        "requiredObjectives": 5,
+        "requiredObjectives": 0,
         "titleName": "PopupTitle"
       },
       "type": "TutorialManager"

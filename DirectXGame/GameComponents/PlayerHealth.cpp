@@ -124,6 +124,8 @@ void PlayerHealth::EnterDeath() {
 	reviveTimer_ = 0.0f;
 	// **死んだら無敵にする。** 倒れている間ずっと殴られ続けると、時間で起き上がる意味が無くなる。
 	invincible_ = true;
+	// 倒れたことと、そこから復帰待ちに入ったことを音でも出す。
+	GameAudio::PlaySe(GameAudio::Se::ReviveStart);
 
 	// **押されて動かないように、体をキネマティック(Is Static)へ落とす。**
 	// コライダーは残す(倒れた体をすり抜けさせないため)。
@@ -182,6 +184,8 @@ void PlayerHealth::Revive() {
 	dead_ = false;
 	invincible_ = false;
 	health_ = maxHealth_ * std::clamp(reviveHealthPercent_ * 0.01f, 0.01f, 1.0f);
+	// **起き上がった瞬間を音で知らせる。** 画面から目を離していても復帰が分かる。
+	GameAudio::PlaySe(GameAudio::Se::ReviveComplete);
 
 	// 体を元へ戻す。**死ぬ前が動的だったかを覚えておく**のは、
 	// 元からキネマティックに置かれた個体を蘇生で勝手に動かさないため。

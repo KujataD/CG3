@@ -399,10 +399,13 @@ void MagicAbilitySet::FireBolt(float spreadAngleDeg, GameObject* lockOnTarget) {
 	projectile->SetSpread(spreadRadius_, spreadSeconds_, spreadAngleDeg);
 	// Z注目中はホーミング(散開し切ったあと、その位置から対象へ吸い込まれる)。
 	ApplyHoming(projectile, lockOnTarget);
+
+	// **1発ごとに鳴らす。** 詠唱1回につき1回だと、斉射で8発出ても音は最初の1度きりで、
+	// 「撃っている手応え」が弾の数と噛み合わない。斉射は時間をまたぐので音も連なる。
+	GameAudio::PlaySe(GameAudio::Se::MagicShot);
 }
 
 void MagicAbilitySet::FireNormal() {
-	GameAudio::PlaySe(GameAudio::Se::MagicShot);
 	GameObject* lockOnTarget = FindLockOnTarget();
 
 	// 円周を等分した向きへ散らす(2発なら左右、4発なら十字)。

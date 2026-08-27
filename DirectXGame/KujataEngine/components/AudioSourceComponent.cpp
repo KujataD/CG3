@@ -66,7 +66,7 @@ bool AudioSourceComponent::EnsureLoaded() {
 		return true;
 	}
 
-	soundHandle_ = AudioManager::GetInstance()->LoadWav(resolvedPath);
+	soundHandle_ = AudioManager::GetInstance()->LoadAudio(resolvedPath);
 	loadedPath_ = resolvedPath;
 	return soundHandle_ != AudioManager::kInvalidHandle;
 }

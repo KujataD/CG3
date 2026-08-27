@@ -84,8 +84,8 @@
             1.0
           ]
         },
-        "materialAssetId": "",
-        "materialPath": "",
+        "materialAssetId": "asset_19cf47754d3f7d140ce73f34611100c5",
+        "materialPath": "Materials/Shield.material.json",
         "modelAssetId": "asset_cbbb1f2c6b1ed3fb65dde72fc525d6e5",
         "modelPath": "Resources/cane/Cane.obj",
         "primitive": "Model"

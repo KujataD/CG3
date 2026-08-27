@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "BossIntroCutscene.h"
 #include "CharacterMotor.h"
 #include "CriticalStrikeComponent.h"
 #include "GameInput.h"
@@ -35,6 +36,30 @@ void Player::Update() {
 	// **倒れている間は一切の入力を受け付けない。**
 	// 自力で起き上がるまでの十秒間まったく動けない、というのが死亡状態の重みそのもの。
 	if (health_ && health_->IsDead()) {
+		return;
+	}
+
+	// **開幕演出が終わるまでは入力を受けない。** AI側と同じ理由で、
+	// 有効/無効の切り替えだけでは更新順によって1回すり抜ける。
+	if (owner_ && BossIntroCutscene::IsSceneIntroPlaying(owner_->GetScene())) {
+		wasAttackPressed_ = GameInput::IsAttackHeld();
+		attackConsumed_ = true;
+		if (guard_) {
+			guard_->SetGuardInput(false);
+		}
+		return;
+	}
+
+	// **致命の演出中は入力を一切受けない。**
+	// 行動ロックの秒数合わせだけに頼ると、拍の足し忘れやヒットストップで時間の数え方が
+	// ずれた瞬間に「カメラは寄ったままキャラだけ動く」が復活する。
+	// 演出そのものに聞くのが確実で、意図もそのまま読める。
+	if (critical_ && critical_->IsExecuting()) {
+		wasAttackPressed_ = GameInput::IsAttackHeld();
+		attackConsumed_ = true;
+		if (guard_) {
+			guard_->SetGuardInput(false);
+		}
 		return;
 	}
 

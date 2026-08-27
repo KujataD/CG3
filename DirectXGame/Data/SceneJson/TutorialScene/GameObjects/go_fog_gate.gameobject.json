@@ -1,7 +1,7 @@
 {
   "assetType": "GameObject",
   "instanceId": "go_fog_gate",
-  "parentInstanceId": "go_tutorial_stage",
+  "parentInstanceId": "go_cave_root",
   "prefabAssetPath": "Prefabs/FogGate.prefab.json",
   "prefabObjectId": "object_0",
   "prefabInstanceRootId": "go_fog_gate",
@@ -14,21 +14,13 @@
     {
       "enabled": true,
       "properties": {
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
+        "rotation": [ 0.0, 3.4276441, 0.0 ],
         "scale": [
           1.0,
           1.0,
           1.0
         ],
-        "translation": [
-          195.39999389648438,
-          0.15000000596046448,
-          -515.0
-        ]
+        "translation": [ 1.5, 4.5, 247.4 ]
       },
       "type": "Transform"
     }

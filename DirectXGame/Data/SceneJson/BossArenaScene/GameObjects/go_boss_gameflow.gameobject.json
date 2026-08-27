@@ -45,7 +45,7 @@
                        {
                            "enabled":  true,
                            "properties":  {
-                                              "autoRetry":  true,
+                                              "autoRetry":  false,
                                               "autoRetryDelay":  1.0,
                                               "bossName":  "GuardianSpline",
                                               "clearDelaySeconds":  1.5,
@@ -104,6 +104,32 @@
                                               "textObjectName":  "ActionFeedbackText"
                                           },
                            "type":  "ActionFeedback"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "allowSkip":  true,
+                                              "approachSeconds":  1.8,
+                                              "blendSpeed":  9.0,
+                                              "bossHudName":  "BossHPBar",
+                                              "bossLookHeight":  7.0,
+                                              "bossName":  "GuardianSpline",
+                                              "followDistance":  10.0,
+                                              "followHeight":  3.2,
+                                              "nameFadeSeconds":  0.5,
+                                              "nameObjectName":  "BossIntroName",
+                                              "nameSeconds":  2.0,
+                                              "nameBgName":  "BossIntroNameBG",
+                                              "nameTextName":  "BossIntroNameText",
+                                              "pivotHeight":  1.5,
+                                              "revealEndDistance":  25.0,
+                                              "revealEndHeight":  10.0,
+                                              "revealOrbitDeg":  55.0,
+                                              "revealSeconds":  3.0,
+                                              "revealStartDistance":  14.0,
+                                              "revealStartHeight":  1.2
+                                          },
+                           "type":  "BossIntroCutscene"
                        }
                    ]
 }

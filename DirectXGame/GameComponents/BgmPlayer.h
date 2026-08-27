@@ -21,7 +21,7 @@ public:
 private:
 	KUJATA_SERIALIZED_FIELDS_BEGIN() {
 		KUJATA_REGISTER_STRING_NAMED_TIP(bgmPath_, "Bgm Path",
-		    "Data相対のWAVパス(例: Resources/audio/springMountain.wav)。空なら何も鳴らさない。");
+		    "Data相対の音声パス(例: Audio/bg_Title.mp3)。mp3もwavも読める。空なら何も鳴らさない。");
 		KUJATA_REGISTER_BOOL_NAMED_TIP(stopOnExit_, "Stop On Exit",
 		    "シーンを抜けるときに止めるか。**offにすると次のシーンへ曲が続く**\n"
 		    "(タイトル→キャラ選択のように曲を繋げたい場合に使う)。");

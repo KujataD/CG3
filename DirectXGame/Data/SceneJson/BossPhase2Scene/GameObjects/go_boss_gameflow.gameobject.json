@@ -35,7 +35,7 @@
                        {
                            "enabled":  true,
                            "properties":  {
-                                              "autoRetry":  true,
+                                              "autoRetry":  false,
                                               "autoRetryDelay":  1.0,
                                               "clearDelaySeconds":  1.5,
                                               "clearMessageName":  "ClearMessage",

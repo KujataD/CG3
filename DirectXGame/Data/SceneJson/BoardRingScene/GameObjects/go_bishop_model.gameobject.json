@@ -84,8 +84,8 @@
             1.0
           ]
         },
-        "materialAssetId": "",
-        "materialPath": "",
+        "materialAssetId": "asset_d25ba1a25e2e953e692db582bb93e4b6",
+        "materialPath": "Materials/Player.material.json",
         "modelAssetId": "asset_1fabf2a930b3fafe0fd591720e5ec02a",
         "modelPath": "Resources/bishop/bishop.obj",
         "primitive": "Model"

@@ -154,6 +154,26 @@
       ]
     },
     {
+      "category": "Support",
+      "description": "(廃止)常に失敗する。蘇生は倒れてからの経過時間で自力に進む",
+      "kind": "action",
+      "name": "ReviveAlly",
+      "params": [
+        {
+          "default": 2.200000047683716,
+          "description": "未使用",
+          "name": "range",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "未使用",
+          "name": "speedScale",
+          "type": "float"
+        }
+      ]
+    },
+    {
       "category": "Attack",
       "description": "スタンした敵へ寄って致命を入れる",
       "kind": "action",

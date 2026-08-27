@@ -284,6 +284,7 @@
                                                                    0,
                                                                    0
                                                                ],
+                                              "dissolveOnDeath":  false,
                                               "maxHealth":  600,
                                               "poiseDecayDelay":  2,
                                               "poiseDecayPerSecond":  20,

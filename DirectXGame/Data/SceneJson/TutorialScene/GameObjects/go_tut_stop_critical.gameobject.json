@@ -35,8 +35,8 @@
       "enabled": true,
       "properties": {
         "leaderOnly": true,
-        "line0": "崩れた敵に近づくと CRITICAL [R2 / K] が出る。",
-        "line1": "そのまま R2 / K で致命の一撃。専用ボタンは無い。",
+        "line0": "崩れた敵に近づくと CRITICAL の合図が出る。",
+        "line1": "そのまま R2 / K で致命の一撃。",
         "line2": "崩してから決めろ。",
         "line3": "",
         "line4": "",

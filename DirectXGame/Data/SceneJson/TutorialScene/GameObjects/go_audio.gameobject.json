@@ -35,7 +35,7 @@
     {
       "enabled": true,
       "properties": {
-        "bgmPath": "Resources/audio/springMountain.wav",
+        "bgmPath": "Audio/bg_Tutorial.mp3",
         "stopOnExit": true
       },
       "type": "BgmPlayer"

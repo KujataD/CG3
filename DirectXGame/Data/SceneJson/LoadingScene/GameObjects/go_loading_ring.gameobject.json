@@ -75,7 +75,7 @@
                                               "fillAmount":  1,
                                               "raycastTarget":  false,
                                               "textureAssetId":  "",
-                                              "texturePath":  "Resources/lockOn.png",
+                                              "texturePath":  "Resources/ui_load.png",
                                               "uvOffset":  [
                                                                0,
                                                                0

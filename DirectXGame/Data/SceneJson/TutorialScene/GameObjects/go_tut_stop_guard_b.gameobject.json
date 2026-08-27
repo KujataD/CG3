@@ -46,7 +46,7 @@
         "objectiveCount": 1,
         "requireCharacter": "Bishop",
         "requireTag": "Ally",
-        "title": "守る(術師)"
+        "title": "守る(BISHOP)"
       },
       "type": "TutorialTrigger"
     }

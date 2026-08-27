@@ -43,7 +43,7 @@
                                               "progressTau":  0.7,
                                               "spinnerName":  "LoadingRing",
                                               "spinnerSpeed":  2,
-                                              "indeterminate":  true,
+                                              "indeterminate":  false,
                                               "sweepSeconds":  1.2,
                                               "statusTextName":  "LoadingLabel",
                                               "statusLabel":  "NOW LOADING",

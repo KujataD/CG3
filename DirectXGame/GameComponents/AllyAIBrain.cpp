@@ -1,6 +1,7 @@
 #include "AllyAIBrain.h"
 
 #include "BarrierGuard.h"
+#include "BossIntroCutscene.h"
 #include "CharacterMotor.h"
 #include "CriticalStrikeComponent.h"
 #include "EnemyHealth.h"
@@ -223,6 +224,23 @@ void AllyAIBrain::Initialize() {
 		    return ShieldPartner(params);
 	    });
 
+	// **登録を消してはいけない。** 蘇生は時間経過へ変わったので中身は何もしないが、
+	// 配布済みのツリー(AllyMeleeBT / AllyMagicBT)がこのノードを参照している。
+	// 登録を外すと **ツリーごと読み込みに失敗し、AIが完全に無反応になる**
+	// (`action is not registered: ReviveAlly`)。落ちないので原因が非常に読みにくい。
+	// 消すときは先に両方のBehaviorTree.jsonからノードを外すこと。
+	BahamutAI::RegisterAction(
+	    btFactory_, catalog,
+	    BahamutAI::ActionDef("ReviveAlly")
+	        .Category("Support")
+	        .Description("(廃止)常に失敗する。蘇生は倒れてからの経過時間で自力に進む")
+	        .Float("range", {2.2f}, "未使用")
+	        .Float("speedScale", {1.0f}, "未使用"),
+	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) {
+		    (void)context;
+		    return ReviveAlly(params);
+	    });
+
 	BahamutAI::RegisterAction(
 	    btFactory_, catalog,
 	    BahamutAI::ActionDef("CriticalStrike")
@@ -275,6 +293,17 @@ void AllyAIBrain::Update() {
 		}
 	}
 	if (!owner_ || !btRuntime_.IsLoaded()) {
+		return;
+	}
+
+	// **開幕演出が終わるまでは動かない。** 有効/無効の切り替えだけに頼ると、
+	// コンポーネントの更新順によっては演出が始まる前にAIが1回動いてしまう
+	// (幕が上がる前にNPCが斬りかかる、という形で見える)。
+	// 演出そのものに毎フレーム聞けば、更新順に左右されない。
+	if (BossIntroCutscene::IsSceneIntroPlaying(owner_->GetScene())) {
+		if (guard_) {
+			guard_->SetGuardInput(false);
+		}
 		return;
 	}
 
@@ -659,6 +688,16 @@ BahamutAI::BTStatus AllyAIBrain::ShieldPartner(const BahamutAI::NodeParams& para
 		motor_->FaceWorld(HorizontalTo(*owner_, *enemy));
 	}
 	return BahamutAI::BTStatus::Running;
+}
+
+BahamutAI::BTStatus AllyAIBrain::ReviveAlly(const BahamutAI::NodeParams& params) {
+	// **常に失敗する。** 蘇生は倒れてからの経過時間で自力に進むので、助けに行く必要はない
+	// ([[death-and-revive]])。ここで駆け寄ると、起こし終わるまで無防備に棒立ちになり、
+	// その隙にもう一人も落ちる、を繰り返していた。
+	// **登録と実体は残す。** 配布済みのツリーがこのノードを参照しており、
+	// 外すとツリーの読み込みごと失敗してAIが止まる。
+	(void)params;
+	return BahamutAI::BTStatus::Failure;
 }
 
 BahamutAI::BTStatus AllyAIBrain::CriticalStrike(const BahamutAI::NodeParams& params) {

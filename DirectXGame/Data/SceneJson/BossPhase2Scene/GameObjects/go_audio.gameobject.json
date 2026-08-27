@@ -23,7 +23,7 @@
                        {
                            "enabled":  true,
                            "properties":  {
-                                              "bgmPath":  "Resources/audio/springMountain.wav",
+                                              "bgmPath":  "Audio/bg_BossPhase1.mp3",
                                               "stopOnExit":  true
                                           },
                            "type":  "BgmPlayer"

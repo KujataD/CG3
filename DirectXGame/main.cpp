@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// エンジン初期化
 	// 画面奥は洞窟の闇。空色のままだと、天井の無い通路から明るい「空」が覗いてしまう。
-	KujataEngine::Initialize(L"Kujata Engine", {0.016f, 0.014f, 0.012f, 1.0f});
+	KujataEngine::Initialize(L"LE2B_04_オオツカ_ダイチ_BOARD:BORDER", {0.016f, 0.014f, 0.012f, 1.0f});
 
 	EditorApplication* editorApplication = EditorApplication::GetInstance();
 	editorApplication->Initialize();

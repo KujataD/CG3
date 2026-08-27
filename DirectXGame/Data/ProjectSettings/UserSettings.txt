@@ -1,0 +1,4 @@
+bgmVolume=0.6
+seVolume=0.8
+cameraSensitivity=1
+invertCameraY=0

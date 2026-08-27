@@ -1,4 +1,5 @@
 #include "BarrierGuard.h"
+#include "GameAudio.h"
 #include "GameEvents.h"
 #include "Player.h"
 #include "CharacterMotor.h"
@@ -124,12 +125,18 @@ GuardResult BarrierGuard::MitigateCommon(const HitInfo& hit) {
 		// ジャストガード: 魔法のつぶてで攻撃元へ自動反撃。
 		if (activeTime_ <= justGuardWindow_ && magic_) {
 			result.justGuard = true;
+			// **剣士のジャストガードと同じ音**にする。同じ操作の成功なので手応えを揃える。
+			GameAudio::PlaySe(GameAudio::Se::JustGuard);
 			magic_->FirePebble(hit.attacker);
 			// チュートリアルの課題判定用。**操作中のキャラのぶんだけ数える**
 			// (AI相方が偶然成立させたぶんで課題が終わってしまわないように)。
 			if (Player::IsControlledObject(owner_)) {
 				++GameEvents::JustGuardCountRef();
 			}
+		} else {
+			// 通常の受け止め。**無効化できたことが分かる音**を出さないと、
+			// バリアが効いているのか素通しなのか見分けが付かない。
+			GameAudio::PlaySe(GameAudio::Se::BarrierHit);
 		}
 		return result;
 	}

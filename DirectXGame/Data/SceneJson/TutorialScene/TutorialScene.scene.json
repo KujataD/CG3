@@ -459,66 +459,6 @@
                             "assetPath":  "SceneJson/TutorialScene/GameObjects/go_hud_hairline_playerstaminabarbg.gameobject.json"
                         },
                         {
-                            "instanceId":  "go_fog_gate",
-                            "parentInstanceId":  "go_tutorial_stage",
-                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
-                            "prefabObjectId":  "object_0",
-                            "prefabInstanceRootId":  "go_fog_gate",
-                            "prefabInstanceRoot":  true,
-                            "name":  "FogGate",
-                            "tag":  "Untagged",
-                            "layer":  0,
-                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate.gameobject.json"
-                        },
-                        {
-                            "instanceId":  "go_fog_gate_back",
-                            "parentInstanceId":  "go_fog_gate",
-                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
-                            "prefabObjectId":  "object_1",
-                            "prefabInstanceRootId":  "go_fog_gate",
-                            "prefabInstanceRoot":  false,
-                            "name":  "FogSheetBack",
-                            "tag":  "Untagged",
-                            "layer":  0,
-                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_back.gameobject.json"
-                        },
-                        {
-                            "instanceId":  "go_fog_gate_front",
-                            "parentInstanceId":  "go_fog_gate",
-                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
-                            "prefabObjectId":  "object_2",
-                            "prefabInstanceRootId":  "go_fog_gate",
-                            "prefabInstanceRoot":  false,
-                            "name":  "FogSheetFront",
-                            "tag":  "Untagged",
-                            "layer":  0,
-                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_front.gameobject.json"
-                        },
-                        {
-                            "instanceId":  "go_fog_gate_wisps_l",
-                            "parentInstanceId":  "go_fog_gate",
-                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
-                            "prefabObjectId":  "object_3",
-                            "prefabInstanceRootId":  "go_fog_gate",
-                            "prefabInstanceRoot":  false,
-                            "name":  "FogWispsL",
-                            "tag":  "Untagged",
-                            "layer":  0,
-                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_wisps_l.gameobject.json"
-                        },
-                        {
-                            "instanceId":  "go_fog_gate_wisps_r",
-                            "parentInstanceId":  "go_fog_gate",
-                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
-                            "prefabObjectId":  "object_4",
-                            "prefabInstanceRootId":  "go_fog_gate",
-                            "prefabInstanceRoot":  false,
-                            "name":  "FogWispsR",
-                            "tag":  "Untagged",
-                            "layer":  0,
-                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_wisps_r.gameobject.json"
-                        },
-                        {
                             "instanceId":  "go_audio",
                             "parentInstanceId":  "",
                             "prefabAssetPath":  "",
@@ -1021,6 +961,66 @@
                             "tag":  "Untagged",
                             "layer":  0,
                             "assetPath":  "SceneJson/TutorialScene/GameObjects/go_cave_start.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "go_fog_gate",
+                            "parentInstanceId":  "go_cave_root",
+                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
+                            "prefabObjectId":  "object_0",
+                            "prefabInstanceRootId":  "go_fog_gate",
+                            "prefabInstanceRoot":  true,
+                            "name":  "FogGate",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "go_fog_gate_back",
+                            "parentInstanceId":  "go_fog_gate",
+                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
+                            "prefabObjectId":  "object_1",
+                            "prefabInstanceRootId":  "go_fog_gate",
+                            "prefabInstanceRoot":  false,
+                            "name":  "FogSheetBack",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_back.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "go_fog_gate_front",
+                            "parentInstanceId":  "go_fog_gate",
+                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
+                            "prefabObjectId":  "object_2",
+                            "prefabInstanceRootId":  "go_fog_gate",
+                            "prefabInstanceRoot":  false,
+                            "name":  "FogSheetFront",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_front.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "go_fog_gate_wisps_l",
+                            "parentInstanceId":  "go_fog_gate",
+                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
+                            "prefabObjectId":  "object_3",
+                            "prefabInstanceRootId":  "go_fog_gate",
+                            "prefabInstanceRoot":  false,
+                            "name":  "FogWispsL",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_wisps_l.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "go_fog_gate_wisps_r",
+                            "parentInstanceId":  "go_fog_gate",
+                            "prefabAssetPath":  "Prefabs/FogGate.prefab.json",
+                            "prefabObjectId":  "object_4",
+                            "prefabInstanceRootId":  "go_fog_gate",
+                            "prefabInstanceRoot":  false,
+                            "name":  "FogWispsR",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/go_fog_gate_wisps_r.gameobject.json"
                         },
                         {
                             "instanceId":  "go_ally_hpbar_bg",
@@ -2161,6 +2161,42 @@
                             "tag":  "Untagged",
                             "layer":  0,
                             "assetPath":  "SceneJson/TutorialScene/GameObjects/go_tut_grunt_c0.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "tut_ctrl_l11",
+                            "parentInstanceId":  "tut_ctrl_menu",
+                            "prefabAssetPath":  "",
+                            "prefabObjectId":  "",
+                            "prefabInstanceRootId":  "",
+                            "prefabInstanceRoot":  false,
+                            "name":  "ControlsLabel11",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/tut_ctrl_l11.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "tut_ctrl_p11",
+                            "parentInstanceId":  "tut_ctrl_menu",
+                            "prefabAssetPath":  "",
+                            "prefabObjectId":  "",
+                            "prefabInstanceRootId":  "",
+                            "prefabInstanceRoot":  false,
+                            "name":  "ControlsPad11",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/tut_ctrl_p11.gameobject.json"
+                        },
+                        {
+                            "instanceId":  "tut_ctrl_k11",
+                            "parentInstanceId":  "tut_ctrl_menu",
+                            "prefabAssetPath":  "",
+                            "prefabObjectId":  "",
+                            "prefabInstanceRootId":  "",
+                            "prefabInstanceRoot":  false,
+                            "name":  "ControlsKey11",
+                            "tag":  "Untagged",
+                            "layer":  0,
+                            "assetPath":  "SceneJson/TutorialScene/GameObjects/tut_ctrl_k11.gameobject.json"
                         }
                     ]
 }
