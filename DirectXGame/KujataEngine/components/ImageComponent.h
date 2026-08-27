@@ -34,6 +34,12 @@ public:
 	bool IsRaycastTarget() const { return raycastTarget_; }
 
 	void SetTexture(const std::string& assetId, const std::string& path);
+
+	/// <summary>
+	/// 手続き生成テクスチャ(NoiseTextureなど、ファイルに無いもの)のSRV番号を直接差し込む。
+	/// 以後このImageはパスからの読み込みを行わない(Prepareが上書きしない)。
+	/// </summary>
+	void SetTextureIndexDirect(uint32_t textureIndex);
 	void SetColor(const Vector4& color) { color_ = color; }
 	const Vector4& GetColor() const { return color_; }
 
@@ -68,6 +74,8 @@ private:
 	bool quadInitialized_ = false;
 	uint32_t textureIndex_ = 0;
 	std::string loadedPath_;
+	// 手続き生成テクスチャを差し込まれたか。trueの間はEnsureTextureLoadedを走らせない。
+	bool textureIndexOverridden_ = false;
 	bool textureResolved_ = false;
 };
 

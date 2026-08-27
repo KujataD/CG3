@@ -1,4 +1,5 @@
 #include "LockOnController.h"
+#include "GameEvents.h"
 #include "CharacterMotor.h"
 #include "GameInput.h"
 #include "IEnemy.h"
@@ -70,6 +71,8 @@ void LockOnController::Toggle() {
 	std::vector<Candidate> candidates;
 	CollectCandidates(candidates);
 	if (candidates.empty()) {
+		// **押したのに何も起きない**が一番分かりにくいので、理由を掲示する([[GameEvents]])。
+		GameEvents::ReportFailure(GameEvents::Failure::NoLockOnTarget);
 		return;
 	}
 
@@ -84,6 +87,9 @@ void LockOnController::Toggle() {
 		}
 	}
 	target_ = best ? best->object : nullptr;
+	if (target_) {
+		++GameEvents::LockOnCountRef(); // チュートリアルの課題判定用。
+	}
 }
 
 void LockOnController::Clear() {
@@ -141,7 +147,8 @@ Vector3 LockOnController::GetTargetPoint() const {
 	if (IEnemy* enemy = target_->GetComponent<IEnemy>()) {
 		return enemy->GetLockOnPoint();
 	}
-	return target_->GetTransform().translation_;
+	// IEnemyを外した個体への保険。足元だと地面に埋まるので少しだけ持ち上げる。
+	return target_->GetTransform().translation_ + Vector3{0.0f, 1.0f, 0.0f};
 }
 
 LockOnController* LockOnController::FindInScene(Scene* scene) {
@@ -200,8 +207,7 @@ bool LockOnController::IsValidTarget(GameObject* target, GameObject* leader, flo
 		return false;
 	}
 
-	IEnemy* enemy = target->GetComponent<IEnemy>();
-	if (!enemy || !enemy->IsTargetable()) {
+	if (!IsTargetableObject(target)) {
 		return false;
 	}
 
@@ -209,6 +215,20 @@ bool LockOnController::IsValidTarget(GameObject* target, GameObject* leader, flo
 		return false;
 	}
 	return true;
+}
+
+bool LockOnController::IsTargetableObject(GameObject* object) const {
+	if (!object) {
+		return false;
+	}
+
+	// **狙えるのは敵(IEnemy)だけ。** 味方は倒れていても候補にしない。
+	// 蘇生は倒れてからの経過時間で自力に進むので、相方へ狙いを定める理由が無い
+	// ([[death-and-revive]])。候補に混ぜると、戦闘中の切替で味方を掴んでしまう。
+	if (IEnemy* enemy = object->GetComponent<IEnemy>()) {
+		return enemy->IsTargetable();
+	}
+	return false;
 }
 
 void LockOnController::CollectCandidates(std::vector<Candidate>& outCandidates) const {
@@ -228,8 +248,7 @@ void LockOnController::CollectCandidates(std::vector<Candidate>& outCandidates) 
 		if (!object || !object->IsActiveInHierarchy()) {
 			continue;
 		}
-		IEnemy* enemy = object->GetComponent<IEnemy>();
-		if (!enemy || !enemy->IsTargetable()) {
+		if (!IsTargetableObject(object.get())) {
 			continue;
 		}
 		Vector3 toEnemy = object->GetTransform().translation_ - origin;

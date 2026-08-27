@@ -4,6 +4,7 @@
 #include "../base/TextureManager.h"
 #include "../math/MathUtil.h"
 #include "UIRenderer.h"
+#include <cmath>
 
 namespace KujataEngine {
 
@@ -54,7 +55,7 @@ void UIQuad::Initialize() {
 	initialized_ = true;
 }
 
-void UIQuad::SetRect(float x, float y, float width, float height) {
+void UIQuad::SetRect(float x, float y, float width, float height, float rotation) {
 	if (!vertexMap_) {
 		return;
 	}
@@ -63,10 +64,27 @@ void UIQuad::SetRect(float x, float y, float width, float height) {
 	const float right = x + width;
 	const float bottom = y + height;
 
-	vertexMap_[0].position = {left, top, 0.0f, 1.0f};    // 左上
-	vertexMap_[1].position = {right, top, 0.0f, 1.0f};   // 右上
-	vertexMap_[2].position = {left, bottom, 0.0f, 1.0f}; // 左下
-	vertexMap_[3].position = {right, bottom, 0.0f, 1.0f}; // 右下
+	if (rotation == 0.0f) {
+		vertexMap_[0].position = {left, top, 0.0f, 1.0f};      // 左上
+		vertexMap_[1].position = {right, top, 0.0f, 1.0f};     // 右上
+		vertexMap_[2].position = {left, bottom, 0.0f, 1.0f};   // 左下
+		vertexMap_[3].position = {right, bottom, 0.0f, 1.0f};  // 右下
+	} else {
+		// 矩形の中心まわりに4隅を回す。UIはY下向きなので、正の角度は画面上で時計回りに見える。
+		const float centerX = x + width * 0.5f;
+		const float centerY = y + height * 0.5f;
+		const float cosine = std::cos(rotation);
+		const float sine = std::sin(rotation);
+		auto rotate = [&](float pointX, float pointY) {
+			const float deltaX = pointX - centerX;
+			const float deltaY = pointY - centerY;
+			return Vector4{centerX + deltaX * cosine - deltaY * sine, centerY + deltaX * sine + deltaY * cosine, 0.0f, 1.0f};
+		};
+		vertexMap_[0].position = rotate(left, top);
+		vertexMap_[1].position = rotate(right, top);
+		vertexMap_[2].position = rotate(left, bottom);
+		vertexMap_[3].position = rotate(right, bottom);
+	}
 	for (int i = 0; i < 4; ++i) {
 		vertexMap_[i].normal = {0.0f, 0.0f, -1.0f};
 	}

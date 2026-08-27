@@ -220,13 +220,9 @@ void MagicProjectile::OnTriggerStay(KujataEngine::ColliderComponent* other) {
 
 	// --- 当たらないもの ---
 	// **味方キャラは素通り。** 撃った本人にも相方にも当たらない(誤射で事故らせない)。
-	// ただし倒れている相方だけは例外で、叩くと蘇生が進む。
-	if (PlayerHealth* ally = otherObj->GetComponentInParent<PlayerHealth>()) {
-		if (ally->IsDead()) {
-			SpawnHitEffect();
-			ally->AddReviveProgress(damage_);
-			Expire();
-		}
+	// 倒れている相方も同じく素通りする。蘇生は撃って進めるものではなく、
+	// 倒れてからの経過時間で自力に起き上がる([[death-and-revive]])。
+	if (otherObj->GetComponentInParent<PlayerHealth>()) {
 		return;
 	}
 	// 弾同士でぶつかると、斉射したそばから自分たちで潰し合ってしまう。

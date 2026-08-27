@@ -4,6 +4,7 @@
 #include "GameFx.h"
 
 #include "EnemyWeapon.h"
+#include "ThreatBoard.h"
 
 #include <algorithm>
 #include <cmath>
@@ -45,7 +46,10 @@ void GruntEnemyComponent::RegisterBTFunctions() {
 	        .Description("相手へ旋回しつつ寄る。stopDistance以内なら足を止める(毎TickSuccess)")
 	        .Float("speed", {3.0f}, "移動速度(m/s)")
 	        .Float("turnSpeed", {6.0f}, "旋回速度(rad/s)。0で旋回しない")
-	        .Float("stopDistance", {2.0f}, "この距離まで近づいたら前進をやめる"),
+	        .Float("stopDistance", {2.0f}, "この距離まで近づいたら前進をやめる")
+	        .Float("chaseRange", {0.0f},
+	            "この距離より遠い相手は追わない(0で無制限)。"
+	            "部屋の反対側から一斉に走ってくるのを止めるための門番。"),
 	    [this](BahamutAI::AIContext& context, const BahamutAI::NodeParams& params) { return Chase(context, params); });
 
 	BahamutAI::RegisterAction(
@@ -162,11 +166,20 @@ BahamutAI::BTStatus GruntEnemyComponent::Chase(BahamutAI::AIContext& context, co
 		return BahamutAI::BTStatus::Failure;
 	}
 
-	RotateTowardsTarget(params.GetFloat("turnSpeed", 6.0f), context.deltaTime);
-
 	Vector3 toTarget = target->GetTransform().translation_ - owner_->GetTransform().translation_;
 	toTarget.y = 0.0f;
 	float distance = std::sqrt(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
+
+	// **遠すぎる相手は追わない。**
+	// 追跡に距離の制限が無いと、通路の反対側にいる個体まで一斉に走ってきて、
+	// 目の前の一体と戦っているうちに全部集まってしまう。
+	// ここで弾いておけば、近づいた分だけが起きる。旋回もしないので気付いていないように見える。
+	float chaseRange = params.GetFloat("chaseRange", 0.0f);
+	if (chaseRange > 0.0f && distance > chaseRange) {
+		return BahamutAI::BTStatus::Failure;
+	}
+
+	RotateTowardsTarget(params.GetFloat("turnSpeed", 6.0f), context.deltaTime);
 	float stopDistance = params.GetFloat("stopDistance", 2.0f);
 
 	// 止まる距離はツリー側の条件と重複させず、ここで持つ。
@@ -239,10 +252,32 @@ BahamutAI::BTStatus GruntEnemyComponent::SwingRaise(BahamutAI::AIContext& contex
 	// 振りかぶり中はまだ当たらない。ここで判定を切っておくと、
 	// 前の攻撃から連続で入ったときに判定が残りっぱなしになる事故を防げる。
 	SetWeaponAttack(GetMeleeWeapon(), false);
+
+	float duration = params.GetFloat("duration", 0.45f);
+	if (currentPhase_ != "SwingRaise") {
+		// **振りかぶった時点で予告する。** 踏み込む先(step)まで含めた円を出すので、
+		// 受け側は「後ろへ下がれば当たらない」と判断できる。
+		float step = params.GetFloat("step", 2.2f);
+		float yaw = owner_->GetTransform().rotation_.y;
+		Vector3 impact = owner_->GetTransform().translation_ + Vector3{std::sin(yaw), 0.0f, std::cos(yaw)} * (step * 0.5f);
+
+		Threat::Notice notice;
+		notice.source = owner_;
+		notice.shape = Threat::Shape::Circle;
+		notice.element = Threat::Element::Physical;
+		notice.origin = impact;
+		notice.radius = params.GetFloat("threatRadius", 2.4f);
+		notice.hitTime = duration;
+		notice.clearTime = duration + params.GetFloat("hitDuration", 0.18f);
+		notice.damage = params.GetFloat("threatDamage", 8.0f);
+		Threat::Withdraw(threatId_);
+		threatId_ = Threat::Announce(notice);
+	}
+
 	RotateTowardsTarget(params.GetFloat("turnSpeed", 4.0f), context.deltaTime);
 
 	float progress = 0.0f;
-	bool finished = TickPhase("SwingRaise", params.GetFloat("duration", 0.45f), context.deltaTime, progress);
+	bool finished = TickPhase("SwingRaise", duration, context.deltaTime, progress);
 	return finished ? BahamutAI::BTStatus::Success : BahamutAI::BTStatus::Running;
 }
 
@@ -305,6 +340,26 @@ BahamutAI::BTStatus GruntEnemyComponent::BeamWarn(BahamutAI::AIContext& context,
 		beam->SetActive(true);
 		// **予兆では当たらない。** 見せるためだけに出す。
 		SetWeaponAttack(beam, false);
+
+		// **線として予告する。** 円と違って正解は「横へ抜ける」なので、形を伝えることに意味がある。
+		// 照射は0.5秒続き無敵では覆えないため、持続型(sustained)として出す。
+		float duration = params.GetFloat("duration", 0.7f);
+		float yaw = owner_->GetTransform().rotation_.y;
+
+		Threat::Notice notice;
+		notice.source = owner_;
+		notice.shape = Threat::Shape::Line;
+		notice.element = Threat::Element::Magic;
+		notice.origin = owner_->GetTransform().translation_;
+		notice.direction = {std::sin(yaw), 0.0f, std::cos(yaw)};
+		notice.radius = params.GetFloat("threatWidth", 1.0f);
+		notice.length = params.GetFloat("length", 12.0f);
+		notice.sustained = true;
+		notice.hitTime = duration;
+		notice.clearTime = duration + params.GetFloat("fireDuration", 0.5f);
+		notice.damage = params.GetFloat("threatDamage", 12.0f);
+		Threat::Withdraw(threatId_);
+		threatId_ = Threat::Announce(notice);
 	}
 
 	// 予兆の間はしっかり狙いを合わせにいく。ここで追いつかれるからこそ、

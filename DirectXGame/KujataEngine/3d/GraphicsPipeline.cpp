@@ -461,7 +461,12 @@ void GraphicsPipeline::CreateObject3dPipelineStateObject() {
 		renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
 
 		renderTarget.SrcBlendAlpha = D3D12_BLEND_ONE;
-		renderTarget.DestBlendAlpha = D3D12_BLEND_ZERO;
+		// **アルファはsource-overで合成する**(dstA = srcA + dstA*(1-srcA))。
+		// ZEROにすると dstA = srcA となり、描いた側のαでレンダーターゲットのαが上書きされる。
+		// α=0の全画面UIを1枚重ねただけでRT全体が透明になり、
+		// RTをαブレンドで表示するエディタのGame/Sceneビューが真っ黒になる
+		// (バックバッファ直描きのゲーム単体ビルドではαが無視されるため表面化しない)。
+		renderTarget.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		renderTarget.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 
 		switch (static_cast<BlendMode>(i)) {
@@ -612,7 +617,12 @@ void GraphicsPipeline::CreateLinePipelineStateObject() {
 		renderTarget.DestBlend = D3D12_BLEND_ZERO;
 		renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
 		renderTarget.SrcBlendAlpha = D3D12_BLEND_ONE;
-		renderTarget.DestBlendAlpha = D3D12_BLEND_ZERO;
+		// **アルファはsource-overで合成する**(dstA = srcA + dstA*(1-srcA))。
+		// ZEROにすると dstA = srcA となり、描いた側のαでレンダーターゲットのαが上書きされる。
+		// α=0の全画面UIを1枚重ねただけでRT全体が透明になり、
+		// RTをαブレンドで表示するエディタのGame/Sceneビューが真っ黒になる
+		// (バックバッファ直描きのゲーム単体ビルドではαが無視されるため表面化しない)。
+		renderTarget.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		renderTarget.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 
 		switch (static_cast<BlendMode>(i)) {
@@ -759,7 +769,12 @@ void GraphicsPipeline::CreateInstancingPipelineStateObject() {
 		renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
 
 		renderTarget.SrcBlendAlpha = D3D12_BLEND_ONE;
-		renderTarget.DestBlendAlpha = D3D12_BLEND_ZERO;
+		// **アルファはsource-overで合成する**(dstA = srcA + dstA*(1-srcA))。
+		// ZEROにすると dstA = srcA となり、描いた側のαでレンダーターゲットのαが上書きされる。
+		// α=0の全画面UIを1枚重ねただけでRT全体が透明になり、
+		// RTをαブレンドで表示するエディタのGame/Sceneビューが真っ黒になる
+		// (バックバッファ直描きのゲーム単体ビルドではαが無視されるため表面化しない)。
+		renderTarget.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		renderTarget.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 
 		switch (static_cast<BlendMode>(i)) {
@@ -952,7 +967,12 @@ void GraphicsPipeline::CreateUIStylePipelineStateObject(PipelineType pipelineTyp
 		renderTarget.DestBlend = D3D12_BLEND_ZERO;
 		renderTarget.BlendOp = D3D12_BLEND_OP_ADD;
 		renderTarget.SrcBlendAlpha = D3D12_BLEND_ONE;
-		renderTarget.DestBlendAlpha = D3D12_BLEND_ZERO;
+		// **アルファはsource-overで合成する**(dstA = srcA + dstA*(1-srcA))。
+		// ZEROにすると dstA = srcA となり、描いた側のαでレンダーターゲットのαが上書きされる。
+		// α=0の全画面UIを1枚重ねただけでRT全体が透明になり、
+		// RTをαブレンドで表示するエディタのGame/Sceneビューが真っ黒になる
+		// (バックバッファ直描きのゲーム単体ビルドではαが無視されるため表面化しない)。
+		renderTarget.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		renderTarget.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 
 		switch (static_cast<BlendMode>(i)) {

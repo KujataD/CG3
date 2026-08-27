@@ -25,6 +25,22 @@ public:
 	void Update() override;
 	void OnPlayStart() override;
 
+	/// <summary>
+	/// プレイヤー設定によるカメラ感度の倍率。**全カメラへ一律に掛かる**(既定1.0)。
+	/// シーンに置いた Sensitivity X/Y は「作り手が決めた基準」として残し、
+	/// 遊ぶ人の好みはこの倍率で乗せる、という切り分けにしてある。
+	/// 値はエンジンDLL内のstaticなので、シーンを跨いでも保たれる。
+	/// </summary>
+	static void SetUserSensitivityScale(float scale);
+	static float GetUserSensitivityScale();
+
+	/// <summary>
+	/// プレイヤー設定による上下反転。シーン側の Invert Y と**XOR**される
+	/// (作り手が反転を仕込んだカメラでも、遊ぶ人の指定でさらに戻せる)。
+	/// </summary>
+	static void SetUserInvertY(bool invert);
+	static bool GetUserInvertY();
+
 	void DrawInspector() override;
 	void WriteJson(nlohmann::json& json) const override;
 	void ReadJson(const nlohmann::json& json) override;

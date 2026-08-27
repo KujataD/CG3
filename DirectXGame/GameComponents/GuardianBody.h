@@ -1,6 +1,7 @@
 #pragma once
 
 #include <KujataEngine.h>
+#include <string>
 
 class GuardianGait;
 class IGuardianLegRig;
@@ -49,6 +50,82 @@ public:
 	void SetPitchOffset(float radian) { pitchOffset_ = radian; }
 	float GetPitchOffset() const { return pitchOffset_; }
 
+	// --- 被弾のリアクション(加算レイヤー) ---
+	//
+	// **攻撃モーションを止めずに、その上へ混ぜるためのチャンネル。**
+	// 以前は被弾で攻撃を中断していたが、それだと殴られ続ける限り技が振り出しに戻り、
+	// 当たる瞬間に一度も到達しない。リアクションは見た目だけの層に分けて、
+	// 行動の中断は体勢崩し(スタン)だけが行う、という切り分けにしてある。
+	//
+	// 毎フレーム**絶対値で**書く前提(足し込まない)。書くのをやめれば自然に消える。
+
+	/// <summary>
+	/// のけぞりのポーズを差し込む。offsetは目に足す位置
+	/// (目が親子なら親基準ローカル、分離中ならワールド)、sinkは沈み込み、
+	/// pitch/rollは殴られた向きへの傾き[rad]。
+	/// </summary>
+	void SetReactionPose(const KujataEngine::Vector3& offset, float sink, float pitch, float roll) {
+		reactionOffset_ = offset;
+		reactionSink_ = sink;
+		reactionPitch_ = pitch;
+		reactionRoll_ = roll;
+	}
+
+	/// <summary>のけぞりを畳む(中断経路から必ず通すこと)。</summary>
+	void ClearReactionPose() { SetReactionPose({0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f); }
+
+	// --- 目(Eye) ---
+	//
+	// **目は脚と完全に分離している。** 接合部をぶら下げている土台(Body)と、
+	// 見た目の本体である目は別のオブジェクトで、目は土台の高さも傾きも受け継がない。
+	// こうしておくと「目だけ地面に降ろして脚を宙に浮かせる」「目だけ回してビームを薙ぐ」が、
+	// 歩行にも接合部にも一切影響を与えずに書ける。
+
+	/// <summary>目のGameObject(見つからなければnullptr)。</summary>
+	KujataEngine::GameObject* GetEyeObject() const;
+
+	/// <summary>
+	/// 目が親子関係の外にあるか(第2形態はこちら)。
+	/// trueなら SetEyeOffset は**ワールド座標**として扱われる。
+	/// </summary>
+	bool IsEyeDetachedObject() const;
+
+	/// <summary>
+	/// 目を土台から切り離す。trueの間、目の高さは土台の車高を無視して
+	/// SetEyeOffset の y をそのままローカル高さとして使う(分離攻撃用)。
+	/// </summary>
+	void SetEyeDetached(bool detached) { eyeDetached_ = detached; }
+	bool IsEyeDetached() const { return eyeDetached_; }
+
+	/// <summary>目の位置オフセット(ルート基準ローカル)。分離中は y がそのまま高さになる。</summary>
+	void SetEyeOffset(const KujataEngine::Vector3& offset) { eyeOffset_ = offset; }
+	const KujataEngine::Vector3& GetEyeOffset() const { return eyeOffset_; }
+
+	/// <summary>目の追加ピッチ[rad]。ビームを真上へ向けたり振り下ろしたりするのに使う。</summary>
+	void SetEyePitch(float radian) { eyePitch_ = radian; }
+	float GetEyePitch() const { return eyePitch_; }
+
+	/// <summary>目の独立Yaw[rad]。胴体の回転(spinSpeed)とは別に足される。</summary>
+	void SetEyeYaw(float radian) { eyeYaw_ = radian; }
+
+	/// <summary>
+	/// **目のモデルの向き合わせ[度]。** 見た目だけに効く補正で、狙い(ビームの向き)には影響しない。
+	/// 第1形態の目はルートの子なのでルートの向きを継ぐが、第2形態の目は完全に分離していて
+	/// ルートの向きを一切継がない。そのぶん**2つの形態で目の正面が180度ずれていた**ので、
+	/// 分離中だけこの角度を足して揃える。
+	/// </summary>
+	void SetDetachedEyeYawOffsetDeg(float degrees) { detachedEyeYawOffsetDeg_ = degrees; }
+	void AddEyeYaw(float radians) { eyeYaw_ += radians; }
+	float GetEyeYaw() const { return eyeYaw_; }
+
+	/// <summary>目に関する一時状態をすべて既定へ戻す(攻撃の中断経路から必ず通すこと)。</summary>
+	void ResetEye() {
+		eyeDetached_ = false;
+		eyeOffset_ = {0.0f, 0.0f, 0.0f};
+		eyePitch_ = 0.0f;
+		eyeYaw_ = 0.0f;
+	}
+
 private:
 	/// <summary>接地中の脚だけを集めて、平均の高さと前後左右の高低差を求めます。</summary>
 	bool GatherPlantedFeet(
@@ -91,6 +168,10 @@ public:
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(spinSpeedDeg_, "Spin Speed (deg/s)", 0.5f, -720.0f, 720.0f,
 		    "ボディだけを回し続ける速度。**脚は接地したまま球体だけが回る。**\n"
 		    "足の定位置がルート基準なので、ボディの回転に脚は影響されない。");
+		KUJATA_REGISTER_STRING_NAMED_TIP(eyeObjectName_, "Eye Object",
+		    "見た目の本体(目)になる、ルート直下の子オブジェクト名。\n"
+		    "**脚をぶら下げている土台(Body)とは別物**で、土台の高さも傾きも受け継がない。\n"
+		    "見つからない場合は旧名 \"BodyMesh\" も探す。");
 	}
 
 private:
@@ -131,6 +212,9 @@ private:
 	// ボディだけを回し続ける速度[deg/s]。脚は接地したまま球体が回る。
 	float spinSpeedDeg_ = 0.0f;
 
+	// 目(見た目の本体)のオブジェクト名。旧プレハブ互換のため "BodyMesh" も探す。
+	std::string eyeObjectName_ = "Eye";
+
 	// --- 実行状態 ---
 	// 平滑後のボディのローカル高さ。
 	float currentHeight_ = 0.0f;
@@ -147,6 +231,22 @@ private:
 	float heightOffset_ = 0.0f;
 	// 外部から与える追加ピッチ[rad](致命の仰け反りなど)。平滑化を通さず即座に効く。
 	float pitchOffset_ = 0.0f;
+	// 被弾リアクション(加算レイヤー)。GuardianBossComponent が毎フレーム絶対値で書く。
+	KujataEngine::Vector3 reactionOffset_ = {0.0f, 0.0f, 0.0f};
+	float reactionSink_ = 0.0f;
+	float reactionPitch_ = 0.0f;
+	float reactionRoll_ = 0.0f;
+	// 分離中の目にだけ足す向きの補正[度]。既定180 = 第1形態と正面を揃える。
+	float detachedEyeYawOffsetDeg_ = 180.0f;
+
+	// --- 目の独立状態 ---
+	// 土台の車高から切り離されているか(分離攻撃中)。
+	bool eyeDetached_ = false;
+	// 目の位置オフセット(ルート基準ローカル)。分離中は y がそのまま高さ。
+	KujataEngine::Vector3 eyeOffset_ = {0.0f, 0.0f, 0.0f};
+	// 目の追加ピッチ/Yaw[rad]。
+	float eyePitch_ = 0.0f;
+	float eyeYaw_ = 0.0f;
 	// 初回フレームは平滑せず即座に合わせる。
 	bool initialized_ = false;
 };

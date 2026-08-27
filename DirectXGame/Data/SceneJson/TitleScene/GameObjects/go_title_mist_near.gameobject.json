@@ -1,0 +1,67 @@
+{
+    "assetType":  "GameObject",
+    "instanceId":  "go_title_mist_near",
+    "parentInstanceId":  "go_edd717d122db1da176eb5c1ffbace24c",
+    "prefabAssetPath":  "",
+    "prefabObjectId":  "",
+    "prefabInstanceRootId":  "",
+    "prefabInstanceRoot":  false,
+    "name":  "MistNear",
+    "tag":  "Untagged",
+    "layer":  0,
+    "active":  true,
+    "components":  [
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "rotation":  [ 0, 0, 0 ],
+                                              "scale":  [ 1, 1, 1 ],
+                                              "translation":  [ 0, 0, 0 ]
+                                          },
+                           "type":  "Transform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "anchorMax":  [ 1, 1 ],
+                                              "anchorMin":  [ 0, 0 ],
+                                              "anchoredPosition":  [ 0, 0 ],
+                                              "pivot":  [ 0.5, 0.5 ],
+                                              "rotationZ":  0,
+                                              "scale":  [ 1, 1 ],
+                                              "sizeDelta":  [ 0, 0 ]
+                                          },
+                           "type":  "RectTransform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "color":  [ 0.52, 0.4, 0.22, 0.34 ],
+                                              "fillAmount":  1,
+                                              "raycastTarget":  false,
+                                              "textureAssetId":  "",
+                                              "texturePath":  "Resources/white1x1.png",
+                                              "uvOffset":  [ 0, 0 ],
+                                              "uvRotation":  0,
+                                              "uvScale":  [ 1, 1 ]
+                                          },
+                           "type":  "Image"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "contrast":  2.4,
+                                              "frequency":  4.5,
+                                              "pulseAmplitude":  0.4,
+                                              "pulseLane":  90,
+                                              "pulseSpeed":  0.6,
+                                              "scrollX":  -0.11,
+                                              "scrollY":  0.03,
+                                              "seed":  640,
+                                              "textureSize":  256,
+                                              "uvScale":  1.8
+                                          },
+                           "type":  "MistBackdrop"
+                       }
+                   ]
+}

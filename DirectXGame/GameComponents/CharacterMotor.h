@@ -57,6 +57,15 @@ public:
 	bool TryDodgeCameraRelative(const KujataEngine::Vector3& input);
 
 	/// <summary>
+	/// ワールド空間の方向へ回避する(AI用。カメラに依存しない)。
+	/// **向きを変える前に可否判定を通す** — でないとスタミナ切れのとき「その場で向きだけ変わる」ことになる。
+	/// </summary>
+	bool TryDodgeWorld(const KujataEngine::Vector3& direction);
+
+	/// <summary>いま回避を開始できるか(行動不能・クールダウン・スタミナ切れでない)。AIの先読み用。</summary>
+	bool CanDodge() const;
+
+	/// <summary>
 	/// 注目対象を設定する(Z注目)。設定中はMoveCameraRelativeが「入力方向へ移動しつつ対象の方を向く」
 	/// ストレイフ移動になる。nullptrで解除(通常の移動方向への旋回に戻る)。
 	/// </summary>
@@ -105,6 +114,12 @@ public:
 
 	/// <summary>行動不能(硬直・回避中)か。攻撃入力などの抑制に使う。クールダウンは含まない。</summary>
 	bool IsActionLocked() const { return IsStunned() || IsDodging(); }
+
+	/// <summary>基本移動速度[unit/s]。AIが「この時間で何m逃げられるか」を計算するのに使う。</summary>
+	float GetSpeed() const { return speed_; }
+
+	/// <summary>回避の変位[m]の目安(速度×尺)。AIが回避で足りるかを判断するのに使う。</summary>
+	float GetDodgeDistance() const;
 
 private:
 	void UpdateKnockback(float deltaTime);

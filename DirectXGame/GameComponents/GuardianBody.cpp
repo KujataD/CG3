@@ -51,6 +51,11 @@ void GuardianBody::OnPlayStart() {
 	bobPhase_ = 0.0f;
 	noiseTime_ = 0.0f;
 	currentSpin_ = 0.0f;
+	// **非シリアライズの状態はPlayごとに必ず戻す。** コンポーネントは使い回されるので、
+	// 前回Playで分離したまま終わると2回目が分離状態から始まる。
+	ResetEye();
+	heightOffset_ = 0.0f;
+	pitchOffset_ = 0.0f;
 }
 
 void GuardianBody::Update() {
@@ -144,20 +149,62 @@ void GuardianBody::Update() {
 
 	WorldTransform& transform = bodyObject->GetTransform();
 	// heightOffset_ は平滑化の外側で足す。溜めの沈み込みなど、即座に効いてほしい用途のため。
-	transform.translation_.y = currentHeight_ + bob + idleSway + heightOffset_;
+	// reactionSink_ / reactionPitch_ / reactionRoll_ は**被弾リアクションの加算レイヤー**。
+	// 攻撃が書いた姿勢を消さずに上へ混ぜるので、技を出したまま殴られた反応が返る。
+	transform.translation_.y = currentHeight_ + bob + idleSway + heightOffset_ + reactionSink_;
 	// pitchOffset_ は平滑化の外側で足す。仰け反りは即座に効いてほしいため。
-	transform.rotation_ = {currentPitch_ + pitchOffset_, currentSpin_, currentRoll_};
+	transform.rotation_ = {currentPitch_ + pitchOffset_ + reactionPitch_, currentSpin_, currentRoll_ + reactionRoll_};
 
-	// 頭/胴体の外装(BodyMesh)は、足の接地状況から来る傾き(currentPitch_/currentRoll_)を
-	// 受けさせない。頭独自で動くギミックが将来ここへ自由に回転を書き込めるようにするため。
-	// 高さとYaw(spin)・pitchOffset_(致命の仰け反りなど地形と無関係な演出)は揃えるが、
-	// 足の傾きだけは意図的に外す。BodyMeshがルート直下に置かれているプレハブだけが対象
-	// (見つからなければ何もしない=Bodyの子のままの構成は従来どおり傾きも継承する)。
-	if (GameObject* eyeObject = FindDirectChildByName(owner, "BodyMesh")) {
+	// --- 目(見た目の本体)。**土台とは完全に分離して置く。** ---
+	//
+	// 土台(Body)は接合部をぶら下げるためだけの器で、足の接地から来る高さと傾きを受ける。
+	// 目はそのどちらも受け継がない — 足の傾きを受けないのは以前からだが、
+	// 分離中(eyeDetached_)は高さも受け継がず、攻撃が指定したローカル高さへそのまま置く。
+	// これで「目だけ地面に降ろして脚を宙に浮かせる」が、歩行にも接合部にも触らずに書ける。
+	if (GameObject* eyeObject = GetEyeObject()) {
 		WorldTransform& eyeTransform = eyeObject->GetTransform();
-		eyeTransform.translation_.y = transform.translation_.y;
-		eyeTransform.rotation_ = {pitchOffset_, currentSpin_, 0.0f};
+		if (eyeObject->GetParent() != owner) {
+			// **親子でない目**(第2形態)。ローカル=ワールドなので、指示された位置をそのまま置く。
+			// 土台の車高もルートのYawも一切継承しない — これが「完全に分離」の実体。
+			eyeTransform.translation_ = eyeOffset_ + reactionOffset_;
+			// **正面合わせ。** ルートの向きを継がないぶん、第1形態と180度ずれていたのをここで揃える。
+			eyeTransform.rotation_ = {eyePitch_ + reactionPitch_,
+			    eyeYaw_ + detachedEyeYawOffsetDeg_ * (std::numbers::pi_v<float> / 180.0f), reactionRoll_};
+		} else {
+			float baseHeight = eyeDetached_ ? 0.0f : transform.translation_.y;
+			eyeTransform.translation_ = {eyeOffset_.x + reactionOffset_.x, baseHeight + eyeOffset_.y + reactionOffset_.y,
+			    eyeOffset_.z + reactionOffset_.z};
+			// 親子の目にも同じ補正を掛ける。**両方の形態で同じだけ回す**ので正面が揃う。
+			eyeTransform.rotation_ = {pitchOffset_ + eyePitch_ + reactionPitch_,
+			    currentSpin_ + eyeYaw_ + detachedEyeYawOffsetDeg_ * (std::numbers::pi_v<float> / 180.0f), reactionRoll_};
+		}
 	}
+}
+
+GameObject* GuardianBody::GetEyeObject() const {
+	GameObject* owner = GetOwner();
+	if (!owner) {
+		return nullptr;
+	}
+	if (GameObject* eye = FindDirectChildByName(owner, eyeObjectName_.c_str())) {
+		return eye;
+	}
+	// 旧プレハブ互換。名前を変える前のデータでも動かす。
+	if (GameObject* legacy = FindDirectChildByName(owner, "BodyMesh")) {
+		return legacy;
+	}
+	// **親子でない目もここで拾う。**
+	// 第2形態の目は脚から完全に切り離した独立オブジェクトなので、子には居ない。
+	// シーンから名前で引く(1体ぶんなので探索の回数は問題にならない)。
+	if (owner->GetScene() && !eyeObjectName_.empty()) {
+		return owner->GetScene()->FindGameObjectByName(eyeObjectName_);
+	}
+	return nullptr;
+}
+
+bool GuardianBody::IsEyeDetachedObject() const {
+	GameObject* eye = GetEyeObject();
+	return eye && eye->GetParent() != GetOwner();
 }
 
 bool GuardianBody::GatherPlantedFeet(

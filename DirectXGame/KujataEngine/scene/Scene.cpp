@@ -12,6 +12,7 @@
 #include "../base/Time.h"
 #include "../input/Input.h"
 #include "../runtime/UIEventBus.h"
+#include "../runtime/UIInput.h"
 #include "../runtime/PlayState.h"
 #include "../runtime/SelectionProvider.h"
 #include "../2d/Sprite2DRenderer.h"
@@ -458,6 +459,19 @@ void DrawGameObjectColliders(GameObject& gameObject) {
 	}
 }
 
+// 自分と、その配下すべてのColliderを描く。
+void DrawGameObjectCollidersRecursive(GameObject& gameObject) {
+	if (!gameObject.IsActiveInHierarchy()) {
+		return;
+	}
+	DrawGameObjectColliders(gameObject);
+	for (GameObject* child : gameObject.GetChildren()) {
+		if (child) {
+			DrawGameObjectCollidersRecursive(*child);
+		}
+	}
+}
+
 void DrawColliderDebugLines(Scene& scene) {
 	// 出し分けは呼び出し側(RenderViewのdrawEditorOverlays)が担当する。Sceneビューはプレイ中も表示。
 	GameObject* selectedObject = GetSelectionProvider().GetSelectedGameObject();
@@ -468,7 +482,11 @@ void DrawColliderDebugLines(Scene& scene) {
 		return;
 	}
 
-	DrawGameObjectColliders(*selectedObject);
+	// **選んだものだけでなく、その配下も描く。**
+	// Colliderを子オブジェクトに分けて持たせている構成(ステージの床/壁など)だと、
+	// 親を選んでも一本も出ず、子を1つずつ選んで回らないと形が見えない。
+	// 動かすのは親なので、親を選んだ時点で配下がまとめて見えないと調整ができない。
+	DrawGameObjectCollidersRecursive(*selectedObject);
 }
 
 // シーン内の全アクティブGameObjectのColliderを描く(ゲーム中の当たり判定確認用)。
@@ -851,11 +869,6 @@ void Scene::Initialize() {
 }
 
 void Scene::Update() {
-	// F1で全Collider可視化デバッグモードをトグルする。
-	if (Input::GetKeyTrigger(DIK_F1)) {
-		ToggleShowAllColliders();
-	}
-
 	// ゲームロジック(Component::Update)がSetVeloc/移動を行う → 速度積分 → 衝突検出+応答 の順。
 	//
 	// **添字で回すこと。範囲forは使えない。**
@@ -963,6 +976,12 @@ void Scene::RenderView(Camera* camera, bool drawEditorOverlays) {
 	}
 
 	// 全Collider可視化モードがONなら、Sceneビュー/Gameビュー問わず全Colliderを描く。
+	// **F1の受け付けはここで行う。**
+	// Scene::Update は Play 中しか回らないので、Update側にトグルを置くと
+	// 「止めて配置を直している最中に全部を見る」ことができない(調整したい時ほど使えない)。
+	if (drawEditorOverlays && Input::GetKeyTrigger(DIK_F1)) {
+		g_showAllColliders = !g_showAllColliders;
+	}
 	if (g_showAllColliders) {
 		DrawAllColliderDebugLines(*this);
 	}
@@ -1018,6 +1037,12 @@ void Scene::OnPlayStart() {
 	// Play毎にUIイベント購読を張り直す(Unity同様、前回のPlayのリスナーを持ち越さない)。
 	// 各ComponentはこのあとのOnPlayStartで購読するため、先にクリアしておく。
 	UIEventBus::Clear();
+	// UIのフォーカスも持ち越さない。前のシーンのGameObject*を握ったままだと
+	// 破棄済みのアドレスと新しいオブジェクトが偶然一致したときに誤選択になる。
+	SetUISelected(nullptr);
+	// 時間スケールも必ず等速へ戻す。ポーズ(死亡メニュー等)で0にしたままStopされると、
+	// **次のPlayが止まったまま始まる**(戻す責任はSetTimeScaleを呼んだ側にあるが、保険をここに置く)。
+	Time::SetTimeScale(1.0f);
 
 	for (const std::unique_ptr<GameObject>& gameObject : gameObjects_) {
 		if (gameObject) {

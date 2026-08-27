@@ -125,25 +125,25 @@ void TextComponent::DrawInspector() {
 		align_ = static_cast<Align>(alignIndex);
 	}
 
-	// フォント選択: よく使うフォントのプリセット + 任意パス入力。
-	static const char* kFontNames[] = {"Segoe UI", "Yu Gothic UI", "Meiryo", "Arial", "Consolas", "MS Gothic"};
+	// フォント選択: **Data配下の論理名**のプリセット + 任意パス入力。
+	// 絶対パスを選ばせないのが要点で、`Data/Fonts/` に実体を置けばそれが使われ、
+	// 無ければ見た目の近いシステムフォントへ落ちる([[FontAtlas]]::ResolveFontPath)。
+	static const char* kFontNames[] = {"日本語 ゴシック", "日本語 ゴシック太", "日本語 明朝"};
 	static const char* kFontPaths[] = {
-	    "C:/Windows/Fonts/segoeui.ttf",
-	    "C:/Windows/Fonts/YuGothR.ttc",
-	    "C:/Windows/Fonts/meiryo.ttc",
-	    "C:/Windows/Fonts/arial.ttf",
-	    "C:/Windows/Fonts/consola.ttf",
-	    "C:/Windows/Fonts/msgothic.ttc",
+	    "Fonts/JapaneseSans.ttf",
+	    "Fonts/JapaneseSansBold.ttf",
+	    "Fonts/JapaneseSerif.ttf",
 	};
+	constexpr int kFontCount = 3;
 	int fontIndex = -1;
-	for (int i = 0; i < 6; ++i) {
+	for (int i = 0; i < kFontCount; ++i) {
 		if (fontPath_ == kFontPaths[i]) {
 			fontIndex = i;
 			break;
 		}
 	}
-	if (InspectorUI::Combo("Font", &fontIndex, kFontNames, 6)) {
-		if (fontIndex >= 0 && fontIndex < 6) {
+	if (InspectorUI::Combo("Font", &fontIndex, kFontNames, kFontCount)) {
+		if (fontIndex >= 0 && fontIndex < kFontCount) {
 			fontPath_ = kFontPaths[fontIndex];
 			SyncFontBuffer();
 		}

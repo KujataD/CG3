@@ -42,6 +42,38 @@
       "params": []
     },
     {
+      "category": "Movement",
+      "description": "敵との間合いを保つ。近すぎれば下がり、遠すぎれば寄り、範囲内なら横へ回る",
+      "kind": "action",
+      "name": "KeepSpacing",
+      "params": [
+        {
+          "default": 3.0,
+          "description": "これより近ければ下がる",
+          "name": "min",
+          "type": "float"
+        },
+        {
+          "default": 9.0,
+          "description": "これより遠ければ寄る",
+          "name": "max",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "速度倍率",
+          "name": "speedScale",
+          "type": "float"
+        },
+        {
+          "default": 0.3499999940395355,
+          "description": "範囲内で横へ回る強さ(0で止まる)",
+          "name": "strafe",
+          "type": "float"
+        }
+      ]
+    },
+    {
       "category": "Attack",
       "description": "技を使う",
       "kind": "action",
@@ -65,6 +97,78 @@
           "default": 1.5,
           "description": "ガード秒数",
           "name": "duration",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Threat",
+      "description": "予告された攻撃を避ける。歩いて逃げる→待って無敵を重ねる→ガード、の順で選ぶ",
+      "kind": "action",
+      "name": "EvadeThreat",
+      "params": [
+        {
+          "default": 1.5,
+          "description": "先読みする秒数",
+          "name": "horizon",
+          "type": "float"
+        },
+        {
+          "default": 0.3499999940395355,
+          "description": "命中の何秒前に回避を切るか(無敵0.45秒の中央に命中を置く)",
+          "name": "dodgeLead",
+          "type": "float"
+        },
+        {
+          "default": 0.15000000596046448,
+          "description": "歩いて逃げ切れると判断するときの余裕[s]",
+          "name": "safety",
+          "type": "float"
+        },
+        {
+          "default": 0.4000000059604645,
+          "description": "相方から離れる向きを混ぜる強さ(2人が重なって巻き込まれないように)",
+          "name": "spread",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Defense",
+      "description": "相方の位置へバリアを張る(術師専用。自分は間合いを保ったまま)",
+      "kind": "action",
+      "name": "ShieldPartner",
+      "params": [
+        {
+          "default": 1.2000000476837158,
+          "description": "この秒数以内に相方へ当たる予告があれば張る",
+          "name": "horizon",
+          "type": "float"
+        },
+        {
+          "default": 18.0,
+          "description": "この距離を超えて離れていたら張らない",
+          "name": "maxDistance",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Attack",
+      "description": "スタンした敵へ寄って致命を入れる",
+      "kind": "action",
+      "name": "CriticalStrike",
+      "params": [
+        {
+          "default": 8.0,
+          "description": "探す距離",
+          "name": "range",
+          "type": "float"
+        },
+        {
+          "default": 1.0,
+          "description": "寄る速度倍率",
+          "name": "speedScale",
           "type": "float"
         }
       ]
@@ -120,9 +224,79 @@
       "name": "HasStamina",
       "params": [
         {
-          "default": 30.0,
+          "default": 40.0,
           "description": "必要残量[%]",
           "name": "percent",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Threat",
+      "description": "自分に当たる攻撃予告がhorizon秒以内にあるか",
+      "kind": "condition",
+      "name": "IsThreatened",
+      "params": [
+        {
+          "default": 1.5,
+          "description": "先読みする秒数",
+          "name": "horizon",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Threat",
+      "description": "相方に当たる攻撃予告がhorizon秒以内にあるか",
+      "kind": "condition",
+      "name": "IsPartnerThreatened",
+      "params": [
+        {
+          "default": 1.2000000476837158,
+          "description": "先読みする秒数",
+          "name": "horizon",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Sense",
+      "description": "相方が倒れているか",
+      "kind": "condition",
+      "name": "IsPartnerDown",
+      "params": []
+    },
+    {
+      "category": "Threat",
+      "description": "敵に狙われているか。**狙われている側は避けに、いない側は攻めに専念する**",
+      "kind": "condition",
+      "name": "IsTargetedByEnemy",
+      "params": [
+        {
+          "default": 1.0,
+          "description": "1=狙われているときtrue / 0=狙われていないときtrue(反転)",
+          "name": "targeted",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "category": "Threat",
+      "description": "狙っている敵に今攻め込んでよいか(後隙・非攻撃中ならtrue、攻撃モーション中はfalse)",
+      "kind": "condition",
+      "name": "IsEnemyOpen",
+      "params": []
+    },
+    {
+      "category": "Sense",
+      "description": "range内に体勢を崩した敵がいるか",
+      "kind": "condition",
+      "name": "IsEnemyStaggered",
+      "params": [
+        {
+          "default": 8.0,
+          "description": "探す距離",
+          "name": "range",
           "type": "float"
         }
       ]

@@ -1,0 +1,83 @@
+{
+    "assetType":  "GameObject",
+    "instanceId":  "go_select_prompt",
+    "parentInstanceId":  "go_charselect_canvas",
+    "prefabAssetPath":  "",
+    "prefabObjectId":  "",
+    "prefabInstanceRootId":  "",
+    "prefabInstanceRoot":  false,
+    "name":  "PromptText",
+    "tag":  "Untagged",
+    "layer":  0,
+    "active":  true,
+    "components":  [
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "rotation":  [
+                                                               0,
+                                                               0,
+                                                               0
+                                                           ],
+                                              "scale":  [
+                                                            1,
+                                                            1,
+                                                            1
+                                                        ],
+                                              "translation":  [
+                                                                  0,
+                                                                  0,
+                                                                  0
+                                                              ]
+                                          },
+                           "type":  "Transform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "anchorMax":  [
+                                                                0,
+                                                                1
+                                                            ],
+                                              "anchorMin":  [
+                                                                0,
+                                                                1
+                                                            ],
+                                              "anchoredPosition":  [
+                                                                       48,
+                                                                       -40
+                                                                   ],
+                                              "pivot":  [
+                                                            0,
+                                                            1
+                                                        ],
+                                              "rotationZ":  0,
+                                              "scale":  [
+                                                            1,
+                                                            1
+                                                        ],
+                                              "sizeDelta":  [
+                                                                1100,
+                                                                30
+                                                            ]
+                                          },
+                           "type":  "RectTransform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "align":  0,
+                                              "color":  [
+                                                            0.57758044042965062,
+                                                            0.40197777983219579,
+                                                            0.1559264637078274,
+                                                            1
+                                                        ],
+                                              "fontPath":  "Fonts/JapaneseSerif.ttf",
+                                              "fontSize":  22,
+                                              "text":  "左右 選択      A 決定      B 戻る"
+                                          },
+                           "type":  "Text"
+                       }
+                   ]
+}

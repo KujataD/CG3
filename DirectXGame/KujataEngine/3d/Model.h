@@ -167,6 +167,18 @@ public:
 		}
 	}
 
+	/// <summary>
+	/// ワールド座標でのタイリング(トライプラナー)を全サブメッシュへ設定する。
+	/// 値は1ワールドユニットあたりの繰り返し数。0でメッシュのUV貼りに戻る。
+	/// </summary>
+	void SetTriplanarScale(float scale) {
+		for (SubMesh& subMesh : subMeshes_) {
+			if (subMesh.materialMap) {
+				subMesh.materialMap->triplanarScale = scale;
+			}
+		}
+	}
+
 	// --- get ---
 
 	// raycast/preview用: 全サブメッシュを統合した頂点列(AABB計算に使う)。

@@ -234,11 +234,27 @@ void ModelRendererComponent::SetTextureOverride(uint32_t textureIndex) {
 	model_->SetTexture(textureIndex);
 }
 
-void ModelRendererComponent::SetUVTilingOverride(float tiling) {
+void ModelRendererComponent::SetEmissiveTextureOverride(uint32_t textureIndex) {
 	if (!model_) {
 		return;
 	}
-	model_->SetUVTransform({0.0f, 0.0f}, {tiling, tiling}, 0.0f);
+	model_->SetEmissiveTexture(textureIndex);
+}
+
+void ModelRendererComponent::SetUVTilingOverride(float tiling) { SetUVTransformOverride({0.0f, 0.0f}, {tiling, tiling}, 0.0f); }
+
+void ModelRendererComponent::SetTriplanarScaleOverride(float scale) {
+	if (!model_) {
+		return;
+	}
+	model_->SetTriplanarScale(scale);
+}
+
+void ModelRendererComponent::SetUVTransformOverride(const Vector2& offset, const Vector2& scale, float rotation) {
+	if (!model_) {
+		return;
+	}
+	model_->SetUVTransform(offset, scale, rotation);
 }
 
 void ModelRendererComponent::CollectAnimatableChannels(std::vector<AnimatableChannel>& channels) {

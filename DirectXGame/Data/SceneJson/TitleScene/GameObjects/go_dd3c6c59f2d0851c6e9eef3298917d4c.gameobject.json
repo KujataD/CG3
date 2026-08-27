@@ -1,43 +1,66 @@
 {
-  "assetType": "GameObject",
-  "instanceId": "go_dd3c6c59f2d0851c6e9eef3298917d4c",
-  "parentInstanceId": "",
-  "prefabAssetPath": "",
-  "prefabObjectId": "",
-  "prefabInstanceRootId": "",
-  "prefabInstanceRoot": false,
-  "name": "SceneManager",
-  "tag": "Untagged",
-  "layer": 0,
-  "active": true,
-  "components": [
-    {
-      "enabled": true,
-      "properties": {
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "translation": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "sceneName": "CharacterSelectScene"
-      },
-      "type": "ChangeSceneManager"
-    }
-  ]
+    "assetType":  "GameObject",
+    "instanceId":  "go_dd3c6c59f2d0851c6e9eef3298917d4c",
+    "parentInstanceId":  "",
+    "prefabAssetPath":  "",
+    "prefabObjectId":  "",
+    "prefabInstanceRootId":  "",
+    "prefabInstanceRoot":  false,
+    "name":  "SceneManager",
+    "tag":  "Untagged",
+    "layer":  0,
+    "active":  true,
+    "components":  [
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "rotation":  [
+                                                               0.0,
+                                                               0.0,
+                                                               0.0
+                                                           ],
+                                              "scale":  [
+                                                            1.0,
+                                                            1.0,
+                                                            1.0
+                                                        ],
+                                              "translation":  [
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0
+                                                              ]
+                                          },
+                           "type":  "Transform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "sceneName":  "CharacterSelectScene"
+                                          },
+                           "type":  "ChangeSceneManager"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "fadeColor":  [
+                                                                0,
+                                                                0,
+                                                                0,
+                                                                1
+                                                            ],
+                                              "fadeInOnStart":  true,
+                                              "fadeInSeconds":  0.8,
+                                              "sortOrder":  1000
+                                          },
+                           "type":  "ScreenFader"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "menuObjectName":  "SettingsMenu",
+                                              "returnMenuName":  ""
+                                          },
+                           "type":  "SettingsMenu"
+                       }
+                   ]
 }

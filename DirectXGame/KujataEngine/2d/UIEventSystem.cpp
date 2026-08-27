@@ -9,6 +9,7 @@
 #include "../scene/GameObject.h"
 #include "../scene/Scene.h"
 #include "UICanvasRenderer.h"
+#include "UINavigationSystem.h"
 #include "UIRect.h"
 #include <cmath>
 #include <memory>
@@ -18,6 +19,11 @@ namespace {
 
 // 押下開始したButton(離すまで保持)。Scene破棄で無効化されるためClearで消す。
 ButtonComponent* gPressedButton = nullptr;
+
+// 前フレームのポインタ位置。動いたらフォーカス操作からマウス操作へ切り替えるために持つ。
+float gPrevPointerX = 0.0f;
+float gPrevPointerY = 0.0f;
+bool gHasPrevPointer = false;
 
 // ノードを再帰処理: すべてのButtonをNormalへ戻しつつ、ポインタ下の最前面Button(描画順で最後)を探す。
 void ProcessNode(GameObject* node, const UIRect& parentRect, float pointerCanvasX, float pointerCanvasY, ButtonComponent*& outHit) {
@@ -41,6 +47,22 @@ void ProcessNode(GameObject* node, const UIRect& parentRect, float pointerCanvas
 	for (GameObject* child : node->GetChildren()) {
 		ProcessNode(child, rect, pointerCanvasX, pointerCanvasY, outHit);
 	}
+}
+
+/// <summary>
+/// ポインタが動いた/押されたらマウス操作モードへ戻す。
+/// (パッドのフォーカスとマウスのホバーが同時にハイライトを奪い合わないようにするため)
+/// </summary>
+void UpdatePointerInputMode(const UIPointerState& pointer) {
+	if (gHasPrevPointer) {
+		const bool moved = std::fabs(pointer.x - gPrevPointerX) > 0.5f || std::fabs(pointer.y - gPrevPointerY) > 0.5f;
+		if (moved || pointer.pressed) {
+			SetUIInputMode(UIInputMode::Pointer);
+		}
+	}
+	gPrevPointerX = pointer.x;
+	gPrevPointerY = pointer.y;
+	gHasPrevPointer = true;
 }
 
 /// <summary>
@@ -87,6 +109,7 @@ void UpdateUIEventSystem(Scene& scene, float targetWidth, float targetHeight, Ca
 		return;
 	}
 	const UIPointerState& pointer = GetUIPointer();
+	UpdatePointerInputMode(pointer);
 
 	ButtonComponent* hit = nullptr;
 	for (const std::unique_ptr<GameObject>& gameObject : scene.GetGameObjects()) {
@@ -118,6 +141,13 @@ void UpdateUIEventSystem(Scene& scene, float targetWidth, float targetHeight, Ca
 		for (GameObject* child : gameObject->GetChildren()) {
 			ProcessNode(child, rootRect, pointerCanvasX, pointerCanvasY, hit);
 		}
+	}
+
+	// 上のループで全ButtonはNormalへ戻っている。ここから先は
+	// ゲームパッド/キーボードのフォーカス操作かマウスのどちらか一方だけが見た目とクリックを担当する。
+	if (UpdateUINavigation(scene, targetWidth, targetHeight)) {
+		gPressedButton = nullptr; // マウスの押下途中でパッドへ持ち替えた場合、その押下は無かったことにする。
+		return;
 	}
 
 	if (!pointer.inside) {

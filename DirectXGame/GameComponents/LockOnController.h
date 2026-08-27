@@ -51,6 +51,10 @@ private:
 	KujataEngine::GameObject* FindCamera() const;
 	/// <summary>targetが今も有効な注目対象か(シーンに存在・アクティブ・生存・距離内)。</summary>
 	bool IsValidTarget(KujataEngine::GameObject* target, KujataEngine::GameObject* leader, float maxDistance) const;
+	/// <summary>
+	/// そのオブジェクトが注目してよい相手か。**狙えるのは敵(IEnemy)だけ**で、味方は倒れていても候補にしない。
+	/// </summary>
+	bool IsTargetableObject(KujataEngine::GameObject* object) const;
 	/// <summary>候補(IEnemyを持ち狙える・Lock Distance以内)を列挙し、カメラ正面からの水平符号付き角度を添えて返す。</summary>
 	struct Candidate {
 		KujataEngine::GameObject* object = nullptr;

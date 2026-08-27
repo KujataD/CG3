@@ -348,9 +348,6 @@
     <ClCompile Include="KujataEngine\components\ModelRendererComponent.cpp">
       <Filter>KujataEngine\components</Filter>
     </ClCompile>
-    <ClCompile Include="KujataEngine\components\DecalComponent.cpp">
-      <Filter>KujataEngine\components</Filter>
-    </ClCompile>
     <ClCompile Include="KujataEngine\components\NoiseTextureComponent.cpp">
       <Filter>KujataEngine\components</Filter>
     </ClCompile>
@@ -441,10 +438,16 @@
     <ClCompile Include="KujataEngine\2d\UIEventSystem.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="KujataEngine\2d\UINavigationSystem.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
     <ClCompile Include="KujataEngine\2d\FontAtlas.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="KujataEngine\runtime\UIInput.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujataEngine\runtime\AppControl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="KujataEngine\runtime\UIEventBus.cpp">
@@ -457,6 +460,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="KujataEngine\scene\UnityAction.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="KujataEngine\scene\UnityActionUI.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -585,9 +591,6 @@
       <Filter>KujataEngine\math</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\components\ModelRendererComponent.h">
-      <Filter>KujataEngine\components</Filter>
-    </ClInclude>
-    <ClInclude Include="KujataEngine\components\DecalComponent.h">
       <Filter>KujataEngine\components</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\components\NoiseTextureComponent.h">
@@ -875,6 +878,9 @@
     <ClInclude Include="KujataEngine\2d\UIEventSystem.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="KujataEngine\2d\UINavigationSystem.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
     <ClInclude Include="KujataEngine\components\TextComponent.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -882,6 +888,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\runtime\UIInput.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujataEngine\runtime\AppControl.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\runtime\UIEventBus.h">
@@ -900,6 +909,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="KujataEngine\scene\UnityAction.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="KujataEngine\scene\UnityActionUI.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

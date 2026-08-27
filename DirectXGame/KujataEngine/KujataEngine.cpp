@@ -3,6 +3,7 @@
 #include "base/AudioManager.h"
 #include "base/FrameProfiler.h"
 #include "components/BuiltinComponents.h"
+#include "runtime/AppControl.h"
 #include "postprocess/PostEffectPipeline.h"
 #include "postprocess/PostProcess.h"
 #include "shadow/ShadowMap.h"
@@ -90,6 +91,11 @@ bool Update() {
 
 	// ウィンドウメッセージを処理し、終了リクエストなら false を返す
 	if (WinApp::GetInstance()->ProcessMessage()) {
+		return false;
+	}
+
+	// ゲーム側からの終了要求(タイトルの「終了」など)。ウィンドウを壊さずここで畳む。
+	if (IsQuitRequested()) {
 		return false;
 	}
 

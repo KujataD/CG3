@@ -17,6 +17,7 @@ struct Material
     float32_t bloomIntensity;    // 露出光(滲み)の強さ(エミッションRTへ書く値のスケール)
     float32_t bloomThreshold;    // この輝度以上のエミッションだけが滲む(0=全て)
     float32_t bloomSoftKnee;     // 閾値の柔らかさ(0=ハード)
+    float32_t triplanarScale;    // >0でワールド座標貼り。1ワールドユニットあたりの繰り返し数(0でUV貼り)
 };
 
 ConstantBuffer<Material> gMaterial : register(b0);
@@ -155,10 +156,34 @@ static const float32_t kShockwaveTailWidth = 0.75f;
 // トレイルの幅方向のぼかし量。大きいほど縁が柔らかい。
 static const float32_t kTrailEdgeSoftness = 0.6f;
 
+// ワールド座標を3軸から投影してサンプリングする(トライプラナー)。
+//
+// **プリミティブのUVは面ごとに0..1固定**なので、Transformで引き伸ばした箱に模様を貼ると、
+// 面の実寸に関係なく必ず「1面あたりn枚」になる。scale(3,10,54)の壁なら、54ユニットの面も
+// 10ユニットの面も同じ枚数が乗り、5倍以上に伸びた縞になってしまう。
+// ワールド座標で貼れば、どの面でもどのオブジェクトでも密度が揃う(継ぎ目も出ない)。
+//
+// 法線の絶対値を重みに3方向をブレンドする。斜め面では2〜3枚が混ざるが、
+// タイル可能なノイズなら混ざっても破綻しない。
+float32_t4 SampleTriplanar(float32_t3 worldPosition, float32_t3 normal, float32_t scale)
+{
+    float32_t3 weight = abs(normalize(normal));
+    weight /= max(weight.x + weight.y + weight.z, 1e-4f);
+
+    float32_t4 sampleX = gTexture.Sample(gSampler, worldPosition.zy * scale);
+    float32_t4 sampleY = gTexture.Sample(gSampler, worldPosition.xz * scale);
+    float32_t4 sampleZ = gTexture.Sample(gSampler, worldPosition.xy * scale);
+
+    return sampleX * weight.x + sampleY * weight.y + sampleZ * weight.z;
+}
+
 PixelShaderOutput main(VertexShaderOutput input)
 {
     float32_t4 transformedUV = mul(float32_t4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
-    float32_t4 textureColor = gTexture.Sample(gSampler, transformedUV.xy);
+    // triplanarScaleが0のときは今までどおりメッシュのUVで貼る(スクロールや板ポリはこちら)。
+    float32_t4 textureColor = (gMaterial.triplanarScale > 0.0f)
+        ? SampleTriplanar(input.worldPosition, input.normal, gMaterial.triplanarScale)
+        : gTexture.Sample(gSampler, transformedUV.xy);
     PixelShaderOutput output;
     // エミッションRTは既定で書き込みなし(黒)。Emissionチェック付きマテリアルだけが下で上書きする。
     output.emission = float32_t4(0.0f, 0.0f, 0.0f, 1.0f);

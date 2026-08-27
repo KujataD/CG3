@@ -5,6 +5,10 @@
 
 #include "Player.h"
 
+/// <summary>
+/// ボタンなどから指定シーンへ移動するだけの小さな進行役。
+/// Via Loading がONなら、直接切り替えずローディング画面([LoadingScreen])を経由する。
+/// </summary>
 class ChangeSceneManager : public KujataEngine::Component {
 public:
 	const char* GetTypeName() const override { return "ChangeSceneManager"; }
@@ -16,8 +20,11 @@ private:
 
 private:
 	KUJATA_SERIALIZED_FIELDS_BEGIN() {
-		// attack_はbool型アニメーションチャンネル。キーフレームで攻撃判定をON/OFFする(ため中はOFF)。
 		KUJATA_REGISTER_STRING(sceneName_);
+		KUJATA_REGISTER_BOOL_NAMED_TIP(viaLoading_, "Via Loading",
+		    "ローディング画面を挟むか。ONだと LoadingScene を経由して切り替える\n"
+		    "(ChangeSceneは同期ブロッキングなので、暗転中に読ませてカクつきを隠す)。");
 	}
 	KUJATA_FIELD_STRING(sceneName_, "SampleScene");
+	KUJATA_FIELD_BOOL(viaLoading_, true);
 };

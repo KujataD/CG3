@@ -23,6 +23,12 @@
           "description": "この距離まで近づいたら前進をやめる",
           "name": "stopDistance",
           "type": "float"
+        },
+        {
+          "default": 0.0,
+          "description": "この距離より遠い相手は追わない(0で無制限)。部屋の反対側から一斉に走ってくるのを止めるための門番。",
+          "name": "chaseRange",
+          "type": "float"
         }
       ]
     },

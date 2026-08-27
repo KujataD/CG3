@@ -110,9 +110,9 @@
           "properties": {
             "align": 1,
             "color": [ 1.0, 1.0, 1.0, 1.0 ],
-            "fontPath": "C:/Windows/Fonts/YuGothB.ttc",
-            "fontSize": 72.0,
-            "text": "CRITICAL  [B]"
+            "fontPath": "Fonts/JapaneseSansBold.ttf",
+            "fontSize": 54.0,
+            "text": "CRITICAL  [R2 / K]"
           },
           "type": "Text"
         }

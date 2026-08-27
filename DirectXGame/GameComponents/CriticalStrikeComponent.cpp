@@ -1,8 +1,9 @@
 #include "CriticalStrikeComponent.h"
+#include "GameEvents.h"
+#include "GameAudio.h"
 
 #include "CharacterMotor.h"
 #include "EnemyHealth.h"
-#include "GameInput.h"
 #include "IAbilitySet.h"
 #include "IEnemy.h"
 #include "PlayerHealth.h"
@@ -85,7 +86,10 @@ void CriticalStrikeComponent::Update() {
 		return;
 	}
 
-	// --- 待機中: プロンプトの相手を探し、入力で発動する ---
+	// --- 待機中: プロンプトの相手を探して出しておく ---
+	// **発動の入力はここでは読まない。** 致命は通常攻撃と同じR2/Kで出すので、
+	// 入力を読むのは Player::Update 1か所に寄せてある(両方で読むと1回の押下で二重に発火する)。
+	// ここは「誰に出せるか」を GetPromptTarget() で公開するところまでを受け持つ。
 	// 表示は広め(Prompt Show Distance)、発動は狭め(Trigger Distance)。
 	// 遠いうちからバナーを出して「あそこへ行けば決められる」と分からせるのが狙い。
 	// **操作中のキャラ以外は何もしない。**
@@ -113,13 +117,6 @@ void CriticalStrikeComponent::Update() {
 		return;
 	}
 	promptTarget_ = visible;
-
-	if (motor_ && motor_->IsActionLocked()) {
-		return;
-	}
-	if (GameInput::IsCriticalTriggered()) {
-		Begin(promptTarget_);
-	}
 }
 
 bool CriticalStrikeComponent::IsPlayerControlled() const {
@@ -165,6 +162,36 @@ GameObject* CriticalStrikeComponent::FindStaggeredTarget() const {
 	return nearest;
 }
 
+bool CriticalStrikeComponent::TryExecute(GameObject* target) {
+	if (IsExecuting() || !owner_) {
+		return false;
+	}
+	if (!target) {
+		target = FindStaggeredTarget();
+	}
+	if (!target) {
+		return false;
+	}
+
+	// スタンが解けていたら窓は閉じている(AIが1フレーム遅れて呼ぶ場合の保険)。
+	EnemyHealth* targetHealth = target->GetComponent<EnemyHealth>();
+	if (!targetHealth || !targetHealth->IsStaggered()) {
+		return false;
+	}
+
+	Vector3 diff = target->GetTransform().translation_ - owner_->GetTransform().translation_;
+	diff.y = 0.0f;
+	if (std::sqrt(diff.x * diff.x + diff.z * diff.z) > triggerDistance_) {
+		return false;
+	}
+	if (motor_ && motor_->IsActionLocked()) {
+		return false;
+	}
+
+	Begin(target);
+	return true;
+}
+
 void CriticalStrikeComponent::Begin(GameObject* target) {
 	if (!owner_ || !target) {
 		return;
@@ -173,6 +200,12 @@ void CriticalStrikeComponent::Begin(GameObject* target) {
 	target_ = target;
 	phase_ = Phase::Windup;
 	phaseTimer_ = windupSeconds_;
+
+	// チュートリアルの課題判定用。**操作中のキャラのぶんだけ数える**
+	// (AI相方が決めたぶんで課題が終わってしまわないように)。
+	if (IsPlayerControlled()) {
+		++GameEvents::CriticalCountRef();
+	}
 
 	// 相手の方を向き、決めた距離まで吸い付く。離れた位置から始まると空振りに見えるため。
 	WorldTransform& transform = owner_->GetTransform();
@@ -209,6 +242,7 @@ void CriticalStrikeComponent::Begin(GameObject* target) {
 }
 
 void CriticalStrikeComponent::Impact() {
+	GameAudio::PlaySe(GameAudio::Se::Critical);
 	// 相手が消えていても、演出だけは最後まで通す(途中で固まらないため)。
 	// **決め方は技側が知っている。** 技が自前で決めたなら(true)、こちらは素のダメージを出さない。
 	bool handledByAbility = abilitySet_ && abilitySet_->TryCritical(target_, damage_);

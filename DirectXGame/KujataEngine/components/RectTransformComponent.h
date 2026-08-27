@@ -30,8 +30,15 @@ public:
 	const Vector2& GetAnchoredPosition() const { return anchoredPosition_; }
 	const Vector2& GetSizeDelta() const { return sizeDelta_; }
 
+	float GetRotationZ() const { return rotationZ_; }
+
+	void SetAnchorMin(const Vector2& value) { anchorMin_ = value; }
+	void SetAnchorMax(const Vector2& value) { anchorMax_ = value; }
+	void SetPivot(const Vector2& value) { pivot_ = value; }
 	void SetAnchoredPosition(const Vector2& value) { anchoredPosition_ = value; }
 	void SetSizeDelta(const Vector2& value) { sizeDelta_ = value; }
+	/// <summary>自分の矩形の中心まわりの回転[rad]。**子には伝播しない**(この要素の描画だけが回る)。</summary>
+	void SetRotationZ(float value) { rotationZ_ = value; }
 
 private:
 	Vector2 anchorMin_ = {0.5f, 0.5f};

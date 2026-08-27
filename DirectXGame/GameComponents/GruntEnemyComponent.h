@@ -149,6 +149,8 @@ private:
 	std::string currentPhase_;
 	float phaseTimer_ = 0.0f;
 	float recoilTimer_ = 0.0f;
+	// 出している攻撃予告のID(ThreatBoard)。中断時に必ず取り下げる。
+	int threatId_ = 0;
 	// 直前フレームでスタンしていたか(スタン開始の瞬間だけ後始末したいので保持する)。
 	bool wasStunned_ = false;
 

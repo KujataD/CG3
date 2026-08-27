@@ -40,6 +40,11 @@ struct MaterialData {
 	float bloomIntensity = 1.0f; // 滲みの強さ(エミッションRTへ書く値のスケール。0で滲まない)
 	float bloomThreshold = 0.0f; // この輝度以上のエミッションだけが滲む(0=全て滲む)
 	float bloomSoftKnee = 0.5f;  // 閾値の柔らかさ(0=ハード)
+	// ワールド座標でのタイリング(トライプラナー)。0でメッシュのUVをそのまま使う。
+	// 値は「1ワールドユニットあたりの繰り返し数」なので、4ユニットで1周させたいなら0.25。
+	// **プリミティブのUVは面ごとに0..1固定**で、Transformで引き伸ばすと面ごとに違う伸び方をする。
+	// これを使うと面の実寸に応じて敷き詰められ、どのオブジェクトでも密度が揃う。
+	float triplanarScale = 0.0f;
 	// --- ここまでCB転送部 ---
 	std::string textureFilePath;
 	uint32_t textureIndex;

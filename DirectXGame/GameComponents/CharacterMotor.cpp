@@ -1,4 +1,5 @@
 #include "CharacterMotor.h"
+#include "GameAudio.h"
 
 #include <components/RigidbodyComponent.h>
 #include "GameFx.h"
@@ -163,6 +164,39 @@ void CharacterMotor::FaceWorld(const Vector3& direction) {
 	MovementUtil::FaceDirection(owner_->GetTransform(), horizontal, turnSpeed_, Time::GetDeltaTime());
 }
 
+float CharacterMotor::GetDodgeDistance() const {
+	return dodgeSpeed_ * static_cast<float>(dodgeDurationFrames_) * kFrameSeconds;
+}
+
+bool CharacterMotor::CanDodge() const {
+	if (IsActionLocked() || IsDodgeCooldown()) {
+		return false;
+	}
+	return !stamina_ || stamina_->CanUse();
+}
+
+bool CharacterMotor::TryDodgeWorld(const Vector3& direction) {
+	if (!owner_) {
+		return false;
+	}
+	Vector3 horizontal = {direction.x, 0.0f, direction.z};
+	float length = std::sqrt(horizontal.x * horizontal.x + horizontal.z * horizontal.z);
+	if (length < 0.0001f) {
+		return TryDodge();
+	}
+
+	// TryDodgeCameraRelativeと同じ順序。**向きを変える前に可否を見る**のが要点で、
+	// 先に回してしまうとスタミナ切れのときに「その場で向きだけ変わる」挙動になる。
+	if (!CanDodge()) {
+		return false;
+	}
+
+	horizontal = horizontal / length;
+	// 十分大きな旋回速度で1フレームに向き切る(回避中はUpdateDodgeが前方へ進める)。
+	MovementUtil::FaceDirection(owner_->GetTransform(), horizontal, 1000.0f, 1.0f);
+	return TryDodge();
+}
+
 bool CharacterMotor::TryDodge() {
 	if (IsActionLocked() || IsDodgeCooldown()) {
 		return false;
@@ -178,6 +212,8 @@ bool CharacterMotor::TryDodge() {
 
 	dodgeTimer_ = static_cast<float>(dodgeDurationFrames_) * kFrameSeconds;
 	invincibleTimer_ = static_cast<float>(invincibleFrames_) * kFrameSeconds;
+
+	GameAudio::PlaySe(GameAudio::Se::Dodge);
 
 	// 踏み切りの足元に土埃。**入力に対して画面が反応する**ので、回避の手応えが上がる。
 	if (owner_) {

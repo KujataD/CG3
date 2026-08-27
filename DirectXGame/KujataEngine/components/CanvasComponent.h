@@ -3,6 +3,8 @@
 #include "../runtime/KujataApi.h"
 #include "../math/Vector2.h"
 #include "../scene/Component.h"
+#include "../scene/ObjectRef.h"
+#include "../scene/UnityAction.h"
 
 namespace KujataEngine {
 
@@ -18,6 +20,9 @@ namespace KujataEngine {
 /// Overlayでは描画時にscaleFactorで実ピクセルへ拡縮され、
 /// World Spaceではキャンバス単位がそのままローカル座標になり、Transformのscaleでworld単位へ変換される
 /// (1280x720のキャンバスをscale 0.01で置くと12.8x7.2 world単位。Unityと同じ考え方)。
+///
+/// ゲームパッド/キーボードのフォーカス操作(UINavigationSystem)では、
+/// このCanvasが「First Selected(最初に選ぶボタン)」と「On Cancel(Bボタンの戻り先)」を持つ。
 /// </summary>
 class KUJATA_API CanvasComponent : public Component {
 public:
@@ -38,6 +43,7 @@ public:
 	void DrawInspector() override;
 	void WriteJson(nlohmann::json& json) const override;
 	void ReadJson(const nlohmann::json& json) override;
+	void ResolveReferences(IObjectResolver& resolver) override;
 
 	/// <summary>
 	/// キャンバス単位のサイズとscaleFactorを算出する。
@@ -54,6 +60,16 @@ public:
 	void SetWorldCanvasSize(const Vector2& size) { worldCanvasSize_ = size; }
 
 	int GetSortOrder() const { return sortOrder_; }
+	void SetSortOrder(int sortOrder) { sortOrder_ = sortOrder; }
+
+	/// <summary>このCanvasがフォーカスを得たとき最初に選ぶGameObject(未設定ならnullptr)。</summary>
+	GameObject* GetFirstSelected() const { return firstSelected_.value; }
+
+	/// <summary>キャンセル(Bボタン/Esc)が押されたときの呼び出し先。</summary>
+	const UnityAction& GetOnCancel() const { return onCancel_; }
+
+	/// <summary>キャンセルの呼び出し先が1件でも設定されているか。</summary>
+	bool HasOnCancel() const { return !onCancel_.calls.empty(); }
 
 private:
 	RenderMode renderMode_ = RenderMode::ScreenSpaceOverlay;
@@ -67,6 +83,10 @@ private:
 	Vector2 worldCanvasSize_ = {1280.0f, 720.0f};
 
 	int sortOrder_ = 0;
+
+	// --- ゲームパッド/キーボードのフォーカス操作 ---
+	ObjectRef firstSelected_;
+	UnityAction onCancel_;
 };
 
 } // namespace KujataEngine

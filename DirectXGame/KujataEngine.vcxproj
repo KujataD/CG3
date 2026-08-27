@@ -137,7 +137,6 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClCompile Include="KujataEngine\components\DebugCameraComponent.cpp" />
     <ClCompile Include="KujataEngine\components\DirectionalLightComponent.cpp" />
     <ClCompile Include="KujataEngine\components\ModelRendererComponent.cpp" />
-    <ClCompile Include="KujataEngine\components\DecalComponent.cpp" />
     <ClCompile Include="KujataEngine\components\NoiseTextureComponent.cpp" />
     <ClCompile Include="KujataEngine\components\ParticleSystemComponent.cpp" />
     <ClCompile Include="KujataEngine\components\TrailRendererComponent.cpp" />
@@ -150,8 +149,10 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClCompile Include="KujataEngine\components\ButtonComponent.cpp" />
     <ClCompile Include="KujataEngine\2d\UICanvasRenderer.cpp" />
     <ClCompile Include="KujataEngine\2d\UIEventSystem.cpp" />
+    <ClCompile Include="KujataEngine\2d\UINavigationSystem.cpp" />
     <ClCompile Include="KujataEngine\2d\FontAtlas.cpp" />
     <ClCompile Include="KujataEngine\runtime\UIInput.cpp" />
+    <ClCompile Include="KujataEngine\runtime\AppControl.cpp" />
     <ClCompile Include="KujataEngine\runtime\UIEventBus.cpp" />
     <ClCompile Include="KujataEngine\Editor\UIObjectFactory.cpp" />
     <ClCompile Include="KujataEngine\components\PointLightComponent.cpp" />
@@ -236,6 +237,7 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClCompile Include="KujataEngine\scene\GameObject.cpp" />
     <ClCompile Include="KujataEngine\scene\ObjectRef.cpp" />
     <ClCompile Include="KujataEngine\scene\UnityAction.cpp" />
+    <ClCompile Include="KujataEngine\scene\UnityActionUI.cpp" />
     <ClCompile Include="KujataEngine\scene\RayCast.cpp" />
     <ClCompile Include="KujataEngine\scene\SampleScene.cpp" />
     <ClCompile Include="KujataEngine\scene\Scene.cpp" />
@@ -278,7 +280,6 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClInclude Include="KujataEngine\components\DebugCameraComponent.h" />
     <ClInclude Include="KujataEngine\components\DirectionalLightComponent.h" />
     <ClInclude Include="KujataEngine\components\ModelRendererComponent.h" />
-    <ClInclude Include="KujataEngine\components\DecalComponent.h" />
     <ClInclude Include="KujataEngine\components\NoiseTextureComponent.h" />
     <ClInclude Include="KujataEngine\components\ParticleSystemComponent.h" />
     <ClInclude Include="KujataEngine\components\TrailRendererComponent.h" />
@@ -292,9 +293,11 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClInclude Include="KujataEngine\2d\UIRect.h" />
     <ClInclude Include="KujataEngine\2d\FontAtlas.h" />
     <ClInclude Include="KujataEngine\2d\UIEventSystem.h" />
+    <ClInclude Include="KujataEngine\2d\UINavigationSystem.h" />
     <ClInclude Include="KujataEngine\components\TextComponent.h" />
     <ClInclude Include="KujataEngine\components\ButtonComponent.h" />
     <ClInclude Include="KujataEngine\runtime\UIInput.h" />
+    <ClInclude Include="KujataEngine\runtime\AppControl.h" />
     <ClInclude Include="KujataEngine\runtime\UIEventBus.h" />
     <ClInclude Include="KujataEngine\Editor\UIObjectFactory.h" />
     <ClInclude Include="externals\stb\stb_truetype.h" />
@@ -394,6 +397,7 @@ xcopy /y /e /i /q "$(ProjectDir)Data" "$(TargetDir)Data\"</Command>
     <ClInclude Include="KujataEngine\scene\ObjectRef.h" />
     <ClInclude Include="KujataEngine\scene\RayCast.h" />
     <ClInclude Include="KujataEngine\scene\UnityAction.h" />
+    <ClInclude Include="KujataEngine\scene\UnityActionUI.h" />
     <ClInclude Include="KujataEngine\scene\SampleScene.h" />
     <ClInclude Include="KujataEngine\scene\Scene.h" />
     <ClInclude Include="KujataEngine\shapes\AABB.h" />

@@ -1,0 +1,61 @@
+{
+    "assetType":  "GameObject",
+    "instanceId":  "go_arena_rim_6",
+    "parentInstanceId":  "go_arena_root",
+    "prefabAssetPath":  "",
+    "prefabObjectId":  "",
+    "prefabInstanceRootId":  "",
+    "prefabInstanceRoot":  false,
+    "name":  "ArenaRubble6",
+    "tag":  "Untagged",
+    "layer":  0,
+    "active":  true,
+    "components":  [
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "rotation":  [ 0, 1.948073, 0 ],
+                                              "scale":  [ 8.302259, 5.947773, 9.805836 ],
+                                              "translation":  [ -31.648438, 3.371721, -22.993936 ]
+                                          },
+                           "type":  "Transform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "billboardEnabled":  false,
+                                              "billboardFaceMode":  0,
+                                              "cameraLocalZ":  1,
+                                              "castShadow":  false,
+                                              "doubleSided":  false,
+                                              "materialAssetId":  "asset_86e5eb1ca8376a1143723b191b0acf53",
+                                              "materialPath":  "Materials/MultiMesh.material.json",
+                                              "modelAssetId":  "",
+                                              "modelPath":  "",
+                                              "primitive":  "Sphere"
+                                          },
+                           "type":  "ModelRendererComponent"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "center":  [ 0, 0, 0 ],
+                                              "collisionMask":  4294967295,
+                                              "isTrigger":  false,
+                                              "radius":  0.82
+                                          },
+                           "type":  "SphereColliderComponent"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "kind":  0,
+                                              "seedLane":  278,
+                                              "textureSize":  256,
+                                              "tint":  [ 0.6, 0.51, 0.4, 1 ],
+                                              "tileSize":   4
+                                          },
+                           "type":  "NoiseTextureComponent"
+                       }
+                   ]
+}

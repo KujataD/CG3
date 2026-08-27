@@ -5,6 +5,7 @@
 #include "HateTable.h"
 #include "GameFx.h"
 #include "PlayerHealth.h"
+#include "ThreatBoard.h"
 
 #include <components/AnimatorComponent.h>
 #include <components/ParticleSystemComponent.h>
@@ -286,6 +287,10 @@ void GruntEnemyComponent::AbortAttack() {
 	phaseTimer_ = 0.0f;
 	SetWeaponAttack(GetMeleeWeapon(), false);
 	HideBeam();
+	// **出した予告は必ず取り下げる。** 攻撃が消えたのに危険域が残ると、
+	// 味方AIは存在しない攻撃から永久に逃げ続ける。
+	Threat::Withdraw(threatId_);
+	threatId_ = 0;
 }
 
 AnimatorComponent* GruntEnemyComponent::GetAnimator() { return GetComponentInChildren<AnimatorComponent>(); }

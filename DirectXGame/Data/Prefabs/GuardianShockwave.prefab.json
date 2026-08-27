@@ -29,23 +29,18 @@
             {
                "enabled" : true,
                "properties" : {
-                  "blendMode" : 1,
-                  "followOwner" : true,
-                  "groundLayerMask" : 4294966527,
-                  "groundOffset" : 0.03,
-                  "groundY" : 0,
-                  "innerRatio" : 0.55,
-                  "radialSteps" : 3,
-                  "radius" : 3,
-                  "rayDown" : 12,
-                  "rayUp" : 4,
-                  "shaderModel" : 5,
-                  "shape" : 1,
-                  "staticGroundOnly" : true,
-                  "subdivision" : 40,
-                  "texturePath" : "Resources/white1x1.png"
+                  "billboardEnabled" : false,
+                  "billboardFaceMode" : 0,
+                  "cameraLocalZ" : 1,
+                  "castShadow" : false,
+                  "doubleSided" : true,
+                  "materialAssetId" : "asset_2f8a41c7d9e0b3456a7c8d9e0f1a2b34",
+                  "materialPath" : "Materials/GuardianShockwave.material.json",
+                  "modelAssetId" : "",
+                  "modelPath" : "",
+                  "primitive" : "Ring"
                },
-               "type" : "DecalComponent"
+               "type" : "ModelRendererComponent"
             },
             {
                "enabled" : true,

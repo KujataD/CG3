@@ -49,13 +49,19 @@ public:
 	const std::string& GetText() const { return text_; }
 	void SetFontSize(float size) { fontSize_ = size; }
 
+	/// <summary>文字色。演出でフェードさせるときはαを動かす。</summary>
+	void SetColor(const Vector4& color) { color_ = color; }
+	const Vector4& GetColor() const { return color_; }
+
 private:
 	void SyncTextBuffer();
 	void SyncFontBuffer();
 
 	std::string text_ = "Text";
-	// 既定は日本語対応フォント(Yu Gothic)にして、新規Textでも日本語がそのまま表示できるようにする。
-	std::string fontPath_ = "C:/Windows/Fonts/YuGothR.ttc";
+	// 既定は**Data配下の論理名**。実体は `Data/Fonts/` に置き、無ければ見た目の近い
+	// システムフォントへ落ちる([[FontAtlas]]::ResolveFontPath)。
+	// **絶対パスを既定にしない**のは、その環境にしか無いフォントを配布物へ持ち込まないため。
+	std::string fontPath_ = "Fonts/JapaneseSans.ttf";
 	float fontSize_ = 28.0f;
 	Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};
 	Align align_ = Align::Left;

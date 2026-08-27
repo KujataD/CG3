@@ -1,4 +1,5 @@
 #include "PlayerHealth.h"
+#include "GameAudio.h"
 #include "GameFx.h"
 #include <components/AnimatorComponent.h>
 #include <components/RigidbodyComponent.h>
@@ -30,7 +31,7 @@ void PlayerHealth::OnPlayStart() {
 	// 前回のPlayで倒れたまま次のPlayが始まり、入力を受け付けない(＝動かせない)。
 	// カメラは別コンポーネントなので回り続け、「移動だけ効かない」という形で表面化する。
 	dead_ = false;
-	reviveProgress_ = 0.0f;
+	reviveTimer_ = 0.0f;
 	if (health_ <= 0.0f) {
 		health_ = maxHealth_;
 	}
@@ -107,6 +108,7 @@ void PlayerHealth::TakeDamage(float damage) {
 	}
 
 	health_ = std::max(0.0f, health_ - damage);
+	GameAudio::PlaySe(GameAudio::Se::PlayerDamage);
 
 	if (onHealthChanged_) {
 		onHealthChanged_(health_);
@@ -119,12 +121,12 @@ void PlayerHealth::TakeDamage(float damage) {
 
 void PlayerHealth::EnterDeath() {
 	dead_ = true;
-	reviveProgress_ = 0.0f;
-	// **死んだら無敵にする。** 倒れた相方が敵に殴られ続けると、蘇生しに行く判断が成立しない。
+	reviveTimer_ = 0.0f;
+	// **死んだら無敵にする。** 倒れている間ずっと殴られ続けると、時間で起き上がる意味が無くなる。
 	invincible_ = true;
 
 	// **押されて動かないように、体をキネマティック(Is Static)へ落とす。**
-	// コライダーは残したままにするのが要点で、これが無いと蘇生のために叩けなくなる。
+	// コライダーは残す(倒れた体をすり抜けさせないため)。
 	// 衝突応答は「Rigidbodyがあり、かつIs Staticでない」ものだけを押し出す作りなので、
 	// Staticにすれば当たり判定を保ったまま無限質量として扱われ、敵に押し込まれなくなる。
 	if (motor_) {
@@ -153,12 +155,15 @@ void PlayerHealth::EnterDeath() {
 	}
 }
 
-void PlayerHealth::AddReviveProgress(float amount) {
-	if (!dead_ || amount <= 0.0f) {
+void PlayerHealth::Update() {
+	// **倒れたら時間で起き上がる。**
+	// 「相方を叩いて起こす」方式は、起こしに行く側が無防備に棒立ちになる時間が長く、
+	// その隙に二人目も落ちて全滅、という流れを量産していた。
+	if (!dead_) {
 		return;
 	}
-	reviveProgress_ += amount;
-	if (reviveProgress_ >= (std::max)(reviveRequired_, 1.0f)) {
+	reviveTimer_ += Time::GetDeltaTime();
+	if (reviveTimer_ >= (std::max)(reviveSeconds_, 0.1f)) {
 		Revive();
 	}
 }
@@ -167,8 +172,7 @@ float PlayerHealth::GetReviveProgress() const {
 	if (!dead_) {
 		return 0.0f;
 	}
-	float required = (std::max)(reviveRequired_, 1.0f);
-	return std::clamp(reviveProgress_ / required, 0.0f, 1.0f);
+	return std::clamp(reviveTimer_ / (std::max)(reviveSeconds_, 0.1f), 0.0f, 1.0f);
 }
 
 void PlayerHealth::Revive() {
@@ -176,7 +180,6 @@ void PlayerHealth::Revive() {
 		return;
 	}
 	dead_ = false;
-	reviveProgress_ = 0.0f;
 	invincible_ = false;
 	health_ = maxHealth_ * std::clamp(reviveHealthPercent_ * 0.01f, 0.01f, 1.0f);
 

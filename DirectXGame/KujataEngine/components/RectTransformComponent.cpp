@@ -58,6 +58,8 @@ void RectTransformComponent::DrawInspector() {
 	InspectorUI::DragFloat2("Pivot", &pivot_.x, 0.01f, 0.0f, 1.0f);
 	InspectorUI::DragFloat2("Pos (X,Y)", &anchoredPosition_.x, 1.0f);
 	InspectorUI::DragFloat2("Width/Height", &sizeDelta_.x, 1.0f);
+	InspectorUI::DragFloat("Rotation Z (rad)", &rotationZ_, 0.01f);
+	InspectorUI::ItemTooltip("この要素の矩形中心まわりの回転[rad]。**子には伝播しない**(現状Imageのみ反映)。");
 
 	// アンカープリセット: 3x3の四角ボタングリッド(Unity風)。押すとアンカー/ピボットを対応位置へ。
 	InspectorUI::TextUnformatted("Anchor Presets:");

@@ -1,4 +1,5 @@
 #include "EnemyHealth.h"
+#include "GameAudio.h"
 
 #include "HateTable.h"
 #include <algorithm>
@@ -44,6 +45,21 @@ Vector3 EnemyHealth::GetLockOnPoint() const {
 	return base + lockOnOffset_;
 }
 
+EnemyHealth* EnemyHealth::Master() {
+	if (sharedHealthOwnerName_.empty() || !owner_ || !owner_->GetScene()) {
+		return this;
+	}
+	GameObject* master = owner_->GetScene()->FindGameObjectByName(sharedHealthOwnerName_);
+	if (!master || master == owner_) {
+		return this;
+	}
+	EnemyHealth* health = master->GetComponent<EnemyHealth>();
+	// **本体側がさらに誰かを指していても辿らない。** 1段だけにしておけば輪にならない。
+	return health ? health : this;
+}
+
+const EnemyHealth* EnemyHealth::Master() const { return const_cast<EnemyHealth*>(this)->Master(); }
+
 void EnemyHealth::Initialize() {
 	health_ = maxHealth_;
 	poise_ = 0.0f;
@@ -84,18 +100,29 @@ void EnemyHealth::Update() {
 }
 
 void EnemyHealth::TakeDamage(float damage) {
+	// **HPを共有しているなら本体へ流す。** 部位ごとにHPを持たせない(バーが1本で済む)。
+	if (EnemyHealth* master = Master(); master != this) {
+		master->TakeDamage(damage);
+		return;
+	}
 	if (!IsAlive()) {
 		return;
 	}
 
 	health_ = std::max(0.0f, health_ - damage);
+	// **手応えの音はここ1箇所で賄う。** 剣も魔法も致命も最後はこの関数を通るので、
+	// 攻撃手段を足すたびに鳴らし忘れる作りにしない。
+	GameAudio::PlaySe(GameAudio::Se::PlayerHit);
 
 	if (onHealthChanged_) {
 		onHealthChanged_(health_);
 	}
 
-	if (health_ <= 0 && onDeath_) {
-		onDeath_();
+	if (health_ <= 0) {
+		GameAudio::PlaySe(GameAudio::Se::EnemyDown);
+		if (onDeath_) {
+			onDeath_();
+		}
 	}
 }
 
@@ -111,9 +138,24 @@ void EnemyHealth::TakeDamage(float damage, float poiseDamage, KujataEngine::Game
 			hate->AddDamageHate(attacker, damage);
 		}
 	}
+
+	// **被弾のリアクションもここ1箇所から通知する。** ヘイトと同じ理由で、
+	// ダメージが通った場所にまとめておかないと、攻撃手段を足すたびに拾い漏れる。
+	// 体力を共有している部位(第2形態の目)を殴られた分も、頭脳が乗っている
+	// まとめ役へ届くように Master() 経由で呼ぶ。
+	if (EnemyHealth* master = Master()) {
+		if (master->onHit_ && master->IsAlive() && !master->IsStaggered()) {
+			master->onHit_(attacker, damage);
+		}
+	}
 }
 
 void EnemyHealth::AddPoise(float poiseDamage) {
+	// 体勢崩しもHPと同じ本体へ集める。部位を殴っても同じゲージが溜まる。
+	if (EnemyHealth* master = Master(); master != this) {
+		master->AddPoise(poiseDamage);
+		return;
+	}
 	if (!IsAlive() || poiseDamage <= 0.0f || IsStaggered()) {
 		return;
 	}
@@ -144,6 +186,9 @@ void EnemyHealth::Flinch() {
 }
 
 float EnemyHealth::GetHealthPercent() const {
+	if (const EnemyHealth* master = Master(); master != this) {
+		return master->GetHealthPercent();
+	}
 	if (maxHealth_ <= 0) {
 		return 0.0f;
 	}
@@ -151,6 +196,9 @@ float EnemyHealth::GetHealthPercent() const {
 }
 
 bool EnemyHealth::IsAlive() const {
+	if (const EnemyHealth* master = Master(); master != this) {
+		return master->IsAlive();
+	}
 	return health_ > 0;
 }
 

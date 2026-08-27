@@ -30,6 +30,9 @@ public:
 	/// <summary>味方NPC側のキャラ。見つからなければnullptr。</summary>
 	KujataEngine::GameObject* GetAlly() const { return ally_; }
 
+	/// <summary>2人ともAIに任せているか(勝率計測用のモード)。</summary>
+	bool IsAutoBattle() const { return autoBattle_; }
+
 	/// <summary>
 	/// リーダーと味方を入れ替える(実行中のキャラ切替)。
 	/// 相方が不在/死亡、どちらかが硬直中、切替クールダウン中は何もせずfalse。
@@ -46,6 +49,15 @@ public:
 	static KujataEngine::GameObject* FindLeaderInScene(KujataEngine::Scene* scene, const std::string& fallbackName);
 
 private:
+	/// <summary>
+	/// リーダーと味方の役割を実際に入れ替える(可否判定はしない)。
+	/// SwapLeader(プレイヤー操作)と「リーダーが倒れたときの自動移乗」の共通処理。
+	/// </summary>
+	void PerformSwap();
+
+	/// <summary>リーダーが倒れていて相方が健在なら、操作を相方へ移す。</summary>
+	void SwapIfLeaderIsDown();
+
 	/// <summary>両キャラの頭脳の有効/無効とカメラ追従先を、現在のリーダー設定に合わせて適用する。</summary>
 	void ApplyRoles();
 	/// <summary>characterの頭脳Componentを切り替える(isLeader=trueなら入力、falseならAI)。</summary>
@@ -58,6 +70,10 @@ private:
 		KUJATA_REGISTER_STRING_NAMED(cameraName_, "Camera Name");
 		KUJATA_REGISTER_BOOL_NAMED_TIP(swapEnabled_, "Swap Enabled",
 		    "実行中のキャラ切替(十字キー下/Tab)を許可するか。");
+		KUJATA_REGISTER_BOOL_NAMED_TIP(autoBattle_, "Auto Battle",
+		    "**2人ともAIに任せる(検証用)。** 入力頭脳(Player)を両方無効にし、AI頭脳を両方有効にする。\n"
+		    "キャラ切替も止まる。カメラはリーダー側を追い続けるので観戦できる。\n"
+		    "勝率の計測に使うためのもので、**通常プレイでは必ずOFF**にしておくこと。");
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(swapCooldown_, "Swap Cooldown", 0.05f, 0.0f, 10.0f,
 		    "切替後、次に切り替えられるまでの秒数(連打での往復を防ぐ)。");
 	}
@@ -72,6 +88,8 @@ private:
 	KUJATA_FIELD_BOOL(swapEnabled_, true);
 	// 切替クールダウン[s]。
 	KUJATA_FIELD_FLOAT(swapCooldown_, 1.0f);
+	// 2人ともAIに任せる(勝率計測用)。
+	KUJATA_FIELD_BOOL(autoBattle_, false);
 
 	KujataEngine::GameObject* leader_ = nullptr;
 	KujataEngine::GameObject* ally_ = nullptr;

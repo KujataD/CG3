@@ -3,6 +3,8 @@
 #include "../base/TextureManager.h"
 #include "../runtime/AssetResolver.h"
 #include "../runtime/InspectorUI.h"
+#include "../scene/GameObject.h"
+#include "RectTransformComponent.h"
 #include <algorithm>
 #include <cstring>
 #include <filesystem>
@@ -75,7 +77,17 @@ void ImageComponent::SetTexture(const std::string& assetId, const std::string& p
 	SyncPathBuffer();
 }
 
+void ImageComponent::SetTextureIndexDirect(uint32_t textureIndex) {
+	textureIndex_ = textureIndex;
+	textureIndexOverridden_ = true;
+	// DrawUIの「未Prepareなら白へフォールバック」に巻き戻されないよう解決済みにする。
+	textureResolved_ = true;
+}
+
 void ImageComponent::EnsureTextureLoaded() {
+	if (textureIndexOverridden_) {
+		return;
+	}
 	// assetId優先で現在のパスへ解決する(移動済みアセットは.meta経由で新パスが返る)。
 	std::string resolvedPath;
 	if (!textureAssetId_.empty() || !texturePath_.empty()) {
@@ -123,7 +135,14 @@ void ImageComponent::DrawUI(const UIRect& canvasRect, float scaleFactor) {
 		return;
 	}
 
-	quad_.SetRect(canvasRect.x * scaleFactor, canvasRect.y * scaleFactor, canvasRect.width * scaleFactor * fill, canvasRect.height * scaleFactor);
+	// RectTransformのRotation Zは自分の矩形の中心まわりに掛ける(子へは伝播しない)。
+	float rotation = 0.0f;
+	if (owner_) {
+		if (RectTransformComponent* rectTransform = owner_->GetComponent<RectTransformComponent>()) {
+			rotation = rectTransform->GetRotationZ();
+		}
+	}
+	quad_.SetRect(canvasRect.x * scaleFactor, canvasRect.y * scaleFactor, canvasRect.width * scaleFactor * fill, canvasRect.height * scaleFactor, rotation);
 	quad_.SetUV({0.0f, 0.0f}, {fill, 1.0f});
 	// UVトランスフォームは頂点UV(Fill適用後)にシェーダー側で掛かる。スクロール演出やアトラス部分表示用。
 	quad_.SetUVTransform(uvOffset_, uvScale_, uvRotation_);

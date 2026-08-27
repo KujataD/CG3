@@ -53,6 +53,7 @@
 #include "math/MathUtil.h"
 #include "math/Matrix3x3.h"
 #include "math/Matrix4x4.h"
+#include "math/Noise.h"
 #include "math/Random.h"
 #include "math/Vector2.h"
 #include "math/Vector3.h"
@@ -72,9 +73,11 @@
 #include "vfx/ParticleField.h"
 #include "vfx/ParticleModel.h"
 
+#include "runtime/AppControl.h"
 #include "runtime/GameModule.h"
 #include "runtime/GameModuleLoader.h"
 #include "runtime/SceneManager.h"
+#include "runtime/UIInput.h"
 
 #include "scene/Component.h"
 #include "scene/ComponentFactory.h"

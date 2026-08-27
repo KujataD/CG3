@@ -1,5 +1,7 @@
 #include "CharacterSelectManager.h"
+#include "GameSession.h"
 #include "PartySelection.h"
+#include "ScreenFader.h"
 
 using namespace KujataEngine;
 
@@ -10,5 +12,9 @@ void CharacterSelectManager::RegisterInvokableMethods(KujataEngine::InvokableMet
 
 void CharacterSelectManager::Select(const std::string& leaderName) {
 	PartySelection::SetLeaderName(leaderName);
-	ChangeScene(nextSceneName_);
+	// **シーンを跨いでも保つ方にも書く。** PartySelectionは1回で消費されるので、
+	// チュートリアル→ボス戦やリトライまで選択を持ち越すにはこちらが要る。
+	GameSession::LeaderNameRef() = leaderName;
+	// 本編シーンは重いので必ずローディングを挟む(暗転中に読ませてカクつきを隠す)。
+	ScreenFader::RequestTransition(owner_ ? owner_->GetScene() : nullptr, nextSceneName_, true);
 }

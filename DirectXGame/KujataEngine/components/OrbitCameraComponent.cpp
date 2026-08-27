@@ -36,6 +36,20 @@ float WrapYawAngle(float angle) {
 
 } // namespace
 
+namespace {
+// プレイヤー設定。**シーンではなくアプリ全体の状態**なので、DLL内のstaticで保つ。
+float gUserSensitivityScale = 1.0f;
+bool gUserInvertY = false;
+} // namespace
+
+void OrbitCameraComponent::SetUserSensitivityScale(float scale) { gUserSensitivityScale = (scale > 0.0f) ? scale : 0.0f; }
+
+float OrbitCameraComponent::GetUserSensitivityScale() { return gUserSensitivityScale; }
+
+void OrbitCameraComponent::SetUserInvertY(bool invert) { gUserInvertY = invert; }
+
+bool OrbitCameraComponent::GetUserInvertY() { return gUserInvertY; }
+
 void OrbitCameraComponent::OnPlayStart() {
 	// 配置されている向きから開始する(Editorで置いた画角を尊重)。
 	GameObject* owner = GetOwner();
@@ -137,9 +151,12 @@ void OrbitCameraComponent::Update() {
 		}
 		stick.x = std::clamp(stick.x, -1.0f, 1.0f);
 		stick.y = std::clamp(stick.y, -1.0f, 1.0f);
-		yaw_ = WrapYawAngle(yaw_ + stick.x * sensitivityX_ * deltaTime);
-		float pitchInput = invertY_ ? -stick.y : stick.y;
-		pitch_ = std::clamp(pitch_ + pitchInput * sensitivityY_ * deltaTime, pitchMin_, pitchMax_);
+		// プレイヤー設定の倍率と反転をここで乗せる(シーンの値は基準として残す)。
+		const float userScale = GetUserSensitivityScale();
+		const bool invertY = (invertY_ != GetUserInvertY());
+		yaw_ = WrapYawAngle(yaw_ + stick.x * sensitivityX_ * userScale * deltaTime);
+		float pitchInput = invertY ? -stick.y : stick.y;
+		pitch_ = std::clamp(pitch_ + pitchInput * sensitivityY_ * userScale * deltaTime, pitchMin_, pitchMax_);
 
 		// --- リセンタリング: 無入力が続いたらターゲットの背後(ターゲットのyaw)へゆっくり回り込む ---
 		bool stickIdle = (stick.x * stick.x + stick.y * stick.y) < 0.0025f;

@@ -12,7 +12,11 @@ class EnemyHealth;
 /// 致命の一撃(フロム風のリポスト/クリティカル)。操作キャラのGameObjectに付ける。
 ///
 /// **「窓」は体勢崩しのスタンをそのまま使う。** 敵が `EnemyHealth::IsStaggered()` の間だけ、
-/// 一定距離まで近づくとプロンプトが出て、専用ボタン(B / E)で発動する。
+/// 一定距離まで近づくとプロンプトが出て、**通常攻撃と同じボタン(R2 / K)** で発動する。
+///
+/// **入力はこのコンポーネントでは読まない。** プロンプトが出ている相手を `GetPromptTarget()` で
+/// 公開するところまでが仕事で、押下を見て `TryExecute` を呼ぶのは `Player::Update` の役目。
+/// 両方で読むと1回の押下で二重に発火するので、入力の窓口は必ず1か所に保つこと。
 ///
 /// 気持ちよさは次の4つで作っている(順に効きが大きい):
 ///   1. **ヒットストップ**  当たった瞬間に `Time::SetTimeScale(0)` で全部止める
@@ -37,6 +41,20 @@ public:
 
 	/// <summary>いま致命を出せる相手(プロンプトを出している相手)。無ければnullptr。</summary>
 	KujataEngine::GameObject* GetPromptTarget() const { return promptTarget_; }
+
+	/// <summary>
+	/// **AIから致命を発動する。** 出せたらtrue。
+	///
+	/// 待機中のUpdateが `IsPlayerControlled()` で早期returnするのは
+	/// 「1回の押下で相方の致命まで暴発する」のを防ぐための正しいガードなので、そこは触らない。
+	/// 代わりに発動経路をもう1本開ける — プロンプト表示は操作キャラだけ、発動は2経路、という形にする。
+	///
+	/// targetがnullptrなら自分でスタン中の相手を探す。距離・行動不能・実行中はここで弾く。
+	/// </summary>
+	bool TryExecute(KujataEngine::GameObject* target = nullptr);
+
+	/// <summary>致命が届く距離(AIが寄る目標に使う)。</summary>
+	float GetTriggerDistance() const { return triggerDistance_; }
 
 private:
 	enum class Phase {

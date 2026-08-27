@@ -33,17 +33,9 @@ void WeaponComponent::ApplyDamageToEnemy(KujataEngine::GameObject* enemy) {
 	// ガーディアンのように体の一部(脚など)へ当たり判定を分けている敵では、
 	// HPはルートにあり当たったオブジェクトには無いため、自身だけを見ると素通りしてしまう。
 	// GetComponentInParentは自身から始まるので、単体構成の敵はこれまでどおり動く。
-	// **倒れた相方を叩くと起こせる。** 生きている味方には何も起きない(誤爆でHPを削らない)。
-	if (PlayerHealth* ally = enemy->GetComponentInParent<PlayerHealth>()) {
-		if (!ally->IsDead()) {
-			return;
-		}
-		KujataEngine::GameObject* downed = ally->GetOwner();
-		if (!downed || hitThisSwing_.count(downed) > 0) {
-			return;
-		}
-		ally->AddReviveProgress(damageValue_);
-		hitThisSwing_.insert(downed);
+	// **味方には何も起きない**(誤爆でHPを削らない)。倒れている相方も同じで、
+	// 蘇生は叩いて起こすのではなく倒れてからの経過時間で進む([[death-and-revive]])。
+	if (enemy->GetComponentInParent<PlayerHealth>()) {
 		return;
 	}
 

@@ -8,6 +8,7 @@
 ///   移動      : 左スティック / WASD
 ///   カメラ    : 右スティック / 矢印キー(OrbitCameraComponent側)
 ///   攻撃      : R2(短押し=通常, 長押し=溜め) / K
+///   致命      : R2 / K。致命プロンプトが出ている間だけ、押した瞬間に通常攻撃より優先して出る
 ///   回避      : A / Space
 ///   ガード    : L2(押している間) / J
 ///   Z注目     : R3(トグル) / Q。注目中に右スティックを左右へ倒した瞬間で対象切替
@@ -19,7 +20,6 @@ namespace GameInput {
 inline constexpr WORD kDodgeButton = XINPUT_GAMEPAD_A;
 inline constexpr WORD kLockOnButton = XINPUT_GAMEPAD_RIGHT_THUMB;
 inline constexpr WORD kSwapCharacterButton = XINPUT_GAMEPAD_DPAD_DOWN;
-inline constexpr WORD kCriticalButton = XINPUT_GAMEPAD_B;
 // トリガーは0〜1のアナログ値。この値以上で「押した」とみなす。
 inline constexpr float kTriggerThreshold = 0.5f;
 
@@ -29,10 +29,14 @@ inline constexpr unsigned char kDodgeKey = DIK_SPACE;
 inline constexpr unsigned char kGuardKey = DIK_J;
 inline constexpr unsigned char kLockOnKey = DIK_Q;
 inline constexpr unsigned char kSwapCharacterKey = DIK_TAB;
-// 致命の一撃(スタンした敵に近づくと出るプロンプト)。攻撃・ガードと別のボタンにして誤爆を防ぐ。
-inline constexpr unsigned char kCriticalKey = DIK_E;
 
-/// <summary>攻撃ボタン(R2/K)が押されているか。</summary>
+/// <summary>
+/// 攻撃ボタン(R2/K)が押されているか。
+///
+/// **致命の一撃もこのボタンで出す。** 押し始めの1フレームで致命が成立すればそちらを優先し、
+/// その押下では通常攻撃も溜めも出さない、という優先順位は Player::Update が持っている。
+/// 致命は「押した瞬間」、通常攻撃は「離した瞬間」の判定なので、1回の押下で二重に発火しない。
+/// </summary>
 inline bool IsAttackHeld() {
 	return KujataEngine::Input::GetRightTrigger() >= kTriggerThreshold || KujataEngine::Input::GetKey(kAttackKey);
 }
@@ -50,11 +54,6 @@ inline bool IsDodgeTriggered() {
 /// <summary>Z注目が押された瞬間か。</summary>
 inline bool IsLockOnTriggered() {
 	return KujataEngine::Input::GetControllerButtonTrigger(kLockOnButton) || KujataEngine::Input::GetKeyTrigger(kLockOnKey);
-}
-
-/// <summary>致命の一撃が押された瞬間か。</summary>
-inline bool IsCriticalTriggered() {
-	return KujataEngine::Input::GetControllerButtonTrigger(kCriticalButton) || KujataEngine::Input::GetKeyTrigger(kCriticalKey);
 }
 
 /// <summary>キャラ切替が押された瞬間か。</summary>

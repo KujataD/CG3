@@ -116,7 +116,7 @@
         "kind": 2,
         "seedLane": 50.0,
         "textureSize": 256,
-        "uvTiling": 25.0
+        "tileSize":  4
       },
       "type": "NoiseTextureComponent"
     }

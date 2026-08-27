@@ -9,7 +9,6 @@
 #include "DirectionalLightComponent.h"
 #include "ImageComponent.h"
 #include "ModelRendererComponent.h"
-#include "DecalComponent.h"
 #include "NoiseTextureComponent.h"
 #include "ParticleSystemComponent.h"
 #include "TrailRendererComponent.h"
@@ -37,7 +36,6 @@ void RegisterBuiltinComponents() {
 	factory.RegisterComponent<TransformComponent>();
 	factory.RegisterComponent<RotatorComponent>();
 	factory.RegisterComponent<ModelRendererComponent>();
-	factory.RegisterComponent<DecalComponent>();
 	factory.RegisterComponent<NoiseTextureComponent>();
 	factory.RegisterComponent<ParticleSystemComponent>();
 	factory.RegisterComponent<TrailRendererComponent>();

@@ -4,13 +4,19 @@
 class IAbilitySet;
 class CharacterMotor;
 class IGuard;
+class CriticalStrikeComponent;
 
 /// <summary>
 /// 入力の頭脳。ボタンを読んで体(CharacterMotor)と技(IAbilitySet)・ガード(IGuard)へ指示するだけで、
 /// 自分では何も動かさない。ボタン割り当ては GameInput.h にまとめてある。
 ///
-/// 攻撃ボタン(R2)は「短押し=通常(スロット0) / Charge Hold Seconds以上の長押し=溜め(スロット1)」。
+/// 攻撃ボタン(R2/K)は「短押し=通常(スロット0) / Charge Hold Seconds以上の長押し=溜め(スロット1)」。
 /// 技のモーション中に押した場合は待たずに即スロット0を送る(コンボの先行入力)。
+///
+/// **致命の一撃も同じ攻撃ボタン。** 致命プロンプトが出ている相手が射程内に居れば、
+/// 押した瞬間に致命が最優先で出て、その押下からは通常攻撃も溜めも出さない。
+/// 入力を読むのはこのコンポーネントだけで、CriticalStrikeComponent側は入力を見ない
+/// (両方で読むと1回の押下で二重に発火するため)。
 /// </summary>
 class Player : public KujataEngine::Component {
 public:
@@ -18,6 +24,13 @@ public:
 	bool AllowMultiple() const override { return false; }
 
 	void OnPlayStart() override;
+
+	/// <summary>
+	/// そのGameObjectが「いま操作されているキャラ」か。
+	/// [[PartyManager]] がリーダーの印を Player コンポーネントの有効/無効で付けているので、それに合わせる。
+	/// **プレイヤーにだけ見せたい反応(行動が通らなかった理由など)を、AI相方で誤爆させないため**の門番。
+	/// </summary>
+	static bool IsControlledObject(KujataEngine::GameObject* object);
 	void Update() override;
 
 private:
@@ -46,6 +59,8 @@ private:
 	IGuard* guard_ = nullptr;
 	// 死亡中の入力遮断に使う。
 	class PlayerHealth* health_ = nullptr;
+	// 同じGameObjectの致命の一撃(無ければnullptr)。攻撃ボタンの押下で最優先に回す先。
+	CriticalStrikeComponent* critical_ = nullptr;
 
 	// 攻撃ボタンの状態。
 	bool wasAttackPressed_ = false;

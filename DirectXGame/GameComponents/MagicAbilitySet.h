@@ -54,6 +54,14 @@ public:
 	/// </summary>
 	bool FirePebble(KujataEngine::GameObject* target);
 
+	/// <summary>
+	/// 狙う相手を指定する(頭脳が毎フレーム渡す)。**弾に仰角を付けるために要る。**
+	/// 体の向きは水平のままなので、これが無いと浮いている相手へ永久に届かない。
+	/// nullptrならZ注目の対象へフォールバックする(プレイヤー操作は従来どおり)。
+	/// </summary>
+	void SetAimTarget(KujataEngine::GameObject* target) { aimTarget_ = target; }
+	KujataEngine::GameObject* GetAimTarget() const { return aimTarget_; }
+
 private:
 	enum class PendingShot { None, Normal, Charge };
 
@@ -110,6 +118,9 @@ private:
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(staminaCostNormal_, "Stamina Cost Normal", 1.0f, 0.0f, 100.0f, "通常攻撃1回のスタミナ消費[最大値比%]。");
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(staminaCostCharge_, "Stamina Cost Charge", 1.0f, 0.0f, 100.0f, "溜め1回のスタミナ消費[最大値比%]。撃ち始めに1回だけ引く。");
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(homingTurnRateDeg_, "Homing Turn Rate", 1.0f, 0.0f, 720.0f, "Z注目中に弾が対象へ曲がる速さ[deg/s]。0でホーミングなし。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(maxElevationDeg_, "Max Elevation", 1.0f, 0.0f, 89.0f,
+		    "弾を上下に振れる最大角[deg]。**浮いている相手を撃つために要る。**\n"
+		    "体の向きは水平のままで、弾の向きだけが持ち上がる。0で従来どおり真横にしか飛ばない。");
 		KUJATA_REGISTER_INT_NAMED_TIP(boltCount_, "Bolt Count", 1.0f, 1, 12,
 		    "通常攻撃1回で撃つ弾の数。円周上に等間隔で散らす。");
 		KUJATA_REGISTER_INT_NAMED_TIP(chargeBoltCount_, "Charge Bolt Count", 1.0f, 1, 32,
@@ -168,6 +179,11 @@ private:
 	KUJATA_FIELD_FLOAT(staminaCostCharge_, 50.0f);
 	// ホーミング旋回速度[deg/s]。
 	KUJATA_FIELD_FLOAT(homingTurnRateDeg_, 180.0f);
+	// 弾を上下に振れる最大角[deg]。
+	KUJATA_FIELD_FLOAT(maxElevationDeg_, 70.0f);
+
+	// 狙う相手(頭脳が毎フレーム指定する。シリアライズしないPlay中だけの状態)。
+	KujataEngine::GameObject* aimTarget_ = nullptr;
 	// 通常攻撃の弾数。
 	KUJATA_FIELD_INT(boltCount_, 2);
 	// 溜めの弾数と間隔。

@@ -1,123 +1,121 @@
 {
-  "assetType": "GameObject",
-  "instanceId": "go_76c567a0b42290033b626bd64fc4707f",
-  "parentInstanceId": "go_edd717d122db1da176eb5c1ffbace24c",
-  "prefabAssetPath": "",
-  "prefabObjectId": "",
-  "prefabInstanceRootId": "",
-  "prefabInstanceRoot": false,
-  "name": "StartButton",
-  "tag": "Untagged",
-  "layer": 0,
-  "active": true,
-  "components": [
-    {
-      "enabled": true,
-      "properties": {
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "translation": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "type": "Transform"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "anchorMax": [
-          0.5,
-          0.5
-        ],
-        "anchorMin": [
-          0.5,
-          0.5
-        ],
-        "anchoredPosition": [
-          0.0,
-          187.79083251953125
-        ],
-        "pivot": [
-          0.5,
-          0.5
-        ],
-        "rotationZ": 0.0,
-        "scale": [
-          1.0,
-          1.0
-        ],
-        "sizeDelta": [
-          279.1568603515625,
-          100.0
-        ]
-      },
-      "type": "RectTransform"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          0.501960813999176
-        ],
-        "raycastTarget": true,
-        "textureAssetId": "",
-        "texturePath": "Resources/white1x1.png"
-      },
-      "type": "Image"
-    },
-    {
-      "enabled": true,
-      "properties": {
-        "disabledColor": [
-          0.5,
-          0.5,
-          0.5,
-          0.6000000238418579
-        ],
-        "highlightedColor": [
-          1.0,
-          1.0,
-          1.0,
-          0.7882353067398071
-        ],
-        "interactable": true,
-        "normalColor": [
-          1.0,
-          1.0,
-          1.0,
-          0.501960813999176
-        ],
-        "onClick": {
-          "calls": [
-            {
-              "component": "ChangeSceneManager",
-              "method": "OnClick",
-              "target": "go_dd3c6c59f2d0851c6e9eef3298917d4c"
-            }
-          ]
-        },
-        "onClickEvent": "",
-        "pressedColor": [
-          1.0,
-          1.0,
-          1.0,
-          0.8666666746139526
-        ]
-      },
-      "type": "Button"
-    }
-  ]
+    "assetType":  "GameObject",
+    "instanceId":  "go_76c567a0b42290033b626bd64fc4707f",
+    "parentInstanceId":  "go_edd717d122db1da176eb5c1ffbace24c",
+    "prefabAssetPath":  "",
+    "prefabObjectId":  "",
+    "prefabInstanceRootId":  "",
+    "prefabInstanceRoot":  false,
+    "name":  "StartButton",
+    "tag":  "Untagged",
+    "layer":  0,
+    "active":  true,
+    "components":  [
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "rotation":  [
+                                                               0.0,
+                                                               0.0,
+                                                               0.0
+                                                           ],
+                                              "scale":  [
+                                                            1.0,
+                                                            1.0,
+                                                            1.0
+                                                        ],
+                                              "translation":  [
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0
+                                                              ]
+                                          },
+                           "type":  "Transform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "anchorMax":  [
+                                                                0.5,
+                                                                0.5
+                                                            ],
+                                              "anchorMin":  [
+                                                                0.5,
+                                                                0.5
+                                                            ],
+                                              "anchoredPosition":  [ 0, 150 ],
+                                              "pivot":  [
+                                                            0.5,
+                                                            0.5
+                                                        ],
+                                              "rotationZ":  0.0,
+                                              "scale":  [
+                                                            1.0,
+                                                            1.0
+                                                        ],
+                                              "sizeDelta":  [
+                                                                420,
+                                                                72
+                                                            ]
+                                          },
+                           "type":  "RectTransform"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "color":  [
+                                                            1,
+                                                            1,
+                                                            1,
+                                                            0
+                                                        ],
+                                              "raycastTarget":  true,
+                                              "textureAssetId":  "",
+                                              "texturePath":  "Resources/white1x1.png"
+                                          },
+                           "type":  "Image"
+                       },
+                       {
+                           "enabled":  true,
+                           "properties":  {
+                                              "disabledColor":  [
+                                                                    0.5,
+                                                                    0.5,
+                                                                    0.5,
+                                                                    0.6000000238418579
+                                                                ],
+                                              "highlightedColor":  [
+                                                                       0.042311410620809675,
+                                                                       0.028426039504420793,
+                                                                       0.010960094006488246,
+                                                                       1
+                                                                   ],
+                                              "interactable":  true,
+                                              "normalColor":  [
+                                                                  1,
+                                                                  1,
+                                                                  1,
+                                                                  0
+                                                              ],
+                                              "onClick":  {
+                                                              "calls":  [
+                                                                            {
+                                                                                "component":  "ChangeSceneManager",
+                                                                                "method":  "OnClick",
+                                                                                "target":  "go_dd3c6c59f2d0851c6e9eef3298917d4c"
+                                                                            }
+                                                                        ]
+                                                          },
+                                              "onClickEvent":  "",
+                                              "pressedColor":  [
+                                                                   0.090841711183407683,
+                                                                   0.061246054231617608,
+                                                                   0.02315336617811041,
+                                                                   1
+                                                               ],
+                                              "navigationMode":  1
+                                          },
+                           "type":  "Button"
+                       }
+                   ]
 }

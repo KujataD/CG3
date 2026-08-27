@@ -1,4 +1,7 @@
 #include "SwordGuard.h"
+#include "GameEvents.h"
+#include "Player.h"
+#include "GameAudio.h"
 #include "CharacterMotor.h"
 #include "EnemyHealth.h"
 #include "IAbilitySet.h"
@@ -105,6 +108,13 @@ GuardResult SwordGuard::Mitigate(const HitInfo& hit) {
 		result.justGuard = true;
 		result.damageScale = 0.0f;
 		result.negateKnockback = true;
+		// **成立したことが分からないと練習できない技**なので、専用音を一番大きく鳴らす。
+		GameAudio::PlaySe(GameAudio::Se::JustGuard);
+		// チュートリアルの課題判定用。**操作中のキャラのぶんだけ数える**
+		// (AI相方が偶然成立させたぶんで課題が終わってしまわないように)。
+		if (Player::IsControlledObject(owner_)) {
+			++GameEvents::JustGuardCountRef();
+		}
 		if (hit.attacker) {
 			if (EnemyHealth* enemyHealth = hit.attacker->GetComponentInParent<EnemyHealth>()) {
 				enemyHealth->Flinch();
@@ -118,6 +128,7 @@ GuardResult SwordGuard::Mitigate(const HitInfo& hit) {
 	result.blocked = true;
 	result.negateKnockback = true;
 	result.damageScale = physical ? 0.0f : magicDamageScale_;
+	GameAudio::PlaySe(GameAudio::Se::Guard);
 
 	bool depleted = stamina_ ? stamina_->ConsumePercent(guardCost_) : false;
 	if (depleted) {
@@ -129,6 +140,7 @@ GuardResult SwordGuard::Mitigate(const HitInfo& hit) {
 void SwordGuard::Break(const HitInfo& hit) {
 	guarding_ = false;
 	needRelease_ = true;
+	GameAudio::PlaySe(GameAudio::Se::GuardBreak);
 
 	// 後ろへ弾かれて硬直。のけぞりクリップの代わりにガードブレイククリップを出す。
 	if (motor_) {

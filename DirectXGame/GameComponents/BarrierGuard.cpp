@@ -1,4 +1,6 @@
 #include "BarrierGuard.h"
+#include "GameEvents.h"
+#include "Player.h"
 #include "CharacterMotor.h"
 #include "IAbilitySet.h"
 #include "MagicAbilitySet.h"
@@ -71,10 +73,16 @@ void BarrierGuard::Close() {
 }
 
 Vector3 BarrierGuard::GetCenter() const {
-	if (!owner_) {
+	// 守る相手が指定されていればそこへ張る(離れたまま相方だけを包むため)。
+	// 相手が倒れている/消えている場合は自分中心へ黙って戻す。
+	const GameObject* anchor = owner_;
+	if (protectTarget_ && protectTarget_->IsActiveInHierarchy()) {
+		anchor = protectTarget_;
+	}
+	if (!anchor) {
 		return {0.0f, 0.0f, 0.0f};
 	}
-	return owner_->GetTransform().translation_ + Vector3{0.0f, centerHeight_, 0.0f};
+	return anchor->GetTransform().translation_ + Vector3{0.0f, centerHeight_, 0.0f};
 }
 
 bool BarrierGuard::CoversPosition(const Vector3& worldPosition) const {
@@ -89,6 +97,12 @@ bool BarrierGuard::CoversPosition(const Vector3& worldPosition) const {
 
 GuardResult BarrierGuard::Mitigate(const HitInfo& hit) {
 	if (!active_) {
+		return GuardResult{};
+	}
+	// **球を相方へ預けている間は、自分が球の外なら守られない。**
+	// ここを素通しにすると「離れた場所へバリアを張ったのに自分も無傷」という
+	// 都合の良すぎる挙動になり、間合いを選ぶ意味が消える。
+	if (protectTarget_ && owner_ && !CoversPosition(owner_->GetTransform().translation_)) {
 		return GuardResult{};
 	}
 	return MitigateCommon(hit);
@@ -111,6 +125,11 @@ GuardResult BarrierGuard::MitigateCommon(const HitInfo& hit) {
 		if (activeTime_ <= justGuardWindow_ && magic_) {
 			result.justGuard = true;
 			magic_->FirePebble(hit.attacker);
+			// チュートリアルの課題判定用。**操作中のキャラのぶんだけ数える**
+			// (AI相方が偶然成立させたぶんで課題が終わってしまわないように)。
+			if (Player::IsControlledObject(owner_)) {
+				++GameEvents::JustGuardCountRef();
+			}
 		}
 		return result;
 	}

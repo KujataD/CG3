@@ -1,4 +1,7 @@
 #include "MagicAbilitySet.h"
+#include "GameEvents.h"
+#include "Player.h"
+#include "GameAudio.h"
 #include "GameFx.h"
 #include "CharacterMotor.h"
 #include "IEnemy.h"
@@ -10,6 +13,8 @@
 #include <scene/MovementUtil.h>
 
 #include <algorithm>
+#include <cmath>
+#include <numbers>
 #include <numeric>
 
 using namespace KujataEngine;
@@ -115,6 +120,11 @@ bool MagicAbilitySet::TryUse(int slot) {
 		return false;
 	}
 	if (stamina_ && !stamina_->CanUse()) {
+		// **操作中のキャラのときだけ掲示する。** AI相方も同じ技セットを使うので、
+		// 門番が無いと相方の息切れで画面に文字が出る。
+		if (Player::IsControlledObject(owner_)) {
+			GameEvents::ReportFailure(GameEvents::Failure::NoStamina);
+		}
 		return false;
 	}
 
@@ -270,8 +280,37 @@ void MagicAbilitySet::GetMuzzle(Vector3& outPosition, Vector3& outForward) const
 	} else {
 		forward = {0.0f, 0.0f, 1.0f};
 	}
-	outForward = forward;
 	outPosition = owner_->GetTransform().translation_ + forward * muzzleForward_ + Vector3{0.0f, muzzleHeight_, 0.0f};
+	outForward = forward;
+
+	// --- 仰角 ---
+	// **水平にしか撃てないと、浮いている相手に永久に当たらない。**
+	// 体の向き(Yaw)は従来どおり水平のまま、弾の向きだけを狙いへ持ち上げる。
+	// 狙いはZ注目の対象か、頭脳が指定した相手(AIはこちらを使う)。
+	GameObject* aim = aimTarget_ ? aimTarget_ : FindLockOnTarget();
+	if (!aim || maxElevationDeg_ <= 0.0f) {
+		return;
+	}
+
+	// 狙い点は敵側(IEnemy)が決める。部位(目・脚)に当たっても親のIEnemyへ遡る。
+	Vector3 aimPoint = aim->GetTransform().translation_;
+	if (IEnemy* enemy = aim->GetComponentInParent<IEnemy>()) {
+		aimPoint = enemy->GetLockOnPoint();
+	}
+	Vector3 toAim = aimPoint - outPosition;
+	float horizontal = std::sqrt(toAim.x * toAim.x + toAim.z * toAim.z);
+	if (horizontal <= 0.0001f) {
+		return;
+	}
+
+	// 上下の角度だけを取り出し、行き過ぎないよう上限で丸める。
+	float elevation = std::atan(toAim.y / horizontal);
+	float limit = maxElevationDeg_ * (std::numbers::pi_v<float> / 180.0f);
+	elevation = std::clamp(elevation, -limit, limit);
+
+	// 水平成分は体の向きのまま。持ち上げるのは縦だけなので、横の狙いは従来と変わらない。
+	float cosE = std::cos(elevation);
+	outForward = {forward.x * cosE, std::sin(elevation), forward.z * cosE};
 }
 
 GameObject* MagicAbilitySet::FindStaffOrb() {
@@ -363,6 +402,7 @@ void MagicAbilitySet::FireBolt(float spreadAngleDeg, GameObject* lockOnTarget) {
 }
 
 void MagicAbilitySet::FireNormal() {
+	GameAudio::PlaySe(GameAudio::Se::MagicShot);
 	GameObject* lockOnTarget = FindLockOnTarget();
 
 	// 円周を等分した向きへ散らす(2発なら左右、4発なら十字)。

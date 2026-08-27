@@ -1,5 +1,6 @@
 #include "../KujataEngine/KujataEngine.h"
 #include "../KujataEngine/scene/SampleScene.h"
+#include "../GameComponents/ActionFeedback.h"
 #include "../GameComponents/AllyAIBrain.h"
 #include "../GameComponents/CharacterMotor.h"
 #include "../GameComponents/CharacterSelectManager.h"
@@ -19,9 +20,27 @@
 #include "../GameComponents/HateTable.h"
 #include "../GameComponents/GruntEnemyComponent.h"
 #include "../GameComponents/ChangeSceneManager.h"
+#include "../GameComponents/GameFlowManager.h"
+#include "../GameComponents/LoadingScreen.h"
+#include "../GameComponents/BgmPlayer.h"
+#include "../GameComponents/UiSoundPlayer.h"
+#include "../GameComponents/PauseMenu.h"
+#include "../GameComponents/SettingsMenu.h"
+#include "../GameComponents/FogGate.h"
+#include "../GameComponents/MistBackdrop.h"
+#include "../GameComponents/TorchFlicker.h"
+#include "../GameComponents/TutorialManager.h"
+#include "../GameComponents/TutorialTrigger.h"
+#include "../GameComponents/ScreenFader.h"
 #include "../GameComponents/HammerEnemyComponent.h"
+#include "../GameComponents/AllyBarUpdater.h"
 #include "../GameComponents/PlayerHPBarUpdater.h"
 #include "../GameComponents/PlayerStaminaBarUpdater.h"
+#include "../GameComponents/BossHPBarUpdater.h"
+#include "../GameComponents/ReviveGaugeUpdater.h"
+#include "../GameComponents/EnemyPart.h"
+#include "../GameComponents/PrefabSpawner.h"
+#include "../GameComponents/Phase2Cutscene.h"
 #include "../GameComponents/LockOnController.h"
 #include "../GameComponents/SwordGuard.h"
 #include "../GameComponents/BarrierGuard.h"
@@ -143,9 +162,30 @@ extern "C" __declspec(dllexport) void RegisterGameComponents(KujataEngine::Compo
 	factory.RegisterComponent<HPBarUpdater>(kGameModuleName);
 	factory.RegisterComponent<EnemyWeapon>(kGameModuleName);
 	factory.RegisterComponent<ChangeSceneManager>(kGameModuleName);
+
+	// ゲーム進行(タイトル→ゲーム→リトライ/クリア)まわり。
+	factory.RegisterComponent<ScreenFader>(kGameModuleName);
+	factory.RegisterComponent<LoadingScreen>(kGameModuleName);
+	factory.RegisterComponent<GameFlowManager>(kGameModuleName);
+	factory.RegisterComponent<MistBackdrop>(kGameModuleName);
+	factory.RegisterComponent<FogGate>(kGameModuleName);
+	factory.RegisterComponent<BgmPlayer>(kGameModuleName);
+	factory.RegisterComponent<UiSoundPlayer>(kGameModuleName);
+	factory.RegisterComponent<PauseMenu>(kGameModuleName);
+	factory.RegisterComponent<SettingsMenu>(kGameModuleName);
+	factory.RegisterComponent<TorchFlicker>(kGameModuleName);
+	factory.RegisterComponent<ActionFeedback>(kGameModuleName);
+	factory.RegisterComponent<TutorialManager>(kGameModuleName);
+	factory.RegisterComponent<TutorialTrigger>(kGameModuleName);
 	factory.RegisterComponent<HammerEnemyComponent>(kGameModuleName);
+	factory.RegisterComponent<AllyBarUpdater>(kGameModuleName);
 	factory.RegisterComponent<PlayerHPBarUpdater>(kGameModuleName);
 	factory.RegisterComponent<PlayerStaminaBarUpdater>(kGameModuleName);
+	factory.RegisterComponent<BossHPBarUpdater>(kGameModuleName);
+	factory.RegisterComponent<ReviveGaugeUpdater>(kGameModuleName);
+	factory.RegisterComponent<EnemyPart>(kGameModuleName);
+	factory.RegisterComponent<PrefabSpawner>(kGameModuleName);
+	factory.RegisterComponent<Phase2Cutscene>(kGameModuleName);
 	factory.RegisterComponent<StaminaComponent>(kGameModuleName);
 	factory.RegisterComponent<HateTable>(kGameModuleName);
 	factory.RegisterComponent<GruntEnemyComponent>(kGameModuleName);

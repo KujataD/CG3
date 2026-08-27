@@ -143,12 +143,35 @@ public:
 	void SetTextureOverride(uint32_t textureIndex);
 
 	/// <summary>
+	/// エミッションマップ(自己発光の分布)を、指定SRVインデックスへ直接差し替える(ランタイム上書き)。
+	/// **これを指定しないと発光は面全体へ一様に乗る**ので、霧のように模様のある物を光らせると
+	/// 模様が白飛びで潰れる。BaseColorと同じ手続きテクスチャを入れれば、濃い所だけが光る。
+	/// </summary>
+	void SetEmissiveTextureOverride(uint32_t textureIndex);
+
+	/// <summary>
 	/// UVタイリング(繰り返し回数)を直接差し替える(ランタイム上書き)。
 	/// プリミティブのUVは常に0..1固定でTransform.scaleでは伸びないため、
 	/// 巨大なオブジェクト(地面など)に手続きテクスチャを敷くと模様が1枚だけ間延びして見える。
 	/// tilingを1より大きくすると、そのぶんテクスチャが繰り返し敷き詰められる。
 	/// </summary>
 	void SetUVTilingOverride(float tiling);
+
+	/// <summary>
+	/// ワールド座標でのタイリング(トライプラナー)を差し替える(ランタイム上書き)。
+	/// 値は1ワールドユニットあたりの繰り返し数で、0でメッシュのUV貼りへ戻る。
+	/// **プリミティブをTransformで引き伸ばすと面ごとに模様の伸び方が変わる**ため、
+	/// 手続きテクスチャを箱や球へ貼るときはこちらを使う(SetUVTilingOverrideは面数固定)。
+	/// </summary>
+	void SetTriplanarScaleOverride(float scale);
+
+	/// <summary>
+	/// UVトランスフォーム(スクロール/タイリング/回転)を直接差し替える(ランタイム上書き)。
+	/// **毎フレーム動かす演出はこちらを使う**(SetSubMeshUVTransformはInspectorに出る
+	/// シリアライズ対象を書き換えてしまい、Play中の値が編集値として見えてしまう)。
+	/// 適用順はMaterialと同じ Scale → RotateZ → Translate。
+	/// </summary>
+	void SetUVTransformOverride(const Vector2& offset, const Vector2& scale, float rotation);
 	/// <summary>現在のMaterialのBase Color(上書き前の既定値)。演出側が「既定を基準に薄める」ために使う。</summary>
 	const Vector4& GetBaseColor() const { return material_.baseColor; }
 	bool HasColorOverride() const { return colorOverrideActive_; }

@@ -20,8 +20,8 @@ class UIQuad {
 public:
 	KUJATA_API void Initialize();
 
-	/// <summary>ピクセル矩形(左上x,y・幅・高さ)を設定。</summary>
-	KUJATA_API void SetRect(float x, float y, float width, float height);
+	/// <summary>ピクセル矩形(左上x,y・幅・高さ)を設定。rotationは矩形中心まわりの回転[rad](Y下向きなので正で時計回り)。</summary>
+	KUJATA_API void SetRect(float x, float y, float width, float height, float rotation = 0.0f);
 
 	/// <summary>UV範囲(左上・右下)を設定。既定は0..1。</summary>
 	KUJATA_API void SetUV(const Vector2& uvMin, const Vector2& uvMax);

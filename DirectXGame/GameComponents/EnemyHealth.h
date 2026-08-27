@@ -22,6 +22,14 @@ public:
 	void OnPlayStart() override;
 	void Update() override;
 
+	/// <summary>
+	/// HPの実体。Shared Health Owner が指定されていればそちらを、無ければ自分を返す。
+	/// **残量・生死・体勢崩しの問い合わせはすべてここを経由する**ので、
+	/// 部位が何個あってもHPバーは1本のまま揃う。
+	/// </summary>
+	EnemyHealth* Master();
+	const EnemyHealth* Master() const;
+
 	void TakeDamage(float damage);
 	/// <summary>
 	/// ダメージと体勢崩し値を同時に与える(味方の武器・魔法弾はこちらを使う)。
@@ -37,7 +45,7 @@ public:
 	/// <summary>体勢崩し値を蓄積する。閾値到達でスタン開始(OnStagger発火)。スタン中は無視。</summary>
 	void AddPoise(float poiseDamage);
 	/// <summary>スタン中か。頭脳はこの間BTを止め、スタン姿勢を取る。</summary>
-	bool IsStaggered() const { return stunTimer_ > 0.0f; }
+	bool IsStaggered() const { const EnemyHealth* m = Master(); return (m != this) ? m->IsStaggered() : stunTimer_ > 0.0f; }
 	/// <summary>スタンの残り秒数。</summary>
 	float GetStunRemaining() const { return stunTimer_; }
 	/// <summary>スタンの全長[s](姿勢の補間用)。</summary>
@@ -65,6 +73,14 @@ public:
 	void SetOnStagger(std::function<void()> cb) { onStagger_ = std::move(cb); }
 	void SetOnStaggerEnd(std::function<void()> cb) { onStaggerEnd_ = std::move(cb); }
 	void SetOnFlinch(std::function<void()> cb) { onFlinch_ = std::move(cb); }
+
+	/// <summary>
+	/// **ダメージが通るたびに呼ばれる(行動は中断しない)。** 被弾のリアクションを返すためのもの。
+	/// 中断を伴うのけぞりは [[SetOnFlinch]]、行動を止めるのは [[SetOnStagger]] と役割を分けてある。
+	/// attacker は殴ってきた側(方向を作るのに使う。無いこともある)。
+	/// 体力を共有している部位(第2形態の目など)から来た分も、**まとめ役のEnemyHealthへ届く**。
+	/// </summary>
+	void SetOnHit(std::function<void(KujataEngine::GameObject*, float)> cb) { onHit_ = std::move(cb); }
 	/// <summary>致命を受けたときに呼ばれる(引数=のけぞる秒数)。ボス側が大きな仰け反りを演じる。</summary>
 	void SetOnCritical(std::function<void(float)> cb) { onCritical_ = std::move(cb); }
 
@@ -91,6 +107,13 @@ private:
 		KUJATA_REGISTER_STRING_NAMED_TIP(lockOnObjectName_, "Lock On Object",
 		    "Z注目の狙い点にする子孫オブジェクトの名前(例: ボスの \"Body\")。\n"
 		    "空ならこのGameObject自身の位置を基準にする。動く部位を指定すれば狙い点もついていく。");
+		KUJATA_REGISTER_STRING_NAMED_TIP(sharedHealthOwnerName_, "Shared Health Owner",
+		    "**このHPを別のオブジェクトと共有する**ときの、本体のGameObject名。\n"
+		    "指定すると、こちらが受けたダメージも体勢崩しも本体へ流し、残量も本体の値を返す。\n"
+		    "\n"
+		    "目と脚のように**親子関係を持たない部位**を1本のHPで束ねるためのもの。\n"
+		    "親子であれば `GetComponentInParent<EnemyHealth>()` が拾ってくれるが、\n"
+		    "独立したオブジェクト同士では辿る先が無いので、名前で結ぶ。空なら自分のHPを使う。");
 		KUJATA_REGISTER_VECTOR3_NAMED_TIP(lockOnOffset_, "Lock On Offset", 0.05f, -50.0f, 50.0f,
 		    "狙い点の基準位置からのオフセット(ワールド軸)。レティクル・カメラの注視点・ホーミング弾の目標になる。\n"
 		    "小型敵は頭のあたり、ボスは胴体中心など、敵ごとに自由に決められる。");
@@ -106,6 +129,8 @@ private:
 	KUJATA_FIELD_FLOAT(poiseDecayDelay_, 2.0f);
 	// スタン秒数。
 	KUJATA_FIELD_FLOAT(stunDuration_, 3.0f);
+	// HPを共有する本体のGameObject名(空=自分のHPを使う)。
+	KUJATA_FIELD_STRING(sharedHealthOwnerName_, "");
 	// 注目点の基準にする子孫オブジェクト名(空=自分)。
 	KUJATA_FIELD_STRING(lockOnObjectName_, "");
 	// 注目点のオフセット。
@@ -116,6 +141,7 @@ private:
 	std::function<void()> onStagger_;
 	std::function<void()> onStaggerEnd_;
 	std::function<void()> onFlinch_;
+	std::function<void(KujataEngine::GameObject*, float)> onHit_;
 	std::function<void(float)> onCritical_;
 
 	// --- ランタイム状態 ---

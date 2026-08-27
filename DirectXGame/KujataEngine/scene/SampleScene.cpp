@@ -9,7 +9,6 @@
 #include "../components/DebugCameraComponent.h"
 #include "../components/DirectionalLightComponent.h"
 #include "../components/ModelRendererComponent.h"
-#include "../components/DecalComponent.h"
 #include "../components/ParticleSystemComponent.h"
 #include "../components/TrailRendererComponent.h"
 #include "../components/PointLightComponent.h"
@@ -221,9 +220,6 @@ void SampleScene::ApplyRenderCameraToModelRenderers(const Camera* camera) {
 			}
 
 			// トレイルもカメラを向く帯を組み立てるので、同じようにこのビューのカメラを渡す。
-			if (DecalComponent* decal = dynamic_cast<DecalComponent*>(component.get())) {
-				decal->SetCamera(camera);
-			}
 			if (ParticleSystemComponent* particles = dynamic_cast<ParticleSystemComponent*>(component.get())) {
 				particles->SetCamera(camera);
 			}

@@ -35,12 +35,12 @@ public:
 	/// </summary>
 	bool IsDead() const { return dead_; }
 
+	void Update() override;
+
 	/// <summary>
-	/// 蘇生の進捗を積む。**倒れた相方を叩くと起こせる**ための入口で、攻撃側が与ダメージぶんを渡す。
-	/// Revive Requiredに達した時点で自動的に蘇生する。死亡中でなければ何もしない。
+	/// 蘇生の進み具合(0〜1)。**倒れてからの経過時間**だけで進む(Revive Seconds で満ちる)。
+	/// 相方の助けは要らない。ゲージ表示に使う。
 	/// </summary>
-	void AddReviveProgress(float amount);
-	/// <summary>蘇生の進み具合(0〜1)。ゲージ表示用。</summary>
 	float GetReviveProgress() const;
 	/// <summary>即座に蘇生させる(進捗を無視する)。</summary>
 	void Revive();
@@ -58,9 +58,9 @@ private:
 	KUJATA_SERIALIZED_FIELDS_BEGIN() {
 		KUJATA_REGISTER_FLOAT(maxHealth_, 1.0f, 0.0f, 0.0f);
 		KUJATA_REGISTER_FLOAT(health_, 1.0f, 0.0f, 0.0f);
-		KUJATA_REGISTER_FLOAT_NAMED_TIP(reviveRequired_, "Revive Required", 1.0f, 1.0f, 1000.0f,
-		    "倒れた相方を起こすのに必要な累計ダメージ量。攻撃を当てるほど溜まる。\n"
-		    "**戦闘中に起こせる程度に低く**しないと、蘇生が現実的な選択肢にならない。");
+		KUJATA_REGISTER_FLOAT_NAMED_TIP(reviveSeconds_, "Revive Seconds", 0.1f, 1.0f, 60.0f,
+		    "倒れてから自力で立ち上がるまでの秒数。**相方が助けに行く必要はない。**\n"
+		    "チュートリアルの文面(「倒れても十秒で起き上がる」)と揃えること。");
 		KUJATA_REGISTER_FLOAT_NAMED_TIP(reviveHealthPercent_, "Revive Health %", 1.0f, 1.0f, 100.0f,
 		    "蘇生したときに戻るHPの割合[%]。満タンにすると死亡の重みが消える。");
 		KUJATA_REGISTER_STRING_NAMED_TIP(deathClipName_, "Death Clip", "倒れたときに再生するクリップ名。空なら見た目は変えない。");
@@ -68,7 +68,7 @@ private:
 
 	KUJATA_FIELD_FLOAT(maxHealth_, 100);
 	KUJATA_FIELD_FLOAT(health_, 100);
-	KUJATA_FIELD_FLOAT(reviveRequired_, 60.0f);
+	KUJATA_FIELD_FLOAT(reviveSeconds_, 10.0f);
 	KUJATA_FIELD_FLOAT(reviveHealthPercent_, 50.0f);
 	KUJATA_FIELD_STRING(deathClipName_, "");
 
@@ -79,8 +79,8 @@ private:
 	bool invincible_ = false;
 	// 死亡中か。HPが0になった瞬間に立ち、蘇生で降りる。
 	bool dead_ = false;
-	// 蘇生の進捗(累計ダメージ換算)。
-	float reviveProgress_ = 0.0f;
+	// 倒れてからの経過[s]。reviveSeconds_ に達すると自分で起き上がる。
+	float reviveTimer_ = 0.0f;
 	// 死ぬ前のRigidbodyが動的だったか。蘇生で元へ戻すために覚えておく。
 	bool wasDynamicBeforeDeath_ = true;
 	// 死亡地点に置いた炎。Playごとに作り直すのでポインタは持ち越さない。

@@ -36,6 +36,16 @@ public:
 
 	float GetRadius() const { return radius_; }
 
+	/// <summary>
+	/// **バリアを「自分」ではなく「守る相手」の位置へ張る。** nullptrで自分中心へ戻る。
+	///
+	/// 術師は本来ボスから離れた間合いで戦うので、相方(剣士)を守るために前へ出ると
+	/// 自分が的になってしまう。中心を切り離せば、離れたまま剣士だけを球で包める。
+	/// 頭脳(AllyAIBrain / Player)が毎フレーム指定する運用で、Play中の一時的な状態として持つ。
+	/// </summary>
+	void SetProtectTarget(KujataEngine::GameObject* target) { protectTarget_ = target; }
+	KujataEngine::GameObject* GetProtectTarget() const { return protectTarget_; }
+
 private:
 	void Open();
 	void Close();
@@ -86,4 +96,6 @@ private:
 	// バリアの見た目(Prefabから初回だけ生成)。
 	KujataEngine::GameObject* visual_ = nullptr;
 	bool visualTried_ = false;
+	// 球の中心を預ける相手(nullptr=自分)。シリアライズしないPlay中だけの状態。
+	KujataEngine::GameObject* protectTarget_ = nullptr;
 };

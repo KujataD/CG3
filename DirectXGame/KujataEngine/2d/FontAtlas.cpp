@@ -1,10 +1,15 @@
 #include "FontAtlas.h"
 
+#include "../base/ProjectPath.h"
 #include "../base/TextureManager.h"
+#include <cctype>
+#include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <memory>
+#include <vector>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -21,6 +26,87 @@ namespace {
 
 // fontPathでキャッシュ(SDFはスケール非依存なのでサイズ別に持たない)。
 std::map<std::string, std::unique_ptr<FontAtlas>> gFontCache;
+
+/// <summary>Windowsのフォントフォルダ。%WINDIR% から組み立てる(Cドライブ決め打ちにしない)。</summary>
+std::filesystem::path SystemFontDirectory() {
+	char* windowsRoot = nullptr;
+	std::size_t length = 0;
+	if (_dupenv_s(&windowsRoot, &length, "WINDIR") == 0 && windowsRoot) {
+		std::filesystem::path path = std::filesystem::path(windowsRoot) / "Fonts";
+		std::free(windowsRoot);
+		return path;
+	}
+	return std::filesystem::path("C:/Windows/Fonts");
+}
+
+/// <summary>
+/// 同梱フォントが見つからなかったときに、どのシステムフォントで代用するかを決める。
+/// **見た目を変えないための振り分け**で、明朝を求めている表示にゴシックを返したり、
+/// 太字の見出しを細字にしたりしないようにファイル名から読み取る。
+/// </summary>
+const std::vector<const char*>& SystemFallbackCandidates(const std::string& lowerName) {
+	static const std::vector<const char*> kSerif = {"yumin.ttf", "msmincho.ttc", "yugothm.ttc", "meiryo.ttc"};
+	static const std::vector<const char*> kSansBold = {"YuGothB.ttc", "meiryob.ttc", "msgothic.ttc", "yumin.ttf"};
+	static const std::vector<const char*> kSans = {"YuGothR.ttc", "meiryo.ttc", "msgothic.ttc", "yumin.ttf"};
+
+	if (lowerName.find("bold") != std::string::npos) {
+		return kSansBold;
+	}
+	if (lowerName.find("serif") != std::string::npos || lowerName.find("mincho") != std::string::npos) {
+		return kSerif;
+	}
+	return kSans;
+}
+
+/// <summary>
+/// **フォントの置き場所を解決する。** JSONには相対パス(`Fonts/JapaneseSerif.ttf` など)を書き、
+/// 実体をどこから拾うかはここだけで決める。探す順は:
+///   1. 書かれたパスそのもの(絶対パスをまだ使っている古いデータのため)
+///   2. `Data/<書かれたパス>`  ← **同梱フォントの正規の置き場**
+///   3. `Data/Fonts/<ファイル名>`
+///   4. システムのフォント(明朝/ゴシックの別だけ合わせる)
+///
+/// **同梱フォントが無くても日本語が出るようにする**のが4段目の役目。
+/// 再配布して良いフォント(IPAex / Noto 等)を `Data/Fonts/` へ置けば、
+/// 何も書き換えずにそちらが使われるようになる。
+/// </summary>
+std::string ResolveFontPath(const std::string& requested) {
+	if (requested.empty()) {
+		return requested;
+	}
+	std::error_code error;
+
+	const std::filesystem::path asWritten(requested);
+	if (std::filesystem::exists(asWritten, error)) {
+		return requested;
+	}
+
+	const std::filesystem::path dataRoot = GetProjectDataRoot();
+	const std::filesystem::path underData = dataRoot / requested;
+	if (std::filesystem::exists(underData, error)) {
+		return underData.string();
+	}
+
+	const std::filesystem::path fileName = asWritten.filename();
+	const std::filesystem::path underFonts = dataRoot / "Fonts" / fileName;
+	if (std::filesystem::exists(underFonts, error)) {
+		return underFonts.string();
+	}
+
+	// ここから先はシステム頼み。**同梱せずに配布された状態でも文字が消えないため**の保険。
+	std::string lowerName = fileName.string();
+	for (char& character : lowerName) {
+		character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+	}
+	const std::filesystem::path systemFonts = SystemFontDirectory();
+	for (const char* candidate : SystemFallbackCandidates(lowerName)) {
+		const std::filesystem::path path = systemFonts / candidate;
+		if (std::filesystem::exists(path, error)) {
+			return path.string();
+		}
+	}
+	return requested; // 見つからない。Initializeが失敗して呼び出し側が諦める。
+}
 
 std::vector<uint8_t> ReadFile(const std::string& path) {
 	std::ifstream file(path, std::ios::binary | std::ios::ate);
@@ -89,13 +175,15 @@ std::vector<uint32_t> DecodeUtf8(const std::string& s) {
 } // namespace
 
 FontAtlas* FontAtlas::GetOrCreate(const std::string& fontPath) {
+	// **キャッシュは要求されたパスで引く。** 解決は毎回ファイルを叩くので、
+	// 同じ名前で何度も呼ばれる描画側にその手間を負わせない。
 	auto found = gFontCache.find(fontPath);
 	if (found != gFontCache.end()) {
 		return found->second.get();
 	}
 
 	auto atlas = std::make_unique<FontAtlas>();
-	if (!atlas->Initialize(fontPath)) {
+	if (!atlas->Initialize(ResolveFontPath(fontPath))) {
 		return nullptr;
 	}
 	FontAtlas* result = atlas.get();

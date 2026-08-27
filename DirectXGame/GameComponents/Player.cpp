@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "CharacterMotor.h"
+#include "CriticalStrikeComponent.h"
 #include "GameInput.h"
 #include "IAbilitySet.h"
 #include "IGuard.h"
@@ -12,9 +13,18 @@ void Player::OnPlayStart() {
 	abilitySet_ = GetComponent<IAbilitySet>();
 	guard_ = GetComponent<IGuard>();
 	health_ = GetComponent<PlayerHealth>();
+	critical_ = GetComponent<CriticalStrikeComponent>();
 	wasAttackPressed_ = false;
 	attackHoldTime_ = 0.0f;
 	attackConsumed_ = false;
+}
+
+bool Player::IsControlledObject(GameObject* object) {
+	if (!object) {
+		return false;
+	}
+	const Player* brain = object->GetComponent<Player>();
+	return brain && brain->IsEnabled();
 }
 
 void Player::Update() {
@@ -23,7 +33,7 @@ void Player::Update() {
 	}
 
 	// **倒れている間は一切の入力を受け付けない。**
-	// 相方に起こしてもらうまで動けない、というのが死亡状態の重みそのもの。
+	// 自力で起き上がるまでの十秒間まったく動けない、というのが死亡状態の重みそのもの。
 	if (health_ && health_->IsDead()) {
 		return;
 	}
@@ -50,9 +60,21 @@ void Player::Update() {
 	}
 
 	// --- 攻撃(短押し=通常 / 長押し=溜め / モーション中の押下=即先行入力) ---
+	// **致命の一撃も同じボタン。** プロンプトが出ている相手が射程内に居れば、押した瞬間に致命へ回す。
+	// 通常攻撃は「離した瞬間」、溜めは「押しっぱなし」で出るので、ここで attackConsumed_ を立てておけば
+	// 1回の押下から通常攻撃・溜め・致命が二重に発火することはない。
+	// 入力を読むのはここ1か所だけで、CriticalStrikeComponent側は入力を見ない(二重処理の防止)。
 	if (isAttackPressed && !wasAttackPressed_) {
 		attackHoldTime_ = 0.0f;
 		attackConsumed_ = false;
+		if (critical_ && critical_->GetPromptTarget() && critical_->TryExecute(critical_->GetPromptTarget())) {
+			attackConsumed_ = true;
+			wasAttackPressed_ = isAttackPressed;
+			if (guard_) {
+				guard_->SetGuardInput(false);
+			}
+			return;
+		}
 		if (abilitySet_ && abilitySet_->IsBusy()) {
 			abilitySet_->TryUse(0);
 			attackConsumed_ = true;

@@ -140,8 +140,7 @@
         "deathClipName": "",
         "health": 100.0,
         "maxHealth": 100.0,
-        "reviveHealthPercent": 50.0,
-        "reviveRequired": 60.0
+        "reviveHealthPercent": 50.0
       },
       "type": "PlayerHealth"
     },

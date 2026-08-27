@@ -1,4 +1,6 @@
 #include "MeleeAbilitySet.h"
+#include "GameEvents.h"
+#include "Player.h"
 #include "CharacterMotor.h"
 #include "StaminaComponent.h"
 #include "WeaponComponent.h"
@@ -8,6 +10,16 @@ using namespace KujataEngine;
 namespace {
 constexpr int kChargeIndex = 4;
 constexpr int kMaxComboSteps = 3;
+
+/// <summary>
+/// スタミナ切れで技が出せなかったことを掲示する。**操作中のキャラのときだけ。**
+/// この技セットはAI相方も同じものを使うので、門番を付けないと相方の息切れで画面に文字が出る。
+/// </summary>
+void ReportOutOfStamina(KujataEngine::GameObject* owner) {
+	if (Player::IsControlledObject(owner)) {
+		GameEvents::ReportFailure(GameEvents::Failure::NoStamina);
+	}
+}
 } // namespace
 
 void MeleeAbilitySet::OnPlayStart() {
@@ -116,6 +128,7 @@ bool MeleeAbilitySet::StartStep(int step) {
 		return false;
 	}
 	if (stamina_ && !stamina_->CanUse()) {
+		ReportOutOfStamina(owner_);
 		return false;
 	}
 	if (!animator_->PlayByName(clipName)) {
@@ -140,6 +153,7 @@ bool MeleeAbilitySet::StartCharge() {
 		return false;
 	}
 	if (stamina_ && !stamina_->CanUse()) {
+		ReportOutOfStamina(owner_);
 		return false;
 	}
 	if (!animator_->PlayByName(chargeClipName_)) {
