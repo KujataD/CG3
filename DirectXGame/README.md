@@ -12,10 +12,10 @@
 
 | 設定 | 場所 |
 |---|---|
-| exe 名(課題の提出名) | `Game/Game.props` の `KujataExeName` |
-| ウィンドウのタイトル・背景色 | `Game/Data/ProjectSettings/Project.json` |
-| 起動シーン | `Game/Data/ProjectSettings/StartupScene.txt`(配布物は `Tools/MakeGameBuild.ps1` が TitleScene にする) |
-| タグ一覧 | `Game/Data/ProjectSettings/Tags.json` |
-| AI のビヘイビアツリー | `Game/Data/Resources/bt_set/` |
+| exe 名(課題の提出名) | `DirectXGame/Game.props` の `KujataExeName` |
+| ウィンドウのタイトル・背景色 | `DirectXGame/Data/ProjectSettings/Project.json` |
+| 起動シーン | `DirectXGame/Data/ProjectSettings/StartupScene.txt`(配布物は `Tools/MakeGameBuild.ps1` が TitleScene にする) |
+| タグ一覧 | `DirectXGame/Data/ProjectSettings/Tags.json` |
+| AI のビヘイビアツリー | `DirectXGame/Data/Resources/bt_set/` |
 
 背景色がほぼ黒なのは、画面奥を洞窟の闇に見せるため(空色のままだと、天井の無い通路から明るい「空」が覗いてしまう)。
